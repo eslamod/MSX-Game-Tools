@@ -1,0 +1,117 @@
+using MSX_SpritesEditor.Entities;
+using MSX_SpritesEditor.ViewModels;
+using Xunit;
+
+namespace MSX_SpritesEditor.Tests;
+
+/// <summary>
+/// Lógica del banco de sprites. No necesita plataforma gráfica: ImageMini sólo
+/// construye el bitmap cuando alguien lee SpritePreview.
+/// </summary>
+public class SpritesEditorViewModelTests
+{
+    [Fact]
+    public void Un_banco_nuevo_muestra_la_miniatura_de_su_primer_sprite()
+    {
+        SpritesEditorViewModel vm = NewEditor();
+
+        // En WPF la lista se creaba vacía y esta miniatura no aparecía nunca.
+        Assert.Single(vm.ImagesMiniList);
+        Assert.Equal(1, vm.NumberSprites);
+        Assert.Equal(1, vm.CurrentSpritePosition);
+    }
+
+    [Fact]
+    public void Anadir_sprite_actualiza_contador_y_miniaturas()
+    {
+        SpritesEditorViewModel vm = NewEditor();
+
+        vm.AddSpriteCommand.Execute(null);
+
+        Assert.Equal(2, vm.NumberSprites);
+        Assert.Equal(2, vm.ImagesMiniList.Count);
+    }
+
+    [Fact]
+    public void Borrar_sprite_elimina_tambien_su_miniatura()
+    {
+        SpritesEditorViewModel vm = NewEditor();
+        vm.AddSpriteCommand.Execute(null);
+        vm.AddSpriteCommand.Execute(null);
+        Assert.Equal(3, vm.ImagesMiniList.Count);
+
+        vm.DeleteSpriteCommand.Execute(null);
+
+        // En WPF se borraba del banco pero no de la lista, y se desincronizaban.
+        Assert.Equal(2, vm.NumberSprites);
+        Assert.Equal(2, vm.ImagesMiniList.Count);
+    }
+
+    [Fact]
+    public void No_se_puede_borrar_el_ultimo_sprite()
+    {
+        SpritesEditorViewModel vm = NewEditor();
+
+        Assert.False(vm.DeleteSpriteCommand.CanExecute(null));
+
+        vm.AddSpriteCommand.Execute(null);
+        Assert.True(vm.DeleteSpriteCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void No_se_pueden_anadir_mas_sprites_de_los_que_admite_el_banco()
+    {
+        SpritesEditorViewModel vm = NewEditor();
+
+        for (int i = 1; i < SpriteBank.MaxSprites; i++)
+            vm.AddSpriteCommand.Execute(null);
+
+        Assert.Equal(SpriteBank.MaxSprites, vm.NumberSprites);
+        Assert.False(vm.AddSpriteCommand.CanExecute(null));
+
+        // En WPF esto lanzaba NullReferenceException: NewSprite devolvía null.
+        vm.AddSpriteCommand.Execute(null);
+
+        Assert.Equal(SpriteBank.MaxSprites, vm.NumberSprites);
+        Assert.Equal(SpriteBank.MaxSprites, vm.ImagesMiniList.Count);
+    }
+
+    [Fact]
+    public void La_navegacion_respeta_los_extremos()
+    {
+        SpritesEditorViewModel vm = NewEditor();
+        vm.AddSpriteCommand.Execute(null);
+
+        Assert.False(vm.PreviousSpriteCommand.CanExecute(null));
+        Assert.True(vm.NextSpriteCommand.CanExecute(null));
+
+        vm.NextSpriteCommand.Execute(null);
+
+        Assert.Equal(2, vm.CurrentSpritePosition);
+        Assert.True(vm.PreviousSpriteCommand.CanExecute(null));
+        Assert.False(vm.NextSpriteCommand.CanExecute(null));
+
+        vm.PreviousSpriteCommand.Execute(null);
+
+        Assert.Equal(1, vm.CurrentSpritePosition);
+    }
+
+    [Fact]
+    public void Cambiar_de_sprite_avisa_a_la_vista()
+    {
+        SpritesEditorViewModel vm = NewEditor();
+        vm.AddSpriteCommand.Execute(null);
+
+        int notifications = 0;
+        vm.RefreshRequested += _ => notifications++;
+
+        vm.NextSpriteCommand.Execute(null);
+        vm.PreviousSpriteCommand.Execute(null);
+
+        Assert.Equal(2, notifications);
+        Assert.Same(vm.SpritesBank.SpritesList[0], vm.CurrentSprite);
+    }
+
+    private static SpritesEditorViewModel NewEditor() =>
+        new(new SpriteBank(), GlobalSettings.CurrentColorPalette);
+}

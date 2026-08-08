@@ -5,9 +5,17 @@
       "label": "build",
       "command": "dotnet",
       "type": "process",
-      "args": ["build", "${workspaceFolder}/MSX_SpritesEditor.csproj", "-v", "minimal"],
+      "args": ["build", "${workspaceFolder}/MSX_SpritesEditor.slnx", "-v", "minimal"],
       "problemMatcher": "$msCompile",
       "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "test",
+      "command": "dotnet",
+      "type": "process",
+      "args": ["test", "${workspaceFolder}/MSX_SpritesEditor.slnx", "-v", "minimal"],
+      "problemMatcher": "$msCompile",
+      "group": { "kind": "test", "isDefault": true }
     },
     {
       "label": "run",
