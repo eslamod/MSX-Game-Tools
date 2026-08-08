@@ -16,16 +16,19 @@ namespace MSX_SpritesEditor.Tests;
 /// </summary>
 internal sealed class SpriteCanvasHarness : IDisposable
 {
-    /// <summary>Lado de una celda con el zoom X1 (lienzo de 256 / 16 celdas).</summary>
-    private const double CellSize = 16.0;
+    /// <summary>
+    /// Lado de una celda con el zoom X1 (lienzo de 256 / 16 celdas). Las pulsaciones
+    /// sobre el lienzo asumen X1, que es el zoom con el que arranca la vista.
+    /// </summary>
+    private const double CellSizeAtX1 = 16.0;
 
     private readonly Window _window;
     private readonly SpritesEditorView _view;
     private readonly Point _origin;
 
-    public SpriteCanvasHarness(PaintMode mode)
+    public SpriteCanvasHarness(PaintMode mode, SpriteBank.SpriteType bankType = SpriteBank.SpriteType.MSX)
     {
-        Bank = new SpriteBank();
+        Bank = new SpriteBank(bankType);
         ViewModel = new SpritesEditorViewModel(Bank, GlobalSettings.CurrentColorPalette);
 
         SpritesEditorView view = new() { DataContext = ViewModel };
@@ -45,6 +48,13 @@ internal sealed class SpriteCanvasHarness : IDisposable
                   ?? throw new InvalidOperationException("El lienzo no está en el árbol visual.");
 
         Thumbnails = view.GetVisualDescendants().OfType<ListBox>().Single();
+
+        RowColorStrip = view.FindControl<ItemsControl>("RowColorStrip")
+                        ?? throw new InvalidOperationException("Falta la tira de colores por línea.");
+        SpriteColorPanel = view.FindControl<StackPanel>("SpriteColorPanel")
+                           ?? throw new InvalidOperationException("Falta el color único de MSX1.");
+        BackgroundSwatch = view.FindControl<Button>("BackgroundSwatch")
+                           ?? throw new InvalidOperationException("Falta el selector de fondo.");
     }
 
     /// <summary>Debe coincidir con los Tag de los RadioButton de modo en SpritesEditorView.axaml.</summary>
@@ -60,6 +70,18 @@ internal sealed class SpriteCanvasHarness : IDisposable
 
     /// <summary>La tira de miniaturas del banco.</summary>
     public ListBox Thumbnails { get; }
+
+    /// <summary>La columna de colores por línea (MSX2).</summary>
+    public ItemsControl RowColorStrip { get; }
+
+    /// <summary>El color único del sprite (MSX1).</summary>
+    public StackPanel SpriteColorPanel { get; }
+
+    /// <summary>El selector del color de fondo.</summary>
+    public Button BackgroundSwatch { get; }
+
+    /// <summary>Alto de una fila del lienzo con el zoom actual.</summary>
+    public double CellSize => _view.CellSize;
 
     public int PaintedCount => Bank.SpritesList[0].ArraySpriteRows
         .Sum(row => row.ArrayColumns.Count(on => on));
@@ -79,7 +101,7 @@ internal sealed class SpriteCanvasHarness : IDisposable
     /// <summary>Lleva el puntero fuera del lienzo, por la izquierda.</summary>
     public void MoveOutside(int cellY)
     {
-        _window.MouseMove(new Point(_origin.X - 80, _origin.Y + (cellY * CellSize) + (CellSize / 2)));
+        _window.MouseMove(new Point(_origin.X - 80, _origin.Y + (cellY * CellSizeAtX1) + (CellSizeAtX1 / 2)));
         Pump();
     }
 
@@ -131,6 +153,27 @@ internal sealed class SpriteCanvasHarness : IDisposable
     public double ThumbnailImageSize(int index) =>
         ThumbnailContainer(index).GetVisualDescendants().OfType<Image>().Single().Width;
 
+    /// <summary>Pulsa uno de los botones X1/X2/X3 del zoom del lienzo.</summary>
+    public void SetCanvasZoom(int index)
+    {
+        RadioButton button = _view.GetVisualDescendants()
+            .OfType<RadioButton>()
+            .Single(r => r.GroupName == "EditZoom" && (r.Tag as string) == index.ToString());
+
+        button.IsChecked = true;
+        Pump();
+    }
+
+    /// <summary>El botón de color de una línea de la columna de colores.</summary>
+    public Button RowColorSwatch(int row)
+    {
+        Pump();
+        Control container = RowColorStrip.ContainerFromIndex(row)
+                            ?? throw new InvalidOperationException($"La fila {row} no está realizada.");
+
+        return container.GetVisualDescendants().OfType<Button>().First();
+    }
+
     public void Dispose()
     {
         _window.Close();
@@ -141,8 +184,8 @@ internal sealed class SpriteCanvasHarness : IDisposable
 
     /// <summary>Centro de una celda, en coordenadas de la ventana.</summary>
     private Point At(int cellX, int cellY) => new(
-        _origin.X + (cellX * CellSize) + (CellSize / 2),
-        _origin.Y + (cellY * CellSize) + (CellSize / 2));
+        _origin.X + (cellX * CellSizeAtX1) + (CellSizeAtX1 / 2),
+        _origin.Y + (cellY * CellSizeAtX1) + (CellSizeAtX1 / 2));
 
     /// <summary>Centro de una miniatura, en coordenadas de la ventana.</summary>
     private Point ThumbnailCentre(int index)

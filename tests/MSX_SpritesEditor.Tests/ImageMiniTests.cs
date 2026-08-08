@@ -1,8 +1,5 @@
-using System.Runtime.InteropServices;
 using Avalonia.Headless.XUnit;
 using Avalonia.Media;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using MSX_SpritesEditor.Entities;
 using Xunit;
 
@@ -65,17 +62,7 @@ public class ImageMiniTests
         Assert.NotSame(before, mini.SpritePreview);
     }
 
-    private static int Bgra(Color c) => (c.A << 24) | (c.R << 16) | (c.G << 8) | c.B;
+    private static int Bgra(Color c) => PixelReader.Bgra(c);
 
-    private static int[] ReadPixels(ImageMini mini)
-    {
-        var bitmap = (WriteableBitmap)mini.SpritePreview;
-        int[] pixels = new int[mini.Width * mini.Height];
-
-        using ILockedFramebuffer buffer = bitmap.Lock();
-        for (int y = 0; y < mini.Height; y++)
-            Marshal.Copy(buffer.Address + (y * buffer.RowBytes), pixels, y * mini.Width, mini.Width);
-
-        return pixels;
-    }
+    private static int[] ReadPixels(ImageMini mini) => PixelReader.Read(mini);
 }

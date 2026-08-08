@@ -5,7 +5,7 @@
              xmlns:entities="clr-namespace:MSX_SpritesEditor.Entities"
              xmlns:vm="clr-namespace:MSX_SpritesEditor.ViewModels"
              xmlns:views="clr-namespace:MSX_SpritesEditor.Views"
-             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
              x:Class="MSX_SpritesEditor.Views.SpritesEditorView"
              x:DataType="vm:SpritesEditorViewModel">
 
@@ -39,10 +39,36 @@
         <Setter Property="BorderBrush" Value="Red" />
       </Style>
     </ControlTheme>
+
+    <!-- Boton sin cromo, para que se vea solo la muestra de color. -->
+    <ControlTheme x:Key="ColorSwatchButton" TargetType="Button">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="#606060" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="VerticalContentAlignment" Value="Stretch" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Name="PART_Root"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}">
+            <ContentPresenter Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}" />
+          </Border>
+        </ControlTemplate>
+      </Setter>
+      <Style Selector="^:pointerover">
+        <Setter Property="BorderBrush" Value="#FFC107" />
+      </Style>
+    </ControlTheme>
   </UserControl.Resources>
 
+  <!-- Columna 1: la tira de colores por linea, alineada con las filas del lienzo. -->
   <Grid x:Name="EditorGrid" Background="Gainsboro"
-        ColumnDefinitions="256,*"
+        ColumnDefinitions="256,Auto,*"
         RowDefinitions="Auto,256,*">
 
     <!-- Zoom del lienzo de edición y modo de pintado -->
@@ -69,8 +95,56 @@
                    IsCheckedChanged="OnPaintModeChanged" />
     </StackPanel>
 
+    <!-- Color de fondo: se ve donde el sprite no pinta, y en los pixeles cuyo
+         color de linea sea el 0 (transparente). Comun a todo el banco. -->
+    <Button x:Name="BackgroundSwatch"
+            Grid.Row="0" Grid.Column="1"
+            Theme="{StaticResource ColorSwatchButton}"
+            Width="52" Height="22" Margin="4,2"
+            VerticalAlignment="Center"
+            ToolTip.Tip="{Binding BackgroundColor.Name, StringFormat='Fondo: {0}'}">
+      <Grid ColumnDefinitions="*,Auto">
+        <Border Grid.Column="0" Background="{Binding BackgroundColor.Brush}" />
+        <TextBlock Grid.Column="1" Text="{Binding BackgroundColor.Hex}"
+                   FontFamily="Consolas" FontSize="11" Width="16"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   TextAlignment="Center" />
+      </Grid>
+      <Button.Flyout>
+        <Flyout Placement="Bottom">
+          <ItemsControl ItemsSource="{Binding BackgroundChoices}" Width="152">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="entities:PaletteColor">
+                <Button Theme="{StaticResource ColorSwatchButton}"
+                        Width="34" Height="34" Margin="2"
+                        ToolTip.Tip="{Binding Name}"
+                        Click="OnPaletteColorClick"
+                        Command="{Binding $parent[ItemsControl].((vm:SpritesEditorViewModel)DataContext).PickBackgroundColorCommand}"
+                        CommandParameter="{Binding}">
+                  <Grid>
+                    <Border Background="#DDDDDD" />
+                    <Border Background="{Binding Brush}" />
+                    <Border Background="#C0FFFFFF" Padding="2,0"
+                            HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                      <TextBlock Text="{Binding Hex}" FontFamily="Consolas"
+                                 FontSize="10" Foreground="Black" />
+                    </Border>
+                  </Grid>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Flyout>
+      </Button.Flyout>
+    </Button>
+
     <!-- Zoom de las miniaturas. El Tag es el multiplicador sobre el tamaño base. -->
-    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal"
+    <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal"
                 HorizontalAlignment="Right" Margin="2">
       <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
                    Content="X1" Tag="1" Width="32" Margin="2" IsChecked="True"
@@ -93,10 +167,119 @@
               PointerReleased="OnCanvasPointerReleased" />
     </Grid>
 
+    <!-- MSX2: un color por linea, alineado con las filas del lienzo. -->
+    <ItemsControl x:Name="RowColorStrip"
+                  Grid.Row="1" Grid.Column="1"
+                  IsVisible="{Binding IsMsx2}"
+                  ItemsSource="{Binding RowColors}"
+                  VerticalAlignment="Top"
+                  Margin="4,0">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:SpriteRowColorViewModel">
+          <Button Theme="{StaticResource ColorSwatchButton}"
+                  Width="52"
+                  Height="{Binding $parent[views:SpritesEditorView].CellSize}"
+                  ToolTip.Tip="{Binding Color.Name}">
+            <Grid ColumnDefinitions="*,Auto">
+              <Border Grid.Column="0" Background="{Binding Color.Brush}" />
+              <TextBlock Grid.Column="1" Text="{Binding Color.Hex}"
+                         FontFamily="Consolas" FontSize="11" Width="16"
+                         HorizontalAlignment="Center" VerticalAlignment="Center"
+                         TextAlignment="Center" />
+            </Grid>
+            <Button.Flyout>
+              <Flyout Placement="Right">
+                <ItemsControl ItemsSource="{Binding Palette}" Width="152">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <WrapPanel />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="entities:PaletteColor">
+                      <Button Theme="{StaticResource ColorSwatchButton}"
+                              Width="34" Height="34" Margin="2"
+                              ToolTip.Tip="{Binding Name}"
+                              Click="OnPaletteColorClick"
+                              Command="{Binding $parent[ItemsControl].((vm:SpriteRowColorViewModel)DataContext).PickCommand}"
+                              CommandParameter="{Binding}">
+                        <Grid>
+                          <!-- El gris de debajo sólo se ve en el color 0, que es
+                               transparente y si no quedaria invisible. -->
+                          <Border Background="#DDDDDD" />
+                          <Border Background="{Binding Brush}" />
+                          <Border Background="#C0FFFFFF" Padding="2,0"
+                                  HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                            <TextBlock Text="{Binding Hex}" FontFamily="Consolas"
+                                       FontSize="10" Foreground="Black" />
+                          </Border>
+                        </Grid>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <!-- MSX1: un unico color para todo el sprite. -->
+    <StackPanel x:Name="SpriteColorPanel"
+                Grid.Row="1" Grid.Column="1"
+                IsVisible="{Binding IsMsx1}"
+                VerticalAlignment="Top"
+                Margin="4,0">
+      <TextBlock Text="Color" FontSize="10" Margin="0,0,0,2" HorizontalAlignment="Center" />
+      <Button Theme="{StaticResource ColorSwatchButton}"
+              Width="52" Height="40"
+              ToolTip.Tip="{Binding SpriteColor.Name}">
+        <Grid ColumnDefinitions="*,Auto">
+          <Border Grid.Column="0" Background="{Binding SpriteColor.Brush}" />
+          <TextBlock Grid.Column="1" Text="{Binding SpriteColor.Hex}"
+                     FontFamily="Consolas" FontSize="11" Width="16"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                     TextAlignment="Center" />
+        </Grid>
+        <Button.Flyout>
+          <Flyout Placement="Right">
+            <ItemsControl ItemsSource="{Binding Palette}" Width="152">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="entities:PaletteColor">
+                  <Button Theme="{StaticResource ColorSwatchButton}"
+                          Width="34" Height="34" Margin="2"
+                          ToolTip.Tip="{Binding Name}"
+                          Click="OnPaletteColorClick"
+                          Command="{Binding $parent[ItemsControl].((vm:SpritesEditorViewModel)DataContext).PickSpriteColorCommand}"
+                          CommandParameter="{Binding}">
+                    <Grid>
+                      <Border Background="#DDDDDD" />
+                      <Border Background="{Binding Brush}" />
+                      <Border Background="#C0FFFFFF" Padding="2,0"
+                              HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                        <TextBlock Text="{Binding Hex}" FontFamily="Consolas"
+                                   FontSize="10" Foreground="Black" />
+                      </Border>
+                    </Grid>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </Flyout>
+        </Button.Flyout>
+      </Button>
+    </StackPanel>
+
     <!-- Miniaturas del banco. ListBox y no ItemsControl: la seleccion, el hover y
-         la navegacion por teclado vienen de serie, y SelectedIndex enlazado en dos
+         la navegacion por teclado vienen de serie, y SelectedItem enlazado en dos
          sentidos mantiene sincronizados el lienzo de edicion y esta tira. -->
-    <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" Background="DarkGray">
+    <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="2" Background="DarkGray">
       <ListBox x:Name="ThumbnailList"
                ItemsSource="{Binding ImagesMiniList}"
                SelectedItem="{Binding SelectedThumbnail, Mode=TwoWay}"

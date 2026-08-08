@@ -1,8 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
 using MSX_SpritesEditor.Entities;
 using MSX_SpritesEditor.ViewModels;
@@ -44,6 +46,15 @@ public partial class SpritesEditorView : UserControl
             nameof(ThumbnailSize),
             defaultValue: GridSize * ThumbnailBaseScale);
 
+    /// <summary>
+    /// Alto de una fila del lienzo. La tira de colores por línea lo lee para quedar
+    /// alineada con las filas del sprite sea cual sea el zoom.
+    /// </summary>
+    public static readonly StyledProperty<double> CellSizeProperty =
+        AvaloniaProperty.Register<SpritesEditorView, double>(
+            nameof(CellSize),
+            defaultValue: 256d / GridSize);
+
     private readonly Rectangle[] _cells = new Rectangle[GridSize * GridSize];
 
     private bool _cellsBuilt;
@@ -61,6 +72,12 @@ public partial class SpritesEditorView : UserControl
     {
         get => GetValue(ThumbnailSizeProperty);
         set => SetValue(ThumbnailSizeProperty, value);
+    }
+
+    public double CellSize
+    {
+        get => GetValue(CellSizeProperty);
+        set => SetValue(CellSizeProperty, value);
     }
 
     protected override void OnLoaded(RoutedEventArgs e)
@@ -107,6 +124,16 @@ public partial class SpritesEditorView : UserControl
             ThumbnailSize = GridSize * ThumbnailBaseScale * factor;
     }
 
+    /// <summary>
+    /// Avalonia no cierra el flyout al pulsar algo de su interior, así que el
+    /// desplegable de la paleta se quedaría abierto tras elegir un color.
+    /// </summary>
+    private void OnPaletteColorClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control control && control.FindLogicalAncestorOfType<Popup>() is { } popup)
+            popup.IsOpen = false;
+    }
+
     private void OnPaintModeChanged(object? sender, RoutedEventArgs e)
     {
         if (sender is RadioButton { IsChecked: true, Tag: string tag } && Enum.TryParse(tag, out PaintMode mode))
@@ -121,6 +148,7 @@ public partial class SpritesEditorView : UserControl
         EditorGrid.RowDefinitions[1].Height = new GridLength(size);
         CanvSprite.Width = size;
         CanvSprite.Height = size;
+        CellSize = size / GridSize;
 
         Draw();
     }
@@ -155,9 +183,12 @@ public partial class SpritesEditorView : UserControl
         if (!_cellsBuilt)
             BuildCells();
 
+        IBrush background = vm.BackgroundColor.Brush;
+
         for (int y = 0; y < GridSize; y++)
         {
             SpriteRow row = vm.CurrentSprite.ArraySpriteRows[y];
+            IBrush on = SpriteRenderer.ResolveRowBrush(vm.ColorPalette, row.Color, background);
 
             for (int x = 0; x < GridSize; x++)
             {
@@ -165,7 +196,7 @@ public partial class SpritesEditorView : UserControl
 
                 rect.Width = cellWidth;
                 rect.Height = cellHeight;
-                rect.Fill = row.ArrayColumns[x] ? vm.ColorPalette.GetBrush(row.Color) : Brushes.Black;
+                rect.Fill = row.ArrayColumns[x] ? on : background;
 
                 Canvas.SetLeft(rect, x * cellWidth);
                 Canvas.SetTop(rect, y * cellHeight);
@@ -206,8 +237,15 @@ public partial class SpritesEditorView : UserControl
 
         row.ArrayColumns[x] = paint;
 
-        _cells[(y * GridSize) + x].Fill = paint ? vm.ColorPalette.GetBrush(row.Color) : Brushes.Black;
-        vm.CurrentSprite.ImageMini?.SetPixel(x, y, paint ? vm.ColorPalette.GetColor(row.Color) : Colors.Black);
+        PaletteColor background = vm.BackgroundColor;
+
+        _cells[(y * GridSize) + x].Fill = paint
+            ? SpriteRenderer.ResolveRowBrush(vm.ColorPalette, row.Color, background.Brush)
+            : background.Brush;
+
+        vm.CurrentSprite.ImageMini?.SetPixel(x, y, paint
+            ? SpriteRenderer.ResolveRowColor(vm.ColorPalette, row.Color, background.Color)
+            : background.Color);
     }
 
     /// <summary>

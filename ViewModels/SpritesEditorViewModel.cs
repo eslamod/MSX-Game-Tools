@@ -7,6 +7,9 @@ namespace MSX_SpritesEditor.ViewModels;
 
 public partial class SpritesEditorViewModel : PanelBaseViewModel
 {
+    /// <summary>Negro, el fondo con el que arranca el editor.</summary>
+    private const int DefaultBackgroundIndex = 1;
+
     private readonly SpriteBank _spriteBank;
 
     /// <summary>La vista se resuscribe para repintar el lienzo al cambiar de sprite.</summary>
@@ -14,11 +17,6 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
 
     [ObservableProperty]
     private Sprite _currentSprite;
-
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(NextSpriteCommand))]
-    [NotifyCanExecuteChangedFor(nameof(PreviousSpriteCommand))]
-    private int _currentSpritePosition;
 
     /// <summary>
     /// Miniatura seleccionada en la tira. Enlazada al SelectedItem del ListBox en los
@@ -35,9 +33,22 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(NextSpriteCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PreviousSpriteCommand))]
+    private int _currentSpritePosition;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(NextSpriteCommand))]
     [NotifyCanExecuteChangedFor(nameof(AddSpriteCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteSpriteCommand))]
     private int _numberSprites;
+
+    /// <summary>
+    /// Fondo sobre el que se previsualiza el sprite, común al lienzo y a todas las
+    /// miniaturas del banco. También es lo que se ve donde el sprite no pinta.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BackgroundColor))]
+    private int _backgroundColorIndex = DefaultBackgroundIndex;
 
     public SpritesEditorViewModel(SpriteBank bank, ColorPalette colorPalette)
     {
@@ -57,6 +68,14 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
         }
 
         _selectedThumbnail = _currentSprite.ImageMini;
+
+        for (int row = 0; row < Sprite.Rows; row++)
+        {
+            RowColors.Add(new SpriteRowColorViewModel(
+                row, _currentSprite.ArraySpriteRows[row], colorPalette, OnRowColorPicked));
+        }
+
+        RenderAllThumbnails();
     }
 
     /// <summary>Al pulsar una miniatura, el lienzo pasa a editar ese sprite.</summary>
@@ -78,6 +97,26 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
 
     public ObservableCollection<ImageMini> ImagesMiniList { get; } = [];
 
+    /// <summary>Una casilla por línea del sprite actual. Sólo se muestra en MSX2.</summary>
+    public ObservableCollection<SpriteRowColorViewModel> RowColors { get; } = [];
+
+    /// <summary>En MSX1 el sprite entero tiene un único color de frente.</summary>
+    public bool IsMsx1 => _spriteBank.Type == SpriteBank.SpriteType.MSX;
+
+    /// <summary>En MSX2 cada línea del sprite lleva su propio color.</summary>
+    public bool IsMsx2 => !IsMsx1;
+
+    /// <summary>Los 16 colores, para los desplegables de color de línea y de sprite.</summary>
+    public IReadOnlyList<PaletteColor> Palette => ColorPalette.Colors;
+
+    /// <summary>Del 1 al F: un fondo transparente dejaría el editor invisible.</summary>
+    public IReadOnlyList<PaletteColor> BackgroundChoices => ColorPalette.BackgroundChoices;
+
+    public PaletteColor BackgroundColor => ColorPalette[BackgroundColorIndex];
+
+    /// <summary>Color del sprite en MSX1, donde todas las líneas comparten el mismo.</summary>
+    public PaletteColor SpriteColor => ColorPalette[CurrentSprite.ArraySpriteRows[0].Color];
+
     [RelayCommand(CanExecute = nameof(CanAddSprite))]
     private void AddSprite()
     {
@@ -87,6 +126,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
 
         ImagesMiniList.Add(sprite.ImageMini);
         NumberSprites = _spriteBank.SpritesList.Count;
+        RenderThumbnail(sprite);
 
         // El sprite recién creado pasa a ser el que se edita.
         GoTo(NumberSprites);
@@ -124,6 +164,64 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
 
     private bool CanGoPrevious() => CurrentSpritePosition > 1;
 
+    /// <summary>MSX1: el color elegido se aplica a las 16 líneas del sprite.</summary>
+    [RelayCommand]
+    private void PickSpriteColor(PaletteColor? color)
+    {
+        if (color is null)
+            return;
+
+        foreach (SpriteRow row in CurrentSprite.ArraySpriteRows)
+            row.Color = color.Index;
+
+        foreach (SpriteRowColorViewModel cell in RowColors)
+            cell.Refresh();
+
+        OnPropertyChanged(nameof(SpriteColor));
+        RepaintCurrentSprite();
+    }
+
+    [RelayCommand]
+    private void PickBackgroundColor(PaletteColor? color)
+    {
+        if (color is null || color.Index == BackgroundColorIndex)
+            return;
+
+        BackgroundColorIndex = color.Index;
+
+        // El fondo se ve en todas las miniaturas del banco, no sólo en la actual.
+        RenderAllThumbnails();
+        RefreshRequested?.Invoke(CurrentSprite);
+    }
+
+    /// <summary>MSX2: el color elegido se aplica sólo a esa línea.</summary>
+    private void OnRowColorPicked(int rowIndex, PaletteColor color)
+    {
+        CurrentSprite.ArraySpriteRows[rowIndex].Color = color.Index;
+
+        RowColors[rowIndex].Refresh();
+        OnPropertyChanged(nameof(SpriteColor));
+        RepaintCurrentSprite();
+    }
+
+    private void RepaintCurrentSprite()
+    {
+        RenderThumbnail(CurrentSprite);
+        RefreshRequested?.Invoke(CurrentSprite);
+    }
+
+    private void RenderThumbnail(Sprite sprite)
+    {
+        if (sprite.ImageMini is not null)
+            SpriteRenderer.Render(sprite, ColorPalette, BackgroundColor.Color, sprite.ImageMini);
+    }
+
+    private void RenderAllThumbnails()
+    {
+        foreach (Sprite sprite in _spriteBank.SpritesList)
+            RenderThumbnail(sprite);
+    }
+
     private void GoTo(int position)
     {
         if (position < 1 || position > NumberSprites)
@@ -142,6 +240,16 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
         CurrentSprite = target;
         SelectedThumbnail = target.ImageMini;
 
+        AttachRowColors(target);
+
         RefreshRequested?.Invoke(CurrentSprite);
+    }
+
+    private void AttachRowColors(Sprite sprite)
+    {
+        for (int row = 0; row < RowColors.Count; row++)
+            RowColors[row].Attach(sprite.ArraySpriteRows[row]);
+
+        OnPropertyChanged(nameof(SpriteColor));
     }
 }
