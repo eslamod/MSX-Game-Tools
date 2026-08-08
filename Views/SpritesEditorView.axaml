@@ -143,19 +143,48 @@
       </Button.Flyout>
     </Button>
 
-    <!-- Zoom de las miniaturas. El Tag es el multiplicador sobre el tamaño base. -->
-    <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal"
-                HorizontalAlignment="Right" Margin="2">
-      <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
-                   Content="X1" Tag="1" Width="32" Margin="2" IsChecked="True"
-                   IsCheckedChanged="OnThumbnailZoomChanged" />
-      <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
-                   Content="X2" Tag="2" Width="32" Margin="2"
-                   IsCheckedChanged="OnThumbnailZoomChanged" />
-      <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
-                   Content="X4" Tag="4" Width="32" Margin="2"
-                   IsCheckedChanged="OnThumbnailZoomChanged" />
-    </StackPanel>
+    <DockPanel Grid.Row="0" Grid.Column="2" Margin="2">
+
+      <!-- Que enseña el panel: los patrones del banco o los grupos. -->
+      <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+        <RadioButton x:Name="PatternsModeButton"
+                     GroupName="ThumbnailMode" Theme="{StaticResource ToggleRadioButton}"
+                     Content="Patrones" Tag="Patterns" Margin="2" IsChecked="True"
+                     ToolTip.Tip="La tabla de patrones del banco"
+                     IsCheckedChanged="OnThumbnailModeChanged" />
+        <RadioButton x:Name="GroupsModeButton"
+                     GroupName="ThumbnailMode" Theme="{StaticResource ToggleRadioButton}"
+                     Content="Grupos" Tag="Groups" Margin="2"
+                     ToolTip.Tip="Personajes compuestos con varios sprites superpuestos"
+                     IsCheckedChanged="OnThumbnailModeChanged" />
+
+        <Border Width="1" Background="DarkGray" Margin="6,4" IsVisible="{Binding ShowsGroups}" />
+
+        <Button Content="+" Width="28" Margin="2" HorizontalContentAlignment="Center"
+                IsVisible="{Binding ShowsGroups}"
+                Command="{Binding AddGroupCommand}"
+                ToolTip.Tip="Crear un grupo con el sprite actual" />
+        <Button Content="-" Width="28" Margin="2" HorizontalContentAlignment="Center"
+                IsVisible="{Binding ShowsGroups}"
+                Command="{Binding DeleteGroupCommand}"
+                ToolTip.Tip="Eliminar el grupo seleccionado" />
+      </StackPanel>
+
+      <!-- Zoom de las miniaturas. El Tag es el multiplicador sobre el tamaño base. -->
+      <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+        <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
+                     Content="X1" Tag="1" Width="32" Margin="2" IsChecked="True"
+                     IsCheckedChanged="OnThumbnailZoomChanged" />
+        <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
+                     Content="X2" Tag="2" Width="32" Margin="2"
+                     IsCheckedChanged="OnThumbnailZoomChanged" />
+        <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
+                     Content="X4" Tag="4" Width="32" Margin="2"
+                     IsCheckedChanged="OnThumbnailZoomChanged" />
+      </StackPanel>
+
+      <Border />
+    </DockPanel>
 
     <!-- Lienzo de edición 16x16 -->
     <Grid Grid.Row="1" Grid.Column="0">
@@ -170,7 +199,7 @@
     <!-- MSX2: un color por linea, alineado con las filas del lienzo. -->
     <ItemsControl x:Name="RowColorStrip"
                   Grid.Row="1" Grid.Column="1"
-                  IsVisible="{Binding IsMsx2}"
+                  IsVisible="{Binding ShowsRowColors}"
                   ItemsSource="{Binding RowColors}"
                   VerticalAlignment="Top"
                   Margin="4,0">
@@ -228,7 +257,7 @@
     <!-- MSX1: un unico color para todo el sprite. -->
     <StackPanel x:Name="SpriteColorPanel"
                 Grid.Row="1" Grid.Column="1"
-                IsVisible="{Binding IsMsx1}"
+                IsVisible="{Binding ShowsSpriteColor}"
                 VerticalAlignment="Top"
                 Margin="4,0">
       <TextBlock Text="Color" FontSize="10" Margin="0,0,0,2" HorizontalAlignment="Center" />
@@ -276,11 +305,99 @@
       </Button>
     </StackPanel>
 
+    <!-- Panel del grupo seleccionado: sus miembros por orden de prioridad y los
+         desplazamientos del que este seleccionado. -->
+    <Border x:Name="GroupPanel"
+            Grid.Row="1" Grid.RowSpan="2" Grid.Column="1"
+            IsVisible="{Binding ShowsGroups}"
+            Width="210" Margin="4,0" Padding="6"
+            Background="#F0F0F0" BorderBrush="DarkGray" BorderThickness="1">
+      <Grid RowDefinitions="Auto,Auto,*,Auto,Auto"
+            IsEnabled="{Binding SelectedGroup, Converter={x:Static ObjectConverters.IsNotNull}}">
+
+        <TextBlock Grid.Row="0" Text="Grupo" FontWeight="Bold" Margin="0,0,0,6" />
+
+        <TextBox Grid.Row="1" Text="{Binding SelectedGroup.Group.Name}" Margin="0,0,0,8" />
+
+        <ListBox Grid.Row="2"
+                 x:Name="MemberList"
+                 ItemsSource="{Binding SelectedGroup.Group.Members}"
+                 SelectedItem="{Binding SelectedGroup.SelectedMember, Mode=TwoWay}"
+                 SelectionMode="Single"
+                 MinHeight="90">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="entities:SpriteGroupMember">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="Patrón" />
+                <TextBlock Text="{Binding PatternIndex}" FontFamily="Consolas" />
+                <TextBlock Text="x" />
+                <TextBlock Text="{Binding OffsetX}" FontFamily="Consolas" />
+                <TextBlock Text="y" />
+                <TextBlock Text="{Binding OffsetY}" FontFamily="Consolas" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- El orden de la lista es la prioridad: el primero manda. -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="4" Margin="0,6,0,0">
+          <Button Content="+" Width="30" HorizontalContentAlignment="Center"
+                  Command="{Binding SelectedGroup.AddMemberCommand}"
+                  ToolTip.Tip="Añadir un sprite con el mismo patrón" />
+          <Button Content="-" Width="30" HorizontalContentAlignment="Center"
+                  Command="{Binding SelectedGroup.RemoveMemberCommand}"
+                  ToolTip.Tip="Quitar el sprite seleccionado" />
+          <Button Content="▲" Width="30" HorizontalContentAlignment="Center"
+                  Command="{Binding SelectedGroup.MoveMemberUpCommand}"
+                  ToolTip.Tip="Subir en prioridad" />
+          <Button Content="▼" Width="30" HorizontalContentAlignment="Center"
+                  Command="{Binding SelectedGroup.MoveMemberDownCommand}"
+                  ToolTip.Tip="Bajar en prioridad" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="4" Margin="0,10,0,0" Spacing="4"
+                    IsEnabled="{Binding SelectedGroup.SelectedMember, Converter={x:Static ObjectConverters.IsNotNull}}">
+
+          <Grid ColumnDefinitions="56,28,*,28">
+            <TextBlock Grid.Column="0" Text="Patrón" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Content="◄" HorizontalContentAlignment="Center"
+                    Command="{Binding SelectedGroup.StepPatternCommand}" CommandParameter="-1" />
+            <TextBlock Grid.Column="2" Text="{Binding SelectedGroup.SelectedMember.PatternIndex}"
+                       FontFamily="Consolas" TextAlignment="Center" VerticalAlignment="Center" />
+            <Button Grid.Column="3" Content="►" HorizontalContentAlignment="Center"
+                    Command="{Binding SelectedGroup.StepPatternCommand}" CommandParameter="1" />
+          </Grid>
+
+          <Grid ColumnDefinitions="56,28,*,28">
+            <TextBlock Grid.Column="0" Text="Offset X" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Content="◄" HorizontalContentAlignment="Center"
+                    Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="left" />
+            <TextBlock Grid.Column="2" Text="{Binding SelectedGroup.SelectedMember.OffsetX}"
+                       FontFamily="Consolas" TextAlignment="Center" VerticalAlignment="Center" />
+            <Button Grid.Column="3" Content="►" HorizontalContentAlignment="Center"
+                    Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="right" />
+          </Grid>
+
+          <Grid ColumnDefinitions="56,28,*,28">
+            <TextBlock Grid.Column="0" Text="Offset Y" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Content="▲" HorizontalContentAlignment="Center"
+                    Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="up" />
+            <TextBlock Grid.Column="2" Text="{Binding SelectedGroup.SelectedMember.OffsetY}"
+                       FontFamily="Consolas" TextAlignment="Center" VerticalAlignment="Center" />
+            <Button Grid.Column="3" Content="▼" HorizontalContentAlignment="Center"
+                    Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="down" />
+          </Grid>
+        </StackPanel>
+      </Grid>
+    </Border>
+
     <!-- Miniaturas del banco. ListBox y no ItemsControl: la seleccion, el hover y
          la navegacion por teclado vienen de serie, y SelectedItem enlazado en dos
          sentidos mantiene sincronizados el lienzo de edicion y esta tira. -->
     <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="2" Background="DarkGray">
+      <Panel>
       <ListBox x:Name="ThumbnailList"
+               IsVisible="{Binding ShowsPatterns}"
                ItemsSource="{Binding ImagesMiniList}"
                SelectedItem="{Binding SelectedThumbnail, Mode=TwoWay}"
                SelectionMode="Single"
@@ -306,6 +423,39 @@
           </DataTemplate>
         </ListBox.ItemTemplate>
       </ListBox>
+
+      <!-- Los grupos, cada uno con sus sprites ya compuestos. El lienzo es de 46x46
+           fijo, no del tamaño que resulte de los offsets, para que la tira no se
+           reordene entera cada vez que se toca una flecha. -->
+      <ListBox x:Name="GroupList"
+               IsVisible="{Binding ShowsGroups}"
+               ItemsSource="{Binding Groups}"
+               SelectedItem="{Binding SelectedGroup, Mode=TwoWay}"
+               SelectionMode="Single"
+               ItemContainerTheme="{StaticResource SpriteThumbnailItem}"
+               Background="Transparent"
+               BorderThickness="0"
+               Padding="4">
+        <ListBox.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel />
+          </ItemsPanelTemplate>
+        </ListBox.ItemsPanel>
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:SpriteGroupViewModel">
+            <StackPanel>
+              <Image Source="{Binding Preview.SpritePreview}"
+                     Width="{Binding $parent[views:SpritesEditorView].GroupThumbnailSize}"
+                     Height="{Binding $parent[views:SpritesEditorView].GroupThumbnailSize}"
+                     Stretch="Fill"
+                     RenderOptions.BitmapInterpolationMode="None" />
+              <TextBlock Text="{Binding Group.Name}" FontSize="10"
+                         HorizontalAlignment="Center" Margin="0,2,0,0" />
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+      </Panel>
     </Border>
 
     <!-- Navegación por los sprites del banco -->

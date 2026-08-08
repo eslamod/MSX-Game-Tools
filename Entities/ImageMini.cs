@@ -32,8 +32,15 @@ public sealed class ImageMini : ObservableObject
     private WriteableBitmap? _cache;
 
     public ImageMini(ImagePreviewType type)
+        : this(type == ImagePreviewType.ImagePreview8x8 ? 8 : 16, type == ImagePreviewType.ImagePreview8x8 ? 8 : 16)
     {
-        _width = _height = type == ImagePreviewType.ImagePreview8x8 ? 8 : 16;
+    }
+
+    /// <summary>Para las composiciones de grupo, que no son de 16x16.</summary>
+    public ImageMini(int width, int height)
+    {
+        _width = width;
+        _height = height;
         _pixels = new int[_width * _height];
 
         // Negro liso: es el mismo color al que vuelve un pixel al borrarlo, así que

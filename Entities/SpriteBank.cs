@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+
 namespace MSX_SpritesEditor.Entities;
 
 public class SpriteBank
@@ -11,6 +13,13 @@ public class SpriteBank
     /// <summary>Límite de sprites de un banco en el VDP.</summary>
     public const int MaxSprites = 64;
 
+    /// <summary>
+    /// Grupos que caben en el catálogo. No es un límite del hardware: los grupos son
+    /// definiciones reutilizables, y cuántos planos hay en pantalla a la vez lo decide
+    /// el juego, no el editor.
+    /// </summary>
+    public const int MaxGroups = 32;
+
     private readonly List<Sprite> _sprites = [];
     private readonly SpriteType _spriteType;
 
@@ -23,6 +32,34 @@ public class SpriteBank
     }
 
     public IReadOnlyList<Sprite> SpritesList => _sprites;
+
+    /// <summary>Los personajes multicolor compuestos con los patrones de este banco.</summary>
+    public ObservableCollection<SpriteGroup> Groups { get; } = [];
+
+    public bool CanAddGroup => Groups.Count < MaxGroups;
+
+    /// <summary>Crea un grupo con un único miembro. Devuelve <c>null</c> si ya no caben más.</summary>
+    public SpriteGroup? NewGroup(int patternIndex)
+    {
+        if (!CanAddGroup || (uint)patternIndex >= (uint)_sprites.Count)
+            return null;
+
+        var group = new SpriteGroup(NextGroupName());
+        group.Add(new SpriteGroupMember(patternIndex, _sprites[patternIndex]));
+
+        Groups.Add(group);
+
+        return group;
+    }
+
+    private string NextGroupName()
+    {
+        int number = 1;
+        while (Groups.Any(g => g.Name == $"Group {number}"))
+            number++;
+
+        return $"Group {number}";
+    }
 
     public SpriteType Type => _spriteType;
 

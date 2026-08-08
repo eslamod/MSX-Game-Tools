@@ -48,6 +48,16 @@ public partial class SpritesEditorView : UserControl
             defaultValue: GridSize * ThumbnailBaseScale);
 
     /// <summary>
+    /// Lado de la miniatura de un grupo. Se escala con el mismo número de pixeles de
+    /// pantalla por pixel de sprite que las miniaturas de patrones, así que sale
+    /// proporcionalmente mayor: el lienzo del grupo es de 46 y el del patrón de 16.
+    /// </summary>
+    public static readonly StyledProperty<double> GroupThumbnailSizeProperty =
+        AvaloniaProperty.Register<SpritesEditorView, double>(
+            nameof(GroupThumbnailSize),
+            defaultValue: SpriteGroupRenderer.PreviewSize * ThumbnailBaseScale);
+
+    /// <summary>
     /// Alto de una fila del lienzo. La tira de colores por línea lo lee para quedar
     /// alineada con las filas del sprite sea cual sea el zoom.
     /// </summary>
@@ -73,6 +83,12 @@ public partial class SpritesEditorView : UserControl
     {
         get => GetValue(ThumbnailSizeProperty);
         set => SetValue(ThumbnailSizeProperty, value);
+    }
+
+    public double GroupThumbnailSize
+    {
+        get => GetValue(GroupThumbnailSizeProperty);
+        set => SetValue(GroupThumbnailSizeProperty, value);
     }
 
     public double CellSize
@@ -121,8 +137,22 @@ public partial class SpritesEditorView : UserControl
 
     private void OnThumbnailZoomChanged(object? sender, RoutedEventArgs e)
     {
-        if (sender is RadioButton { IsChecked: true, Tag: string tag } && int.TryParse(tag, out int factor))
-            ThumbnailSize = GridSize * ThumbnailBaseScale * factor;
+        if (sender is not RadioButton { IsChecked: true, Tag: string tag } || !int.TryParse(tag, out int factor))
+            return;
+
+        int scale = ThumbnailBaseScale * factor;
+
+        ThumbnailSize = GridSize * scale;
+        GroupThumbnailSize = SpriteGroupRenderer.PreviewSize * scale;
+    }
+
+    private void OnThumbnailModeChanged(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not SpritesEditorViewModel vm)
+            return;
+
+        if (sender is RadioButton { IsChecked: true, Tag: string tag } && Enum.TryParse(tag, out ThumbnailMode mode))
+            vm.ThumbnailMode = mode;
     }
 
     /// <summary>
@@ -349,6 +379,10 @@ public partial class SpritesEditorView : UserControl
         _lastCellX = -1;
         _lastCellY = -1;
         e.Pointer.Capture(null);
+
+        // Al soltar, y no por pixel: recomponer los grupos es caro.
+        if (DataContext is SpritesEditorViewModel vm)
+            vm.NotifyPatternEdited(vm.CurrentSpritePosition - 1);
     }
 
     // Ojo: aquí NO va un handler de PointerExited. Con el puntero capturado, Avalonia

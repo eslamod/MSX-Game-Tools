@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using MSX_SpritesEditor.Entities;
+using MSX_SpritesEditor.Services;
 using MSX_SpritesEditor.ViewModels;
 using MSX_SpritesEditor.Views;
 
@@ -26,11 +27,14 @@ internal sealed class SpriteCanvasHarness : IDisposable
     private readonly SpritesEditorView _view;
     private readonly Point _origin;
 
-    public SpriteCanvasHarness(PaintMode mode, SpriteBank.SpriteType bankType = SpriteBank.SpriteType.MSX)
+    public SpriteCanvasHarness(
+        PaintMode mode,
+        SpriteBank.SpriteType bankType = SpriteBank.SpriteType.MSX,
+        IDialogService? dialogs = null)
     {
         Bank = new SpriteBank(bankType);
         Palettes = new PaletteLibrary();
-        ViewModel = new SpritesEditorViewModel(Bank, Palettes);
+        ViewModel = new SpritesEditorViewModel(Bank, Palettes, dialogs);
 
         SpritesEditorView view = new() { DataContext = ViewModel };
         _view = view;
@@ -48,7 +52,8 @@ internal sealed class SpriteCanvasHarness : IDisposable
         _origin = canvas.TranslatePoint(new Point(0, 0), _window)
                   ?? throw new InvalidOperationException("El lienzo no está en el árbol visual.");
 
-        Thumbnails = view.GetVisualDescendants().OfType<ListBox>().Single();
+        Thumbnails = view.FindControl<ListBox>("ThumbnailList")
+                     ?? throw new InvalidOperationException("Falta la tira de miniaturas.");
 
         RowColorStrip = view.FindControl<ItemsControl>("RowColorStrip")
                         ?? throw new InvalidOperationException("Falta la tira de colores por línea.");
@@ -56,6 +61,10 @@ internal sealed class SpriteCanvasHarness : IDisposable
                            ?? throw new InvalidOperationException("Falta el color único de MSX1.");
         BackgroundSwatch = view.FindControl<Button>("BackgroundSwatch")
                            ?? throw new InvalidOperationException("Falta el selector de fondo.");
+        GroupList = view.FindControl<ListBox>("GroupList")
+                    ?? throw new InvalidOperationException("Falta la tira de grupos.");
+        GroupPanel = view.FindControl<Border>("GroupPanel")
+                     ?? throw new InvalidOperationException("Falta el panel del grupo.");
     }
 
     /// <summary>Debe coincidir con los Tag de los RadioButton de modo en SpritesEditorView.axaml.</summary>
@@ -83,6 +92,12 @@ internal sealed class SpriteCanvasHarness : IDisposable
 
     /// <summary>El selector del color de fondo.</summary>
     public Button BackgroundSwatch { get; }
+
+    /// <summary>La tira de grupos compuestos.</summary>
+    public ListBox GroupList { get; }
+
+    /// <summary>El panel de miembros y desplazamientos del grupo seleccionado.</summary>
+    public Border GroupPanel { get; }
 
     /// <summary>Alto de una fila del lienzo con el zoom actual.</summary>
     public double CellSize => _view.CellSize;
@@ -157,6 +172,17 @@ internal sealed class SpriteCanvasHarness : IDisposable
     public double ThumbnailImageSize(int index) =>
         ThumbnailContainer(index).GetVisualDescendants().OfType<Image>().Single().Width;
 
+    /// <summary>Pulsa el conmutador Patrones / Grupos.</summary>
+    public void SetThumbnailMode(ThumbnailMode mode)
+    {
+        RadioButton button = _view.GetVisualDescendants()
+            .OfType<RadioButton>()
+            .Single(r => r.GroupName == "ThumbnailMode" && (r.Tag as string) == mode.ToString());
+
+        button.IsChecked = true;
+        Pump();
+    }
+
     /// <summary>Pulsa uno de los botones X1/X2/X3 del zoom del lienzo.</summary>
     public void SetCanvasZoom(int index)
     {
@@ -184,7 +210,8 @@ internal sealed class SpriteCanvasHarness : IDisposable
         Pump();
     }
 
-    private static void Pump() => Dispatcher.UIThread.RunJobs();
+    /// <summary>Deja que el árbol visual se ponga al día.</summary>
+    public static void Pump() => Dispatcher.UIThread.RunJobs();
 
     /// <summary>Centro de una celda, en coordenadas de la ventana.</summary>
     private Point At(int cellX, int cellY) => new(

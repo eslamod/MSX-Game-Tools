@@ -56,6 +56,18 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
     [NotifyPropertyChangedFor(nameof(BackgroundColor))]
     private int _backgroundColorIndex = DefaultBackgroundIndex;
 
+    /// <summary>Qué enseña el panel de la derecha: los patrones del banco o los grupos.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsPatterns))]
+    [NotifyPropertyChangedFor(nameof(ShowsGroups))]
+    [NotifyPropertyChangedFor(nameof(ShowsRowColors))]
+    [NotifyPropertyChangedFor(nameof(ShowsSpriteColor))]
+    private ThumbnailMode _thumbnailMode = ThumbnailMode.Patterns;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(DeleteGroupCommand))]
+    private SpriteGroupViewModel? _selectedGroup;
+
     /// <param name="dialogs">
     /// Para confirmar el borrado de un sprite. Sin él no se pregunta nada, que es lo
     /// que quieren los tests.
@@ -90,7 +102,26 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
                 row, _currentSprite.ArraySpriteRows[row], palettes, OnRowColorPicked));
         }
 
+        foreach (SpriteGroup group in bank.Groups)
+            TrackGroup(group);
+
+        SelectedGroup = Groups.FirstOrDefault();
+
         RenderAllThumbnails();
+    }
+
+    /// <summary>
+    /// El lienzo ha terminado un trazo sobre un patrón: hay que rehacer la composición
+    /// de los grupos que lo usen. Se hace al soltar y no por pixel, que serían 2116
+    /// pixeles de recomposición por cada uno pintado.
+    /// </summary>
+    public void NotifyPatternEdited(int patternIndex)
+    {
+        foreach (SpriteGroupViewModel group in Groups)
+        {
+            if (group.Group.Members.Any(member => member.PatternIndex == patternIndex))
+                RenderGroup(group);
+        }
     }
 
     /// <summary>Al pulsar una miniatura, el lienzo pasa a editar ese sprite.</summary>
@@ -134,6 +165,91 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
 
     /// <summary>Color del sprite en MSX1, donde todas las líneas comparten el mismo.</summary>
     public PaletteColor SpriteColor => ColorPalette[CurrentSprite.ArraySpriteRows[0].Color];
+
+    /// <summary>Los grupos del banco, con su composición ya dibujada.</summary>
+    public ObservableCollection<SpriteGroupViewModel> Groups { get; } = [];
+
+    public bool ShowsPatterns => ThumbnailMode == ThumbnailMode.Patterns;
+
+    public bool ShowsGroups => ThumbnailMode == ThumbnailMode.Groups;
+
+    /// <summary>La columna de colores por línea es del patrón, no del grupo.</summary>
+    public bool ShowsRowColors => IsMsx2 && ShowsPatterns;
+
+    public bool ShowsSpriteColor => IsMsx1 && ShowsPatterns;
+
+    [RelayCommand(CanExecute = nameof(CanAddGroup))]
+    private void AddGroup()
+    {
+        SpriteGroup? group = _spriteBank.NewGroup(CurrentSpritePosition - 1);
+        if (group is null)
+            return;
+
+        SelectedGroup = TrackGroup(group);
+        AddGroupCommand.NotifyCanExecuteChanged();
+    }
+
+    private bool CanAddGroup() => _spriteBank.CanAddGroup;
+
+    [RelayCommand(CanExecute = nameof(CanDeleteGroup))]
+    private async Task DeleteGroupAsync()
+    {
+        if (SelectedGroup is null)
+            return;
+
+        SpriteGroupViewModel doomed = SelectedGroup;
+
+        bool confirmed = await _dialogs.ConfirmAsync(
+            "Eliminar grupo",
+            $"Se va a eliminar el grupo «{doomed.Group.Name}». Esta acción no se puede deshacer.",
+            "Eliminar");
+
+        if (!confirmed)
+            return;
+
+        int index = Groups.IndexOf(doomed);
+
+        // La selección se mueve antes de quitarlo, para que el ListBox no se quede
+        // sin elemento seleccionado y escriba el hueco de vuelta.
+        SelectedGroup = Groups.Count > 1
+            ? Groups[index > 0 ? index - 1 : index + 1]
+            : null;
+
+        Groups.Remove(doomed);
+        _spriteBank.Groups.Remove(doomed.Group);
+
+        AddGroupCommand.NotifyCanExecuteChanged();
+    }
+
+    private bool CanDeleteGroup() => SelectedGroup is not null;
+
+    /// <summary>Engancha un grupo del banco al panel y lo deja dibujado.</summary>
+    private SpriteGroupViewModel TrackGroup(SpriteGroup group)
+    {
+        var viewModel = new SpriteGroupViewModel(group, _spriteBank);
+
+        group.Changed += OnGroupChanged;
+        Groups.Add(viewModel);
+        RenderGroup(viewModel);
+
+        return viewModel;
+    }
+
+    private void OnGroupChanged(SpriteGroup group)
+    {
+        SpriteGroupViewModel? viewModel = Groups.FirstOrDefault(g => ReferenceEquals(g.Group, group));
+        if (viewModel is not null)
+            RenderGroup(viewModel);
+    }
+
+    private void RenderGroup(SpriteGroupViewModel group) =>
+        group.Render(ColorPalette, BackgroundColor.Color);
+
+    private void RenderAllGroups()
+    {
+        foreach (SpriteGroupViewModel group in Groups)
+            RenderGroup(group);
+    }
 
     [RelayCommand(CanExecute = nameof(CanAddSprite))]
     private void AddSprite()
@@ -264,6 +380,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
             cell.Refresh();
 
         RenderAllThumbnails();
+        RenderAllGroups();
         RefreshRequested?.Invoke(CurrentSprite);
     }
 
