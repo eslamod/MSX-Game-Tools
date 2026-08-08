@@ -1,210 +1,105 @@
-﻿using MSX_SpritesEditor.Entities;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using System.Windows.Media.Imaging;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using MSX_SpritesEditor.Entities;
 
-namespace MSX_SpritesEditor.ViewModels
+namespace MSX_SpritesEditor.ViewModels;
+
+public partial class SpritesEditorViewModel : PanelBaseViewModel
 {
-    public class SpritesEditorViewModel:PanelBaseVieWModel
+    private readonly SpriteBank _spriteBank;
+
+    /// <summary>La vista se resuscribe para repintar el lienzo al cambiar de sprite.</summary>
+    public event Action<Sprite>? RefreshRequested;
+
+    [ObservableProperty]
+    private Sprite _currentSprite;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(NextSpriteCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PreviousSpriteCommand))]
+    private int _currentSpritePosition;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(NextSpriteCommand))]
+    [NotifyCanExecuteChangedFor(nameof(AddSpriteCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteSpriteCommand))]
+    private int _numberSprites;
+
+    public SpritesEditorViewModel(SpriteBank bank, ColorPalette colorPalette)
     {
-        public delegate void DlgRefresh(Sprite currentSpr);
-        public event DlgRefresh EvRefresh;
+        _spriteBank = bank;
+        ColorPalette = colorPalette;
 
-        private SpriteBank _spritesBank;
-        private ColorPalette _colorPalette;
+        _currentSprite = bank.SpritesList[0];
+        _currentSpritePosition = 1;
+        _numberSprites = bank.SpritesList.Count;
 
-        private ICommand _NextSpriteCommand;
-        private bool _canExecuteNextSprite;
-        private ICommand _PreviousSpriteCommand;
-        private bool _canExecutePreviousSprite;
-
-        private ICommand _AddSpriteCommand;
-        private bool _canExecuteAddSprite;
-        private ICommand _DeleteSpriteCommand;
-        private bool _canExecuteDeleteSprite;
-
-        private int _numberSprites;
-        private int _currentSpritePosition;
-
-
-        private ObservableCollection<ImageMini> _listSpritesImages;
-
-        public SpriteBank SpritesBank
+        // La versión WPF creaba la lista vacía, así que la miniatura del primer
+        // sprite del banco nunca llegaba a aparecer.
+        foreach (Sprite sprite in bank.SpritesList)
         {
-            get
-            {
-                return _spritesBank;
-            }            
+            if (sprite.ImageMini is not null)
+                ImagesMiniList.Add(sprite.ImageMini);
         }
+    }
 
-        public SpritesEditorViewModel(SpriteBank bank, ColorPalette colorPalete    )
-        {
-            _spritesBank = bank;
-            _colorPalette = colorPalete;
-            currentSprite = bank.SpritesList[0];
-            NumberSprites = bank.SpritesList.Count;
-            CurrentSpritePosition = 1;
+    public SpriteBank SpritesBank => _spriteBank;
 
-            _canExecuteAddSprite = true;
-            _canExecuteDeleteSprite = true;
-            _canExecuteNextSprite = true;
-            _canExecutePreviousSprite = true;
+    public ColorPalette ColorPalette { get; set; }
 
-            _AddSpriteCommand = new CommandHandler(() => AddSprite(), _canExecuteAddSprite);
-            _DeleteSpriteCommand = new CommandHandler(() => DeleteSprite(), _canExecuteDeleteSprite);
-            _NextSpriteCommand = new CommandHandler(() => NextSprite(), _canExecuteNextSprite);
-            _PreviousSpriteCommand = new CommandHandler(() => PreviousSprite(), _canExecutePreviousSprite);
+    public ObservableCollection<ImageMini> ImagesMiniList { get; } = [];
 
-            _listSpritesImages = new ObservableCollection<ImageMini>();
-        }
+    [RelayCommand(CanExecute = nameof(CanAddSprite))]
+    private void AddSprite()
+    {
+        Sprite? sprite = _spriteBank.NewSprite();
+        if (sprite?.ImageMini is null)
+            return;
 
-        private Sprite currentSprite;
+        ImagesMiniList.Add(sprite.ImageMini);
+        NumberSprites = _spriteBank.SpritesList.Count;
+    }
 
-        public Sprite CurrentSprite
-        {
-            get
-            {
-                return currentSprite;
-            }
-            set
-            {
-                currentSprite = value;
-            }
-            
+    private bool CanAddSprite() => NumberSprites < SpriteBank.MaxSprites;
 
-        }
+    [RelayCommand(CanExecute = nameof(CanDeleteSprite))]
+    private void DeleteSprite()
+    {
+        int index = CurrentSpritePosition - 1;
 
-        public ColorPalette ColorPalette
-        {
-            get
-            {
-                return _colorPalette;
-            }
+        _spriteBank.DeleteSprite(index);
+        if ((uint)index < (uint)ImagesMiniList.Count)
+            ImagesMiniList.RemoveAt(index);
 
-            set
-            {
-                _colorPalette = value;
-            }
-        }
+        NumberSprites = _spriteBank.SpritesList.Count;
+        if (CurrentSpritePosition > NumberSprites)
+            CurrentSpritePosition = NumberSprites;
 
-        public ObservableCollection<ImageMini> ImagesMiniList
-        {
-            get
-            {
-                return _listSpritesImages;
-            }            
-        }
+        GoTo(CurrentSpritePosition);
+    }
 
-        public ICommand NextSpriteCommand
-        {
-            get
-            {
-                return _NextSpriteCommand;
-            }            
-        }
+    // Un banco siempre conserva al menos un sprite: si no, el editor se queda sin
+    // nada que dibujar (en WPF se podía vaciar y el lienzo apuntaba a un sprite muerto).
+    private bool CanDeleteSprite() => NumberSprites > 1;
 
-        public ICommand PreviousSpriteCommand
-        {
-            get
-            {
-                return _PreviousSpriteCommand;
-            }
-            
-        }
+    [RelayCommand(CanExecute = nameof(CanGoNext))]
+    private void NextSprite() => GoTo(CurrentSpritePosition + 1);
 
-        public ICommand AddSpriteCommand
-        {
-            get
-            {
-                return _AddSpriteCommand;
-            }            
-        }
+    private bool CanGoNext() => CurrentSpritePosition < NumberSprites;
 
-        public ICommand DeleteSpriteCommand
-        {
-            get
-            {
-                return _DeleteSpriteCommand;
-            }            
-        }
+    [RelayCommand(CanExecute = nameof(CanGoPrevious))]
+    private void PreviousSprite() => GoTo(CurrentSpritePosition - 1);
 
+    private bool CanGoPrevious() => CurrentSpritePosition > 1;
 
-        
-        public int NumberSprites
-        {
-            get
-            {
-                return _numberSprites;
-            }
+    private void GoTo(int position)
+    {
+        if (position < 1 || position > NumberSprites)
+            return;
 
-            set
-            {
-                _numberSprites = value;
-                OnPropertyChanged("NumberSprites");
-
-            }
-        }
-
-        public int CurrentSpritePosition
-        {
-            get
-            {
-                return _currentSpritePosition;
-            }
-
-            set
-            {
-                _currentSpritePosition = value;
-                OnPropertyChanged("CurrentSpritePosition");
-            }
-        }
-
-        private void AddSprite()
-        {
-            Sprite newSprite= _spritesBank.NewSprite();
-            ImageMini imageMini = new ImageMini(ImageMini.ImagePreviewType.ImagePreview16x16);
-            ImagesMiniList.Add(imageMini);
-            newSprite.ImageMini = imageMini;
-            NumberSprites++;
-        }
-        private void DeleteSprite()
-        {
-            if (NumberSprites > 0)
-            {
-                _spritesBank.DeleteSprite(_currentSpritePosition - 1);              
-                NumberSprites--;
-                if (CurrentSpritePosition>1)
-                    CurrentSpritePosition--;
-            }
-
-        }
-
-        private void NextSprite()
-        {
-            if (CurrentSpritePosition < NumberSprites)
-            {
-                CurrentSpritePosition++;
-                CurrentSprite = _spritesBank.SpritesList[CurrentSpritePosition-1];
-                if (EvRefresh != null)
-                    EvRefresh(CurrentSprite);
-
-            }
-        }
-
-        private void PreviousSprite()
-        {
-            if (CurrentSpritePosition > 1)
-            {
-                CurrentSpritePosition--;
-                CurrentSprite= _spritesBank.SpritesList[CurrentSpritePosition - 1];
-                if (EvRefresh != null)
-                    EvRefresh(CurrentSprite);
-            }
-        }
+        CurrentSpritePosition = position;
+        CurrentSprite = _spriteBank.SpritesList[position - 1];
+        RefreshRequested?.Invoke(CurrentSprite);
     }
 }

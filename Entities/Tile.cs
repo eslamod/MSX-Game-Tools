@@ -1,26 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+namespace MSX_SpritesEditor.Entities;
 
-namespace MSX_SpritesEditor.Entities
+public class Tile
 {
-    public class Tile
+    public const int Rows = 8;
+
+    public Tile()
     {
-        private TileRow[] arrayTileRows;
-
-        public TileRow[] ArrayTileRows
-        {
-            get
-            {
-                return arrayTileRows;
-            }
-        }
-
-        public Tile()
-        {
-            arrayTileRows = new TileRow[8];
-        }
+        ArrayTileRows = new TileRow[Rows];
+        for (int i = 0; i < Rows; i++)
+            ArrayTileRows[i] = new TileRow();
     }
+
+    public TileRow[] ArrayTileRows { get; }
 }

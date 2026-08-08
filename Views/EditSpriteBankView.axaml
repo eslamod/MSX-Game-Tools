@@ -1,0 +1,41 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MSX_SpritesEditor.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="300"
+             x:Class="MSX_SpritesEditor.Views.EditSpriteBankView"
+             x:DataType="vm:EditSpriteBankViewModel"
+             Width="300" Background="Gainsboro">
+
+  <Grid Margin="10" RowDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+
+    <TextBlock Grid.Row="0" Text="New sprite bank" FontWeight="Bold" Margin="0,0,0,12" />
+
+    <Grid Grid.Row="1" ColumnDefinitions="46,*" Margin="0,0,0,8">
+      <TextBlock Grid.Column="0" Text="Name" VerticalAlignment="Center" />
+      <TextBox Grid.Column="1" Text="{Binding Name}" Watermark="Sprite bank 1" />
+    </Grid>
+
+    <Grid Grid.Row="2" ColumnDefinitions="46,*">
+      <TextBlock Grid.Column="0" Text="Type" VerticalAlignment="Center" />
+      <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                ItemsSource="{Binding SpriteTypes}"
+                SelectedItem="{Binding Type}" />
+    </Grid>
+
+    <!-- Reemplaza al MessageBox.Show que la versión WPF lanzaba desde el ViewModel. -->
+    <TextBlock Grid.Row="3"
+               Text="{Binding ErrorMessage}"
+               IsVisible="{Binding HasError}"
+               Foreground="Firebrick"
+               TextWrapping="Wrap"
+               Margin="0,10,0,0" />
+
+    <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
+      <Button Content="Accept" Width="75" Command="{Binding AcceptSpriteBankCommand}" />
+      <Button Content="Cancel" Width="75" Command="{Binding CancelSpriteBankCommand}" />
+    </StackPanel>
+
+  </Grid>
+</UserControl>

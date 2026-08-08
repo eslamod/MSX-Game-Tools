@@ -1,39 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+namespace MSX_SpritesEditor.Entities;
 
-namespace MSX_SpritesEditor.Entities
+public class SpriteRow
 {
-    public class SpriteRow
-    {
-        private bool[] _arrayColumns;
-        private int _color;
+    public const int Columns = 16;
 
-        public bool[] ArrayColumns
-        {
-            get
-            {
-                return _arrayColumns;
-            }            
-        }
-        public int Color
-        {
-            get
-            {
-                return _color;
-            }           
-            set
-            {
-                _color = value;
-            } 
-        }
+    public bool[] ArrayColumns { get; } = new bool[Columns];
 
-        public SpriteRow()
-        {
-            _arrayColumns = new bool[16];
-           
-        } 
-    }
+    /// <summary>Índice en la <see cref="ColorPalette"/> del color de la fila.</summary>
+    public int Color { get; set; }
 }

@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:entities="clr-namespace:MSX_SpritesEditor.Entities"
+             xmlns:vm="clr-namespace:MSX_SpritesEditor.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="225" d:DesignHeight="400"
+             x:Class="MSX_SpritesEditor.Views.TreeGeneralView"
+             x:DataType="vm:TreeGeneralViewModel"
+             Background="Gainsboro">
+
+  <TreeView ItemsSource="{Binding PrimaryNodes}" Background="Gainsboro">
+    <TreeView.ItemTemplate>
+      <!-- El HierarchicalDataTemplate de WPF es TreeDataTemplate en Avalonia. -->
+      <TreeDataTemplate DataType="entities:ItemTree" x:DataType="entities:ItemTree"
+                        ItemsSource="{Binding Childs}">
+        <TextBlock Text="{Binding DisplayText}" />
+      </TreeDataTemplate>
+    </TreeView.ItemTemplate>
+  </TreeView>
+</UserControl>

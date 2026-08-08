@@ -1,44 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+namespace MSX_SpritesEditor.Entities;
 
-namespace MSX_SpritesEditor.Entities
+public class Sprite
 {
-    public class Sprite
+    public const int Rows = 16;
+
+    public Sprite()
     {
-        private SpriteRow[] _arraySpriteRows;
-        public SpriteRow[] ArraySpriteRows
-        {
-            get
-            {
-                return _arraySpriteRows;
-            }
-        }
-
-        public Sprite()
-        {
-            _arraySpriteRows = new SpriteRow[16];
-            for (int i = 0; i < 16; i++)
-            {
-                _arraySpriteRows[i] = new SpriteRow();
-                _arraySpriteRows[i].Color = 15;
-            }            
-        }
-
-        private ImageMini _imageMini;
-
-        public ImageMini ImageMini
-        {
-            get
-            {
-                return _imageMini;
-            }
-            set
-            {
-                _imageMini = value;
-            }
-        }
+        ArraySpriteRows = new SpriteRow[Rows];
+        for (int i = 0; i < Rows; i++)
+            ArraySpriteRows[i] = new SpriteRow { Color = 15 };
     }
-    }
+
+    public SpriteRow[] ArraySpriteRows { get; }
+
+    public ImageMini? ImageMini { get; set; }
+}

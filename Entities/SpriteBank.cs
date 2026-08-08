@@ -1,65 +1,46 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+namespace MSX_SpritesEditor.Entities;
 
-namespace MSX_SpritesEditor.Entities
+public class SpriteBank
 {
-    public class SpriteBank
+    public enum SpriteType
     {
-        public enum SpriteType
-        {
-            MSX,
-            MSX2
-        }
+        MSX,
+        MSX2,
+    }
 
-        private IList<Sprite> _spritesList;
-        private SpriteType _spriteType;
+    /// <summary>Límite de sprites de un banco en el VDP.</summary>
+    public const int MaxSprites = 64;
 
-        public IList<Sprite> SpritesList
-        {
-            get
-            {
-                return _spritesList;
-            }            
-        }
+    private readonly List<Sprite> _sprites = [];
+    private readonly SpriteType _spriteType;
 
-        public SpriteBank()
-        {
-            _spriteType = SpriteType.MSX;
-            _spritesList = new List<Sprite>();
-            Sprite sp = new SpriteMSX();
-            ImageMini im = new ImageMini(ImageMini.ImagePreviewType.ImagePreview16x16);
-            sp.ImageMini = im;
-            _spritesList.Add(sp);
-        }
+    // En la versión WPF el constructor con SpriteType no inicializaba la lista,
+    // así que cualquier uso distinto del constructor por defecto reventaba.
+    public SpriteBank(SpriteType spriteType = SpriteType.MSX)
+    {
+        _spriteType = spriteType;
+        NewSprite();
+    }
 
-        public SpriteBank(SpriteType spType)
-        {
-            _spriteType = spType;
+    public IReadOnlyList<Sprite> SpritesList => _sprites;
 
-        }
+    public SpriteType Type => _spriteType;
 
-        public Sprite NewSprite()
-        {
-            if ( _spritesList.Count==64)
-            {
-                return null;
-            }
-            Sprite sp;
-            if (_spriteType == SpriteType.MSX)
-                sp = new SpriteMSX();
-            else 
-                sp = new SpriteMSX2();
+    /// <summary>Añade un sprite al banco. Devuelve <c>null</c> si el banco está lleno.</summary>
+    public Sprite? NewSprite()
+    {
+        if (_sprites.Count >= MaxSprites)
+            return null;
 
-            _spritesList.Add(sp);
-            return sp;
-        }
+        Sprite sprite = _spriteType == SpriteType.MSX ? new SpriteMSX() : new SpriteMSX2();
+        sprite.ImageMini = new ImageMini(ImageMini.ImagePreviewType.ImagePreview16x16);
+        _sprites.Add(sprite);
+        return sprite;
+    }
 
-        public void DeleteSprite(int pos)
-        {
-            _spritesList.RemoveAt(pos);
-        }
+    public void DeleteSprite(int pos)
+    {
+        if ((uint)pos < (uint)_sprites.Count)
+            _sprites.RemoveAt(pos);
     }
 }

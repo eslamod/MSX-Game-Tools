@@ -1,0 +1,55 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:MSX_SpritesEditor.Views"
+        xmlns:vm="clr-namespace:MSX_SpritesEditor.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="560"
+        x:Class="MSX_SpritesEditor.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="MSX Game Editor" Width="900" Height="560">
+
+  <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+    <Menu Grid.Row="0">
+      <MenuItem Header="File">
+        <MenuItem Header="Add sprite bank" Command="{Binding AddSpriteBankCommand}" />
+        <MenuItem Header="Add tileset" />
+        <Separator />
+        <MenuItem Header="Exit" />
+      </MenuItem>
+    </Menu>
+
+    <StackPanel Grid.Row="1" Orientation="Horizontal" FlowDirection="RightToLeft" Background="Gainsboro">
+      <Button Content="Add sprite Bank" Width="120" Margin="4" Command="{Binding AddSpriteBankCommand}" />
+      <Button Content="Add Tileset" Width="90" Margin="4" />
+      <Button Content="Add Map" Width="80" Margin="4" />
+    </StackPanel>
+
+    <Grid Grid.Row="2" ColumnDefinitions="225,4,*,Auto">
+
+      <views:TreeGeneralView Grid.Column="0" DataContext="{Binding TreeGeneralVm}" />
+
+      <GridSplitter Grid.Column="1" Width="4" Background="DarkGray" ResizeDirection="Columns" />
+
+      <TabControl Grid.Column="2"
+                  ItemsSource="{Binding Tabs}"
+                  SelectedItem="{Binding SelectedTab}">
+        <TabControl.ItemTemplate>
+          <!-- Plantilla de la cabecera de la pestaña. El contenido lo resuelve el ViewLocator. -->
+          <DataTemplate x:DataType="vm:PanelBaseViewModel">
+            <TextBlock Text="{Binding Header}" />
+          </DataTemplate>
+        </TabControl.ItemTemplate>
+      </TabControl>
+
+      <ContentControl Grid.Column="3" Content="{Binding RightPanViewModel}" />
+    </Grid>
+
+    <!-- Avalonia no tiene StatusBar; un Border con el texto hace el mismo papel. -->
+    <Border Grid.Row="3" Background="Gainsboro" BorderBrush="DarkGray" BorderThickness="0,1,0,0" Padding="8,4">
+      <TextBlock Text="MSX Game Editor V1.0" VerticalAlignment="Center" />
+    </Border>
+
+  </Grid>
+</Window>

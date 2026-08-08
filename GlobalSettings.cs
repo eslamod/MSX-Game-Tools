@@ -1,19 +1,8 @@
-﻿using MSX_SpritesEditor.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using MSX_SpritesEditor.Entities;
 
-namespace MSX_SpritesEditor
+namespace MSX_SpritesEditor;
+
+public static class GlobalSettings
 {
-    public class GlobalSettings
-    {
-        public static ColorPalette CurrentColorPalette;
-        static GlobalSettings()
-        {
-            CurrentColorPalette = new ColorPalette();
-        }
-        
-    }
+    public static ColorPalette CurrentColorPalette { get; } = new();
 }

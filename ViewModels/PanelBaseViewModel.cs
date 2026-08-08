@@ -1,27 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace MSX_SpritesEditor.ViewModels
+namespace MSX_SpritesEditor.ViewModels;
+
+/// <summary>Base de todo panel que puede vivir en una pestaña o en el panel derecho.</summary>
+public abstract partial class PanelBaseViewModel : ObservableObject
 {
-    public class PanelBaseVieWModel: INotifyPropertyChanged
-    {
-        public string Header { get; set; }
-        public string TagId { get; set; }
+    [ObservableProperty]
+    private string _header = string.Empty;
 
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void OnPropertyChanged(string name)
-        {
-            PropertyChangedEventHandler handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(name));
-            }
-        }
-    }
+    [ObservableProperty]
+    private string _tagId = string.Empty;
 }

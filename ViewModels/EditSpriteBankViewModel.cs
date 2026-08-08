@@ -1,135 +1,59 @@
-﻿using MSX_SpritesEditor.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Input;
-using static MSX_SpritesEditor.Entities.SpriteBank;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using MSX_SpritesEditor.Entities;
 
-namespace MSX_SpritesEditor.ViewModels
+namespace MSX_SpritesEditor.ViewModels;
+
+public partial class EditSpriteBankViewModel : PanelBaseViewModel
 {
-    
+    private readonly MainWindowViewModel _mainWindowVm;
 
-    public class EditSpriteBankViewModel:PanelBaseVieWModel
+    [ObservableProperty]
+    private string _name = string.Empty;
+
+    [ObservableProperty]
+    private SpriteBank.SpriteType _type = SpriteBank.SpriteType.MSX;
+
+    // En WPF esto era un MessageBox.Show desde el ViewModel. Ahora el error se
+    // enlaza a la propia vista: sin diálogo modal y sin acoplar VM y UI.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasError))]
+    private string? _errorMessage;
+
+    public EditSpriteBankViewModel(MainWindowViewModel mainWindowVm)
+        => _mainWindowVm = mainWindowVm;
+
+    public IReadOnlyList<SpriteBank.SpriteType> SpriteTypes { get; } = Enum.GetValues<SpriteBank.SpriteType>();
+
+    public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+
+    [RelayCommand]
+    private void AcceptSpriteBank()
     {
-        private ICommand _AcceptSpriteBankCommand;
-        private bool _canExecuteAccept;
-        private ICommand _CancelSpriteBankCommand;      
-        private bool _canExecuteCancel;
-
-        
-
-
-        private MainWindowViewModel _mainWindowVM;
-
-        private int _numberSprties;
-        private int _currentSprite;
-
-
-        public int NumberSprties
+        if (string.IsNullOrWhiteSpace(Name))
         {
-            get
-            {
-                return _numberSprties;
-            }
-
-            set
-            {
-                _numberSprties = value;
-                OnPropertyChanged("NumberSprties");
-            }
+            ErrorMessage = "El nombre del banco de sprites no puede estar vacío.";
+            return;
         }
 
-        public int CurrentSprite
+        ErrorMessage = null;
+
+        var bank = new SpriteBank(Type);
+        var panel = new SpritesEditorViewModel(bank, GlobalSettings.CurrentColorPalette)
         {
-            get
-            {
-                return _currentSprite;
-            }
+            TagId = $"spb{_mainWindowVm.CurrentSpriteBankCounter}",
+            Header = $"{Name} (SP)",
+        };
+        _mainWindowVm.CurrentSpriteBankCounter++;
 
-            set
-            {
-                _currentSprite = value;
-                OnPropertyChanged("CurrentSprite");
-            }
-        }
+        _mainWindowVm.AddPanelToDic(panel);
+        _mainWindowVm.Tabs.Add(panel);
+        _mainWindowVm.SelectedTab = panel;
+        _mainWindowVm.TreeGeneralVm.AddSpriteBank(panel.Header, panel.TagId, panel);
 
-        public EditSpriteBankViewModel(MainWindowViewModel mvm)
-        {
-            _mainWindowVM = mvm;
-            _canExecuteCancel = true;
-            _canExecuteAccept = true;
-            
-            _AcceptSpriteBankCommand = new CommandHandler(() => AcceptAddSpriteBank(), _canExecuteAccept);
-            _CancelSpriteBankCommand = new CommandHandler(() => CancelAddSpriteBank(), _canExecuteCancel);
-            
-
-
-        }
-
-        private void AcceptAddSpriteBank()
-        {
-            if (Validate())
-            {
-
-                SpriteBank spb = new SpriteBank();
-
-                PanelBaseVieWModel vm = new SpritesEditorViewModel(spb, GlobalSettings.CurrentColorPalette);
-                vm.TagId = "spb" + _mainWindowVM.CurrentSpriteBankCounter.ToString();
-
-                vm.Header = Name + " (SP)";
-                _mainWindowVM.CurrentSpriteBankCounter++;
-                _mainWindowVM.Tabs.Add(vm);
-
-                ItemTree it = new ItemTree();
-
-                _mainWindowVM.TreeGeneralVm.AddSpriteBank(vm.Header , vm.TagId, vm);
-
-
-                _mainWindowVM.RightPanViewModel = null;
-
-                
-                
-            }
-        }
-
-        private bool Validate()
-        {          
-            if ( string.IsNullOrEmpty(Name))
-            {
-                MessageBox.Show("Can't leave name of bank sprite in blank");
-                return false;
-            }
-            return true;
-        }
-
-        private void CancelAddSpriteBank()
-        {
-            _mainWindowVM.RightPanViewModel = null;
-        }
-        
-
-        public string Name {get; set; }
-        public SpriteType Type { get; set;}
-
-        public ICommand AcceptSpriteBankCommand
-        {
-            get
-            {
-                return _AcceptSpriteBankCommand;
-            }            
-        }
-
-        public ICommand CancelSpriteBankCommand
-        {
-            get
-            {
-                return _CancelSpriteBankCommand;
-            }
-         }
-
-
+        _mainWindowVm.RightPanViewModel = null;
     }
+
+    [RelayCommand]
+    private void CancelSpriteBank() => _mainWindowVm.RightPanViewModel = null;
 }

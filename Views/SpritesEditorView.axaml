@@ -1,0 +1,97 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:entities="clr-namespace:MSX_SpritesEditor.Entities"
+             xmlns:vm="clr-namespace:MSX_SpritesEditor.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500"
+             x:Class="MSX_SpritesEditor.Views.SpritesEditorView"
+             x:DataType="vm:SpritesEditorViewModel">
+
+  <Grid x:Name="EditorGrid" Background="Gainsboro"
+        ColumnDefinitions="256,*"
+        RowDefinitions="Auto,256,*">
+
+    <!-- Zoom del lienzo de edición -->
+    <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="2">
+      <RadioButton GroupName="EditZoom" Theme="{StaticResource ToggleRadioButton}"
+                   Content="X1" Tag="0" Width="32" Margin="2" IsChecked="True"
+                   IsCheckedChanged="OnZoomChanged" />
+      <RadioButton GroupName="EditZoom" Theme="{StaticResource ToggleRadioButton}"
+                   Content="X2" Tag="1" Width="32" Margin="2"
+                   IsCheckedChanged="OnZoomChanged" />
+      <RadioButton GroupName="EditZoom" Theme="{StaticResource ToggleRadioButton}"
+                   Content="X3" Tag="2" Width="32" Margin="2"
+                   IsCheckedChanged="OnZoomChanged" />
+    </StackPanel>
+
+    <!-- Zoom de las miniaturas: sin implementar, igual que en la versión WPF -->
+    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal"
+                HorizontalAlignment="Right" Margin="2">
+      <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
+                   Content="X2" Width="32" Margin="2" IsChecked="True" />
+      <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
+                   Content="X4" Width="32" Margin="2" />
+      <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
+                   Content="X8" Width="32" Margin="2" />
+    </StackPanel>
+
+    <!-- Lienzo de edición 16x16 -->
+    <Grid Grid.Row="1" Grid.Column="0">
+      <Canvas x:Name="CanvSprite"
+              Background="Gray"
+              HorizontalAlignment="Left" VerticalAlignment="Top"
+              PointerPressed="OnCanvasPointerPressed"
+              PointerMoved="OnCanvasPointerMoved"
+              PointerReleased="OnCanvasPointerReleased"
+              PointerExited="OnCanvasPointerExited" />
+    </Grid>
+
+    <!-- Miniaturas del banco -->
+    <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" Background="DarkGray">
+      <ScrollViewer>
+        <ItemsControl ItemsSource="{Binding ImagesMiniList}" Margin="4">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="entities:ImageMini">
+              <Border BorderBrush="Black" BorderThickness="2" Margin="2">
+                <!-- BitmapInterpolationMode="None" = escalado nearest neighbour,
+                     imprescindible para que un sprite de 16x16 no salga borroso. -->
+                <Image Source="{Binding SpritePreview}"
+                       Width="120" Height="120" Stretch="Fill"
+                       RenderOptions.BitmapInterpolationMode="None" />
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+    </Border>
+
+    <!-- Navegación por los sprites del banco -->
+    <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal"
+                Background="Gainsboro" Height="48" VerticalAlignment="Top">
+      <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0">
+        <TextBlock Text="{Binding CurrentSpritePosition}" VerticalAlignment="Center" />
+        <TextBlock Text=" / " VerticalAlignment="Center" />
+        <TextBlock Text="{Binding NumberSprites}" VerticalAlignment="Center" />
+      </StackPanel>
+      <Button Width="44" Content="&lt;" FontSize="20" Margin="3"
+              HorizontalContentAlignment="Center"
+              Command="{Binding PreviousSpriteCommand}" />
+      <Button Width="44" Content="&gt;" FontSize="20" Margin="3"
+              HorizontalContentAlignment="Center"
+              Command="{Binding NextSpriteCommand}" />
+      <Button Width="44" Content="+" FontSize="20" Margin="3"
+              HorizontalContentAlignment="Center"
+              Command="{Binding AddSpriteCommand}" />
+      <Button Width="44" Content="X" FontSize="20" Margin="3" Foreground="Red"
+              HorizontalContentAlignment="Center"
+              Command="{Binding DeleteSpriteCommand}" />
+    </StackPanel>
+
+  </Grid>
+</UserControl>
