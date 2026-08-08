@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using MSX_SpritesEditor;
@@ -327,6 +328,23 @@ public class PaletteEditingTests
         Assert.Same(app.ViewModel.Palettes.ActivePalette, app.PaletteCombo.SelectedItem);
     }
 
+    [AvaloniaTheory]
+    [InlineData("New palette")]
+    [InlineData("Edit palette")]
+    [InlineData("Delete palette")]
+    [InlineData("Load palette...")]
+    [InlineData("Save palette as...")]
+    public void El_menu_de_paletas_tiene_sus_comandos_enlazados(string header)
+    {
+        using MainWindowHost app = MainWindowHost.Show();
+
+        MenuItem item = app.MenuItems.Single(m => (m.Header as string) == header);
+
+        // Un nombre de comando mal escrito en el XAML dejaria Command en null y la
+        // opcion no haria nada, sin ningun aviso.
+        Assert.NotNull(item.Command);
+    }
+
     /// <summary>La ventana principal montada de verdad, con sus enlaces vivos.</summary>
     private sealed class MainWindowHost : IDisposable
     {
@@ -342,6 +360,10 @@ public class PaletteEditingTests
         public MainWindowViewModel ViewModel { get; }
 
         public ComboBox PaletteCombo { get; }
+
+        /// <summary>Los MenuItem se declaran en el XAML, así que están en el árbol lógico.</summary>
+        public IEnumerable<MenuItem> MenuItems =>
+            _window.GetLogicalDescendants().OfType<MenuItem>();
 
         public static MainWindowHost Show()
         {
@@ -380,15 +402,15 @@ public class PaletteEditingTests
     [Fact]
     public async Task Eliminar_pide_confirmacion_nombrando_la_paleta()
     {
-        var dialogs = new FakeDialogService(answer: true);
+        var dialogs = new TestDialogService { ConfirmAnswer = true };
         var main = new MainWindowViewModel(dialogs);
         main.AddPaletteCommand.Execute(null);
         main.Palettes.ActivePalette.Name = "Nocturna";
 
         await main.DeletePaletteCommand.ExecuteAsync(null);
 
-        Assert.Equal(1, dialogs.Calls);
-        Assert.Contains("Nocturna", dialogs.LastMessage);
+        Assert.Equal(1, dialogs.ConfirmCalls);
+        Assert.Contains("Nocturna", dialogs.LastConfirmMessage);
         Assert.Equal("Eliminar", dialogs.LastConfirmLabel);
         Assert.Single(main.Palettes.Palettes);
     }
@@ -396,14 +418,14 @@ public class PaletteEditingTests
     [Fact]
     public async Task Cancelar_la_confirmacion_no_elimina_nada()
     {
-        var dialogs = new FakeDialogService(answer: false);
+        var dialogs = new TestDialogService { ConfirmAnswer = false };
         var main = new MainWindowViewModel(dialogs);
         main.AddPaletteCommand.Execute(null);
         ColorPalette created = main.Palettes.ActivePalette;
 
         await main.DeletePaletteCommand.ExecuteAsync(null);
 
-        Assert.Equal(1, dialogs.Calls);
+        Assert.Equal(1, dialogs.ConfirmCalls);
         Assert.Equal(2, main.Palettes.Palettes.Count);
         Assert.Same(created, main.Palettes.ActivePalette);
 
@@ -412,21 +434,4 @@ public class PaletteEditingTests
         Assert.Same(created, editor.Palette);
     }
 
-    private sealed class FakeDialogService(bool answer) : IDialogService
-    {
-        public int Calls { get; private set; }
-
-        public string LastMessage { get; private set; } = string.Empty;
-
-        public string LastConfirmLabel { get; private set; } = string.Empty;
-
-        public Task<bool> ConfirmAsync(string title, string message, string confirmLabel)
-        {
-            Calls++;
-            LastMessage = message;
-            LastConfirmLabel = confirmLabel;
-
-            return Task.FromResult(answer);
-        }
-    }
 }

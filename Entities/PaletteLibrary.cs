@@ -52,6 +52,20 @@ public sealed partial class PaletteLibrary : ObservableObject
         return created;
     }
 
+    /// <summary>
+    /// Mete en la biblioteca una paleta venida de fichero y la deja seleccionada. Si el
+    /// nombre ya está cogido se numera, para que el desplegable no muestre dos iguales.
+    /// </summary>
+    public ColorPalette Import(ColorPalette palette)
+    {
+        palette.Name = UniqueName(palette.Name);
+
+        Palettes.Add(palette);
+        ActivePalette = palette;
+
+        return palette;
+    }
+
     /// <summary>La estándar no se toca, y la biblioteca nunca se queda vacía.</summary>
     public bool CanRemove(ColorPalette? palette) =>
         palette is { IsReadOnly: false } && Palettes.Contains(palette) && Palettes.Count > 1;
@@ -81,5 +95,17 @@ public sealed partial class PaletteLibrary : ObservableObject
             number++;
 
         return $"Palette {number}";
+    }
+
+    private string UniqueName(string name)
+    {
+        if (Palettes.All(p => p.Name != name))
+            return name;
+
+        int number = 2;
+        while (Palettes.Any(p => p.Name == $"{name} ({number})"))
+            number++;
+
+        return $"{name} ({number})";
     }
 }

@@ -129,28 +129,28 @@ public class SpritesEditorViewModelTests
     [Fact]
     public async Task Borrar_pide_confirmacion_diciendo_que_sprite_es()
     {
-        var dialogs = new RecordingDialogService(answer: true);
+        var dialogs = new TestDialogService { ConfirmAnswer = true };
         SpritesEditorViewModel vm = new(new SpriteBank(), new PaletteLibrary(), dialogs);
         vm.AddSpriteCommand.Execute(null); // quedan 2, seleccionado el 2
 
         await vm.DeleteSpriteCommand.ExecuteAsync(null);
 
-        Assert.Equal(1, dialogs.Calls);
-        Assert.Contains("sprite 2 de 2", dialogs.LastMessage);
+        Assert.Equal(1, dialogs.ConfirmCalls);
+        Assert.Contains("sprite 2 de 2", dialogs.LastConfirmMessage);
         Assert.Equal(1, vm.NumberSprites);
     }
 
     [Fact]
     public async Task Cancelar_la_confirmacion_no_borra_el_sprite()
     {
-        var dialogs = new RecordingDialogService(answer: false);
+        var dialogs = new TestDialogService { ConfirmAnswer = false };
         SpritesEditorViewModel vm = new(new SpriteBank(), new PaletteLibrary(), dialogs);
         vm.AddSpriteCommand.Execute(null);
         Sprite current = vm.CurrentSprite;
 
         await vm.DeleteSpriteCommand.ExecuteAsync(null);
 
-        Assert.Equal(1, dialogs.Calls);
+        Assert.Equal(1, dialogs.ConfirmCalls);
         Assert.Equal(2, vm.NumberSprites);
         Assert.Equal(2, vm.ImagesMiniList.Count);
         Assert.Same(current, vm.CurrentSprite);
@@ -159,19 +159,4 @@ public class SpritesEditorViewModelTests
 
     private static SpritesEditorViewModel NewEditor() =>
         new(new SpriteBank(), new PaletteLibrary());
-
-    private sealed class RecordingDialogService(bool answer) : IDialogService
-    {
-        public int Calls { get; private set; }
-
-        public string LastMessage { get; private set; } = string.Empty;
-
-        public Task<bool> ConfirmAsync(string title, string message, string confirmLabel)
-        {
-            Calls++;
-            LastMessage = message;
-
-            return Task.FromResult(answer);
-        }
-    }
 }

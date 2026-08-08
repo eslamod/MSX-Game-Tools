@@ -7,13 +7,23 @@ public partial class ConfirmationWindow : Window
 {
     public ConfirmationWindow() => InitializeComponent();
 
-    public ConfirmationWindow(string title, string message, string confirmLabel)
+    /// <param name="showCancel">
+    /// <c>false</c> lo convierte en un aviso de un solo botón, sin nada que cancelar.
+    /// </param>
+    public ConfirmationWindow(string title, string message, string confirmLabel, bool showCancel = true)
         : this()
     {
         Title = title;
         HeadingText.Text = title;
         MessageText.Text = message;
         ConfirmButton.Content = confirmLabel;
+        CancelButton.IsVisible = showCancel;
+
+        if (!showCancel)
+        {
+            ConfirmButton.IsDefault = true;
+            ConfirmButton.IsCancel = true;
+        }
     }
 
     // Cerrar por la X equivale a cancelar: ShowDialog<bool> devuelve false.

@@ -57,14 +57,14 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
     private int _backgroundColorIndex = DefaultBackgroundIndex;
 
     /// <param name="dialogs">
-    /// Para confirmar el borrado de un sprite. Sin él se confirma sin preguntar, que
-    /// es lo que quieren los tests.
+    /// Para confirmar el borrado de un sprite. Sin él no se pregunta nada, que es lo
+    /// que quieren los tests.
     /// </param>
     public SpritesEditorViewModel(SpriteBank bank, PaletteLibrary palettes, IDialogService? dialogs = null)
     {
         _spriteBank = bank;
         _palettes = palettes;
-        _dialogs = dialogs ?? new AlwaysConfirmDialogService();
+        _dialogs = dialogs ?? new SilentDialogService();
         _watchedPalette = palettes.ActivePalette;
 
         _palettes.PropertyChanged += OnLibraryPropertyChanged;

@@ -1,0 +1,19 @@
+namespace MSX_SpritesEditor.Services;
+
+/// <summary>
+/// No abre nada: confirma sin preguntar, se traga los mensajes y cancela los
+/// selectores de fichero. Es el valor por defecto para tests y para cualquier
+/// escenario sin ventana; la aplicación siempre inyecta el servicio real.
+/// </summary>
+public sealed class SilentDialogService : IDialogService
+{
+    public Task<bool> ConfirmAsync(string title, string message, string confirmLabel) =>
+        Task.FromResult(true);
+
+    public Task ShowMessageAsync(string title, string message) => Task.CompletedTask;
+
+    public Task<string?> PickFileToOpenAsync(string title) => Task.FromResult<string?>(null);
+
+    public Task<string?> PickFileToSaveAsync(string title, string suggestedFileName) =>
+        Task.FromResult<string?>(null);
+}

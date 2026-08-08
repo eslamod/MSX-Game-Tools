@@ -17,12 +17,12 @@ public partial class MainWindowViewModel : ObservableObject
     private PanelBaseViewModel? _selectedTab;
 
     /// <param name="dialogs">
-    /// La aplicación inyecta el servicio real; si no se pasa ninguno se confirma sin
-    /// preguntar, que es lo que quieren los tests y cualquier uso sin ventana.
+    /// La aplicación inyecta el servicio real; si no se pasa ninguno no se abre nada,
+    /// que es lo que quieren los tests y cualquier uso sin ventana.
     /// </param>
     public MainWindowViewModel(IDialogService? dialogs = null)
     {
-        Dialogs = dialogs ?? new AlwaysConfirmDialogService();
+        Dialogs = dialogs ?? new SilentDialogService();
 
         // Los comandos de paleta dependen de cuál esté activa (la estándar no se puede
         // editar ni eliminar) y de cuántas queden (nunca se borra la última).
@@ -95,6 +95,55 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     private bool CanDeletePalette() => Palettes.CanRemove(Palettes.ActivePalette);
+
+    [RelayCommand]
+    private async Task SavePaletteAsync()
+    {
+        ColorPalette palette = Palettes.ActivePalette;
+
+        string? path = await Dialogs.PickFileToSaveAsync("Guardar paleta", SuggestedFileName(palette.Name));
+        if (path is null)
+            return;
+
+        try
+        {
+            await File.WriteAllTextAsync(path, PaletteSerializer.Serialize(palette));
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo guardar la paleta", exception.Message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task LoadPaletteAsync()
+    {
+        string? path = await Dialogs.PickFileToOpenAsync("Cargar paleta");
+        if (path is null)
+            return;
+
+        try
+        {
+            string json = await File.ReadAllTextAsync(path);
+            Palettes.Import(PaletteSerializer.Deserialize(json));
+        }
+        catch (PaletteFormatException exception)
+        {
+            await Dialogs.ShowMessageAsync("La paleta no es válida", exception.Message);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo abrir el fichero", exception.Message);
+        }
+    }
+
+    /// <summary>El nombre de una paleta puede llevar caracteres que no valen en un fichero.</summary>
+    private static string SuggestedFileName(string paletteName)
+    {
+        string clean = string.Concat(paletteName.Split(Path.GetInvalidFileNameChars())).Trim();
+
+        return $"{(clean.Length == 0 ? "paleta" : clean)}.json";
+    }
 
     /// <summary>
     /// Sustituye a la antigua clase <c>CommandShowTab</c>. Igual que en la versión WPF,
