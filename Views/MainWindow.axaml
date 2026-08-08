@@ -21,8 +21,8 @@
     </Menu>
 
     <StackPanel Grid.Row="1" Orientation="Horizontal" FlowDirection="RightToLeft" Background="Gainsboro">
-      <Button Content="Add sprite Bank" Width="120" Margin="4" Command="{Binding AddSpriteBankCommand}" />
-      <Button Content="Add Tileset" Width="90" Margin="4" />
+      <Button Content="Add sprite Bank" Width="128" Margin="4" Command="{Binding AddSpriteBankCommand}" />
+      <Button Content="Add Tileset" Width="100" Margin="4" />
       <Button Content="Add Map" Width="80" Margin="4" />
     </StackPanel>
 

@@ -2,52 +2,64 @@ using Avalonia.Media;
 
 namespace MSX_SpritesEditor.Entities;
 
+/// <summary>
+/// La paleta estándar del MSX: los 16 colores fijos del VDP TMS9918, que son también
+/// los que carga por defecto el V9938 del MSX2.
+/// </summary>
 public class ColorPalette
 {
-    private readonly Color[] _colors;
-    private readonly IBrush[] _brushes;
+    /// <summary>Número de colores de la paleta.</summary>
+    public const int Size = 16;
+
+    // Componentes en el formato nativo del MSX, 3 bits (0-7) por canal.
+    private static readonly (string Name, byte R, byte G, byte B)[] MsxColors =
+    [
+        ("Transparent",  0, 0, 0),
+        ("Black",        0, 0, 0),
+        ("Medium green", 1, 6, 1),
+        ("Light green",  3, 7, 3),
+        ("Dark blue",    1, 1, 7),
+        ("Light blue",   2, 3, 7),
+        ("Dark red",     5, 1, 1),
+        ("Cyan",         2, 6, 7),
+        ("Medium red",   7, 1, 1),
+        ("Light red",    7, 3, 3),
+        ("Dark yellow",  6, 6, 1),
+        ("Light yellow", 6, 6, 4),
+        ("Dark green",   1, 4, 1),
+        ("Magenta",      6, 2, 5),
+        ("Gray",         5, 5, 5),
+        ("White",        7, 7, 7),
+    ];
+
+    private readonly PaletteColor[] _colors;
+    private readonly PaletteColor[] _backgroundChoices;
 
     public ColorPalette()
     {
-        // Paleta por defecto: MSX1
-        //  0 0,0,0->0,0,0 = Transparent      8 7,1,1->255,36,36
-        //  1 0,0,0->0,0,0                    9 7,3,3->255,109,109
-        //  2 1,6,1->36,219,36               10 6,6,1->219,219,36
-        //  3 3,7,3->109,255,109             11 6,6,4->219,219,146
-        //  4 1,1,7->36,36,255               12 1,4,1->36,146,36
-        //  5 2,3,7->72,109,255              13 6,2,5->219,72,182
-        //  6 5,1,1->182,36,36               14 5,5,5->182,182,182
-        //  7 2,6,7->72,219,255              15 7,7,7->255,255,255
-        _colors =
-        [
-            Colors.Transparent,
-            Color.FromRgb(0, 0, 0),
-            Color.FromRgb(36, 219, 36),
-            Color.FromRgb(109, 255, 109),
-            Color.FromRgb(36, 36, 255),
-            Color.FromRgb(72, 109, 255),
-            Color.FromRgb(182, 36, 36),
-            Color.FromRgb(72, 219, 255),
-            Color.FromRgb(255, 36, 36),
-            Color.FromRgb(255, 109, 109),
-            Color.FromRgb(219, 219, 36),
-            Color.FromRgb(219, 219, 146),
-            Color.FromRgb(36, 146, 36),
-            Color.FromRgb(219, 72, 182),
-            Color.FromRgb(182, 182, 182),
-            Color.FromRgb(255, 255, 255),
-        ];
+        _colors = new PaletteColor[MsxColors.Length];
 
-        // Los brushes se cachean: repintar el lienzo son 256 celdas y crear
-        // un SolidColorBrush por celda en cada redibujado era gratuito en WPF pero innecesario.
-        _brushes = new IBrush[_colors.Length];
-        for (int i = 0; i < _colors.Length; i++)
-            _brushes[i] = new SolidColorBrush(_colors[i]);
+        for (int i = 0; i < MsxColors.Length; i++)
+        {
+            (string name, byte r, byte g, byte b) = MsxColors[i];
+            _colors[i] = new PaletteColor(i, name, r, g, b, isTransparent: i == 0);
+        }
+
+        // El 0 no sirve de fondo: dejaría el editor entero invisible.
+        _backgroundChoices = _colors[1..];
     }
+
+    /// <summary>Los 16 colores, en orden de índice.</summary>
+    public IReadOnlyList<PaletteColor> Colors => _colors;
+
+    /// <summary>Colores elegibles como fondo del lienzo y de las miniaturas: del 1 al F.</summary>
+    public IReadOnlyList<PaletteColor> BackgroundChoices => _backgroundChoices;
 
     public int Count => _colors.Length;
 
-    public Color GetColor(int index) => _colors[index];
+    public PaletteColor this[int index] => _colors[index];
 
-    public IBrush GetBrush(int index) => _brushes[index];
+    public Color GetColor(int index) => _colors[index].Color;
+
+    public IBrush GetBrush(int index) => _colors[index].Brush;
 }
