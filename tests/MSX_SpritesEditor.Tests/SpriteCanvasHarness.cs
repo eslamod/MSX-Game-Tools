@@ -29,7 +29,8 @@ internal sealed class SpriteCanvasHarness : IDisposable
     public SpriteCanvasHarness(PaintMode mode, SpriteBank.SpriteType bankType = SpriteBank.SpriteType.MSX)
     {
         Bank = new SpriteBank(bankType);
-        ViewModel = new SpritesEditorViewModel(Bank, GlobalSettings.CurrentColorPalette);
+        Palettes = new PaletteLibrary();
+        ViewModel = new SpritesEditorViewModel(Bank, Palettes);
 
         SpritesEditorView view = new() { DataContext = ViewModel };
         _view = view;
@@ -67,6 +68,9 @@ internal sealed class SpriteCanvasHarness : IDisposable
     public SpriteBank Bank { get; }
 
     public SpritesEditorViewModel ViewModel { get; }
+
+    /// <summary>La biblioteca de paletas que usa este editor.</summary>
+    public PaletteLibrary Palettes { get; }
 
     /// <summary>La tira de miniaturas del banco.</summary>
     public ListBox Thumbnails { get; }

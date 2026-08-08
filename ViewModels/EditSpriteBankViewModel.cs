@@ -39,7 +39,7 @@ public partial class EditSpriteBankViewModel : PanelBaseViewModel
         ErrorMessage = null;
 
         var bank = new SpriteBank(Type);
-        var panel = new SpritesEditorViewModel(bank, GlobalSettings.CurrentColorPalette)
+        var panel = new SpritesEditorViewModel(bank, _mainWindowVm.Palettes)
         {
             TagId = $"spb{_mainWindowVm.CurrentSpriteBankCounter}",
             Header = $"{Name} (SP)",

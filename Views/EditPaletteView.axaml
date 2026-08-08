@@ -1,0 +1,100 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:entities="clr-namespace:MSX_SpritesEditor.Entities"
+             xmlns:vm="clr-namespace:MSX_SpritesEditor.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="600"
+             x:Class="MSX_SpritesEditor.Views.EditPaletteView"
+             x:DataType="vm:EditPaletteViewModel"
+             Width="300" Background="Gainsboro">
+
+  <Grid Margin="10" RowDefinitions="Auto,Auto,*,Auto,Auto">
+
+    <TextBlock Grid.Row="0" Text="Edit palette" FontWeight="Bold" Margin="0,0,0,10" />
+
+    <Grid Grid.Row="1" ColumnDefinitions="46,*" Margin="0,0,0,10">
+      <TextBlock Grid.Column="0" Text="Name" VerticalAlignment="Center" />
+      <TextBox Grid.Column="1" Text="{Binding Palette.Name}" />
+    </Grid>
+
+    <!-- Los 16 colores. El seleccionado es el que editan los sliders. -->
+    <ListBox Grid.Row="2"
+             x:Name="ColorList"
+             ItemsSource="{Binding Palette.Colors}"
+             SelectedItem="{Binding SelectedColor, Mode=TwoWay}"
+             SelectionMode="Single">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="entities:PaletteColor">
+          <Grid ColumnDefinitions="Auto,28,*,Auto" Height="24">
+            <Border Grid.Column="0" Width="24" Height="18"
+                    BorderBrush="Black" BorderThickness="1"
+                    VerticalAlignment="Center">
+              <Grid>
+                <!-- El gris de debajo sólo se ve en el color 0, que es transparente. -->
+                <Border Background="#DDDDDD" />
+                <Border Background="{Binding Brush}" />
+              </Grid>
+            </Border>
+            <TextBlock Grid.Column="1" Text="{Binding Hex}"
+                       FontFamily="Consolas" VerticalAlignment="Center"
+                       TextAlignment="Center" />
+            <TextBlock Grid.Column="2" Text="{Binding Name}" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="3" Text="{Binding HexRgb}"
+                       FontFamily="Consolas" Foreground="#606060"
+                       VerticalAlignment="Center" Margin="6,0,0,0"
+                       ToolTip.Tip="Componentes en 9 bits: un dígito hexadecimal por canal" />
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+    <!-- Componentes del color seleccionado, en el formato nativo del MSX: 0-7. -->
+    <StackPanel Grid.Row="3" Margin="0,10,0,0"
+                IsEnabled="{Binding SelectedColor.IsEditable}">
+
+      <TextBlock Text="El color 0 es transparente y no se puede editar"
+                 IsVisible="{Binding SelectedColor.IsTransparent}"
+                 Foreground="Firebrick" TextWrapping="Wrap" Margin="0,0,0,6" />
+
+      <Grid ColumnDefinitions="20,*,24" Margin="0,2">
+        <TextBlock Grid.Column="0" Text="R" VerticalAlignment="Center" />
+        <Slider Grid.Column="1" Minimum="0" Maximum="7"
+                TickFrequency="1" IsSnapToTickEnabled="True"
+                Value="{Binding SelectedColor.Red}" />
+        <TextBlock Grid.Column="2" Text="{Binding SelectedColor.Red}"
+                   FontFamily="Consolas" VerticalAlignment="Center" TextAlignment="Right" />
+      </Grid>
+
+      <Grid ColumnDefinitions="20,*,24" Margin="0,2">
+        <TextBlock Grid.Column="0" Text="G" VerticalAlignment="Center" />
+        <Slider Grid.Column="1" Minimum="0" Maximum="7"
+                TickFrequency="1" IsSnapToTickEnabled="True"
+                Value="{Binding SelectedColor.Green}" />
+        <TextBlock Grid.Column="2" Text="{Binding SelectedColor.Green}"
+                   FontFamily="Consolas" VerticalAlignment="Center" TextAlignment="Right" />
+      </Grid>
+
+      <Grid ColumnDefinitions="20,*,24" Margin="0,2">
+        <TextBlock Grid.Column="0" Text="B" VerticalAlignment="Center" />
+        <Slider Grid.Column="1" Minimum="0" Maximum="7"
+                TickFrequency="1" IsSnapToTickEnabled="True"
+                Value="{Binding SelectedColor.Blue}" />
+        <TextBlock Grid.Column="2" Text="{Binding SelectedColor.Blue}"
+                   FontFamily="Consolas" VerticalAlignment="Center" TextAlignment="Right" />
+      </Grid>
+
+      <Grid ColumnDefinitions="Auto,*" Margin="0,8,0,0">
+        <Border Grid.Column="0" Width="48" Height="24"
+                BorderBrush="Black" BorderThickness="1"
+                Background="{Binding SelectedColor.Brush}" />
+        <TextBlock Grid.Column="1" Text="{Binding SelectedColor.HexRgb}"
+                   FontFamily="Consolas" VerticalAlignment="Center" Margin="8,0,0,0" />
+      </Grid>
+    </StackPanel>
+
+    <Button Grid.Row="4" Content="Close" Width="75"
+            HorizontalAlignment="Right" Margin="0,12,0,0"
+            Command="{Binding CloseCommand}" />
+  </Grid>
+</UserControl>

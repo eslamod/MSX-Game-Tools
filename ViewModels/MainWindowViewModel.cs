@@ -15,6 +15,26 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private PanelBaseViewModel? _selectedTab;
 
+    public MainWindowViewModel()
+    {
+        // Los comandos de paleta dependen de cuál esté activa: la estándar no se
+        // puede editar ni eliminar.
+        Palettes.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName != nameof(PaletteLibrary.ActivePalette))
+                return;
+
+            EditPaletteCommand.NotifyCanExecuteChanged();
+            DeletePaletteCommand.NotifyCanExecuteChanged();
+        };
+    }
+
+    /// <summary>
+    /// Recurso común a todos los módulos: los bancos de sprites, y en su día los
+    /// tilesets y los mapas, dibujan con la paleta activa de aquí.
+    /// </summary>
+    public PaletteLibrary Palettes { get; } = new();
+
     public TreeGeneralViewModel TreeGeneralVm { get; } = new();
 
     public ObservableCollection<PanelBaseViewModel> Tabs { get; } = [];
@@ -23,6 +43,31 @@ public partial class MainWindowViewModel : ObservableObject
 
     [RelayCommand]
     private void AddSpriteBank() => RightPanViewModel = new EditSpriteBankViewModel(this);
+
+    /// <summary>Crea una copia editable de la paleta activa y abre su editor.</summary>
+    [RelayCommand]
+    private void AddPalette()
+    {
+        ColorPalette created = Palettes.Add();
+        RightPanViewModel = new EditPaletteViewModel(this, created);
+    }
+
+    [RelayCommand(CanExecute = nameof(CanEditPalette))]
+    private void EditPalette() =>
+        RightPanViewModel = new EditPaletteViewModel(this, Palettes.ActivePalette);
+
+    private bool CanEditPalette() => !Palettes.ActivePalette.IsReadOnly;
+
+    [RelayCommand(CanExecute = nameof(CanDeletePalette))]
+    private void DeletePalette()
+    {
+        if (RightPanViewModel is EditPaletteViewModel editing && editing.Palette == Palettes.ActivePalette)
+            RightPanViewModel = null;
+
+        Palettes.Remove(Palettes.ActivePalette);
+    }
+
+    private bool CanDeletePalette() => Palettes.CanRemove(Palettes.ActivePalette);
 
     /// <summary>
     /// Sustituye a la antigua clase <c>CommandShowTab</c>. Igual que en la versión WPF,

@@ -10,7 +10,7 @@ namespace MSX_SpritesEditor.Tests;
 /// </summary>
 public class ColorPaletteTests
 {
-    private static readonly ColorPalette Palette = new();
+    private static readonly ColorPalette Palette = ColorPalette.CreateMsxStandard();
 
     [Fact]
     public void La_paleta_tiene_16_colores_indexados_de_0_a_15()
@@ -60,7 +60,7 @@ public class ColorPaletteTests
     [InlineData(13, 6, 2, 5)]
     [InlineData(14, 5, 5, 5)]
     [InlineData(15, 7, 7, 7)]
-    public void Las_componentes_nativas_son_las_del_msx(int index, byte r, byte g, byte b)
+    public void Las_componentes_nativas_son_las_del_msx(int index, int r, int g, int b)
     {
         PaletteColor color = Palette[index];
 

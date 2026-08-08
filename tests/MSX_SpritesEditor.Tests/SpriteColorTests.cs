@@ -144,5 +144,5 @@ public class SpriteColorTests
     }
 
     private static SpritesEditorViewModel NewEditor(SpriteBank.SpriteType type) =>
-        new(new SpriteBank(type), GlobalSettings.CurrentColorPalette);
+        new(new SpriteBank(type), new PaletteLibrary());
 }

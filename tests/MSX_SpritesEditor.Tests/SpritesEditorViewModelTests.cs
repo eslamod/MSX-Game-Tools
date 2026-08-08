@@ -126,5 +126,5 @@ public class SpritesEditorViewModelTests
     }
 
     private static SpritesEditorViewModel NewEditor() =>
-        new(new SpriteBank(), GlobalSettings.CurrentColorPalette);
+        new(new SpriteBank(), new PaletteLibrary());
 }

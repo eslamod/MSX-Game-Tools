@@ -11,6 +11,10 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
     private const int DefaultBackgroundIndex = 1;
 
     private readonly SpriteBank _spriteBank;
+    private readonly PaletteLibrary _palettes;
+
+    /// <summary>La paleta a cuyos cambios de color estamos suscritos ahora mismo.</summary>
+    private ColorPalette _watchedPalette;
 
     /// <summary>La vista se resuscribe para repintar el lienzo al cambiar de sprite.</summary>
     public event Action<Sprite>? RefreshRequested;
@@ -50,10 +54,14 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
     [NotifyPropertyChangedFor(nameof(BackgroundColor))]
     private int _backgroundColorIndex = DefaultBackgroundIndex;
 
-    public SpritesEditorViewModel(SpriteBank bank, ColorPalette colorPalette)
+    public SpritesEditorViewModel(SpriteBank bank, PaletteLibrary palettes)
     {
         _spriteBank = bank;
-        ColorPalette = colorPalette;
+        _palettes = palettes;
+        _watchedPalette = palettes.ActivePalette;
+
+        _palettes.PropertyChanged += OnLibraryPropertyChanged;
+        _watchedPalette.ColorsChanged += OnActivePaletteColorsChanged;
 
         _currentSprite = bank.SpritesList[0];
         _currentSpritePosition = 1;
@@ -72,7 +80,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
         for (int row = 0; row < Sprite.Rows; row++)
         {
             RowColors.Add(new SpriteRowColorViewModel(
-                row, _currentSprite.ArraySpriteRows[row], colorPalette, OnRowColorPicked));
+                row, _currentSprite.ArraySpriteRows[row], palettes, OnRowColorPicked));
         }
 
         RenderAllThumbnails();
@@ -93,7 +101,10 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
 
     public SpriteBank SpritesBank => _spriteBank;
 
-    public ColorPalette ColorPalette { get; set; }
+    public PaletteLibrary Palettes => _palettes;
+
+    /// <summary>La paleta activa de la biblioteca. Cambiarla repinta todo el banco.</summary>
+    public ColorPalette ColorPalette => _palettes.ActivePalette;
 
     public ObservableCollection<ImageMini> ImagesMiniList { get; } = [];
 
@@ -202,6 +213,42 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
         RowColors[rowIndex].Refresh();
         OnPropertyChanged(nameof(SpriteColor));
         RepaintCurrentSprite();
+    }
+
+    /// <summary>Otra paleta pasa a ser la activa: hay que repintarlo todo con ella.</summary>
+    private void OnLibraryPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(PaletteLibrary.ActivePalette))
+            return;
+
+        _watchedPalette.ColorsChanged -= OnActivePaletteColorsChanged;
+        _watchedPalette = _palettes.ActivePalette;
+        _watchedPalette.ColorsChanged += OnActivePaletteColorsChanged;
+
+        OnPropertyChanged(nameof(ColorPalette));
+        OnPropertyChanged(nameof(Palette));
+        OnPropertyChanged(nameof(BackgroundChoices));
+
+        RefreshPaletteDependentState();
+    }
+
+    /// <summary>
+    /// Han cambiado los componentes de algún color de la paleta activa. El lienzo se
+    /// repinta solo, porque cada color reutiliza siempre el mismo brush, pero las
+    /// miniaturas son pixeles y hay que rehacerlas.
+    /// </summary>
+    private void OnActivePaletteColorsChanged(ColorPalette palette) => RefreshPaletteDependentState();
+
+    private void RefreshPaletteDependentState()
+    {
+        OnPropertyChanged(nameof(BackgroundColor));
+        OnPropertyChanged(nameof(SpriteColor));
+
+        foreach (SpriteRowColorViewModel cell in RowColors)
+            cell.Refresh();
+
+        RenderAllThumbnails();
+        RefreshRequested?.Invoke(CurrentSprite);
     }
 
     private void RepaintCurrentSprite()

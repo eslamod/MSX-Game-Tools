@@ -10,7 +10,7 @@ namespace MSX_SpritesEditor.ViewModels;
 /// </summary>
 public partial class SpriteRowColorViewModel : ObservableObject
 {
-    private readonly ColorPalette _palette;
+    private readonly PaletteLibrary _palettes;
     private readonly Action<int, PaletteColor> _onPicked;
 
     private SpriteRow _row;
@@ -18,22 +18,22 @@ public partial class SpriteRowColorViewModel : ObservableObject
     public SpriteRowColorViewModel(
         int rowIndex,
         SpriteRow row,
-        ColorPalette palette,
+        PaletteLibrary palettes,
         Action<int, PaletteColor> onPicked)
     {
         RowIndex = rowIndex;
         _row = row;
-        _palette = palette;
+        _palettes = palettes;
         _onPicked = onPicked;
     }
 
     /// <summary>Línea del sprite, 0-15.</summary>
     public int RowIndex { get; }
 
-    /// <summary>Los 16 colores que ofrece el desplegable.</summary>
-    public IReadOnlyList<PaletteColor> Palette => _palette.Colors;
+    /// <summary>Los 16 colores que ofrece el desplegable, los de la paleta activa.</summary>
+    public IReadOnlyList<PaletteColor> Palette => _palettes.ActivePalette.Colors;
 
-    public PaletteColor Color => _palette[_row.Color];
+    public PaletteColor Color => _palettes.ActivePalette[_row.Color];
 
     /// <summary>
     /// Repunta la casilla a la línea correspondiente del sprite que se esté editando.
@@ -45,7 +45,11 @@ public partial class SpriteRowColorViewModel : ObservableObject
         Refresh();
     }
 
-    public void Refresh() => OnPropertyChanged(nameof(Color));
+    public void Refresh()
+    {
+        OnPropertyChanged(nameof(Color));
+        OnPropertyChanged(nameof(Palette));
+    }
 
     [RelayCommand]
     private void Pick(PaletteColor? color)
