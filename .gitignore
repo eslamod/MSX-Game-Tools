@@ -1,0 +1,18 @@
+## Build
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+
+## Visual Studio / legacy
+.vs/
+packages/
+
+## Rider / VS Code
+.idea/
+*.swp
+
+## drawio backups
+.$*.bkp
