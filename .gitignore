@@ -14,5 +14,8 @@ packages/
 .idea/
 *.swp
 
+## Claude Code: ajustes locales de cada usuario, no compartidos
+.claude/settings.local.json
+
 ## drawio backups
 .$*.bkp

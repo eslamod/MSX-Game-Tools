@@ -52,18 +52,33 @@ public class SpriteThumbnailSelectionTests
     }
 
     [AvaloniaFact]
+    public void Anadir_un_sprite_selecciona_su_miniatura()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag);
+        Assert.Equal(0, editor.Thumbnails.SelectedIndex);
+
+        editor.ViewModel.AddSpriteCommand.Execute(null);
+        editor.ThumbnailContainer(1);
+
+        Assert.Equal(1, editor.Thumbnails.SelectedIndex);
+        Assert.Same(editor.Bank.SpritesList[1], editor.ViewModel.CurrentSprite);
+    }
+
+    [AvaloniaFact]
     public void Navegar_con_los_botones_mueve_la_seleccion_de_las_miniaturas()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag);
-        AddSprites(editor, 2);
+        AddSprites(editor, 2); // 3 sprites, seleccionado el ultimo
 
-        editor.ViewModel.NextSpriteCommand.Execute(null);
-        Assert.Equal(1, editor.Thumbnails.SelectedIndex);
-
-        editor.ViewModel.NextSpriteCommand.Execute(null);
         Assert.Equal(2, editor.Thumbnails.SelectedIndex);
 
         editor.ViewModel.PreviousSpriteCommand.Execute(null);
+        Assert.Equal(1, editor.Thumbnails.SelectedIndex);
+
+        editor.ViewModel.PreviousSpriteCommand.Execute(null);
+        Assert.Equal(0, editor.Thumbnails.SelectedIndex);
+
+        editor.ViewModel.NextSpriteCommand.Execute(null);
         Assert.Equal(1, editor.Thumbnails.SelectedIndex);
     }
 

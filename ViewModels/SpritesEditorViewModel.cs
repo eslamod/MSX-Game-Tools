@@ -87,6 +87,9 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
 
         ImagesMiniList.Add(sprite.ImageMini);
         NumberSprites = _spriteBank.SpritesList.Count;
+
+        // El sprite recién creado pasa a ser el que se edita.
+        GoTo(NumberSprites);
     }
 
     private bool CanAddSprite() => NumberSprites < SpriteBank.MaxSprites;

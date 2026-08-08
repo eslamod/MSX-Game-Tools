@@ -33,6 +33,18 @@ public class SpritesEditorViewModelTests
     }
 
     [Fact]
+    public void El_sprite_recien_anadido_queda_seleccionado()
+    {
+        SpritesEditorViewModel vm = NewEditor();
+
+        vm.AddSpriteCommand.Execute(null);
+
+        Assert.Equal(2, vm.CurrentSpritePosition);
+        Assert.Same(vm.SpritesBank.SpritesList[1], vm.CurrentSprite);
+        Assert.Same(vm.SpritesBank.SpritesList[1].ImageMini, vm.SelectedThumbnail);
+    }
+
+    [Fact]
     public void Borrar_sprite_elimina_tambien_su_miniatura()
     {
         SpritesEditorViewModel vm = NewEditor();
@@ -80,20 +92,21 @@ public class SpritesEditorViewModelTests
     public void La_navegacion_respeta_los_extremos()
     {
         SpritesEditorViewModel vm = NewEditor();
-        vm.AddSpriteCommand.Execute(null);
+        vm.AddSpriteCommand.Execute(null); // deja seleccionado el 2 de 2
 
+        Assert.Equal(2, vm.CurrentSpritePosition);
+        Assert.False(vm.NextSpriteCommand.CanExecute(null));
+        Assert.True(vm.PreviousSpriteCommand.CanExecute(null));
+
+        vm.PreviousSpriteCommand.Execute(null);
+
+        Assert.Equal(1, vm.CurrentSpritePosition);
         Assert.False(vm.PreviousSpriteCommand.CanExecute(null));
         Assert.True(vm.NextSpriteCommand.CanExecute(null));
 
         vm.NextSpriteCommand.Execute(null);
 
         Assert.Equal(2, vm.CurrentSpritePosition);
-        Assert.True(vm.PreviousSpriteCommand.CanExecute(null));
-        Assert.False(vm.NextSpriteCommand.CanExecute(null));
-
-        vm.PreviousSpriteCommand.Execute(null);
-
-        Assert.Equal(1, vm.CurrentSpritePosition);
     }
 
     [Fact]
@@ -105,11 +118,11 @@ public class SpritesEditorViewModelTests
         int notifications = 0;
         vm.RefreshRequested += _ => notifications++;
 
-        vm.NextSpriteCommand.Execute(null);
         vm.PreviousSpriteCommand.Execute(null);
+        vm.NextSpriteCommand.Execute(null);
 
         Assert.Equal(2, notifications);
-        Assert.Same(vm.SpritesBank.SpritesList[0], vm.CurrentSprite);
+        Assert.Same(vm.SpritesBank.SpritesList[1], vm.CurrentSprite);
     }
 
     private static SpritesEditorViewModel NewEditor() =>
