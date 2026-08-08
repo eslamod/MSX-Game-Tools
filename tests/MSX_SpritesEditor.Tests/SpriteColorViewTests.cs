@@ -1,5 +1,8 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
 using Avalonia.VisualTree;
 using MSX_SpritesEditor.Entities;
 using Xunit;
@@ -63,31 +66,18 @@ public class SpriteColorViewTests
     // compile ni con que la aplicación arranque.
 
     [AvaloniaFact]
-    public void El_desplegable_de_una_linea_aplica_el_color_a_esa_linea()
-    {
-        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
-
-        Button colorButton = OpenPalette(editor.RowColorSwatch(4), colorIndex: 6);
-
-        Assert.NotNull(colorButton.Command);
-        colorButton.Command!.Execute(colorButton.CommandParameter);
-
-        Assert.Equal(6, editor.Bank.SpritesList[0].ArraySpriteRows[4].Color);
-        Assert.Equal(15, editor.Bank.SpritesList[0].ArraySpriteRows[5].Color);
-    }
-
-    [AvaloniaFact]
-    public void El_desplegable_de_msx1_aplica_el_color_a_todo_el_sprite()
+    public void En_msx1_pulsar_un_color_lo_aplica_a_todo_el_sprite()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX);
 
         Button swatch = editor.SpriteColorPanel.GetVisualDescendants().OfType<Button>().First();
+        var flyout = (Flyout)swatch.Flyout!;
         Button colorButton = OpenPalette(swatch, colorIndex: 2);
 
-        Assert.NotNull(colorButton.Command);
-        colorButton.Command!.Execute(colorButton.CommandParameter);
+        ClickButton(colorButton);
 
         Assert.All(editor.Bank.SpritesList[0].ArraySpriteRows, row => Assert.Equal(2, row.Color));
+        Assert.False(flyout.IsOpen);
     }
 
     [AvaloniaFact]
@@ -95,14 +85,60 @@ public class SpriteColorViewTests
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
 
-        // El primero de la lista es el color 1, no el 0.
-        Button colorButton = OpenPalette(editor.BackgroundSwatch, colorIndex: 0);
+        var flyout = (Flyout)editor.BackgroundSwatch.Flyout!;
+        flyout.ShowAt(editor.BackgroundSwatch);
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
 
-        Assert.NotNull(colorButton.Command);
-        colorButton.Command!.Execute(colorButton.CommandParameter);
+        List<Button> colors = [.. ((ItemsControl)flyout.Content!).GetVisualDescendants().OfType<Button>()];
 
-        Assert.Equal(1, editor.ViewModel.BackgroundColor.Index);
-        Assert.Equal(15, PaletteButtonCount(editor.BackgroundSwatch));
+        Assert.Equal(15, colors.Count);
+        Assert.Equal(1, ((PaletteColor)colors[0].CommandParameter!).Index);
+        Assert.DoesNotContain(colors, b => ((PaletteColor)b.CommandParameter!).IsTransparent);
+    }
+
+    [AvaloniaFact]
+    public void Pulsar_un_color_del_desplegable_lo_aplica_de_verdad()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+
+        Button swatch = editor.RowColorSwatch(4);
+        var flyout = (Flyout)swatch.Flyout!;
+        Button colorButton = OpenPalette(swatch, colorIndex: 6);
+
+        // Pulsación real: pasa por el handler que cierra el desplegable y por la
+        // ejecución del comando que hace Avalonia. Ejecutar el comando a mano no
+        // cubre ese orden, y el orden es justo lo que estuvo roto.
+        ClickButton(colorButton);
+
+        Assert.Equal(6, editor.Bank.SpritesList[0].ArraySpriteRows[4].Color);
+        Assert.False(flyout.IsOpen);
+    }
+
+    [AvaloniaFact]
+    public void Pulsar_un_color_del_fondo_lo_aplica_de_verdad()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+
+        // Indice 3 de la lista de fondos = color 4 de la paleta (la lista empieza en el 1).
+        var flyout = (Flyout)editor.BackgroundSwatch.Flyout!;
+        Button colorButton = OpenPalette(editor.BackgroundSwatch, colorIndex: 3);
+
+        ClickButton(colorButton);
+
+        Assert.Equal(4, editor.ViewModel.BackgroundColor.Index);
+        Assert.False(flyout.IsOpen);
+    }
+
+    private static void ClickButton(Button button)
+    {
+        var root = (TopLevel)button.GetVisualRoot()!;
+        Point centre = button.TranslatePoint(
+            new Point(button.Bounds.Width / 2, button.Bounds.Height / 2), root)!.Value;
+
+        root.MouseDown(centre, MouseButton.Left);
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+        root.MouseUp(centre, MouseButton.Left);
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
     }
 
     /// <summary>Abre el desplegable de un botón de color y devuelve el enésimo color.</summary>
@@ -114,15 +150,6 @@ public class SpriteColorViewTests
 
         var items = (ItemsControl)flyout.Content!;
         return items.GetVisualDescendants().OfType<Button>().ElementAt(colorIndex);
-    }
-
-    private static int PaletteButtonCount(Button swatch)
-    {
-        var flyout = (Flyout)swatch.Flyout!;
-        flyout.ShowAt(swatch);
-        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
-
-        return ((ItemsControl)flyout.Content!).GetVisualDescendants().OfType<Button>().Count();
     }
 
     [AvaloniaFact]

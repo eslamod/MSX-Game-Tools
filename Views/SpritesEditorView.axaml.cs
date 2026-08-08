@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
+using Avalonia.Threading;
 using MSX_SpritesEditor.Entities;
 using MSX_SpritesEditor.ViewModels;
 
@@ -130,8 +131,14 @@ public partial class SpritesEditorView : UserControl
     /// </summary>
     private void OnPaletteColorClick(object? sender, RoutedEventArgs e)
     {
-        if (sender is Control control && control.FindLogicalAncestorOfType<Popup>() is { } popup)
-            popup.IsOpen = false;
+        if (sender is not Control control || control.FindLogicalAncestorOfType<Popup>() is not { } popup)
+            return;
+
+        // Cerrarlo aquí mismo no vale: Button.OnClick lanza el evento Click primero y
+        // sólo después lee su Command. Al cerrar el popup se desmonta el presentador
+        // del flyout y se sueltan sus enlaces, así que Command ya valdría null y el
+        // color no llegaría a aplicarse. Se cierra cuando la pulsación haya terminado.
+        Dispatcher.UIThread.Post(() => popup.IsOpen = false, DispatcherPriority.Background);
     }
 
     private void OnPaintModeChanged(object? sender, RoutedEventArgs e)
