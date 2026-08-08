@@ -12,7 +12,7 @@
         ColumnDefinitions="256,*"
         RowDefinitions="Auto,256,*">
 
-    <!-- Zoom del lienzo de edición -->
+    <!-- Zoom del lienzo de edición y modo de pintado -->
     <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="2">
       <RadioButton GroupName="EditZoom" Theme="{StaticResource ToggleRadioButton}"
                    Content="X1" Tag="0" Width="32" Margin="2" IsChecked="True"
@@ -23,6 +23,17 @@
       <RadioButton GroupName="EditZoom" Theme="{StaticResource ToggleRadioButton}"
                    Content="X3" Tag="2" Width="32" Margin="2"
                    IsCheckedChanged="OnZoomChanged" />
+
+      <Border Width="1" Background="DarkGray" Margin="6,4" />
+
+      <RadioButton GroupName="PaintMode" Theme="{StaticResource ToggleRadioButton}"
+                   Content="Punto" Tag="Click" Margin="2"
+                   ToolTip.Tip="Cada clic pinta un solo pixel"
+                   IsCheckedChanged="OnPaintModeChanged" />
+      <RadioButton GroupName="PaintMode" Theme="{StaticResource ToggleRadioButton}"
+                   Content="Trazo" Tag="Drag" Margin="2" IsChecked="True"
+                   ToolTip.Tip="Mantén pulsado y arrastra para pintar todo el recorrido"
+                   IsCheckedChanged="OnPaintModeChanged" />
     </StackPanel>
 
     <!-- Zoom de las miniaturas: sin implementar, igual que en la versión WPF -->
@@ -43,8 +54,7 @@
               HorizontalAlignment="Left" VerticalAlignment="Top"
               PointerPressed="OnCanvasPointerPressed"
               PointerMoved="OnCanvasPointerMoved"
-              PointerReleased="OnCanvasPointerReleased"
-              PointerExited="OnCanvasPointerExited" />
+              PointerReleased="OnCanvasPointerReleased" />
     </Grid>
 
     <!-- Miniaturas del banco -->

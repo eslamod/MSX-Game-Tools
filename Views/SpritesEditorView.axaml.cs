@@ -18,6 +18,16 @@ public partial class SpritesEditorView : UserControl
         Erasing,
     }
 
+    /// <summary>Cómo responde el lienzo al ratón. Los valores coinciden con el Tag de los RadioButton.</summary>
+    private enum PaintMode
+    {
+        /// <summary>Cada pulsación pinta un único pixel; arrastrar no hace nada.</summary>
+        Click,
+
+        /// <summary>Manteniendo pulsado se pintan todos los pixeles del recorrido.</summary>
+        Drag,
+    }
+
     private const int GridSize = 16;
 
     private static readonly double[] ZoomSizes = [256, 512, 600];
@@ -26,7 +36,12 @@ public partial class SpritesEditorView : UserControl
 
     private bool _cellsBuilt;
     private DrawState _state = DrawState.Idle;
+    private PaintMode _paintMode = PaintMode.Drag;
     private SpritesEditorViewModel? _subscribed;
+
+    // Última celda pintada del trazo actual, para poder interpolar. -1 = trazo no iniciado.
+    private int _lastCellX = -1;
+    private int _lastCellY = -1;
 
     public SpritesEditorView() => InitializeComponent();
 
@@ -66,6 +81,12 @@ public partial class SpritesEditorView : UserControl
 
         if (sender is RadioButton { IsChecked: true, Tag: string tag } && int.TryParse(tag, out int index))
             ApplyZoom(index);
+    }
+
+    private void OnPaintModeChanged(object? sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { IsChecked: true, Tag: string tag } && Enum.TryParse(tag, out PaintMode mode))
+            _paintMode = mode;
     }
 
     private void ApplyZoom(int index)
@@ -128,31 +149,100 @@ public partial class SpritesEditorView : UserControl
         }
     }
 
-    /// <summary>Pinta (o borra) el pixel bajo el puntero con el color de su fila.</summary>
-    private void DrawPixel(Point position, bool paint)
+    // ---------------------------------------------------------------- pintado
+
+    /// <summary>Convierte una posición del lienzo en coordenadas de celda del sprite.</summary>
+    private bool TryGetCell(Point position, out int x, out int y)
+    {
+        x = -1;
+        y = -1;
+
+        double cellWidth = CanvSprite.Width / GridSize;
+        double cellHeight = CanvSprite.Height / GridSize;
+        if (double.IsNaN(cellWidth) || double.IsNaN(cellHeight))
+            return false;
+
+        // Math.Floor y no una conversión directa: (int) trunca hacia cero, así que
+        // una coordenada negativa caería dentro de la celda 0 en lugar de quedar fuera.
+        x = (int)Math.Floor(position.X / cellWidth);
+        y = (int)Math.Floor(position.Y / cellHeight);
+
+        return (uint)x < (uint)GridSize && (uint)y < (uint)GridSize;
+    }
+
+    /// <summary>Pinta o borra una celda concreta con el color de su fila.</summary>
+    private void PaintCell(int x, int y, bool paint)
     {
         if (DataContext is not SpritesEditorViewModel vm)
             return;
 
-        double cellWidth = CanvSprite.Width / GridSize;
-        double cellHeight = CanvSprite.Height / GridSize;
-
-        int x = (int)(position.X / cellWidth);
-        int y = (int)(position.Y / cellHeight);
-
-        // La versión WPF no comprobaba límites: arrastrar fuera del lienzo
-        // lanzaba IndexOutOfRangeException.
-        if ((uint)x >= (uint)GridSize || (uint)y >= (uint)GridSize)
+        SpriteRow row = vm.CurrentSprite.ArraySpriteRows[y];
+        if (row.ArrayColumns[x] == paint)
             return;
 
-        SpriteRow row = vm.CurrentSprite.ArraySpriteRows[y];
         row.ArrayColumns[x] = paint;
 
-        Color color = paint ? vm.ColorPalette.GetColor(row.Color) : Colors.Black;
-
         _cells[(y * GridSize) + x].Fill = paint ? vm.ColorPalette.GetBrush(row.Color) : Brushes.Black;
-        vm.CurrentSprite.ImageMini?.SetPixel(x, y, color);
+        vm.CurrentSprite.ImageMini?.SetPixel(x, y, paint ? vm.ColorPalette.GetColor(row.Color) : Colors.Black);
     }
+
+    /// <summary>
+    /// Bresenham entre dos celdas. Sin esto un movimiento rápido del ratón deja huecos:
+    /// PointerMoved sólo llega unas pocas veces por recorrido, no una por pixel.
+    /// </summary>
+    private void PaintLine(int x0, int y0, int x1, int y1, bool paint)
+    {
+        int dx = Math.Abs(x1 - x0);
+        int dy = -Math.Abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+        int err = dx + dy;
+
+        while (true)
+        {
+            PaintCell(x0, y0, paint);
+
+            if (x0 == x1 && y0 == y1)
+                break;
+
+            int e2 = 2 * err;
+            if (e2 >= dy)
+            {
+                err += dy;
+                x0 += sx;
+            }
+
+            if (e2 <= dx)
+            {
+                err += dx;
+                y0 += sy;
+            }
+        }
+    }
+
+    private void PaintAt(Point position)
+    {
+        if (!TryGetCell(position, out int x, out int y))
+        {
+            // Fuera del lienzo: no pintamos y cortamos el trazo, para no unir con una
+            // recta el punto por el que se salió con aquel por el que se vuelve a entrar.
+            _lastCellX = -1;
+            _lastCellY = -1;
+            return;
+        }
+
+        bool paint = _state == DrawState.Painting;
+
+        if (_lastCellX >= 0)
+            PaintLine(_lastCellX, _lastCellY, x, y, paint);
+        else
+            PaintCell(x, y, paint);
+
+        _lastCellX = x;
+        _lastCellY = y;
+    }
+
+    // ---------------------------------------------------------------- puntero
 
     private void OnCanvasPointerPressed(object? sender, PointerPressedEventArgs e)
     {
@@ -165,25 +255,34 @@ public partial class SpritesEditorView : UserControl
         else
             return;
 
-        // Capturar el puntero permite seguir pintando aunque el ratón salga del lienzo.
+        // Capturar el puntero permite seguir pintando aunque el ratón salga del lienzo,
+        // y garantiza que PointerReleased llegue aquí aunque se suelte fuera.
         e.Pointer.Capture(CanvSprite);
-        DrawPixel(point.Position, _state == DrawState.Painting);
+
+        _lastCellX = -1;
+        _lastCellY = -1;
+        PaintAt(point.Position);
+
         e.Handled = true;
     }
 
     private void OnCanvasPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (_state == DrawState.Idle)
+        if (_state == DrawState.Idle || _paintMode == PaintMode.Click)
             return;
 
-        DrawPixel(e.GetPosition(CanvSprite), _state == DrawState.Painting);
+        PaintAt(e.GetPosition(CanvSprite));
     }
 
     private void OnCanvasPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
         _state = DrawState.Idle;
+        _lastCellX = -1;
+        _lastCellY = -1;
         e.Pointer.Capture(null);
     }
 
-    private void OnCanvasPointerExited(object? sender, PointerEventArgs e) => _state = DrawState.Idle;
+    // Ojo: aquí NO va un handler de PointerExited. Con el puntero capturado, Avalonia
+    // lanza PointerExited sobre el Canvas nada más empezar el arrastre, y cancelaba el
+    // trazo en el primer movimiento. PointerReleased ya cubre el final del trazo.
 }
