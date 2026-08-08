@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MSX_SpritesEditor.Entities;
+using MSX_SpritesEditor.Services;
 
 namespace MSX_SpritesEditor.ViewModels;
 
@@ -15,8 +16,16 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private PanelBaseViewModel? _selectedTab;
 
-    public MainWindowViewModel()
+    private readonly IDialogService _dialogs;
+
+    /// <param name="dialogs">
+    /// La aplicación inyecta el servicio real; si no se pasa ninguno se confirma sin
+    /// preguntar, que es lo que quieren los tests y cualquier uso sin ventana.
+    /// </param>
+    public MainWindowViewModel(IDialogService? dialogs = null)
     {
+        _dialogs = dialogs ?? new AlwaysConfirmDialogService();
+
         // Los comandos de paleta dependen de cuál esté activa (la estándar no se puede
         // editar ni eliminar) y de cuántas queden (nunca se borra la última).
         Palettes.PropertyChanged += (_, e) =>
@@ -64,12 +73,24 @@ public partial class MainWindowViewModel : ObservableObject
     private bool CanEditPalette() => !Palettes.ActivePalette.IsReadOnly;
 
     [RelayCommand(CanExecute = nameof(CanDeletePalette))]
-    private void DeletePalette()
+    private async Task DeletePaletteAsync()
     {
-        if (RightPanViewModel is EditPaletteViewModel editing && editing.Palette == Palettes.ActivePalette)
+        ColorPalette palette = Palettes.ActivePalette;
+
+        // Eliminar una paleta no se puede deshacer, y el botón está pegado a los
+        // otros dos: mejor un clic de más que perder el trabajo.
+        bool confirmed = await _dialogs.ConfirmAsync(
+            "Eliminar paleta",
+            $"Se va a eliminar la paleta «{palette.Name}». Esta acción no se puede deshacer.",
+            "Eliminar");
+
+        if (!confirmed)
+            return;
+
+        if (RightPanViewModel is EditPaletteViewModel editing && editing.Palette == palette)
             RightPanViewModel = null;
 
-        Palettes.Remove(Palettes.ActivePalette);
+        Palettes.Remove(palette);
     }
 
     private bool CanDeletePalette() => Palettes.CanRemove(Palettes.ActivePalette);

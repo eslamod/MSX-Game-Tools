@@ -1,0 +1,30 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="180"
+        x:Class="MSX_SpritesEditor.Views.ConfirmationWindow"
+        Title="Confirmar"
+        SizeToContent="WidthAndHeight"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+
+  <Grid Margin="20" RowDefinitions="Auto,Auto,Auto" MinWidth="340">
+    <TextBlock x:Name="HeadingText" Grid.Row="0" FontWeight="Bold" Margin="0,0,0,8" />
+
+    <TextBlock x:Name="MessageText" Grid.Row="1"
+               TextWrapping="Wrap" MaxWidth="380" />
+
+    <StackPanel Grid.Row="2" Orientation="Horizontal"
+                HorizontalAlignment="Right" Spacing="8" Margin="0,20,0,0">
+      <Button x:Name="ConfirmButton" Width="100"
+              HorizontalContentAlignment="Center"
+              Click="OnConfirm" />
+      <Button x:Name="CancelButton" Content="Cancelar" Width="100"
+              HorizontalContentAlignment="Center"
+              IsCancel="True" IsDefault="True"
+              Click="OnCancel" />
+    </StackPanel>
+  </Grid>
+</Window>

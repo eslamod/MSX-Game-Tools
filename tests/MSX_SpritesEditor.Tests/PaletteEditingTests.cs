@@ -4,6 +4,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using MSX_SpritesEditor;
 using MSX_SpritesEditor.Entities;
+using MSX_SpritesEditor.Services;
 using MSX_SpritesEditor.ViewModels;
 using MSX_SpritesEditor.Views;
 using Xunit;
@@ -292,7 +293,7 @@ public class PaletteEditingTests
     // se reproduce.
 
     [AvaloniaFact]
-    public void Eliminar_la_paleta_activa_con_la_ventana_montada_no_deja_la_seleccion_vacia()
+    public async Task Eliminar_la_paleta_activa_con_la_ventana_montada_no_deja_la_seleccion_vacia()
     {
         using MainWindowHost app = MainWindowHost.Show();
 
@@ -302,7 +303,7 @@ public class PaletteEditingTests
 
         Assert.Same(app.ViewModel.Palettes.ActivePalette, app.PaletteCombo.SelectedItem);
 
-        app.ViewModel.DeletePaletteCommand.Execute(null);
+        await app.ViewModel.DeletePaletteCommand.ExecuteAsync(null);
         app.Pump();
 
         Assert.NotNull(app.ViewModel.Palettes.ActivePalette);
@@ -311,12 +312,12 @@ public class PaletteEditingTests
     }
 
     [AvaloniaFact]
-    public void Eliminar_hasta_quedarse_con_la_estandar_deshabilita_los_comandos()
+    public async Task Eliminar_hasta_quedarse_con_la_estandar_deshabilita_los_comandos()
     {
         using MainWindowHost app = MainWindowHost.Show();
 
         app.ViewModel.AddPaletteCommand.Execute(null);
-        app.ViewModel.DeletePaletteCommand.Execute(null);
+        await app.ViewModel.DeletePaletteCommand.ExecuteAsync(null);
         app.Pump();
 
         Assert.Single(app.ViewModel.Palettes.Palettes);
@@ -365,14 +366,67 @@ public class PaletteEditingTests
     }
 
     [Fact]
-    public void Eliminar_la_paleta_que_se_esta_editando_cierra_el_panel()
+    public async Task Eliminar_la_paleta_que_se_esta_editando_cierra_el_panel()
     {
         var main = new MainWindowViewModel();
         main.AddPaletteCommand.Execute(null);
 
-        main.DeletePaletteCommand.Execute(null);
+        await main.DeletePaletteCommand.ExecuteAsync(null);
 
         Assert.Null(main.RightPanViewModel);
         Assert.Equal(ColorPalette.StandardName, main.Palettes.ActivePalette.Name);
+    }
+
+    [Fact]
+    public async Task Eliminar_pide_confirmacion_nombrando_la_paleta()
+    {
+        var dialogs = new FakeDialogService(answer: true);
+        var main = new MainWindowViewModel(dialogs);
+        main.AddPaletteCommand.Execute(null);
+        main.Palettes.ActivePalette.Name = "Nocturna";
+
+        await main.DeletePaletteCommand.ExecuteAsync(null);
+
+        Assert.Equal(1, dialogs.Calls);
+        Assert.Contains("Nocturna", dialogs.LastMessage);
+        Assert.Equal("Eliminar", dialogs.LastConfirmLabel);
+        Assert.Single(main.Palettes.Palettes);
+    }
+
+    [Fact]
+    public async Task Cancelar_la_confirmacion_no_elimina_nada()
+    {
+        var dialogs = new FakeDialogService(answer: false);
+        var main = new MainWindowViewModel(dialogs);
+        main.AddPaletteCommand.Execute(null);
+        ColorPalette created = main.Palettes.ActivePalette;
+
+        await main.DeletePaletteCommand.ExecuteAsync(null);
+
+        Assert.Equal(1, dialogs.Calls);
+        Assert.Equal(2, main.Palettes.Palettes.Count);
+        Assert.Same(created, main.Palettes.ActivePalette);
+
+        // Y el panel de edición sigue abierto sobre ella.
+        var editor = Assert.IsType<EditPaletteViewModel>(main.RightPanViewModel);
+        Assert.Same(created, editor.Palette);
+    }
+
+    private sealed class FakeDialogService(bool answer) : IDialogService
+    {
+        public int Calls { get; private set; }
+
+        public string LastMessage { get; private set; } = string.Empty;
+
+        public string LastConfirmLabel { get; private set; } = string.Empty;
+
+        public Task<bool> ConfirmAsync(string title, string message, string confirmLabel)
+        {
+            Calls++;
+            LastMessage = message;
+            LastConfirmLabel = confirmLabel;
+
+            return Task.FromResult(answer);
+        }
     }
 }
