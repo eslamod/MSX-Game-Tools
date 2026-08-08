@@ -8,6 +8,38 @@
              x:Class="MSX_SpritesEditor.Views.SpritesEditorView"
              x:DataType="vm:SpritesEditorViewModel">
 
+  <UserControl.Resources>
+    <!-- Contenedor de cada miniatura: el recuadro cambia de color al pasar por
+         encima y al seleccionar. El grosor no cambia nunca, para que el contenido
+         no baile al pasar el raton. -->
+    <ControlTheme x:Key="SpriteThumbnailItem" TargetType="ListBoxItem">
+      <Setter Property="Margin" Value="3" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Name="PART_Frame"
+                  BorderBrush="Black"
+                  BorderThickness="3"
+                  Background="Transparent">
+            <ContentPresenter Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}" />
+          </Border>
+        </ControlTemplate>
+      </Setter>
+
+      <Style Selector="^:pointerover /template/ Border#PART_Frame">
+        <Setter Property="BorderBrush" Value="#FFC107" />
+      </Style>
+
+      <!-- Despues de :pointerover a proposito: si esta seleccionada y ademas
+           tienes el raton encima, debe seguir viendose roja. -->
+      <Style Selector="^:selected /template/ Border#PART_Frame">
+        <Setter Property="BorderBrush" Value="Red" />
+      </Style>
+    </ControlTheme>
+  </UserControl.Resources>
+
   <Grid x:Name="EditorGrid" Background="Gainsboro"
         ColumnDefinitions="256,*"
         RowDefinitions="Auto,256,*">
@@ -57,28 +89,33 @@
               PointerReleased="OnCanvasPointerReleased" />
     </Grid>
 
-    <!-- Miniaturas del banco -->
+    <!-- Miniaturas del banco. ListBox y no ItemsControl: la seleccion, el hover y
+         la navegacion por teclado vienen de serie, y SelectedIndex enlazado en dos
+         sentidos mantiene sincronizados el lienzo de edicion y esta tira. -->
     <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" Background="DarkGray">
-      <ScrollViewer>
-        <ItemsControl ItemsSource="{Binding ImagesMiniList}" Margin="4">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <WrapPanel />
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate x:DataType="entities:ImageMini">
-              <Border BorderBrush="Black" BorderThickness="2" Margin="2">
-                <!-- BitmapInterpolationMode="None" = escalado nearest neighbour,
-                     imprescindible para que un sprite de 16x16 no salga borroso. -->
-                <Image Source="{Binding SpritePreview}"
-                       Width="120" Height="120" Stretch="Fill"
-                       RenderOptions.BitmapInterpolationMode="None" />
-              </Border>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-      </ScrollViewer>
+      <ListBox x:Name="ThumbnailList"
+               ItemsSource="{Binding ImagesMiniList}"
+               SelectedItem="{Binding SelectedThumbnail, Mode=TwoWay}"
+               SelectionMode="Single"
+               ItemContainerTheme="{StaticResource SpriteThumbnailItem}"
+               Background="Transparent"
+               BorderThickness="0"
+               Padding="4">
+        <ListBox.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel />
+          </ItemsPanelTemplate>
+        </ListBox.ItemsPanel>
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="entities:ImageMini">
+            <!-- BitmapInterpolationMode="None" = escalado nearest neighbour,
+                 imprescindible para que un sprite de 16x16 no salga borroso. -->
+            <Image Source="{Binding SpritePreview}"
+                   Width="120" Height="120" Stretch="Fill"
+                   RenderOptions.BitmapInterpolationMode="None" />
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
     </Border>
 
     <!-- Navegación por los sprites del banco -->

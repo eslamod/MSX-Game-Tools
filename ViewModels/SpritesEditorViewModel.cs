@@ -20,6 +20,19 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
     [NotifyCanExecuteChangedFor(nameof(PreviousSpriteCommand))]
     private int _currentSpritePosition;
 
+    /// <summary>
+    /// Miniatura seleccionada en la tira. Enlazada al SelectedItem del ListBox en los
+    /// dos sentidos: es lo que mantiene sincronizados el lienzo de edición y la tira.
+    /// </summary>
+    /// <remarks>
+    /// Por identidad y no por índice a propósito. Al borrar el sprite seleccionado el
+    /// ListBox se limpia solo y escribe el hueco en el ViewModel; si esto fuera un
+    /// índice, el valor de vuelta coincidiría con el que ya tenía el enlace y la
+    /// selección no se recuperaría nunca.
+    /// </remarks>
+    [ObservableProperty]
+    private ImageMini? _selectedThumbnail;
+
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(NextSpriteCommand))]
     [NotifyCanExecuteChangedFor(nameof(AddSpriteCommand))]
@@ -42,6 +55,21 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
             if (sprite.ImageMini is not null)
                 ImagesMiniList.Add(sprite.ImageMini);
         }
+
+        _selectedThumbnail = _currentSprite.ImageMini;
+    }
+
+    /// <summary>Al pulsar una miniatura, el lienzo pasa a editar ese sprite.</summary>
+    partial void OnSelectedThumbnailChanged(ImageMini? value)
+    {
+        // null llega cuando el ListBox limpia su selección al borrarse el elemento
+        // seleccionado. Lo ignoramos: DeleteSprite reasigna la selección acto seguido.
+        if (value is null)
+            return;
+
+        int index = ImagesMiniList.IndexOf(value);
+        if (index >= 0)
+            GoTo(index + 1);
     }
 
     public SpriteBank SpritesBank => _spriteBank;
@@ -73,10 +101,10 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
             ImagesMiniList.RemoveAt(index);
 
         NumberSprites = _spriteBank.SpritesList.Count;
-        if (CurrentSpritePosition > NumberSprites)
-            CurrentSpritePosition = NumberSprites;
 
-        GoTo(CurrentSpritePosition);
+        // Se queda en la misma posición, que ahora ocupa el sprite siguiente,
+        // salvo que se hubiera borrado el último.
+        GoTo(Math.Min(index + 1, NumberSprites));
     }
 
     // Un banco siempre conserva al menos un sprite: si no, el editor se queda sin
@@ -98,8 +126,19 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
         if (position < 1 || position > NumberSprites)
             return;
 
+        Sprite target = _spriteBank.SpritesList[position - 1];
+
+        // Comparar también el sprite y no sólo la posición: al borrar, la posición
+        // puede no cambiar pero el sprite que la ocupa sí, y hay que repintar.
+        // Y al revés, el enlace bidireccional de la lista de miniaturas reescribe
+        // el mismo índice constantemente y no debe provocar repintados.
+        if (CurrentSpritePosition == position && ReferenceEquals(CurrentSprite, target))
+            return;
+
         CurrentSpritePosition = position;
-        CurrentSprite = _spriteBank.SpritesList[position - 1];
+        CurrentSprite = target;
+        SelectedThumbnail = target.ImageMini;
+
         RefreshRequested?.Invoke(CurrentSprite);
     }
 }

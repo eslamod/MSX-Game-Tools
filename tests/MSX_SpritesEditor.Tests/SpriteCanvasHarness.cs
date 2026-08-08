@@ -41,6 +41,8 @@ internal sealed class SpriteCanvasHarness : IDisposable
         Canvas canvas = view.GetVisualDescendants().OfType<Canvas>().Single();
         _origin = canvas.TranslatePoint(new Point(0, 0), _window)
                   ?? throw new InvalidOperationException("El lienzo no está en el árbol visual.");
+
+        Thumbnails = view.GetVisualDescendants().OfType<ListBox>().Single();
     }
 
     /// <summary>Debe coincidir con los Tag de los RadioButton de modo en SpritesEditorView.axaml.</summary>
@@ -53,6 +55,9 @@ internal sealed class SpriteCanvasHarness : IDisposable
     public SpriteBank Bank { get; }
 
     public SpritesEditorViewModel ViewModel { get; }
+
+    /// <summary>La tira de miniaturas del banco.</summary>
+    public ListBox Thumbnails { get; }
 
     public int PaintedCount => Bank.SpritesList[0].ArraySpriteRows
         .Sum(row => row.ArrayColumns.Count(on => on));
@@ -82,10 +87,32 @@ internal sealed class SpriteCanvasHarness : IDisposable
         Pump();
     }
 
-    /// <summary>Índices de las columnas encendidas en una fila del sprite.</summary>
-    public int[] PaintedCellsInRow(int row) =>
+    /// <summary>Índices de las columnas encendidas en una fila de un sprite del banco.</summary>
+    public int[] PaintedCellsInRow(int row, int sprite = 0) =>
         [.. Enumerable.Range(0, SpriteRow.Columns)
-            .Where(i => Bank.SpritesList[0].ArraySpriteRows[row].ArrayColumns[i])];
+            .Where(i => Bank.SpritesList[sprite].ArraySpriteRows[row].ArrayColumns[i])];
+
+    public ListBoxItem ThumbnailContainer(int index)
+    {
+        Pump();
+        return Thumbnails.ContainerFromIndex(index) as ListBoxItem
+               ?? throw new InvalidOperationException($"La miniatura {index} no está realizada.");
+    }
+
+    public void ClickThumbnail(int index)
+    {
+        Point centre = ThumbnailCentre(index);
+        _window.MouseDown(centre, MouseButton.Left);
+        Pump();
+        _window.MouseUp(centre, MouseButton.Left);
+        Pump();
+    }
+
+    public void HoverThumbnail(int index)
+    {
+        _window.MouseMove(ThumbnailCentre(index));
+        Pump();
+    }
 
     public void Dispose()
     {
@@ -99,4 +126,13 @@ internal sealed class SpriteCanvasHarness : IDisposable
     private Point At(int cellX, int cellY) => new(
         _origin.X + (cellX * CellSize) + (CellSize / 2),
         _origin.Y + (cellY * CellSize) + (CellSize / 2));
+
+    /// <summary>Centro de una miniatura, en coordenadas de la ventana.</summary>
+    private Point ThumbnailCentre(int index)
+    {
+        ListBoxItem container = ThumbnailContainer(index);
+        return container.TranslatePoint(
+                   new Point(container.Bounds.Width / 2, container.Bounds.Height / 2), _window)
+               ?? throw new InvalidOperationException($"La miniatura {index} no está en el árbol visual.");
+    }
 }
