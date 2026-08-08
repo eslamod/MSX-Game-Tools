@@ -36,12 +36,11 @@ public sealed class ImageMini : ObservableObject
         _width = _height = type == ImagePreviewType.ImagePreview8x8 ? 8 : 16;
         _pixels = new int[_width * _height];
 
-        // Fondo negro con un patrón de puntos blancos, igual que la versión WPF.
-        // (Allí el bucle iba fijo hasta 15 y reventaba con las miniaturas de 8x8.)
+        // Negro liso: es el mismo color al que vuelve un pixel al borrarlo, así que
+        // un sprite vacío y uno completamente borrado se ven igual, que es lo correcto.
+        // La versión WPF sembraba puntos blancos en las coordenadas pares del bitmap,
+        // que no correspondían a ningún pixel encendido del sprite.
         Array.Fill(_pixels, ToBgra(Colors.Black));
-        for (int y = 0; y < _height; y += 2)
-            for (int x = 0; x < _width; x += 2)
-                _pixels[(y * _width) + x] = ToBgra(Colors.White);
     }
 
     public int Width => _width;
