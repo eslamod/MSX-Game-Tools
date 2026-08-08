@@ -100,7 +100,7 @@ public class SpriteThumbnailSelectionTests
     }
 
     [AvaloniaFact]
-    public void Al_borrar_la_seleccion_pasa_al_sprite_que_ocupa_esa_posicion()
+    public async Task Al_borrar_la_seleccion_pasa_al_sprite_que_ocupa_esa_posicion()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag);
         AddSprites(editor, 2);
@@ -109,7 +109,7 @@ public class SpriteThumbnailSelectionTests
         editor.ClickThumbnail(1);
         Assert.Equal(2, editor.ViewModel.CurrentSpritePosition);
 
-        editor.ViewModel.DeleteSpriteCommand.Execute(null);
+        await editor.ViewModel.DeleteSpriteCommand.ExecuteAsync(null);
 
         Assert.Equal(2, editor.ViewModel.NumberSprites);
         Assert.Equal(2, editor.Thumbnails.ItemCount);
@@ -119,13 +119,13 @@ public class SpriteThumbnailSelectionTests
     }
 
     [AvaloniaFact]
-    public void Al_borrar_el_ultimo_la_seleccion_retrocede()
+    public async Task Al_borrar_el_ultimo_la_seleccion_retrocede()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag);
         AddSprites(editor, 2);
 
         editor.ClickThumbnail(2);
-        editor.ViewModel.DeleteSpriteCommand.Execute(null);
+        await editor.ViewModel.DeleteSpriteCommand.ExecuteAsync(null);
 
         Assert.Equal(2, editor.ViewModel.CurrentSpritePosition);
         Assert.Equal(1, editor.Thumbnails.SelectedIndex);

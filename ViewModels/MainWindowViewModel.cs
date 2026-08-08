@@ -16,15 +16,13 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private PanelBaseViewModel? _selectedTab;
 
-    private readonly IDialogService _dialogs;
-
     /// <param name="dialogs">
     /// La aplicación inyecta el servicio real; si no se pasa ninguno se confirma sin
     /// preguntar, que es lo que quieren los tests y cualquier uso sin ventana.
     /// </param>
     public MainWindowViewModel(IDialogService? dialogs = null)
     {
-        _dialogs = dialogs ?? new AlwaysConfirmDialogService();
+        Dialogs = dialogs ?? new AlwaysConfirmDialogService();
 
         // Los comandos de paleta dependen de cuál esté activa (la estándar no se puede
         // editar ni eliminar) y de cuántas queden (nunca se borra la última).
@@ -48,6 +46,9 @@ public partial class MainWindowViewModel : ObservableObject
     /// tilesets y los mapas, dibujan con la paleta activa de aquí.
     /// </summary>
     public PaletteLibrary Palettes { get; } = new();
+
+    /// <summary>Se reparte a los paneles que necesiten confirmar algo destructivo.</summary>
+    public IDialogService Dialogs { get; }
 
     public TreeGeneralViewModel TreeGeneralVm { get; } = new();
 
@@ -79,7 +80,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         // Eliminar una paleta no se puede deshacer, y el botón está pegado a los
         // otros dos: mejor un clic de más que perder el trabajo.
-        bool confirmed = await _dialogs.ConfirmAsync(
+        bool confirmed = await Dialogs.ConfirmAsync(
             "Eliminar paleta",
             $"Se va a eliminar la paleta «{palette.Name}». Esta acción no se puede deshacer.",
             "Eliminar");

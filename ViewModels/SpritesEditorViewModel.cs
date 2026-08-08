@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MSX_SpritesEditor.Entities;
+using MSX_SpritesEditor.Services;
 
 namespace MSX_SpritesEditor.ViewModels;
 
@@ -12,6 +13,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
 
     private readonly SpriteBank _spriteBank;
     private readonly PaletteLibrary _palettes;
+    private readonly IDialogService _dialogs;
 
     /// <summary>La paleta a cuyos cambios de color estamos suscritos ahora mismo.</summary>
     private ColorPalette _watchedPalette;
@@ -54,10 +56,15 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
     [NotifyPropertyChangedFor(nameof(BackgroundColor))]
     private int _backgroundColorIndex = DefaultBackgroundIndex;
 
-    public SpritesEditorViewModel(SpriteBank bank, PaletteLibrary palettes)
+    /// <param name="dialogs">
+    /// Para confirmar el borrado de un sprite. Sin él se confirma sin preguntar, que
+    /// es lo que quieren los tests.
+    /// </param>
+    public SpritesEditorViewModel(SpriteBank bank, PaletteLibrary palettes, IDialogService? dialogs = null)
     {
         _spriteBank = bank;
         _palettes = palettes;
+        _dialogs = dialogs ?? new AlwaysConfirmDialogService();
         _watchedPalette = palettes.ActivePalette;
 
         _palettes.PropertyChanged += OnLibraryPropertyChanged;
@@ -146,9 +153,18 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
     private bool CanAddSprite() => NumberSprites < SpriteBank.MaxSprites;
 
     [RelayCommand(CanExecute = nameof(CanDeleteSprite))]
-    private void DeleteSprite()
+    private async Task DeleteSpriteAsync()
     {
         int index = CurrentSpritePosition - 1;
+
+        // Borrar un sprite tampoco se puede deshacer.
+        bool confirmed = await _dialogs.ConfirmAsync(
+            "Eliminar sprite",
+            $"Se va a eliminar el sprite {CurrentSpritePosition} de {NumberSprites}. Esta acción no se puede deshacer.",
+            "Eliminar");
+
+        if (!confirmed)
+            return;
 
         _spriteBank.DeleteSprite(index);
         if ((uint)index < (uint)ImagesMiniList.Count)

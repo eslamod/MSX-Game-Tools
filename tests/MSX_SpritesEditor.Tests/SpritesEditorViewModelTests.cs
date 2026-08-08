@@ -1,4 +1,5 @@
 using MSX_SpritesEditor.Entities;
+using MSX_SpritesEditor.Services;
 using MSX_SpritesEditor.ViewModels;
 using Xunit;
 
@@ -45,14 +46,14 @@ public class SpritesEditorViewModelTests
     }
 
     [Fact]
-    public void Borrar_sprite_elimina_tambien_su_miniatura()
+    public async Task Borrar_sprite_elimina_tambien_su_miniatura()
     {
         SpritesEditorViewModel vm = NewEditor();
         vm.AddSpriteCommand.Execute(null);
         vm.AddSpriteCommand.Execute(null);
         Assert.Equal(3, vm.ImagesMiniList.Count);
 
-        vm.DeleteSpriteCommand.Execute(null);
+        await vm.DeleteSpriteCommand.ExecuteAsync(null);
 
         // En WPF se borraba del banco pero no de la lista, y se desincronizaban.
         Assert.Equal(2, vm.NumberSprites);
@@ -125,6 +126,52 @@ public class SpritesEditorViewModelTests
         Assert.Same(vm.SpritesBank.SpritesList[1], vm.CurrentSprite);
     }
 
+    [Fact]
+    public async Task Borrar_pide_confirmacion_diciendo_que_sprite_es()
+    {
+        var dialogs = new RecordingDialogService(answer: true);
+        SpritesEditorViewModel vm = new(new SpriteBank(), new PaletteLibrary(), dialogs);
+        vm.AddSpriteCommand.Execute(null); // quedan 2, seleccionado el 2
+
+        await vm.DeleteSpriteCommand.ExecuteAsync(null);
+
+        Assert.Equal(1, dialogs.Calls);
+        Assert.Contains("sprite 2 de 2", dialogs.LastMessage);
+        Assert.Equal(1, vm.NumberSprites);
+    }
+
+    [Fact]
+    public async Task Cancelar_la_confirmacion_no_borra_el_sprite()
+    {
+        var dialogs = new RecordingDialogService(answer: false);
+        SpritesEditorViewModel vm = new(new SpriteBank(), new PaletteLibrary(), dialogs);
+        vm.AddSpriteCommand.Execute(null);
+        Sprite current = vm.CurrentSprite;
+
+        await vm.DeleteSpriteCommand.ExecuteAsync(null);
+
+        Assert.Equal(1, dialogs.Calls);
+        Assert.Equal(2, vm.NumberSprites);
+        Assert.Equal(2, vm.ImagesMiniList.Count);
+        Assert.Same(current, vm.CurrentSprite);
+        Assert.Equal(2, vm.CurrentSpritePosition);
+    }
+
     private static SpritesEditorViewModel NewEditor() =>
         new(new SpriteBank(), new PaletteLibrary());
+
+    private sealed class RecordingDialogService(bool answer) : IDialogService
+    {
+        public int Calls { get; private set; }
+
+        public string LastMessage { get; private set; } = string.Empty;
+
+        public Task<bool> ConfirmAsync(string title, string message, string confirmLabel)
+        {
+            Calls++;
+            LastMessage = message;
+
+            return Task.FromResult(answer);
+        }
+    }
 }
