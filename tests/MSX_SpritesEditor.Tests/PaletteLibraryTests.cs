@@ -1,3 +1,4 @@
+using System.Collections.Specialized;
 using MSX_SpritesEditor.Entities;
 using Xunit;
 
@@ -80,6 +81,38 @@ public class PaletteLibraryTests
 
         Assert.Equal(2, library.Palettes.Count);
         Assert.Equal("Palette 1", library.ActivePalette.Name);
+    }
+
+    [Fact]
+    public void Al_quitarla_de_la_coleccion_ya_no_es_la_activa()
+    {
+        var library = new PaletteLibrary();
+        library.Add();
+        ColorPalette doomed = library.Add();
+
+        bool stillActiveWhenRemoved = false;
+        library.Palettes.CollectionChanged += (_, e) =>
+        {
+            if (e.Action == NotifyCollectionChangedAction.Remove)
+                stillActiveWhenRemoved = ReferenceEquals(library.ActivePalette, doomed);
+        };
+
+        library.Remove(doomed);
+
+        // Es lo que evita que un ComboBox enlazado se quede sin seleccion y escriba
+        // null de vuelta en ActivePalette.
+        Assert.False(stillActiveWhenRemoved);
+    }
+
+    [Fact]
+    public void La_paleta_activa_ignora_que_le_asignen_null()
+    {
+        var library = new PaletteLibrary();
+        ColorPalette standard = library.ActivePalette;
+
+        library.ActivePalette = null!;
+
+        Assert.Same(standard, library.ActivePalette);
     }
 
     [Fact]

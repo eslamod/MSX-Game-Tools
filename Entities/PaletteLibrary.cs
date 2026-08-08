@@ -9,7 +9,6 @@ namespace MSX_SpritesEditor.Entities;
 /// </summary>
 public sealed partial class PaletteLibrary : ObservableObject
 {
-    [ObservableProperty]
     private ColorPalette _activePalette;
 
     public PaletteLibrary()
@@ -18,6 +17,23 @@ public sealed partial class PaletteLibrary : ObservableObject
 
         Palettes = [standard];
         _activePalette = standard;
+    }
+
+    /// <summary>
+    /// La paleta con la que se dibuja. Nunca es <c>null</c>: un ComboBox enlazado a
+    /// ella escribe null en cuanto el elemento seleccionado desaparece de la
+    /// colección, y la biblioteca no puede quedarse sin paleta activa.
+    /// </summary>
+    public ColorPalette ActivePalette
+    {
+        get => _activePalette;
+        set
+        {
+            if (value is null)
+                return;
+
+            SetProperty(ref _activePalette, value);
+        }
     }
 
     public ObservableCollection<ColorPalette> Palettes { get; }
@@ -46,10 +62,14 @@ public sealed partial class PaletteLibrary : ObservableObject
             return false;
 
         int index = Palettes.IndexOf(palette);
-        Palettes.Remove(palette);
 
+        // Mover la selección ANTES de quitarla de la colección: cuando llega el
+        // Remove, la paleta que desaparece ya no es la activa, así que un ComboBox
+        // enlazado no se queda sin selección ni la escribe de vuelta.
         if (ReferenceEquals(ActivePalette, palette))
-            ActivePalette = Palettes[Math.Min(index, Palettes.Count - 1)];
+            ActivePalette = Palettes[index > 0 ? index - 1 : index + 1];
+
+        Palettes.Remove(palette);
 
         return true;
     }

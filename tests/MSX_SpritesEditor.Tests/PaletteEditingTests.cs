@@ -286,6 +286,84 @@ public class PaletteEditingTests
         }
     }
 
+    // Con la ventana montada de verdad: el ComboBox enlazado a la paleta activa
+    // escribe null en cuanto el elemento seleccionado desaparece de la coleccion, y
+    // eso reventaba el CanExecute de los comandos. Probando el ViewModel suelto no
+    // se reproduce.
+
+    [AvaloniaFact]
+    public void Eliminar_la_paleta_activa_con_la_ventana_montada_no_deja_la_seleccion_vacia()
+    {
+        using MainWindowHost app = MainWindowHost.Show();
+
+        app.ViewModel.AddPaletteCommand.Execute(null); // Palette 1
+        app.ViewModel.AddPaletteCommand.Execute(null); // Palette 2, activa
+        app.Pump();
+
+        Assert.Same(app.ViewModel.Palettes.ActivePalette, app.PaletteCombo.SelectedItem);
+
+        app.ViewModel.DeletePaletteCommand.Execute(null);
+        app.Pump();
+
+        Assert.NotNull(app.ViewModel.Palettes.ActivePalette);
+        Assert.Equal("Palette 1", app.ViewModel.Palettes.ActivePalette.Name);
+        Assert.Same(app.ViewModel.Palettes.ActivePalette, app.PaletteCombo.SelectedItem);
+    }
+
+    [AvaloniaFact]
+    public void Eliminar_hasta_quedarse_con_la_estandar_deshabilita_los_comandos()
+    {
+        using MainWindowHost app = MainWindowHost.Show();
+
+        app.ViewModel.AddPaletteCommand.Execute(null);
+        app.ViewModel.DeletePaletteCommand.Execute(null);
+        app.Pump();
+
+        Assert.Single(app.ViewModel.Palettes.Palettes);
+        Assert.Equal(ColorPalette.StandardName, app.ViewModel.Palettes.ActivePalette.Name);
+        Assert.False(app.ViewModel.EditPaletteCommand.CanExecute(null));
+        Assert.False(app.ViewModel.DeletePaletteCommand.CanExecute(null));
+        Assert.Same(app.ViewModel.Palettes.ActivePalette, app.PaletteCombo.SelectedItem);
+    }
+
+    /// <summary>La ventana principal montada de verdad, con sus enlaces vivos.</summary>
+    private sealed class MainWindowHost : IDisposable
+    {
+        private readonly MainWindow _window;
+
+        private MainWindowHost(MainWindow window, MainWindowViewModel viewModel, ComboBox paletteCombo)
+        {
+            _window = window;
+            ViewModel = viewModel;
+            PaletteCombo = paletteCombo;
+        }
+
+        public MainWindowViewModel ViewModel { get; }
+
+        public ComboBox PaletteCombo { get; }
+
+        public static MainWindowHost Show()
+        {
+            var viewModel = new MainWindowViewModel();
+            var window = new MainWindow { DataContext = viewModel };
+
+            window.Show();
+            Dispatcher.UIThread.RunJobs();
+
+            ComboBox combo = window.GetVisualDescendants().OfType<ComboBox>().First();
+
+            return new MainWindowHost(window, viewModel, combo);
+        }
+
+        public void Pump() => Dispatcher.UIThread.RunJobs();
+
+        public void Dispose()
+        {
+            _window.Close();
+            Dispatcher.UIThread.RunJobs();
+        }
+    }
+
     [Fact]
     public void Eliminar_la_paleta_que_se_esta_editando_cierra_el_panel()
     {

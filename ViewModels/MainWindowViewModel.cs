@@ -17,16 +17,21 @@ public partial class MainWindowViewModel : ObservableObject
 
     public MainWindowViewModel()
     {
-        // Los comandos de paleta dependen de cuál esté activa: la estándar no se
-        // puede editar ni eliminar.
+        // Los comandos de paleta dependen de cuál esté activa (la estándar no se puede
+        // editar ni eliminar) y de cuántas queden (nunca se borra la última).
         Palettes.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName != nameof(PaletteLibrary.ActivePalette))
-                return;
-
-            EditPaletteCommand.NotifyCanExecuteChanged();
-            DeletePaletteCommand.NotifyCanExecuteChanged();
+            if (e.PropertyName == nameof(PaletteLibrary.ActivePalette))
+                RefreshPaletteCommands();
         };
+
+        Palettes.Palettes.CollectionChanged += (_, _) => RefreshPaletteCommands();
+    }
+
+    private void RefreshPaletteCommands()
+    {
+        EditPaletteCommand.NotifyCanExecuteChanged();
+        DeletePaletteCommand.NotifyCanExecuteChanged();
     }
 
     /// <summary>
