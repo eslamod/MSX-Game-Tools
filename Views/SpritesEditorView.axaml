@@ -81,9 +81,6 @@
       <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
                    Content="X4" Tag="4" Width="32" Margin="2"
                    IsCheckedChanged="OnThumbnailZoomChanged" />
-      <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
-                   Content="X8" Tag="8" Width="32" Margin="2"
-                   IsCheckedChanged="OnThumbnailZoomChanged" />
     </StackPanel>
 
     <!-- Lienzo de edición 16x16 -->

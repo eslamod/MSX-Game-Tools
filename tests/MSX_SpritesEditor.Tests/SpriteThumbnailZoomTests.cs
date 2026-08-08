@@ -6,8 +6,8 @@ namespace MSX_SpritesEditor.Tests;
 
 /// <summary>
 /// Zoom de la tira de miniaturas. Los tamaños son múltiplos enteros de los 16 px del
-/// sprite (4, 8, 16 y 32 px de pantalla por pixel), para que todos los pixeles del
-/// sprite salgan del mismo tamaño al escalar sin interpolación.
+/// sprite (4, 8 y 16 px de pantalla por pixel), para que todos los pixeles del sprite
+/// salgan del mismo tamaño al escalar sin interpolación.
 /// </summary>
 public class SpriteThumbnailZoomTests
 {
@@ -23,7 +23,6 @@ public class SpriteThumbnailZoomTests
     [InlineData(1, 64)]
     [InlineData(2, 128)]
     [InlineData(4, 256)]
-    [InlineData(8, 512)]
     public void Cada_boton_de_zoom_fija_su_tamano(int factor, double expectedSize)
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag);
@@ -56,7 +55,7 @@ public class SpriteThumbnailZoomTests
         editor.ViewModel.AddSpriteCommand.Execute(null);
         editor.ClickThumbnail(0);
 
-        editor.SetThumbnailZoom(8);
+        editor.SetThumbnailZoom(4);
 
         Assert.Equal(0, editor.Thumbnails.SelectedIndex);
         Assert.Equal(1, editor.ViewModel.CurrentSpritePosition);
