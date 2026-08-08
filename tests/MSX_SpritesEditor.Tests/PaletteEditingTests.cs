@@ -51,6 +51,72 @@ public class PaletteEditingTests
     }
 
     [Fact]
+    public void Cambiar_el_color_descarta_el_nombre_heredado()
+    {
+        ColorPalette palette = new PaletteLibrary().Add();
+        Assert.Equal("Light green", palette[3].Name);
+
+        palette[3].Red = 7;
+
+        // "Light green" describía el color de la paleta original: ya no es cierto.
+        Assert.Equal(string.Empty, palette[3].Name);
+        Assert.Equal("Color 3", palette[3].DisplayName);
+    }
+
+    [Fact]
+    public void Un_nombre_puesto_a_mano_sobrevive_a_los_cambios_de_color()
+    {
+        ColorPalette palette = new PaletteLibrary().Add();
+
+        palette[3].Name = "piel";
+        palette[3].SetComponents(7, 5, 4);
+        palette[3].Blue = 0;
+
+        Assert.Equal("piel", palette[3].Name);
+        Assert.Equal("piel", palette[3].DisplayName);
+    }
+
+    [Fact]
+    public void El_caracter_del_nombre_se_conserva_al_copiar_la_paleta()
+    {
+        var library = new PaletteLibrary();
+        ColorPalette first = library.Add();
+        first[3].Name = "piel";     // propio
+        // first[4] conserva su nombre heredado
+
+        ColorPalette second = library.Add();
+
+        second[3].Red = 0;
+        second[4].Red = 0;
+
+        Assert.Equal("piel", second[3].Name);
+        Assert.Equal(string.Empty, second[4].Name);
+    }
+
+    [Fact]
+    public void Un_color_sin_nombre_se_muestra_por_su_indice()
+    {
+        var color = new PaletteColor(10, string.Empty, 1, 2, 3);
+
+        Assert.Equal("Color A", color.DisplayName);
+
+        color.Name = "sombra";
+
+        Assert.Equal("sombra", color.DisplayName);
+    }
+
+    [Fact]
+    public void La_paleta_estandar_conserva_sus_nombres()
+    {
+        ColorPalette standard = ColorPalette.CreateMsxStandard();
+
+        // Es de solo lectura, asi que sus nombres nunca llegan a quedarse obsoletos.
+        Assert.True(standard.IsReadOnly);
+        Assert.Equal("Light green", standard[3].Name);
+        Assert.Equal("Light green", standard[3].DisplayName);
+    }
+
+    [Fact]
     public void El_color_0_es_transparente_y_no_editable()
     {
         ColorPalette palette = ColorPalette.CreateMsxStandard();

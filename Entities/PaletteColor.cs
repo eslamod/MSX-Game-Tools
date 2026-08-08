@@ -20,16 +20,23 @@ public sealed class PaletteColor : ObservableObject
     private readonly SolidColorBrush _brush;
 
     private string _name;
+    private bool _nameIsInherited;
     private int _red;
     private int _green;
     private int _blue;
 
-    public PaletteColor(int index, string name, int red, int green, int blue)
+    /// <param name="nameIsInherited">
+    /// <c>true</c> si el nombre viene de la paleta de la que se copió y no lo eligió
+    /// el usuario. Un nombre heredado se descarta en cuanto el color cambia, porque
+    /// dejaría de describirlo; uno propio se respeta siempre.
+    /// </param>
+    public PaletteColor(int index, string name, int red, int green, int blue, bool nameIsInherited = true)
     {
         Index = index;
         Hex = index.ToString("X1");
 
         _name = name;
+        _nameIsInherited = nameIsInherited;
         _red = Clamp(red);
         _green = Clamp(green);
         _blue = Clamp(blue);
@@ -53,11 +60,29 @@ public sealed class PaletteColor : ObservableObject
 
     public bool IsEditable => !IsTransparent;
 
+    /// <summary>
+    /// Nombre del color. Puede estar vacío: no todos los colores de una paleta propia
+    /// tienen por qué llamarse de alguna manera.
+    /// </summary>
     public string Name
     {
         get => _name;
-        set => SetProperty(ref _name, value);
+        set
+        {
+            if (!SetProperty(ref _name, value))
+                return;
+
+            // Si lo escribes tú, pasa a ser tuyo y ya no se descarta nunca.
+            _nameIsInherited = false;
+            OnPropertyChanged(nameof(DisplayName));
+        }
     }
+
+    /// <summary>Lo que se enseña cuando el color no tiene nombre propio.</summary>
+    public string DisplayName => string.IsNullOrWhiteSpace(_name) ? $"Color {Hex}" : _name;
+
+    /// <summary>El nombre viene heredado de la paleta original, no lo eligió el usuario.</summary>
+    public bool HasInheritedName => _nameIsInherited;
 
     /// <summary>Componente roja en el formato del MSX, 0-7.</summary>
     public int Red
@@ -87,7 +112,7 @@ public sealed class PaletteColor : ObservableObject
     /// <summary>Las tres componentes, un dígito hexadecimal cada una. Es lo que se guarda en fichero.</summary>
     public string HexRgb => $"{_red:X1}{_green:X1}{_blue:X1}";
 
-    public PaletteColor Clone() => new(Index, _name, _red, _green, _blue);
+    public PaletteColor Clone() => new(Index, _name, _red, _green, _blue, _nameIsInherited);
 
     public void SetComponents(int red, int green, int blue)
     {
@@ -96,7 +121,7 @@ public sealed class PaletteColor : ObservableObject
         Blue = blue;
     }
 
-    public override string ToString() => $"{Hex} {Name}";
+    public override string ToString() => $"{Hex} {DisplayName}";
 
     private void SetComponent(ref int field, int value, string propertyName)
     {
@@ -106,6 +131,18 @@ public sealed class PaletteColor : ObservableObject
 
         field = clamped;
         _brush.Color = Compose();
+
+        // El nombre heredado describía el color de la paleta original: en cuanto se
+        // toca deja de ser cierto, así que se descarta. El que hayas escrito tú se
+        // queda, porque no es una descripción del color sino la etiqueta que le diste.
+        if (_nameIsInherited && !string.IsNullOrEmpty(_name))
+        {
+            _name = string.Empty;
+            _nameIsInherited = false;
+
+            OnPropertyChanged(nameof(Name));
+            OnPropertyChanged(nameof(DisplayName));
+        }
 
         OnPropertyChanged(propertyName);
         OnPropertyChanged(nameof(Color));

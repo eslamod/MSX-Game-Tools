@@ -39,7 +39,7 @@
             <TextBlock Grid.Column="1" Text="{Binding Hex}"
                        FontFamily="Consolas" VerticalAlignment="Center"
                        TextAlignment="Center" />
-            <TextBlock Grid.Column="2" Text="{Binding Name}" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="2" Text="{Binding DisplayName}" VerticalAlignment="Center" />
             <TextBlock Grid.Column="3" Text="{Binding HexRgb}"
                        FontFamily="Consolas" Foreground="#606060"
                        VerticalAlignment="Center" Margin="6,0,0,0"
@@ -56,6 +56,13 @@
       <TextBlock Text="El color 0 es transparente y no se puede editar"
                  IsVisible="{Binding SelectedColor.IsTransparent}"
                  Foreground="Firebrick" TextWrapping="Wrap" Margin="0,0,0,6" />
+
+      <Grid ColumnDefinitions="20,*" Margin="0,2,0,6">
+        <TextBlock Grid.Column="0" Text="N" VerticalAlignment="Center"
+                   ToolTip.Tip="Nombre del color" />
+        <TextBox Grid.Column="1" Text="{Binding SelectedColor.Name}"
+                 Watermark="Sin nombre" />
+      </Grid>
 
       <Grid ColumnDefinitions="20,*,24" Margin="0,2">
         <TextBlock Grid.Column="0" Text="R" VerticalAlignment="Center" />
