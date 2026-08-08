@@ -30,7 +30,19 @@ public partial class SpritesEditorView : UserControl
 
     private const int GridSize = 16;
 
+    /// <summary>Pixeles de pantalla por pixel de sprite en la miniatura a X1.</summary>
+    private const int ThumbnailBaseScale = 4;
+
     private static readonly double[] ZoomSizes = [256, 512, 600];
+
+    /// <summary>
+    /// Lado de las miniaturas del banco. Vive en la vista y no en el ViewModel porque
+    /// es presentación pura; la plantilla del ListBox lo lee con $parent.
+    /// </summary>
+    public static readonly StyledProperty<double> ThumbnailSizeProperty =
+        AvaloniaProperty.Register<SpritesEditorView, double>(
+            nameof(ThumbnailSize),
+            defaultValue: GridSize * ThumbnailBaseScale);
 
     private readonly Rectangle[] _cells = new Rectangle[GridSize * GridSize];
 
@@ -44,6 +56,12 @@ public partial class SpritesEditorView : UserControl
     private int _lastCellY = -1;
 
     public SpritesEditorView() => InitializeComponent();
+
+    public double ThumbnailSize
+    {
+        get => GetValue(ThumbnailSizeProperty);
+        set => SetValue(ThumbnailSizeProperty, value);
+    }
 
     protected override void OnLoaded(RoutedEventArgs e)
     {
@@ -81,6 +99,12 @@ public partial class SpritesEditorView : UserControl
 
         if (sender is RadioButton { IsChecked: true, Tag: string tag } && int.TryParse(tag, out int index))
             ApplyZoom(index);
+    }
+
+    private void OnThumbnailZoomChanged(object? sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { IsChecked: true, Tag: string tag } && int.TryParse(tag, out int factor))
+            ThumbnailSize = GridSize * ThumbnailBaseScale * factor;
     }
 
     private void OnPaintModeChanged(object? sender, RoutedEventArgs e)

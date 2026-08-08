@@ -20,6 +20,7 @@ internal sealed class SpriteCanvasHarness : IDisposable
     private const double CellSize = 16.0;
 
     private readonly Window _window;
+    private readonly SpritesEditorView _view;
     private readonly Point _origin;
 
     public SpriteCanvasHarness(PaintMode mode)
@@ -27,7 +28,8 @@ internal sealed class SpriteCanvasHarness : IDisposable
         Bank = new SpriteBank();
         ViewModel = new SpritesEditorViewModel(Bank, GlobalSettings.CurrentColorPalette);
 
-        var view = new SpritesEditorView { DataContext = ViewModel };
+        SpritesEditorView view = new() { DataContext = ViewModel };
+        _view = view;
         _window = new Window { Content = view, Width = 900, Height = 700 };
         _window.Show();
         Pump();
@@ -113,6 +115,21 @@ internal sealed class SpriteCanvasHarness : IDisposable
         _window.MouseMove(ThumbnailCentre(index));
         Pump();
     }
+
+    /// <summary>Pulsa uno de los botones X1/X2/X4/X8 del zoom de miniaturas.</summary>
+    public void SetThumbnailZoom(int factor)
+    {
+        RadioButton button = _view.GetVisualDescendants()
+            .OfType<RadioButton>()
+            .Single(r => r.GroupName == "PreviewZoom" && (r.Tag as string) == factor.ToString());
+
+        button.IsChecked = true;
+        Pump();
+    }
+
+    /// <summary>Lado real de la imagen de una miniatura ya realizada.</summary>
+    public double ThumbnailImageSize(int index) =>
+        ThumbnailContainer(index).GetVisualDescendants().OfType<Image>().Single().Width;
 
     public void Dispose()
     {

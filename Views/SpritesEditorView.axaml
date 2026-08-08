@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:entities="clr-namespace:MSX_SpritesEditor.Entities"
              xmlns:vm="clr-namespace:MSX_SpritesEditor.ViewModels"
+             xmlns:views="clr-namespace:MSX_SpritesEditor.Views"
              mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500"
              x:Class="MSX_SpritesEditor.Views.SpritesEditorView"
              x:DataType="vm:SpritesEditorViewModel">
@@ -68,15 +69,21 @@
                    IsCheckedChanged="OnPaintModeChanged" />
     </StackPanel>
 
-    <!-- Zoom de las miniaturas: sin implementar, igual que en la versión WPF -->
+    <!-- Zoom de las miniaturas. El Tag es el multiplicador sobre el tamaño base. -->
     <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal"
                 HorizontalAlignment="Right" Margin="2">
       <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
-                   Content="X2" Width="32" Margin="2" IsChecked="True" />
+                   Content="X1" Tag="1" Width="32" Margin="2" IsChecked="True"
+                   IsCheckedChanged="OnThumbnailZoomChanged" />
       <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
-                   Content="X4" Width="32" Margin="2" />
+                   Content="X2" Tag="2" Width="32" Margin="2"
+                   IsCheckedChanged="OnThumbnailZoomChanged" />
       <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
-                   Content="X8" Width="32" Margin="2" />
+                   Content="X4" Tag="4" Width="32" Margin="2"
+                   IsCheckedChanged="OnThumbnailZoomChanged" />
+      <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
+                   Content="X8" Tag="8" Width="32" Margin="2"
+                   IsCheckedChanged="OnThumbnailZoomChanged" />
     </StackPanel>
 
     <!-- Lienzo de edición 16x16 -->
@@ -108,10 +115,13 @@
         </ListBox.ItemsPanel>
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="entities:ImageMini">
-            <!-- BitmapInterpolationMode="None" = escalado nearest neighbour,
+            <!-- El tamaño vive en la vista, no en el ViewModel: es presentacion pura.
+                 BitmapInterpolationMode="None" = escalado nearest neighbour,
                  imprescindible para que un sprite de 16x16 no salga borroso. -->
             <Image Source="{Binding SpritePreview}"
-                   Width="120" Height="120" Stretch="Fill"
+                   Width="{Binding $parent[views:SpritesEditorView].ThumbnailSize}"
+                   Height="{Binding $parent[views:SpritesEditorView].ThumbnailSize}"
+                   Stretch="Fill"
                    RenderOptions.BitmapInterpolationMode="None" />
           </DataTemplate>
         </ListBox.ItemTemplate>
