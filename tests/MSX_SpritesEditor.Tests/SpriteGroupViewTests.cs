@@ -214,6 +214,25 @@ public class SpriteGroupViewTests
     }
 
     [AvaloniaFact]
+    public void La_fila_del_miembro_separa_el_patron_de_los_desplazamientos()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+        editor.SetThumbnailMode(ThumbnailMode.Groups);
+        editor.ViewModel.AddGroupCommand.Execute(null);
+
+        SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
+        group.NudgeOffsetCommand.Execute("right");
+        group.NudgeOffsetCommand.Execute("up");
+        SpriteCanvasHarness.Pump();
+
+        ListBox members = editor.MemberList;
+        Control container = members.ContainerFromIndex(0)!;
+        string row = string.Concat(container.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text));
+
+        Assert.Equal("Patrón 0 ; x:1 ; y:-1", row);
+    }
+
+    [AvaloniaFact]
     public async Task Eliminar_un_grupo_pide_confirmacion()
     {
         var dialogs = new TestDialogService { ConfirmAnswer = false };

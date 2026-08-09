@@ -327,13 +327,14 @@
                  Height="84">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="entities:SpriteGroupMember">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="Patrón" />
-                <TextBlock Text="{Binding PatternIndex}" FontFamily="Consolas" />
-                <TextBlock Text="x" />
-                <TextBlock Text="{Binding OffsetX}" FontFamily="Consolas" />
-                <TextBlock Text="y" />
-                <TextBlock Text="{Binding OffsetY}" FontFamily="Consolas" />
+              <!-- Separadores explicitos: sin ellos "Patrón 0 x 0 y 0" se lee como si
+                   la x formara parte del numero anterior. -->
+              <StackPanel Orientation="Horizontal" TextElement.FontFamily="Consolas">
+                <TextBlock Text="{Binding PatternIndex, StringFormat='Patrón {0}'}" />
+                <TextBlock Text=" ; " Foreground="#909090" />
+                <TextBlock Text="{Binding OffsetX, StringFormat='x:{0}'}" />
+                <TextBlock Text=" ; " Foreground="#909090" />
+                <TextBlock Text="{Binding OffsetY, StringFormat='y:{0}'}" />
               </StackPanel>
             </DataTemplate>
           </ListBox.ItemTemplate>

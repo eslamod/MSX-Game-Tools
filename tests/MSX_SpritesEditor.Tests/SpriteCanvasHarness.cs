@@ -99,6 +99,11 @@ internal sealed class SpriteCanvasHarness : IDisposable
     /// <summary>El panel de miembros y desplazamientos del grupo seleccionado.</summary>
     public Border GroupPanel { get; }
 
+    /// <summary>La lista de miembros del grupo seleccionado.</summary>
+    public ListBox MemberList =>
+        _view.FindControl<ListBox>("MemberList")
+        ?? throw new InvalidOperationException("Falta la lista de miembros.");
+
     /// <summary>Alto de una fila del lienzo con el zoom actual.</summary>
     public double CellSize => _view.CellSize;
 
