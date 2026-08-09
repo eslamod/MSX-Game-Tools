@@ -22,7 +22,9 @@ public partial class SpriteGroupViewModel : ObservableObject
         _bank = bank;
         Preview = SpriteGroupRenderer.CreatePreview();
 
-        _selectedMember = group.Members.FirstOrDefault();
+        // Por la propiedad y no por el campo, para que quede enganchado el seguimiento
+        // del patrón que hay que llevar al lienzo.
+        SelectedMember = group.Members.FirstOrDefault();
 
         Group.Changed += _ =>
         {
@@ -33,6 +35,13 @@ public partial class SpriteGroupViewModel : ObservableObject
         };
     }
 
+    /// <summary>
+    /// Hay que llevar el lienzo a este patrón: o se ha seleccionado otro miembro, o el
+    /// seleccionado ha cambiado de patrón. Elegir el modo Grupos no impide seguir
+    /// dibujando, y así se sabe siempre qué patrón se está tocando.
+    /// </summary>
+    public event Action<SpriteGroupMember>? EditTargetChanged;
+
     public SpriteGroup Group { get; }
 
     /// <summary>La composición de los miembros, ya dibujada.</summary>
@@ -40,6 +49,24 @@ public partial class SpriteGroupViewModel : ObservableObject
 
     /// <summary>Último patrón del banco al que puede apuntar un miembro.</summary>
     public int MaxPatternIndex => _bank.SpritesList.Count - 1;
+
+    partial void OnSelectedMemberChanged(SpriteGroupMember? oldValue, SpriteGroupMember? newValue)
+    {
+        if (oldValue is not null)
+            oldValue.PropertyChanged -= OnSelectedMemberPropertyChanged;
+
+        if (newValue is null)
+            return;
+
+        newValue.PropertyChanged += OnSelectedMemberPropertyChanged;
+        EditTargetChanged?.Invoke(newValue);
+    }
+
+    private void OnSelectedMemberPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SpriteGroupMember.PatternIndex) && SelectedMember is not null)
+            EditTargetChanged?.Invoke(SelectedMember);
+    }
 
     public void Render(ColorPalette palette, Color background) =>
         SpriteGroupRenderer.Render(Group, _bank, palette, background, Preview);

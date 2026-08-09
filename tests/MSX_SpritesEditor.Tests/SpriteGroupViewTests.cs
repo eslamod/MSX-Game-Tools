@@ -135,6 +135,84 @@ public class SpriteGroupViewTests
         Assert.Equal(SpriteGroupRenderer.PreviewSize, preview.Height);
     }
 
+    // Estar en modo Grupos no impide seguir dibujando: el lienzo sigue al patrón del
+    // miembro que estés tocando, para poder ver el efecto en la composición.
+
+    [AvaloniaFact]
+    public void Seleccionar_un_miembro_lleva_el_lienzo_a_su_patron()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+        editor.ViewModel.AddSpriteCommand.Execute(null);
+        editor.ViewModel.AddSpriteCommand.Execute(null); // 3 patrones
+
+        editor.SetThumbnailMode(ThumbnailMode.Groups);
+        editor.ViewModel.AddGroupCommand.Execute(null);  // miembro sobre el patron 2
+
+        SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
+        group.AddMemberCommand.Execute(null);
+        group.Group.Members[1].PatternIndex = 0;
+
+        group.SelectedMember = group.Group.Members[0];
+        Assert.Equal(3, editor.ViewModel.CurrentSpritePosition);
+
+        group.SelectedMember = group.Group.Members[1];
+        Assert.Equal(1, editor.ViewModel.CurrentSpritePosition);
+    }
+
+    [AvaloniaFact]
+    public void Cambiar_el_patron_del_miembro_lleva_el_lienzo_a_ese_patron()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+        editor.ViewModel.AddSpriteCommand.Execute(null);
+
+        editor.SetThumbnailMode(ThumbnailMode.Groups);
+        editor.ViewModel.AddGroupCommand.Execute(null);
+
+        SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
+        Assert.Equal(2, editor.ViewModel.CurrentSpritePosition);
+
+        group.StepPatternCommand.Execute("-1");
+
+        Assert.Equal(0, group.SelectedMember!.PatternIndex);
+        Assert.Equal(1, editor.ViewModel.CurrentSpritePosition);
+    }
+
+    [AvaloniaFact]
+    public void Pasar_a_modo_grupos_lleva_el_lienzo_al_patron_del_miembro()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+        editor.SetThumbnailMode(ThumbnailMode.Groups);
+        editor.ViewModel.AddGroupCommand.Execute(null);
+
+        editor.SetThumbnailMode(ThumbnailMode.Patterns);
+        editor.ViewModel.AddSpriteCommand.Execute(null); // el lienzo se va al patron 2
+
+        editor.SetThumbnailMode(ThumbnailMode.Groups);
+
+        // Vuelve al del miembro seleccionado, no se queda donde lo dejaste.
+        Assert.Equal(1, editor.ViewModel.CurrentSpritePosition);
+    }
+
+    [AvaloniaFact]
+    public void Dibujar_en_modo_grupos_actualiza_la_miniatura_del_grupo()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+        editor.SetThumbnailMode(ThumbnailMode.Groups);
+        editor.ViewModel.AddGroupCommand.Execute(null);
+
+        SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
+        int before = PixelReader.At(group.Preview, SpriteGroupMember.MaxOffset, SpriteGroupMember.MaxOffset);
+
+        // Un trazo de verdad sobre el lienzo, con su pulsar y soltar.
+        editor.Press(0, 0);
+        editor.Release(0, 0);
+
+        int after = PixelReader.At(group.Preview, SpriteGroupMember.MaxOffset, SpriteGroupMember.MaxOffset);
+
+        Assert.True(editor.Bank.SpritesList[0].ArraySpriteRows[0].ArrayColumns[0]);
+        Assert.NotEqual(before, after);
+    }
+
     [AvaloniaFact]
     public async Task Eliminar_un_grupo_pide_confirmacion()
     {

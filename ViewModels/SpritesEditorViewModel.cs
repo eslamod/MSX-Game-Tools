@@ -229,10 +229,30 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
         var viewModel = new SpriteGroupViewModel(group, _spriteBank);
 
         group.Changed += OnGroupChanged;
+        viewModel.EditTargetChanged += OnGroupEditTargetChanged;
+
         Groups.Add(viewModel);
         RenderGroup(viewModel);
 
         return viewModel;
+    }
+
+    /// <summary>
+    /// El lienzo sigue el patrón del miembro que se esté tocando. Estar en modo Grupos
+    /// no impide seguir dibujando: es la forma de ver el efecto en la composición.
+    /// </summary>
+    private void OnGroupEditTargetChanged(SpriteGroupMember member) => GoTo(member.PatternIndex + 1);
+
+    partial void OnSelectedGroupChanged(SpriteGroupViewModel? value)
+    {
+        if (value?.SelectedMember is not null)
+            GoTo(value.SelectedMember.PatternIndex + 1);
+    }
+
+    partial void OnThumbnailModeChanged(ThumbnailMode value)
+    {
+        if (value == ThumbnailMode.Groups && SelectedGroup?.SelectedMember is not null)
+            GoTo(SelectedGroup.SelectedMember.PatternIndex + 1);
     }
 
     private void OnGroupChanged(SpriteGroup group)
