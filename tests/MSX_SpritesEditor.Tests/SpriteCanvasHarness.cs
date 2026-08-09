@@ -194,6 +194,38 @@ internal sealed class SpriteCanvasHarness : IDisposable
         Pump();
     }
 
+    /// <summary>El botón de color de una línea del miembro del grupo (MSX2).</summary>
+    public Button MemberColorSwatch(int row)
+    {
+        Pump();
+
+        ItemsControl list = _view.FindControl<ItemsControl>("MemberColorList")
+                            ?? throw new InvalidOperationException("Falta la lista de colores del miembro.");
+
+        Control container = list.ContainerFromIndex(row)
+                            ?? throw new InvalidOperationException($"La línea {row} no está realizada.");
+
+        return container.GetVisualDescendants().OfType<Button>().First();
+    }
+
+    /// <summary>El botón de color único del miembro del grupo (MSX1).</summary>
+    public Button GroupMemberColorSwatch() =>
+        _view.FindControl<Button>("MemberColorSwatch")
+        ?? throw new InvalidOperationException("Falta el color único del miembro.");
+
+    /// <summary>Pulsación real sobre un botón, con su pulsar y soltar.</summary>
+    public static void ClickButton(Button button)
+    {
+        var root = (TopLevel)button.GetVisualRoot()!;
+        Point centre = button.TranslatePoint(
+            new Point(button.Bounds.Width / 2, button.Bounds.Height / 2), root)!.Value;
+
+        root.MouseDown(centre, MouseButton.Left);
+        Pump();
+        root.MouseUp(centre, MouseButton.Left);
+        Pump();
+    }
+
     /// <summary>El botón de color de una línea de la columna de colores.</summary>
     public Button RowColorSwatch(int row)
     {

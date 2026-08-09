@@ -310,9 +310,9 @@
     <Border x:Name="GroupPanel"
             Grid.Row="1" Grid.RowSpan="2" Grid.Column="1"
             IsVisible="{Binding ShowsGroups}"
-            Width="210" Margin="4,0" Padding="6"
+            Width="252" Margin="4,0" Padding="6"
             Background="#F0F0F0" BorderBrush="DarkGray" BorderThickness="1">
-      <Grid RowDefinitions="Auto,Auto,*,Auto,Auto"
+      <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*"
             IsEnabled="{Binding SelectedGroup, Converter={x:Static ObjectConverters.IsNotNull}}">
 
         <TextBlock Grid.Row="0" Text="Grupo" FontWeight="Bold" Margin="0,0,0,6" />
@@ -324,7 +324,7 @@
                  ItemsSource="{Binding SelectedGroup.Group.Members}"
                  SelectedItem="{Binding SelectedGroup.SelectedMember, Mode=TwoWay}"
                  SelectionMode="Single"
-                 MinHeight="90">
+                 Height="84">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="entities:SpriteGroupMember">
               <StackPanel Orientation="Horizontal" Spacing="6">
@@ -387,6 +387,123 @@
             <Button Grid.Column="3" Content="▼" HorizontalContentAlignment="Center"
                     Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="down" />
           </Grid>
+        </StackPanel>
+
+        <Grid Grid.Row="5" ColumnDefinitions="*,Auto" Margin="0,12,0,4">
+          <TextBlock Grid.Column="0" Text="Colores" FontWeight="Bold" VerticalAlignment="Center" />
+          <Button Grid.Column="1" Content="Del patrón" FontSize="10" Padding="6,2"
+                  Command="{Binding SelectedGroup.RestoreColorsCommand}"
+                  ToolTip.Tip="Volver a sembrar los colores desde el patrón del miembro" />
+        </Grid>
+
+        <!-- MSX2: un color y un CC por linea del miembro. Son los colores del miembro,
+             no los del patron: el patron solo fue la plantilla de la que se sembraron. -->
+        <ScrollViewer Grid.Row="6"
+                      IsVisible="{Binding SelectedGroup.IsMsx2}"
+                      HorizontalScrollBarVisibility="Disabled">
+          <ItemsControl x:Name="MemberColorList" ItemsSource="{Binding SelectedGroup.MemberColors}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:SpriteMemberColorViewModel">
+                <Grid ColumnDefinitions="16,*,Auto" Height="22" Margin="0,1">
+                  <TextBlock Grid.Column="0" Text="{Binding Hex}"
+                             FontFamily="Consolas" FontSize="11"
+                             VerticalAlignment="Center" Foreground="#606060" />
+
+                  <Button Grid.Column="1" Theme="{StaticResource ColorSwatchButton}"
+                          Margin="2,0" ToolTip.Tip="{Binding Color.DisplayName}">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <Border Grid.Column="0" Background="{Binding Color.Brush}" />
+                      <TextBlock Grid.Column="1" Text="{Binding Color.Hex}"
+                                 FontFamily="Consolas" FontSize="11" Width="16"
+                                 TextAlignment="Center" VerticalAlignment="Center" />
+                    </Grid>
+                    <Button.Flyout>
+                      <Flyout Placement="Left">
+                        <ItemsControl ItemsSource="{Binding Palette}" Width="152">
+                          <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                              <WrapPanel />
+                            </ItemsPanelTemplate>
+                          </ItemsControl.ItemsPanel>
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="entities:PaletteColor">
+                              <Button Theme="{StaticResource ColorSwatchButton}"
+                                      Width="34" Height="34" Margin="2"
+                                      ToolTip.Tip="{Binding DisplayName}"
+                                      Click="OnPaletteColorClick"
+                                      Command="{Binding $parent[ItemsControl].((vm:SpriteMemberColorViewModel)DataContext).PickCommand}"
+                                      CommandParameter="{Binding}">
+                                <Grid>
+                                  <Border Background="#DDDDDD" />
+                                  <Border Background="{Binding Brush}" />
+                                  <Border Background="#C0FFFFFF" Padding="2,0"
+                                          HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                                    <TextBlock Text="{Binding Hex}" FontFamily="Consolas"
+                                               FontSize="10" Foreground="Black" />
+                                  </Border>
+                                </Grid>
+                              </Button>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </Flyout>
+                    </Button.Flyout>
+                  </Button>
+
+                  <!-- CC: combina el color de esta linea con el sprite de mayor prioridad. -->
+                  <ToggleButton Grid.Column="2" Content="OR" Width="34" FontSize="10"
+                                Padding="0" HorizontalContentAlignment="Center"
+                                IsChecked="{Binding Row.CombineColor, Mode=TwoWay}"
+                                ToolTip.Tip="CC: combinar con OR el color de esta línea con el del sprite de mayor prioridad" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+
+        <!-- MSX1: un unico color para todo el sprite del miembro. -->
+        <StackPanel Grid.Row="6" IsVisible="{Binding SelectedGroup.IsMsx1}" VerticalAlignment="Top">
+          <Button x:Name="MemberColorSwatch"
+                  Theme="{StaticResource ColorSwatchButton}" Height="34"
+                  ToolTip.Tip="{Binding SelectedGroup.MemberColor.DisplayName}">
+            <Grid ColumnDefinitions="*,Auto">
+              <Border Grid.Column="0" Background="{Binding SelectedGroup.MemberColor.Brush}" />
+              <TextBlock Grid.Column="1" Text="{Binding SelectedGroup.MemberColor.Hex}"
+                         FontFamily="Consolas" FontSize="11" Width="16"
+                         TextAlignment="Center" VerticalAlignment="Center" />
+            </Grid>
+            <Button.Flyout>
+              <Flyout Placement="Left">
+                <ItemsControl ItemsSource="{Binding SelectedGroup.Palette}" Width="152">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <WrapPanel />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="entities:PaletteColor">
+                      <Button Theme="{StaticResource ColorSwatchButton}"
+                              Width="34" Height="34" Margin="2"
+                              ToolTip.Tip="{Binding DisplayName}"
+                              Click="OnPaletteColorClick"
+                              Command="{Binding $parent[ItemsControl].((vm:SpritesEditorViewModel)DataContext).SelectedGroup.PickMemberColorCommand}"
+                              CommandParameter="{Binding}">
+                        <Grid>
+                          <Border Background="#DDDDDD" />
+                          <Border Background="{Binding Brush}" />
+                          <Border Background="#C0FFFFFF" Padding="2,0"
+                                  HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                            <TextBlock Text="{Binding Hex}" FontFamily="Consolas"
+                                       FontSize="10" Foreground="Black" />
+                          </Border>
+                        </Grid>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
         </StackPanel>
       </Grid>
     </Border>

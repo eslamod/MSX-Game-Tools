@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -9,18 +10,28 @@ namespace MSX_SpritesEditor.ViewModels;
 public partial class SpriteGroupViewModel : ObservableObject
 {
     private readonly SpriteBank _bank;
+    private readonly PaletteLibrary _palettes;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(RemoveMemberCommand))]
     [NotifyCanExecuteChangedFor(nameof(MoveMemberUpCommand))]
     [NotifyCanExecuteChangedFor(nameof(MoveMemberDownCommand))]
+    [NotifyCanExecuteChangedFor(nameof(RestoreColorsCommand))]
+    [NotifyPropertyChangedFor(nameof(MemberColor))]
     private SpriteGroupMember? _selectedMember;
 
-    public SpriteGroupViewModel(SpriteGroup group, SpriteBank bank)
+    public SpriteGroupViewModel(SpriteGroup group, SpriteBank bank, PaletteLibrary palettes)
     {
         Group = group;
         _bank = bank;
+        _palettes = palettes;
         Preview = SpriteGroupRenderer.CreatePreview();
+
+        for (int row = 0; row < Sprite.Rows; row++)
+        {
+            MemberColors.Add(new SpriteMemberColorViewModel(
+                row, new SpriteAttributeRow(), palettes, OnMemberColorPicked));
+        }
 
         // Por la propiedad y no por el campo, para que quede enganchado el seguimiento
         // del patrón que hay que llevar al lienzo.
@@ -50,6 +61,71 @@ public partial class SpriteGroupViewModel : ObservableObject
     /// <summary>Último patrón del banco al que puede apuntar un miembro.</summary>
     public int MaxPatternIndex => _bank.SpritesList.Count - 1;
 
+    /// <summary>Una casilla por línea del miembro seleccionado. Sólo en MSX2.</summary>
+    public ObservableCollection<SpriteMemberColorViewModel> MemberColors { get; } = [];
+
+    /// <summary>En MSX1 el color es de todo el sprite, no de cada línea.</summary>
+    public bool IsMsx1 => _bank.Type == SpriteBank.SpriteType.MSX;
+
+    public bool IsMsx2 => !IsMsx1;
+
+    /// <summary>El color del miembro en MSX1, donde las 16 líneas comparten el mismo.</summary>
+    public PaletteColor? MemberColor =>
+        SelectedMember is null ? null : _palettes.ActivePalette[SelectedMember.Rows[0].Color];
+
+    public IReadOnlyList<PaletteColor> Palette => _palettes.ActivePalette.Colors;
+
+    /// <summary>Vuelve a sembrar los colores del miembro desde su patrón.</summary>
+    [RelayCommand(CanExecute = nameof(CanRestoreColors))]
+    private void RestoreColors()
+    {
+        if (SelectedMember is null || (uint)SelectedMember.PatternIndex >= (uint)_bank.SpritesList.Count)
+            return;
+
+        SelectedMember.CopyColorsFrom(_bank.SpritesList[SelectedMember.PatternIndex]);
+        RefreshMemberColors();
+    }
+
+    private bool CanRestoreColors() => SelectedMember is not null;
+
+    /// <summary>MSX1: el color elegido va a las 16 líneas del miembro.</summary>
+    [RelayCommand]
+    private void PickMemberColor(PaletteColor? color)
+    {
+        if (color is null || SelectedMember is null)
+            return;
+
+        foreach (SpriteAttributeRow row in SelectedMember.Rows)
+            row.Color = color.Index;
+
+        RefreshMemberColors();
+    }
+
+    /// <summary>MSX2: el color elegido va sólo a esa línea.</summary>
+    private void OnMemberColorPicked(int rowIndex, PaletteColor color)
+    {
+        if (SelectedMember is null)
+            return;
+
+        SelectedMember.Rows[rowIndex].Color = color.Index;
+        RefreshMemberColors();
+    }
+
+    /// <summary>Reengancha las casillas al miembro y las repinta.</summary>
+    public void RefreshMemberColors()
+    {
+        for (int row = 0; row < MemberColors.Count; row++)
+        {
+            if (SelectedMember is not null)
+                MemberColors[row].Attach(SelectedMember.Rows[row]);
+            else
+                MemberColors[row].Refresh();
+        }
+
+        OnPropertyChanged(nameof(MemberColor));
+        OnPropertyChanged(nameof(Palette));
+    }
+
     partial void OnSelectedMemberChanged(SpriteGroupMember? oldValue, SpriteGroupMember? newValue)
     {
         if (oldValue is not null)
@@ -59,6 +135,8 @@ public partial class SpriteGroupViewModel : ObservableObject
             return;
 
         newValue.PropertyChanged += OnSelectedMemberPropertyChanged;
+
+        RefreshMemberColors();
         EditTargetChanged?.Invoke(newValue);
     }
 

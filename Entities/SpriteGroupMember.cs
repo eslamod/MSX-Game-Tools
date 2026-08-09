@@ -25,8 +25,15 @@ public partial class SpriteGroupMember : ObservableObject
         _patternIndex = patternIndex;
 
         Rows = new SpriteAttributeRow[Sprite.Rows];
+
         for (int row = 0; row < Sprite.Rows; row++)
+        {
             Rows[row] = new SpriteAttributeRow { Color = pattern.ArraySpriteRows[row].Color };
+
+            // Cambiar el color o el CC de una línea cambia cómo se ve el grupo, y el
+            // grupo sólo escucha a sus miembros: hay que reemitirlo desde aquí.
+            Rows[row].PropertyChanged += (_, _) => OnPropertyChanged(nameof(Rows));
+        }
     }
 
     /// <summary>Posición del patrón en el banco.</summary>

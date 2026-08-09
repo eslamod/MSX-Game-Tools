@@ -226,7 +226,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
     /// <summary>Engancha un grupo del banco al panel y lo deja dibujado.</summary>
     private SpriteGroupViewModel TrackGroup(SpriteGroup group)
     {
-        var viewModel = new SpriteGroupViewModel(group, _spriteBank);
+        var viewModel = new SpriteGroupViewModel(group, _spriteBank, _palettes);
 
         group.Changed += OnGroupChanged;
         viewModel.EditTargetChanged += OnGroupEditTargetChanged;
@@ -398,6 +398,9 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
 
         foreach (SpriteRowColorViewModel cell in RowColors)
             cell.Refresh();
+
+        foreach (SpriteGroupViewModel group in Groups)
+            group.RefreshMemberColors();
 
         RenderAllThumbnails();
         RenderAllGroups();
