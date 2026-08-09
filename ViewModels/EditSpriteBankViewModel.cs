@@ -38,19 +38,7 @@ public partial class EditSpriteBankViewModel : PanelBaseViewModel
 
         ErrorMessage = null;
 
-        var bank = new SpriteBank(Type);
-        var panel = new SpritesEditorViewModel(bank, _mainWindowVm.Palettes, _mainWindowVm.Dialogs)
-        {
-            TagId = $"spb{_mainWindowVm.CurrentSpriteBankCounter}",
-            Header = $"{Name} (SP)",
-        };
-        _mainWindowVm.CurrentSpriteBankCounter++;
-
-        _mainWindowVm.AddPanelToDic(panel);
-        _mainWindowVm.Tabs.Add(panel);
-        _mainWindowVm.SelectedTab = panel;
-        _mainWindowVm.TreeGeneralVm.AddSpriteBank(panel.Header, panel.TagId, panel);
-
+        _mainWindowVm.OpenSpriteBank(new SpriteBank(Type, Name));
         _mainWindowVm.RightPanViewModel = null;
     }
 

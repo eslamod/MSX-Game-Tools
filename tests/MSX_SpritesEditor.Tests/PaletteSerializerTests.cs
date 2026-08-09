@@ -92,7 +92,7 @@ public class PaletteSerializerTests
     [InlineData("""{"version":1,"name":"x","colors":[{"rgb":"000"}]}""", "16 colores")]
     public void Un_fichero_mal_formado_se_rechaza_con_un_motivo(string json, string expectedFragment)
     {
-        var exception = Assert.Throws<PaletteFormatException>(() => PaletteSerializer.Deserialize(json));
+        var exception = Assert.Throws<FileFormatException>(() => PaletteSerializer.Deserialize(json));
 
         Assert.Contains(expectedFragment, exception.Message);
     }
@@ -103,7 +103,7 @@ public class PaletteSerializerTests
         // La F es hexadecimal válida pero el MSX sólo llega al 7.
         string json = BuildJson(colorAt3: """{"rgb":"F00"}""");
 
-        var exception = Assert.Throws<PaletteFormatException>(() => PaletteSerializer.Deserialize(json));
+        var exception = Assert.Throws<FileFormatException>(() => PaletteSerializer.Deserialize(json));
 
         Assert.Contains("0-7", exception.Message);
         Assert.Contains("color 3", exception.Message);
@@ -114,7 +114,7 @@ public class PaletteSerializerTests
     {
         string json = BuildJson(colorAt3: """{"rgb":"1Z1"}""");
 
-        var exception = Assert.Throws<PaletteFormatException>(() => PaletteSerializer.Deserialize(json));
+        var exception = Assert.Throws<FileFormatException>(() => PaletteSerializer.Deserialize(json));
 
         Assert.Contains("hexadecimal", exception.Message);
     }
@@ -124,7 +124,7 @@ public class PaletteSerializerTests
     {
         string json = BuildJson(colorAt3: """{"rgb":"1234"}""");
 
-        Assert.Throws<PaletteFormatException>(() => PaletteSerializer.Deserialize(json));
+        Assert.Throws<FileFormatException>(() => PaletteSerializer.Deserialize(json));
     }
 
     [Fact]
@@ -132,7 +132,7 @@ public class PaletteSerializerTests
     {
         string json = BuildJson(colorAt3: """{"rgb":"111"}""", version: PaletteSerializer.FormatVersion + 1);
 
-        var exception = Assert.Throws<PaletteFormatException>(() => PaletteSerializer.Deserialize(json));
+        var exception = Assert.Throws<FileFormatException>(() => PaletteSerializer.Deserialize(json));
 
         Assert.Contains("versión", exception.Message);
     }

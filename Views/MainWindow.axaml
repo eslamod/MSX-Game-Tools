@@ -17,6 +17,9 @@
         <MenuItem Header="Add sprite bank" Command="{Binding AddSpriteBankCommand}" />
         <MenuItem Header="Add tileset" />
         <Separator />
+        <MenuItem Header="Load sprite bank..." Command="{Binding LoadSpriteBankCommand}" />
+        <MenuItem Header="Save sprite bank as..." Command="{Binding SaveSpriteBankCommand}" />
+        <Separator />
         <MenuItem Header="Exit" />
       </MenuItem>
       <MenuItem Header="Palette">

@@ -347,13 +347,19 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
     [RelayCommand]
     private void PickBackgroundColor(PaletteColor? color)
     {
-        if (color is null || color.Index == BackgroundColorIndex)
-            return;
+        if (color is not null)
+            BackgroundColorIndex = color.Index;
+    }
 
-        BackgroundColorIndex = color.Index;
-
-        // El fondo se ve en todas las miniaturas del banco, no sólo en la actual.
+    /// <summary>
+    /// El fondo se ve en todo el banco, no sólo en el sprite actual: en las miniaturas
+    /// de patrones, en las de grupos y en el lienzo. Va aquí y no en el comando para
+    /// que valga también cuando lo fija un banco recién cargado de fichero.
+    /// </summary>
+    partial void OnBackgroundColorIndexChanged(int value)
+    {
         RenderAllThumbnails();
+        RenderAllGroups();
         RefreshRequested?.Invoke(CurrentSprite);
     }
 

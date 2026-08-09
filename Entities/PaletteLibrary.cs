@@ -66,6 +66,41 @@ public sealed partial class PaletteLibrary : ObservableObject
         return palette;
     }
 
+    /// <summary>
+    /// Deja activa una paleta venida de fichero. Si en la biblioteca ya hay una idéntica
+    /// la reutiliza, para no llenarla de copias al abrir varios bancos guardados con la
+    /// misma paleta.
+    /// </summary>
+    public ColorPalette Activate(ColorPalette palette)
+    {
+        ColorPalette? existing = Palettes.FirstOrDefault(candidate => HasSameContent(candidate, palette));
+
+        if (existing is null)
+            return Import(palette);
+
+        ActivePalette = existing;
+
+        return existing;
+    }
+
+    private static bool HasSameContent(ColorPalette one, ColorPalette other)
+    {
+        if (one.Name != other.Name)
+            return false;
+
+        for (int index = 0; index < ColorPalette.Size; index++)
+        {
+            if (one[index].Red != other[index].Red
+                || one[index].Green != other[index].Green
+                || one[index].Blue != other[index].Blue)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /// <summary>La estándar no se toca, y la biblioteca nunca se queda vacía.</summary>
     public bool CanRemove(ColorPalette? palette) =>
         palette is { IsReadOnly: false } && Palettes.Contains(palette) && Palettes.Count > 1;

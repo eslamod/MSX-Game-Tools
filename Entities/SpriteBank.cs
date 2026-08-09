@@ -25,11 +25,18 @@ public class SpriteBank
 
     // En la versión WPF el constructor con SpriteType no inicializaba la lista,
     // así que cualquier uso distinto del constructor por defecto reventaba.
-    public SpriteBank(SpriteType spriteType = SpriteType.MSX)
+    public SpriteBank(SpriteType spriteType = SpriteType.MSX, string name = "")
     {
         _spriteType = spriteType;
+        Name = name;
         NewSprite();
     }
+
+    /// <summary>
+    /// Nombre del banco. Hasta ahora sólo vivía en la cabecera de la pestaña, pero el
+    /// fichero lo necesita.
+    /// </summary>
+    public string Name { get; set; }
 
     public IReadOnlyList<Sprite> SpritesList => _sprites;
 

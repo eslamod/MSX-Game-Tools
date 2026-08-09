@@ -14,6 +14,7 @@ public partial class MainWindowViewModel : ObservableObject
     private PanelBaseViewModel? _rightPanViewModel;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveSpriteBankCommand))]
     private PanelBaseViewModel? _selectedTab;
 
     /// <param name="dialogs">
@@ -58,6 +59,81 @@ public partial class MainWindowViewModel : ObservableObject
 
     [RelayCommand]
     private void AddSpriteBank() => RightPanViewModel = new EditSpriteBankViewModel(this);
+
+    /// <summary>Abre un banco en una pestaña nueva y lo cuelga del árbol.</summary>
+    public SpritesEditorViewModel OpenSpriteBank(SpriteBank bank, int backgroundColorIndex = 1)
+    {
+        var panel = new SpritesEditorViewModel(bank, Palettes, Dialogs)
+        {
+            TagId = $"spb{CurrentSpriteBankCounter}",
+            Header = $"{bank.Name} (SP)",
+            BackgroundColorIndex = backgroundColorIndex,
+        };
+
+        CurrentSpriteBankCounter++;
+
+        AddPanelToDic(panel);
+        Tabs.Add(panel);
+        SelectedTab = panel;
+        TreeGeneralVm.AddSpriteBank(panel.Header, panel.TagId, panel);
+
+        return panel;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanSaveSpriteBank))]
+    private async Task SaveSpriteBankAsync()
+    {
+        if (SelectedTab is not SpritesEditorViewModel editor)
+            return;
+
+        string? path = await Dialogs.PickFileToSaveAsync(
+            "Guardar banco de sprites",
+            SuggestedFileName(editor.SpritesBank.Name));
+
+        if (path is null)
+            return;
+
+        try
+        {
+            // La paleta va dentro: los sprites guardan indices, y sin ella el banco se
+            // abriria con los colores que hubiera puestos en ese momento.
+            string json = SpriteBankSerializer.Serialize(
+                editor.SpritesBank, editor.ColorPalette, editor.BackgroundColorIndex);
+
+            await File.WriteAllTextAsync(path, json);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo guardar el banco", exception.Message);
+        }
+    }
+
+    private bool CanSaveSpriteBank() => SelectedTab is SpritesEditorViewModel;
+
+    [RelayCommand]
+    private async Task LoadSpriteBankAsync()
+    {
+        string? path = await Dialogs.PickFileToOpenAsync("Cargar banco de sprites");
+        if (path is null)
+            return;
+
+        try
+        {
+            string json = await File.ReadAllTextAsync(path);
+            LoadedSpriteBank loaded = SpriteBankSerializer.Deserialize(json);
+
+            Palettes.Activate(loaded.Palette);
+            OpenSpriteBank(loaded.Bank, loaded.BackgroundColorIndex);
+        }
+        catch (FileFormatException exception)
+        {
+            await Dialogs.ShowMessageAsync("El banco no es válido", exception.Message);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo abrir el fichero", exception.Message);
+        }
+    }
 
     /// <summary>Crea una copia editable de la paleta activa y abre su editor.</summary>
     [RelayCommand]
@@ -127,7 +203,7 @@ public partial class MainWindowViewModel : ObservableObject
             string json = await File.ReadAllTextAsync(path);
             Palettes.Import(PaletteSerializer.Deserialize(json));
         }
-        catch (PaletteFormatException exception)
+        catch (FileFormatException exception)
         {
             await Dialogs.ShowMessageAsync("La paleta no es válida", exception.Message);
         }

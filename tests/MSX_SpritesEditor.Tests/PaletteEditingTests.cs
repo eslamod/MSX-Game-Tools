@@ -334,6 +334,8 @@ public class PaletteEditingTests
     [InlineData("Delete palette")]
     [InlineData("Load palette...")]
     [InlineData("Save palette as...")]
+    [InlineData("Load sprite bank...")]
+    [InlineData("Save sprite bank as...")]
     public void El_menu_de_paletas_tiene_sus_comandos_enlazados(string header)
     {
         using MainWindowHost app = MainWindowHost.Show();

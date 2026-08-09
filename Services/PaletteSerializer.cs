@@ -17,7 +17,7 @@ public static class PaletteSerializer
     /// <summary>Versión del formato. Un fichero más nuevo se rechaza en vez de leerse a medias.</summary>
     public const int FormatVersion = 1;
 
-    private static readonly JsonSerializerOptions Options = new()
+    internal static readonly JsonSerializerOptions Options = new()
     {
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -25,19 +25,10 @@ public static class PaletteSerializer
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
-    public static string Serialize(ColorPalette palette)
-    {
-        var file = new PaletteFile(
-            FormatVersion,
-            palette.Name,
-            [.. palette.Colors.Select(color => new PaletteColorFile(
-                color.HexRgb,
-                string.IsNullOrWhiteSpace(color.Name) ? null : color.Name))]);
+    public static string Serialize(ColorPalette palette) =>
+        JsonSerializer.Serialize(ToFile(palette), Options);
 
-        return JsonSerializer.Serialize(file, Options);
-    }
-
-    /// <exception cref="PaletteFormatException">El contenido no es una paleta válida.</exception>
+    /// <exception cref="FileFormatException">El contenido no es una paleta válida.</exception>
     public static ColorPalette Deserialize(string json)
     {
         PaletteFile? file;
@@ -48,21 +39,34 @@ public static class PaletteSerializer
         }
         catch (JsonException exception)
         {
-            throw new PaletteFormatException("El fichero no contiene JSON válido.", exception);
+            throw new FileFormatException("El fichero no contiene JSON válido.", exception);
         }
 
         if (file is null)
-            throw new PaletteFormatException("El fichero está vacío.");
+            throw new FileFormatException("El fichero está vacío.");
 
+        return FromFile(file);
+    }
+
+    /// <summary>La paleta como objeto del fichero, para poder embeberla en otros.</summary>
+    internal static PaletteFile ToFile(ColorPalette palette) => new(
+        FormatVersion,
+        palette.Name,
+        [.. palette.Colors.Select(color => new PaletteColorFile(
+            color.HexRgb,
+            string.IsNullOrWhiteSpace(color.Name) ? null : color.Name))]);
+
+    internal static ColorPalette FromFile(PaletteFile file)
+    {
         if (file.Version > FormatVersion)
         {
-            throw new PaletteFormatException(
-                $"El fichero usa la versión {file.Version} del formato y esta versión del editor sólo entiende hasta la {FormatVersion}.");
+            throw new FileFormatException(
+                $"La paleta usa la versión {file.Version} del formato y esta versión del editor sólo entiende hasta la {FormatVersion}.");
         }
 
         int count = file.Colors?.Count ?? 0;
         if (count != ColorPalette.Size)
-            throw new PaletteFormatException($"Una paleta son {ColorPalette.Size} colores, y el fichero trae {count}.");
+            throw new FileFormatException($"Una paleta son {ColorPalette.Size} colores, y el fichero trae {count}.");
 
         var colors = new List<PaletteColor>(ColorPalette.Size);
 
@@ -91,7 +95,7 @@ public static class PaletteSerializer
     {
         if (rgb is null || rgb.Length != 3)
         {
-            throw new PaletteFormatException(
+            throw new FileFormatException(
                 $"El color {index:X1} debe traer tres dígitos hexadecimales, uno por componente; trae «{rgb}».");
         }
 
@@ -100,24 +104,28 @@ public static class PaletteSerializer
 
     private static int ParseComponent(char digit, int index)
     {
-        int value = digit switch
-        {
-            >= '0' and <= '9' => digit - '0',
-            >= 'a' and <= 'f' => digit - 'a' + 10,
-            >= 'A' and <= 'F' => digit - 'A' + 10,
-            _ => throw new PaletteFormatException($"El color {index:X1} tiene un dígito que no es hexadecimal: «{digit}»."),
-        };
+        int value = HexDigit(digit)
+                    ?? throw new FileFormatException($"El color {index:X1} tiene un dígito que no es hexadecimal: «{digit}».");
 
         if (value > PaletteColor.MaxComponent)
         {
-            throw new PaletteFormatException(
+            throw new FileFormatException(
                 $"El color {index:X1} tiene una componente fuera del rango del MSX (0-7): «{digit}».");
         }
 
         return value;
     }
 
-    private sealed record PaletteFile(int Version, string? Name, IReadOnlyList<PaletteColorFile>? Colors);
+    /// <summary>Valor de un dígito hexadecimal, o <c>null</c> si no lo es.</summary>
+    internal static int? HexDigit(char digit) => digit switch
+    {
+        >= '0' and <= '9' => digit - '0',
+        >= 'a' and <= 'f' => digit - 'a' + 10,
+        >= 'A' and <= 'F' => digit - 'A' + 10,
+        _ => null,
+    };
 
-    private sealed record PaletteColorFile(string? Rgb, string? Name);
+    internal sealed record PaletteFile(int Version, string? Name, IReadOnlyList<PaletteColorFile>? Colors);
+
+    internal sealed record PaletteColorFile(string? Rgb, string? Name);
 }
