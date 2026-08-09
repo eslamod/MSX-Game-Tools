@@ -67,9 +67,11 @@
   </UserControl.Resources>
 
   <!-- Columna 1: la tira de colores por linea, alineada con las filas del lienzo. -->
+  <!-- La fila 0 es de alto fijo a proposito: si fuera Auto, los botones que solo
+       aparecen en modo Grupos la harian crecer y desplazarian todo lo de abajo. -->
   <Grid x:Name="EditorGrid" Background="Gainsboro"
         ColumnDefinitions="256,Auto,*"
-        RowDefinitions="Auto,256,*">
+        RowDefinitions="32,256,*">
 
     <!-- Zoom del lienzo de edición y modo de pintado -->
     <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="2">
@@ -101,7 +103,7 @@
             Grid.Row="0" Grid.Column="1"
             Theme="{StaticResource ColorSwatchButton}"
             Width="52" Height="22" Margin="4,2"
-            VerticalAlignment="Center"
+            HorizontalAlignment="Left" VerticalAlignment="Center"
             ToolTip.Tip="{Binding BackgroundColor.DisplayName, StringFormat='Fondo: {0}'}">
       <Grid ColumnDefinitions="*,Auto">
         <Border Grid.Column="0" Background="{Binding BackgroundColor.Brush}" />
@@ -160,11 +162,14 @@
 
         <Border Width="1" Background="DarkGray" Margin="6,4" IsVisible="{Binding ShowsGroups}" />
 
-        <Button Content="+" Width="28" Margin="2" HorizontalContentAlignment="Center"
+        <!-- Alto explicito para que igualen a los toggles y la fila no cambie. -->
+        <Button Content="+" Width="28" Height="26" Padding="0" Margin="2"
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                 IsVisible="{Binding ShowsGroups}"
                 Command="{Binding AddGroupCommand}"
                 ToolTip.Tip="Crear un grupo con el sprite actual" />
-        <Button Content="-" Width="28" Margin="2" HorizontalContentAlignment="Center"
+        <Button Content="-" Width="28" Height="26" Padding="0" Margin="2"
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                 IsVisible="{Binding ShowsGroups}"
                 Command="{Binding DeleteGroupCommand}"
                 ToolTip.Tip="Eliminar el grupo seleccionado" />
@@ -305,12 +310,17 @@
       </Button>
     </StackPanel>
 
+    <!-- El panel del grupo y la tira comparten la columna 2. Antes el panel estaba en
+         la columna de colores, y al aparecer la ensanchaba de 60 a 252 px: eso movia
+         200 px a la derecha todo lo que hubiera despues, incluida la barra de arriba. -->
+    <DockPanel Grid.Row="1" Grid.RowSpan="2" Grid.Column="2">
+
     <!-- Panel del grupo seleccionado: sus miembros por orden de prioridad y los
          desplazamientos del que este seleccionado. -->
     <Border x:Name="GroupPanel"
-            Grid.Row="1" Grid.RowSpan="2" Grid.Column="1"
+            DockPanel.Dock="Left"
             IsVisible="{Binding ShowsGroups}"
-            Width="252" Margin="4,0" Padding="6"
+            Width="252" Margin="0,0,4,0" Padding="6"
             Background="#F0F0F0" BorderBrush="DarkGray" BorderThickness="1">
       <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*"
             IsEnabled="{Binding SelectedGroup, Converter={x:Static ObjectConverters.IsNotNull}}">
@@ -512,7 +522,7 @@
     <!-- Miniaturas del banco. ListBox y no ItemsControl: la seleccion, el hover y
          la navegacion por teclado vienen de serie, y SelectedItem enlazado en dos
          sentidos mantiene sincronizados el lienzo de edicion y esta tira. -->
-    <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="2" Background="DarkGray">
+    <Border Background="DarkGray">
       <Panel>
       <ListBox x:Name="ThumbnailList"
                IsVisible="{Binding ShowsPatterns}"
@@ -575,6 +585,7 @@
       </ListBox>
       </Panel>
     </Border>
+    </DockPanel>
 
     <!-- Navegación por los sprites del banco -->
     <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal"

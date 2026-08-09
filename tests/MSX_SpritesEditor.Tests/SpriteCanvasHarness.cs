@@ -99,6 +99,29 @@ internal sealed class SpriteCanvasHarness : IDisposable
     /// <summary>El panel de miembros y desplazamientos del grupo seleccionado.</summary>
     public Border GroupPanel { get; }
 
+    /// <summary>Esquina superior izquierda del conmutador de modo, dentro de la vista.</summary>
+    public Point ModeToggleOrigin()
+    {
+        Pump();
+
+        RadioButton toggle = _view.FindControl<RadioButton>("PatternsModeButton")
+                             ?? throw new InvalidOperationException("Falta el conmutador de modo.");
+
+        return toggle.TranslatePoint(new Point(0, 0), _view)
+               ?? throw new InvalidOperationException("El conmutador no está en el árbol visual.");
+    }
+
+    /// <summary>Alto de la barra superior de la tira.</summary>
+    public double ToolbarHeight
+    {
+        get
+        {
+            Pump();
+
+            return _view.FindControl<Grid>("EditorGrid")!.RowDefinitions[0].ActualHeight;
+        }
+    }
+
     /// <summary>La lista de miembros del grupo seleccionado.</summary>
     public ListBox MemberList =>
         _view.FindControl<ListBox>("MemberList")

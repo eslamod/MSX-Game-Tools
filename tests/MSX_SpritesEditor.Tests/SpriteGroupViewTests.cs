@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.VisualTree;
 using MSX_SpritesEditor.Entities;
@@ -211,6 +212,22 @@ public class SpriteGroupViewTests
 
         Assert.True(editor.Bank.SpritesList[0].ArraySpriteRows[0].ArrayColumns[0]);
         Assert.NotEqual(before, after);
+    }
+
+    [AvaloniaFact]
+    public void La_barra_de_la_tira_no_se_mueve_al_cambiar_de_modo()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+
+        Point inPatterns = editor.ModeToggleOrigin();
+        double heightInPatterns = editor.ToolbarHeight;
+
+        editor.SetThumbnailMode(ThumbnailMode.Groups);
+
+        // Ni se desplaza a la derecha al aparecer el panel del grupo, ni crece de alto
+        // al aparecer los botones de anadir y eliminar.
+        Assert.Equal(inPatterns, editor.ModeToggleOrigin());
+        Assert.Equal(heightInPatterns, editor.ToolbarHeight);
     }
 
     [AvaloniaFact]
