@@ -2,7 +2,25 @@ using Avalonia.Media;
 
 namespace MSX_SpritesEditor.Entities;
 
-/// <summary>Compone en una imagen los sprites de un grupo con sus desplazamientos.</summary>
+/// <summary>
+/// Compone en una imagen los sprites de un grupo con sus desplazamientos, siguiendo
+/// las reglas de prioridad y de combinación de color del modo 2 del V9938.
+/// </summary>
+/// <remarks>
+/// Reglas del bit CC, según el apartado 5.2.5 del manual del V9938:
+/// <list type="bullet">
+/// <item>Con CC a 0 manda la prioridad normal: el sprite de menor número tapa a los
+/// demás.</item>
+/// <item>Con CC a 1 se cancela la prioridad de esa línea y su color se combina con OR
+/// con el de los sprites con los que solape.</item>
+/// <item>Una línea con CC a 1 <b>no se dibuja en absoluto</b> si en esa misma línea de
+/// pantalla no hay ningún sprite de número menor cuya línea tenga CC a 0.</item>
+/// </list>
+/// Esa última condición es <b>por línea de pantalla, no por pixel</b>: basta con que el
+/// sprite habilitante cubra la línea para que el de CC se vea, incluso en las columnas
+/// donde el otro no pinta nada. Es lo que produce las regiones sueltas del ejemplo de
+/// siete colores del manual.
+/// </remarks>
 public static class SpriteGroupRenderer
 {
     /// <summary>
@@ -30,14 +48,17 @@ public static class SpriteGroupRenderer
         int[] indices = new int[PreviewSize * PreviewSize];
         Array.Fill(indices, Empty);
 
-        // Los miembros se recorren de mayor a menor prioridad, como los planos.
-        foreach (SpriteGroupMember member in group.Members)
-        {
-            if ((uint)member.PatternIndex >= (uint)bank.SpritesList.Count)
-                continue;
+        // Los patrones se resuelven una vez: la composición recorre líneas de pantalla,
+        // no miembros, porque la regla de CC depende de qué hay en cada línea.
+        List<(SpriteGroupMember Member, Sprite Pattern)> members =
+        [
+            .. group.Members
+                .Where(member => (uint)member.PatternIndex < (uint)bank.SpritesList.Count)
+                .Select(member => (member, bank.SpritesList[member.PatternIndex])),
+        ];
 
-            Compose(indices, bank.SpritesList[member.PatternIndex], member);
-        }
+        for (int canvasY = 0; canvasY < PreviewSize; canvasY++)
+            ComposeLine(indices, members, canvasY);
 
         for (int i = 0; i < indices.Length; i++)
         {
@@ -51,40 +72,72 @@ public static class SpriteGroupRenderer
         }
     }
 
-    private static void Compose(int[] indices, Sprite pattern, SpriteGroupMember member)
+    private static void ComposeLine(
+        int[] indices,
+        List<(SpriteGroupMember Member, Sprite Pattern)> members,
+        int canvasY)
     {
-        for (int y = 0; y < Sprite.Rows; y++)
+        // ¿Ha aparecido ya, en esta línea, un sprite de mayor prioridad con CC a 0? Es
+        // lo que habilita a los de CC. Se mira sólo hacia atrás, así que un CC en el
+        // primer miembro nunca llega a dibujarse: no hay nadie por delante.
+        bool enabledByHigherPriority = false;
+
+        foreach ((SpriteGroupMember member, Sprite pattern) in members)
         {
-            int canvasY = Origin + member.OffsetY + y;
-            if ((uint)canvasY >= PreviewSize)
+            int row = canvasY - Origin - member.OffsetY;
+            if ((uint)row >= Sprite.Rows)
                 continue;
 
-            SpriteRow row = pattern.ArraySpriteRows[y];
-            SpriteAttributeRow attributes = member.Rows[y];
+            SpriteAttributeRow attributes = member.Rows[row];
 
-            for (int x = 0; x < SpriteRow.Columns; x++)
+            if (!attributes.CombineColor)
             {
-                if (!row.ArrayColumns[x])
-                    continue;
+                DrawLine(indices, pattern, member, row, canvasY, attributes.Color, combine: false);
 
-                int canvasX = Origin + member.OffsetX + x;
-                if ((uint)canvasX >= PreviewSize)
-                    continue;
+                // Basta con que su línea caiga aquí, aunque no pinte ningún pixel.
+                enabledByHigherPriority = true;
 
-                int offset = (canvasY * PreviewSize) + canvasX;
-
-                if (indices[offset] == Empty)
-                {
-                    indices[offset] = attributes.Color;
-                }
-                else if (attributes.CombineColor)
-                {
-                    // CC: el V9938 hace OR de los códigos de color de 4 bits, no del RGB.
-                    indices[offset] |= attributes.Color;
-                }
-
-                // Sin CC gana el de mayor prioridad, que ya está escrito.
+                continue;
             }
+
+            if (enabledByHigherPriority)
+                DrawLine(indices, pattern, member, row, canvasY, attributes.Color, combine: true);
+        }
+    }
+
+    private static void DrawLine(
+        int[] indices,
+        Sprite pattern,
+        SpriteGroupMember member,
+        int row,
+        int canvasY,
+        int color,
+        bool combine)
+    {
+        SpriteRow patternRow = pattern.ArraySpriteRows[row];
+
+        for (int column = 0; column < SpriteRow.Columns; column++)
+        {
+            if (!patternRow.ArrayColumns[column])
+                continue;
+
+            int canvasX = Origin + member.OffsetX + column;
+            if ((uint)canvasX >= PreviewSize)
+                continue;
+
+            int offset = (canvasY * PreviewSize) + canvasX;
+
+            if (indices[offset] == Empty)
+            {
+                indices[offset] = color;
+            }
+            else if (combine)
+            {
+                // CC: el V9938 hace OR de los códigos de color de 4 bits, no del RGB.
+                indices[offset] |= color;
+            }
+
+            // Sin CC gana el de mayor prioridad, que ya está escrito.
         }
     }
 }

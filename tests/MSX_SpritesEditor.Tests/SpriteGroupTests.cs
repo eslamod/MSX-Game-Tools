@@ -200,6 +200,115 @@ public class SpriteGroupTests
         Assert.Equal(PixelReader.Bgra(palette.GetColor(5)), PixelReader.At(preview, Origin, Origin));
     }
 
+    // Reglas del bit CC, apartado 5.2.5 del manual del V9938.
+
+    [AvaloniaFact]
+    public void Una_linea_con_CC_no_se_dibuja_si_no_hay_nadie_con_CC_a_0_por_delante()
+    {
+        var bank = new SpriteBank();
+        ColorPalette palette = ColorPalette.CreateMsxStandard();
+        Color background = palette.GetColor(1);
+
+        bank.SpritesList[0].ArraySpriteRows[0].ArrayColumns[0] = true;
+
+        SpriteGroup group = bank.NewGroup(0)!;
+        group.Members[0].Rows[0].Color = 8;
+        group.Members[0].Rows[0].CombineColor = true; // el primero: nadie por delante
+
+        ImageMini preview = SpriteGroupRenderer.CreatePreview();
+        SpriteGroupRenderer.Render(group, bank, palette, background, preview);
+
+        // La maquina no lo dibujaria, asi que el editor tampoco.
+        Assert.Equal(PixelReader.Bgra(background), PixelReader.At(preview, Origin, Origin));
+    }
+
+    [AvaloniaFact]
+    public void Un_sprite_de_menor_prioridad_con_CC_a_0_no_habilita_al_de_arriba()
+    {
+        var bank = new SpriteBank();
+        ColorPalette palette = ColorPalette.CreateMsxStandard();
+        Color background = palette.GetColor(1);
+
+        bank.SpritesList[0].ArraySpriteRows[0].ArrayColumns[0] = true;
+
+        SpriteGroup group = bank.NewGroup(0)!;
+        group.Members[0].Rows[0].Color = 8;
+        group.Members[0].Rows[0].CombineColor = true;
+
+        var behind = new SpriteGroupMember(0, bank.SpritesList[0]);
+        behind.Rows[0].Color = 4; // CC a 0, pero va detras
+        group.Add(behind);
+
+        ImageMini preview = SpriteGroupRenderer.CreatePreview();
+        SpriteGroupRenderer.Render(group, bank, palette, background, preview);
+
+        // Solo habilitan los de numero menor: el de CC sigue sin dibujarse y se ve
+        // unicamente el de detras.
+        Assert.Equal(PixelReader.Bgra(palette.GetColor(4)), PixelReader.At(preview, Origin, Origin));
+    }
+
+    [AvaloniaFact]
+    public void La_condicion_de_CC_es_por_linea_de_pantalla_y_no_por_pixel()
+    {
+        var bank = new SpriteBank();
+        ColorPalette palette = ColorPalette.CreateMsxStandard();
+        Color background = palette.GetColor(1);
+
+        // Cuatro pixeles en la fila 0 del patron.
+        for (int column = 0; column < 4; column++)
+            bank.SpritesList[0].ArraySpriteRows[0].ArrayColumns[column] = true;
+
+        SpriteGroup group = bank.NewGroup(0)!;
+        group.Members[0].Rows[0].Color = 8; // CC a 0, columnas 0-3
+
+        var combined = new SpriteGroupMember(0, bank.SpritesList[0]) { OffsetX = 6 };
+        combined.Rows[0].Color = 4;
+        combined.Rows[0].CombineColor = true; // columnas 6-9, sin solapar con el de abajo
+        group.Add(combined);
+
+        ImageMini preview = SpriteGroupRenderer.CreatePreview();
+        SpriteGroupRenderer.Render(group, bank, palette, background, preview);
+
+        // Comparten linea de pantalla aunque no se toquen, asi que se dibuja igual.
+        Assert.Equal(PixelReader.Bgra(palette.GetColor(4)), PixelReader.At(preview, Origin + 6, Origin));
+    }
+
+    [AvaloniaFact]
+    public void El_ejemplo_de_siete_colores_del_manual()
+    {
+        var bank = new SpriteBank();
+        ColorPalette palette = ColorPalette.CreateMsxStandard();
+
+        for (int column = 0; column < 4; column++)
+            bank.SpritesList[0].ArraySpriteRows[0].ArrayColumns[column] = true;
+
+        SpriteGroup group = bank.NewGroup(0)!;
+        group.Members[0].Rows[0].Color = 8; // 1000, CC a 0, columnas 0-3
+
+        var second = new SpriteGroupMember(0, bank.SpritesList[0]) { OffsetX = 2 };
+        second.Rows[0].Color = 4; // 0100, columnas 2-5
+        second.Rows[0].CombineColor = true;
+        group.Add(second);
+
+        var third = new SpriteGroupMember(0, bank.SpritesList[0]) { OffsetX = 3 };
+        third.Rows[0].Color = 2; // 0010, columnas 3-6
+        third.Rows[0].CombineColor = true;
+        group.Add(third);
+
+        ImageMini preview = SpriteGroupRenderer.CreatePreview();
+        SpriteGroupRenderer.Render(group, bank, palette, palette.GetColor(1), preview);
+
+        // Los codigos se acumulan con OR segun se solapan.
+        int[] expected = [8, 8, 12, 14, 6, 6, 2];
+
+        for (int column = 0; column < expected.Length; column++)
+        {
+            Assert.Equal(
+                PixelReader.Bgra(palette.GetColor(expected[column])),
+                PixelReader.At(preview, Origin + column, Origin));
+        }
+    }
+
     [AvaloniaFact]
     public void Donde_no_pinta_nadie_se_ve_el_fondo()
     {
