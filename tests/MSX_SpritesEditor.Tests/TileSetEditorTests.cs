@@ -201,6 +201,68 @@ public class TileSetEditorTests
         Assert.True(canvas.ShowGrid);
     }
 
+    /// <summary>
+    /// La rejilla se dimensiona a su contenido, no al hueco.
+    /// </summary>
+    /// <remarks>
+    /// La ventana va ancha a proposito: el fallo aparece cuando <b>sobra</b> sitio. Si la
+    /// lista se estira, el UniformGrid reparte el hueco entre sus 32 columnas y las 8
+    /// filas, y los tiles dejan de ser cuadrados. Con la ventana estrecha el contenido
+    /// toma su tamaño natural de todos modos y no se nota nada.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Los_tiles_no_se_estiran_cuando_sobra_sitio()
+    {
+        var view = new TileSetEditorView { DataContext = NewEditor() };
+        var window = new Window { Content = view, Width = 2000, Height = 1000 };
+
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        ListBox grid = view.FindControl<ListBox>("TileGrid")!;
+
+        // 32 columnas y 8 filas del lado de la miniatura mas su linea de rejilla.
+        double cell = view.ThumbnailSize + view.GridThickness.Left;
+
+        Assert.Equal(32 * cell, grid.Bounds.Width);
+        Assert.Equal(8 * cell, grid.Bounds.Height);
+    }
+
+    /// <summary>
+    /// Los botones de zoom son barra de herramientas: no se mueven con el contenido.
+    /// </summary>
+    /// <remarks>
+    /// Se probaron los cuatro niveles porque el fallo no estaba en el ScrollViewer sino
+    /// en la aritmetica de columnas, y solo se notaba con el contenido bien ancho.
+    /// </remarks>
+    [AvaloniaTheory]
+    [InlineData("1")]
+    [InlineData("2")]
+    [InlineData("3")]
+    [InlineData("4")]
+    public void Los_botones_de_zoom_siguen_visibles_con_las_miniaturas_ampliadas(string zoom)
+    {
+        var view = new TileSetEditorView { DataContext = NewEditor() };
+        var window = new Window { Content = view, Width = 1000, Height = 700 };
+
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        RadioButton[] buttons = [.. view.GetVisualDescendants()
+            .OfType<RadioButton>()
+            .Where(r => r.GroupName == "TilePreviewZoom")];
+
+        Assert.Equal(4, buttons.Length);
+
+        buttons.Single(r => (string?)r.Tag == zoom).IsChecked = true;
+        Dispatcher.UIThread.RunJobs();
+
+        RadioButton last = buttons[^1];
+        Point right = last.TranslatePoint(new Point(last.Bounds.Width, 0), window)!.Value;
+
+        Assert.True(right.X <= window.Width, $"A X{zoom} la barra acaba en {right.X} y la ventana mide {window.Width}.");
+    }
+
     private static TileSetEditorViewModel NewEditor() =>
         new(new TileSet("Bosque"), new PaletteLibrary());
 

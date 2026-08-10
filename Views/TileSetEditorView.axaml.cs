@@ -178,7 +178,6 @@ public partial class TileSetEditorView : UserControl
         double size = ZoomSizes[Math.Clamp(index, 0, ZoomSizes.Length - 1)];
 
         EditorGrid.ColumnDefinitions[0].Width = new GridLength(size);
-        EditorGrid.RowDefinitions[1].Height = new GridLength(size);
         CanvTile.CanvasSize = size;
         CellSize = size / Tile.Rows;
     }

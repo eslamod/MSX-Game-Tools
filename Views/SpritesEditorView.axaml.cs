@@ -179,7 +179,6 @@ public partial class SpritesEditorView : UserControl
         double size = ZoomSizes[Math.Clamp(index, 0, ZoomSizes.Length - 1)];
 
         EditorGrid.ColumnDefinitions[0].Width = new GridLength(size);
-        EditorGrid.RowDefinitions[1].Height = new GridLength(size);
         CanvSprite.CanvasSize = size;
         CellSize = size / GridSize;
     }
