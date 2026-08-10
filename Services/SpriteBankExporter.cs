@@ -33,10 +33,17 @@ public static class SpriteBankExporter
     public const int Msx1MemberBytes = 4;
 
     /// <summary>
-    /// Prefijo hexadecimal de la salida en ensamblador. asMSX usa <c>#</c>; sjasm y
-    /// sjasmplus usan <c>$</c>. Si tu ensamblador quiere otro, se cambia aquí.
+    /// Prefijo hexadecimal de la salida en ensamblador. <c>0x</c> porque es el que
+    /// documenta sass y el único sin ambigüedad: <c>$</c> también vale, pero ahí mismo
+    /// significa la dirección actual, y <c>#</c> es prefijo de directiva, no de número.
     /// </summary>
-    public const string HexPrefix = "#";
+    public const string HexPrefix = "0x";
+
+    /// <summary>
+    /// Directiva de datos. Con el punto delante porque funciona siempre; el <c>db</c>
+    /// pelado sólo lo acepta sass con el modo asMSX activado.
+    /// </summary>
+    public const string DataDirective = ".db";
 
     private const int BytesPerLine = 8;
 
@@ -107,7 +114,7 @@ public static class SpriteBankExporter
             SpriteGroup group = bank.Groups[index];
 
             text.AppendLine($"{label}_group_{index}:               ; {group.Name}");
-            text.AppendLine($"    db  {Hex((byte)group.Members.Count)}                    ; sprites");
+            text.AppendLine($"    {DataDirective}  {Hex((byte)group.Members.Count)}                 ; sprites");
 
             for (int member = 0; member < group.Members.Count; member++)
             {
@@ -222,7 +229,7 @@ public static class SpriteBankExporter
                 .Take(BytesPerLine)
                 .Select(Hex);
 
-            text.AppendLine($"    db  {string.Join(",", line)}");
+            text.AppendLine($"    {DataDirective}  {string.Join(",", line)}");
         }
     }
 

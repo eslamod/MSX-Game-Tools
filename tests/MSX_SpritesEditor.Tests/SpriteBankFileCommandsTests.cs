@@ -184,7 +184,9 @@ public class SpriteBankFileCommandsTests : IDisposable
         string patterns = await File.ReadAllTextAsync(Path.Combine(_folder, "bicho_patterns.asm"));
 
         Assert.Contains("bicho_patterns:", patterns);
-        Assert.Contains($"db  {Services.SpriteBankExporter.HexPrefix}00", patterns);
+        Assert.Contains(
+            $"{Services.SpriteBankExporter.DataDirective}  {Services.SpriteBankExporter.HexPrefix}00",
+            patterns);
     }
 
     [Fact]

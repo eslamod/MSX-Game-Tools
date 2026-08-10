@@ -188,10 +188,10 @@ public class SpriteBankExporterTests
         foreach (string line in assembler.Split(Environment.NewLine))
         {
             string trimmed = line.Trim();
-            if (!trimmed.StartsWith("db ", StringComparison.Ordinal))
+            if (!trimmed.StartsWith(SpriteBankExporter.DataDirective, StringComparison.Ordinal))
                 continue;
 
-            string values = trimmed[3..].Split(';')[0];
+            string values = trimmed[SpriteBankExporter.DataDirective.Length..].Split(';')[0];
 
             foreach (string value in values.Split(',', StringSplitOptions.RemoveEmptyEntries))
             {
