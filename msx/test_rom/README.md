@@ -7,6 +7,21 @@ los exportadores.
 Hay dos: `sprites_test.asm` para los grupos de sprites y `tileset_test.asm` para
 los juegos de tiles.
 
+## La paleta
+
+Las dos cargan también la paleta exportada (`msx_palette.bin`), y las dos hacen lo
+mismo con ella: **miran en ejecución si la máquina la tiene**. El byte `002DH` de la
+BIOS dice la versión —0 es MSX1, 1 es MSX2— y en un MSX1 los 16 colores son fijos,
+así que no hay nada que cargar y se salta.
+
+Se comprueba al arrancar en vez de con ensamblado condicional a propósito: así hay
+una sola ROM que funciona en las dos máquinas, en lugar de dos que generar y
+distribuir por separado. Los 32 bytes de la paleta viajan siempre y no se notan.
+
+Para exportarla: **Palette → Export palette**, en binario o en ensamblador. Son 16
+colores de dos bytes, con el rojo en el nibble alto del primero, el azul en el bajo
+y el verde en el segundo.
+
 ## Ensamblar
 
 ```bash

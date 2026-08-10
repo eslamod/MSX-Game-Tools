@@ -26,6 +26,11 @@ VDP_ADDR        .equ 0x99       ; direccion de VRAM y registros
 
 ; --- BIOS --------------------------------------------------------------------
 SNSMAT          .equ 0x0141     ; A = fila de la matriz -> A, bit a 0 = pulsada
+MSX_VERSION     .equ 0x002D     ; 0 = MSX1, 1 = MSX2, 2 = MSX2+, 3 = TurboR
+
+; --- Paleta ------------------------------------------------------------------
+VDP_PALETTE     .equ 0x9A       ; puerto por el que entran los colores
+PALETTE_BYTES   .equ 32         ; 16 colores de dos bytes
 
 ; --- Mapa de VRAM en GRAPHIC 2, el de siempre en SCREEN 2 --------------------
 PATTERN_TABLE   .equ 0x0000     ; 6144: tres tercios de 2048
@@ -54,6 +59,7 @@ NAME_BYTES      .equ 768
 ;-----------------------------------------------------------------------------
 Start:
                 call SetupVdp
+                call LoadPalette
                 call LoadTables
                 call FillNames
 
@@ -286,11 +292,50 @@ KeyRow:
                 ret
 
 ;-----------------------------------------------------------------------------
+; La paleta, solo si la maquina la tiene
+;-----------------------------------------------------------------------------
+; El byte 0x002D de la BIOS dice la version: 0 es MSX1, 1 es MSX2, 2 es MSX2+ y
+; 3 es TurboR. En un MSX1 los 16 colores son fijos y no hay nada que cargar.
+;
+; Se comprueba en ejecucion en vez de con ensamblado condicional a proposito: asi
+; hay una sola ROM que funciona en las dos maquinas, en lugar de dos que generar y
+; distribuir por separado. Los 32 bytes de la paleta viajan siempre y no se notan.
+LoadPalette:
+                ld a,(MSX_VERSION)
+                or a
+                ret z                   ; MSX1: sin paleta
+
+                di
+
+                ; R#16 = 0: el indice del color que se va a escribir. Avanza solo
+                ; con cada pareja de bytes, asi que basta con ponerlo una vez.
+                xor a
+                out (VDP_ADDR),a
+                ld a,0x90               ; 0x80 + 16
+                out (VDP_ADDR),a
+
+                ld hl,PaletteData
+                ld b,PALETTE_BYTES
+PaletteNext:
+                ld a,(hl)
+                out (VDP_PALETTE),a
+                inc hl
+                djnz PaletteNext
+
+                ei
+                ret
+
+;-----------------------------------------------------------------------------
 ; Datos exportados por el editor
 ;-----------------------------------------------------------------------------
 ; Van entre etiquetas propias para que la ROM no dependa del nombre del juego,
 ; que es de donde salen las etiquetas del exportador. Para probar la salida en
 ; ensamblador, comenta el .incbin y descomenta el .include de al lado.
+PaletteData:
+                .incbin "msx_palette.bin"
+              ; .include "msx_palette.asm"
+PaletteEnd:
+
 PatternsData:
                 .incbin "tiles_patterns.bin"
               ; .include "tiles_patterns.asm"

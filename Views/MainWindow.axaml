@@ -37,6 +37,9 @@
         <Separator />
         <MenuItem Header="Load palette..." Command="{Binding LoadPaletteCommand}" />
         <MenuItem Header="Save palette as..." Command="{Binding SavePaletteCommand}" />
+        <Separator />
+        <MenuItem Header="Export palette (binary)..." Command="{Binding ExportPaletteBinaryCommand}" />
+        <MenuItem Header="Export palette (asm)..." Command="{Binding ExportPaletteAssemblerCommand}" />
       </MenuItem>
     </Menu>
 

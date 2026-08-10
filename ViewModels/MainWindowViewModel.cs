@@ -528,6 +528,44 @@ public partial class MainWindowViewModel : ObservableObject
             + "una por tercio de pantalla.");
     }
 
+    [RelayCommand]
+    private Task ExportPaletteBinaryAsync() => ExportPaletteAsync(binary: true);
+
+    [RelayCommand]
+    private Task ExportPaletteAssemblerAsync() => ExportPaletteAsync(binary: false);
+
+    /// <summary>
+    /// Escribe la paleta activa en el formato del registro de paleta del V9938.
+    /// </summary>
+    /// <remarks>
+    /// Un solo fichero, a diferencia de los bancos y los tilesets: son 32 bytes y no hay
+    /// dos tablas que separar.
+    /// </remarks>
+    private async Task ExportPaletteAsync(bool binary)
+    {
+        ColorPalette palette = Palettes.ActivePalette;
+        string extension = binary ? ".bin" : ".asm";
+
+        string? path = await Dialogs.PickFileToSaveAsync(
+            binary ? "Exportar paleta a binario" : "Exportar paleta a ensamblador",
+            $"{SpriteBankExporter.LabelOf(palette.Name)}_palette{extension}");
+
+        if (path is null)
+            return;
+
+        try
+        {
+            if (binary)
+                await File.WriteAllBytesAsync(path, PaletteExporter.ToBinary(palette));
+            else
+                await File.WriteAllTextAsync(path, PaletteExporter.ToAssembler(palette));
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo exportar la paleta", exception.Message);
+        }
+    }
+
     /// <summary>El nombre de una paleta puede llevar caracteres que no valen en un fichero.</summary>
     private static string SuggestedFileName(string paletteName)
     {

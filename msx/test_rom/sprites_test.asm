@@ -30,6 +30,11 @@ VDP_ADDR        .equ 0x99       ; direccion de VRAM y registros
 
 ; --- BIOS --------------------------------------------------------------------
 SNSMAT          .equ 0x0141     ; A = fila de la matriz -> A, bit a 0 = pulsada
+MSX_VERSION     .equ 0x002D     ; 0 = MSX1, 1 = MSX2, 2 = MSX2+, 3 = TurboR
+
+; --- Paleta ------------------------------------------------------------------
+VDP_PALETTE     .equ 0x9A       ; puerto por el que entran los colores
+PALETTE_BYTES   .equ 32         ; 16 colores de dos bytes
 
 ; --- Mapa de VRAM en GRAPHIC 3, pagina 0 -------------------------------------
 ; El manual del V9938 propone el generador de sprites en 1C00H, pero ahi solo
@@ -79,6 +84,7 @@ Start:
                 ld (REG1_VALUE),a
 
                 call SetupVdp
+                call LoadPalette
                 call ClearScreen
                 call LoadPatterns
                 call BuildSprites
@@ -514,6 +520,40 @@ KeyRow:
                 ret
 
 ;-----------------------------------------------------------------------------
+; La paleta, solo si la maquina la tiene
+;-----------------------------------------------------------------------------
+; El byte 0x002D de la BIOS dice la version: 0 es MSX1, 1 es MSX2, 2 es MSX2+ y
+; 3 es TurboR. En un MSX1 los 16 colores son fijos y no hay nada que cargar.
+;
+; Se comprueba en ejecucion en vez de con ensamblado condicional a proposito: asi
+; hay una sola ROM que funciona en las dos maquinas, en lugar de dos que generar y
+; distribuir por separado. Los 32 bytes de la paleta viajan siempre y no se notan.
+LoadPalette:
+                ld a,(MSX_VERSION)
+                or a
+                ret z                   ; MSX1: sin paleta
+
+                di
+
+                ; R#16 = 0: el indice del color que se va a escribir. Avanza solo
+                ; con cada pareja de bytes, asi que basta con ponerlo una vez.
+                xor a
+                out (VDP_ADDR),a
+                ld a,0x90               ; 0x80 + 16
+                out (VDP_ADDR),a
+
+                ld hl,PaletteData
+                ld b,PALETTE_BYTES
+PaletteNext:
+                ld a,(hl)
+                out (VDP_PALETTE),a
+                inc hl
+                djnz PaletteNext
+
+                ei
+                ret
+
+;-----------------------------------------------------------------------------
 ; Datos exportados por el editor
 ;-----------------------------------------------------------------------------
 ; Van entre etiquetas propias porque el fichero de grupos no lleva cuantos grupos
@@ -522,6 +562,11 @@ KeyRow:
 ;
 ; Para probar la salida en ensamblador en vez de la binaria, comenta el .incbin
 ; y descomenta el .include de al lado. El resultado es el mismo byte a byte.
+PaletteData:
+              ;  .incbin "msx_palette.bin"
+                .include "msx_palette.asm"
+PaletteEnd:
+
 PatternsData:
                 .incbin "bank_patterns.bin"
               ; .include "bank_patterns.asm"
