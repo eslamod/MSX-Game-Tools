@@ -563,8 +563,8 @@ PaletteNext:
 ; Para probar la salida en ensamblador en vez de la binaria, comenta el .incbin
 ; y descomenta el .include de al lado. El resultado es el mismo byte a byte.
 PaletteData:
-              ;  .incbin "msx_palette.bin"
-                .include "msx_palette.asm"
+                .incbin "msx_palette.bin"
+              ; .include "msx_palette.asm"
 PaletteEnd:
 
 PatternsData:
