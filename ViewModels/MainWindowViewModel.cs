@@ -18,6 +18,9 @@ public partial class MainWindowViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(SaveSpriteBankCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportSpriteBankBinaryCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportSpriteBankAssemblerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SaveTileSetCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExportTileSetBinaryCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExportTileSetAssemblerCommand))]
     private PanelBaseViewModel? _selectedTab;
 
     /// <param name="dialogs">
@@ -408,6 +411,116 @@ public partial class MainWindowViewModel : ObservableObject
         await Dialogs.ShowMessageAsync(
             "Banco exportado",
             $"Se han escrito:{Environment.NewLine}{Path.GetFileName(patternsPath)}{Environment.NewLine}{Path.GetFileName(groupsPath)}");
+    }
+
+    [RelayCommand(CanExecute = nameof(CanSaveTileSet))]
+    private async Task SaveTileSetAsync()
+    {
+        if (SelectedTab is not TileSetEditorViewModel editor)
+            return;
+
+        string? path = await Dialogs.PickFileToSaveAsync(
+            "Guardar juego de tiles",
+            SuggestedFileName(editor.TileSet.Name));
+
+        if (path is null)
+            return;
+
+        try
+        {
+            // La paleta va dentro por lo mismo que en un banco: los tiles guardan
+            // indices, y sin ella se abriria con los colores que hubiera puestos.
+            await File.WriteAllTextAsync(path, TileSetSerializer.Serialize(editor.TileSet, editor.ColorPalette));
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo guardar el juego de tiles", exception.Message);
+        }
+    }
+
+    private bool CanSaveTileSet() => SelectedTab is TileSetEditorViewModel;
+
+    [RelayCommand]
+    private async Task LoadTileSetAsync()
+    {
+        string? path = await Dialogs.PickFileToOpenAsync("Cargar juego de tiles");
+        if (path is null)
+            return;
+
+        try
+        {
+            string json = await File.ReadAllTextAsync(path);
+            LoadedTileSet loaded = TileSetSerializer.Deserialize(json);
+
+            Palettes.Activate(loaded.Palette);
+            OpenTileSet(loaded.TileSet);
+        }
+        catch (FileFormatException exception)
+        {
+            await Dialogs.ShowMessageAsync("El juego de tiles no es válido", exception.Message);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo abrir el fichero", exception.Message);
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanSaveTileSet))]
+    private Task ExportTileSetBinaryAsync() => ExportTileSetAsync(binary: true);
+
+    [RelayCommand(CanExecute = nameof(CanSaveTileSet))]
+    private Task ExportTileSetAssemblerAsync() => ExportTileSetAsync(binary: false);
+
+    /// <summary>
+    /// Escribe la tabla de patrones y la de colores. Igual que con los bancos, se pide un
+    /// nombre base y de ahí salen los dos ficheros.
+    /// </summary>
+    private async Task ExportTileSetAsync(bool binary)
+    {
+        if (SelectedTab is not TileSetEditorViewModel editor)
+            return;
+
+        TileSet tileSet = editor.TileSet;
+        string extension = binary ? ".bin" : ".asm";
+
+        string? path = await Dialogs.PickFileToSaveAsync(
+            binary ? "Exportar a binario" : "Exportar a ensamblador",
+            $"{SpriteBankExporter.LabelOf(tileSet.Name)}{extension}");
+
+        if (path is null)
+            return;
+
+        string folder = Path.GetDirectoryName(path) ?? string.Empty;
+        string stem = Path.GetFileNameWithoutExtension(path);
+
+        string patternsPath = Path.Combine(folder, $"{stem}_patterns{extension}");
+        string colorsPath = Path.Combine(folder, $"{stem}_colors{extension}");
+
+        try
+        {
+            if (binary)
+            {
+                await File.WriteAllBytesAsync(patternsPath, TileSetExporter.PatternsToBinary(tileSet));
+                await File.WriteAllBytesAsync(colorsPath, TileSetExporter.ColorsToBinary(tileSet));
+            }
+            else
+            {
+                await File.WriteAllTextAsync(patternsPath, TileSetExporter.PatternsToAssembler(tileSet));
+                await File.WriteAllTextAsync(colorsPath, TileSetExporter.ColorsToAssembler(tileSet));
+            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo exportar el juego de tiles", exception.Message);
+
+            return;
+        }
+
+        await Dialogs.ShowMessageAsync(
+            "Juego de tiles exportado",
+            $"Se han escrito:{Environment.NewLine}{Path.GetFileName(patternsPath)}{Environment.NewLine}{Path.GetFileName(colorsPath)}"
+            + $"{Environment.NewLine}{Environment.NewLine}Recuerda copiar cada tabla {TileSetExporter.ScreenThirds} veces en VRAM, "
+            + "una por tercio de pantalla.");
     }
 
     /// <summary>El nombre de una paleta puede llevar caracteres que no valen en un fichero.</summary>

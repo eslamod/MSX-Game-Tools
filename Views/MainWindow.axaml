@@ -23,6 +23,11 @@
         <MenuItem Header="Export sprite bank (binary)..." Command="{Binding ExportSpriteBankBinaryCommand}" />
         <MenuItem Header="Export sprite bank (asm)..." Command="{Binding ExportSpriteBankAssemblerCommand}" />
         <Separator />
+        <MenuItem Header="Load tileset..." Command="{Binding LoadTileSetCommand}" />
+        <MenuItem Header="Save tileset as..." Command="{Binding SaveTileSetCommand}" />
+        <MenuItem Header="Export tileset (binary)..." Command="{Binding ExportTileSetBinaryCommand}" />
+        <MenuItem Header="Export tileset (asm)..." Command="{Binding ExportTileSetAssemblerCommand}" />
+        <Separator />
         <MenuItem Header="Exit" />
       </MenuItem>
       <MenuItem Header="Palette">
