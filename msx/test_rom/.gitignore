@@ -1,0 +1,5 @@
+# Salida del ensamblador
+*.rom
+
+# El ensamblador vive en su propio repositorio
+sasSX.exe
