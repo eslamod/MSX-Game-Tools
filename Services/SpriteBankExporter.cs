@@ -32,8 +32,11 @@ public static class SpriteBankExporter
     /// <summary>Un miembro MSX1: Y, X, patrón y color, como la tabla de atributos.</summary>
     public const int Msx1MemberBytes = 4;
 
-    /// <summary>Prefijo hexadecimal del ensamblador. Cambiarlo aquí si el tuyo usa otro.</summary>
-    private const string HexPrefix = "$";
+    /// <summary>
+    /// Prefijo hexadecimal de la salida en ensamblador. asMSX usa <c>#</c>; sjasm y
+    /// sjasmplus usan <c>$</c>. Si tu ensamblador quiere otro, se cambia aquí.
+    /// </summary>
+    public const string HexPrefix = "#";
 
     private const int BytesPerLine = 8;
 

@@ -194,7 +194,12 @@ public class SpriteBankExporterTests
             string values = trimmed[3..].Split(';')[0];
 
             foreach (string value in values.Split(',', StringSplitOptions.RemoveEmptyEntries))
-                fromText.Add(Convert.ToByte(value.Trim().TrimStart('$'), 16));
+            {
+                string hex = value.Trim();
+
+                Assert.StartsWith(SpriteBankExporter.HexPrefix, hex, StringComparison.Ordinal);
+                fromText.Add(Convert.ToByte(hex[SpriteBankExporter.HexPrefix.Length..], 16));
+            }
         }
 
         Assert.Equal(binary, fromText);
