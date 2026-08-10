@@ -38,6 +38,9 @@ public partial class MainWindowViewModel : ObservableObject
 
         Palettes.Palettes.CollectionChanged += (_, _) => RefreshPaletteCommands();
 
+        TreeGeneralVm.OpenItemCommand = OpenTreeItemCommand;
+        TreeGeneralVm.DeleteItemCommand = DeleteTreeItemCommand;
+
         Backgrounds.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(ReferenceImageLibrary.SelectedImage))
@@ -392,14 +395,71 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Sustituye a la antigua clase <c>CommandShowTab</c>. Igual que en la versión WPF,
-    /// todavía no hay nada enlazado a él: falta decidir el gesto en el árbol.
+    /// Vuelve a enseñar el elemento del árbol. Es el doble clic.
+    /// </summary>
+    /// <remarks>
+    /// Si su pestaña estaba cerrada se vuelve a abrir con el estado que tenía: cerrar
+    /// una pestaña sólo la quita de la vista, el panel sigue vivo.
+    /// </remarks>
+    [RelayCommand]
+    private void OpenTreeItem(ItemTree? item)
+    {
+        if (item is { IsPanelNode: true })
+            AddVisiblePanel(item.Tag);
+    }
+
+    /// <summary>
+    /// Elimina el elemento del proyecto: se va del árbol, se cierra su pestaña y se
+    /// olvida el panel.
+    /// </summary>
+    /// <remarks>
+    /// Es lo contrario de cerrar la pestaña, y por eso pregunta. Cerrar es reversible
+    /// con un doble clic; esto no, y como no llevamos control de cambios sin guardar,
+    /// el aviso lo dice explícitamente.
+    /// </remarks>
+    [RelayCommand]
+    private async Task DeleteTreeItemAsync(ItemTree? item)
+    {
+        if (item is not { IsPanelNode: true })
+            return;
+
+        bool confirmed = await Dialogs.ConfirmAsync(
+            "Eliminar del proyecto",
+            $"Se va a eliminar «{item.DisplayText}» y se cerrará su pestaña. "
+            + "Se perderá lo que no hayas guardado en un fichero.",
+            "Eliminar");
+
+        if (!confirmed)
+            return;
+
+        if (GetPanelFromDic(item.Tag) is { } panel)
+        {
+            CloseTab(panel);
+            _panels.Remove(item.Tag);
+        }
+
+        TreeGeneralVm.Remove(item);
+    }
+
+    /// <summary>
+    /// Quita la pestaña de la vista sin tocar el proyecto. El panel se queda guardado y
+    /// el nodo del árbol lo puede volver a traer con un doble clic.
     /// </summary>
     [RelayCommand]
-    private void ShowTab(ItemTree? item)
+    private void CloseTab(PanelBaseViewModel? panel)
     {
-        if (item is not null)
-            AddVisiblePanel(item.Tag);
+        if (panel is null)
+            return;
+
+        int position = Tabs.IndexOf(panel);
+        if (position < 0)
+            return;
+
+        Tabs.Remove(panel);
+
+        // Hay que decir qué queda seleccionado: al desaparecer la suya, el TabControl
+        // escribe null y se quedaría sin ninguna con pestañas todavía abiertas.
+        SelectedTab = Tabs.Count > 0 ? Tabs[Math.Min(position, Tabs.Count - 1)] : null;
     }
 
     public void AddPanelToDic(PanelBaseViewModel panel) => _panels.TryAdd(panel.TagId, panel);

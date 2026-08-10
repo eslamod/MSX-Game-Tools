@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Windows.Input;
 using MSX_SpritesEditor.Entities;
 
 namespace MSX_SpritesEditor.ViewModels;
@@ -28,6 +29,27 @@ public class TreeGeneralViewModel : PanelBaseViewModel
     }
 
     public ObservableCollection<ItemTree> PrimaryNodes { get; }
+
+    /// <summary>
+    /// Abrir y eliminar los pone la ventana principal, que es quien sabe de pestañas.
+    /// El árbol sólo dice sobre qué nodo se ha hecho el gesto.
+    /// </summary>
+    public ICommand? OpenItemCommand { get; set; }
+
+    /// <inheritdoc cref="OpenItemCommand"/>
+    public ICommand? DeleteItemCommand { get; set; }
+
+    /// <summary>Quita un nodo de donde esté colgado. Devuelve si lo encontró.</summary>
+    public bool Remove(ItemTree item)
+    {
+        foreach (ItemTree parent in PrimaryNodes)
+        {
+            if (parent.Childs.Remove(item))
+                return true;
+        }
+
+        return false;
+    }
 
     public void AddSpriteBank(string displayName, string tagId, PanelBaseViewModel vm)
     {

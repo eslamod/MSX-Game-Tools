@@ -112,7 +112,19 @@
         <TabControl.ItemTemplate>
           <!-- Plantilla de la cabecera de la pestaña. El contenido lo resuelve el ViewLocator. -->
           <DataTemplate x:DataType="vm:PanelBaseViewModel">
-            <TextBlock Text="{Binding Header}" />
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="{Binding Header}" VerticalAlignment="Center" />
+
+              <!-- Cerrar no es eliminar: la pestaña se va de la vista pero el elemento
+                   sigue en el arbol, y un doble clic alli la trae de vuelta con el
+                   estado que tenia. Eliminar de verdad esta en el menu del arbol. -->
+              <Button Content="✕" FontSize="10" Padding="4,0" Margin="8,0,0,0"
+                      VerticalAlignment="Center"
+                      Background="Transparent" BorderThickness="0"
+                      Command="{Binding $parent[TabControl].((vm:MainWindowViewModel)DataContext).CloseTabCommand}"
+                      CommandParameter="{Binding}"
+                      ToolTip.Tip="Cerrar la pestaña" />
+            </StackPanel>
           </DataTemplate>
         </TabControl.ItemTemplate>
       </TabControl>

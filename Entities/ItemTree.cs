@@ -19,4 +19,10 @@ public partial class ItemTree : ObservableObject
     public ObservableCollection<ItemTree> Childs { get; } = [];
 
     public IList<PanelBaseViewModel> PanelsList { get; } = [];
+
+    /// <summary>
+    /// Si el nodo representa algo que se puede abrir y eliminar. Los de categoría
+    /// («Sprite Banks», «TileSets»...) no lo son: son cajones, no elementos.
+    /// </summary>
+    public bool IsPanelNode => PanelsList.Count > 0;
 }
