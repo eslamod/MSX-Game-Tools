@@ -15,6 +15,8 @@ public partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveSpriteBankCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExportSpriteBankBinaryCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExportSpriteBankAssemblerCommand))]
     private PanelBaseViewModel? _selectedTab;
 
     /// <param name="dialogs">
@@ -211,6 +213,63 @@ public partial class MainWindowViewModel : ObservableObject
         {
             await Dialogs.ShowMessageAsync("No se pudo abrir el fichero", exception.Message);
         }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanSaveSpriteBank))]
+    private Task ExportSpriteBankBinaryAsync() => ExportSpriteBankAsync(binary: true);
+
+    [RelayCommand(CanExecute = nameof(CanSaveSpriteBank))]
+    private Task ExportSpriteBankAssemblerAsync() => ExportSpriteBankAsync(binary: false);
+
+    /// <summary>
+    /// Escribe las dos tablas. Se pide un nombre base y de ahí salen los dos ficheros,
+    /// para no encadenar dos selectores seguidos.
+    /// </summary>
+    private async Task ExportSpriteBankAsync(bool binary)
+    {
+        if (SelectedTab is not SpritesEditorViewModel editor)
+            return;
+
+        SpriteBank bank = editor.SpritesBank;
+        string extension = binary ? ".bin" : ".asm";
+
+        string? path = await Dialogs.PickFileToSaveAsync(
+            binary ? "Exportar a binario" : "Exportar a ensamblador",
+            $"{SpriteBankExporter.LabelOf(bank.Name)}{extension}");
+
+        if (path is null)
+            return;
+
+        string folder = Path.GetDirectoryName(path) ?? string.Empty;
+        string stem = Path.GetFileNameWithoutExtension(path);
+
+        string patternsPath = Path.Combine(folder, $"{stem}_patterns{extension}");
+        string groupsPath = Path.Combine(folder, $"{stem}_groups{extension}");
+
+        try
+        {
+            if (binary)
+            {
+                await File.WriteAllBytesAsync(patternsPath, SpriteBankExporter.PatternsToBinary(bank));
+                await File.WriteAllBytesAsync(groupsPath, SpriteBankExporter.GroupsToBinary(bank));
+            }
+            else
+            {
+                await File.WriteAllTextAsync(patternsPath, SpriteBankExporter.PatternsToAssembler(bank));
+                await File.WriteAllTextAsync(groupsPath, SpriteBankExporter.GroupsToAssembler(bank));
+            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo exportar el banco", exception.Message);
+
+            return;
+        }
+
+        // El nombre elegido se reparte en dos, asi que conviene decir cuales han salido.
+        await Dialogs.ShowMessageAsync(
+            "Banco exportado",
+            $"Se han escrito:{Environment.NewLine}{Path.GetFileName(patternsPath)}{Environment.NewLine}{Path.GetFileName(groupsPath)}");
     }
 
     /// <summary>El nombre de una paleta puede llevar caracteres que no valen en un fichero.</summary>

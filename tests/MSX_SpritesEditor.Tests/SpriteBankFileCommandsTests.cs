@@ -151,6 +151,69 @@ public class SpriteBankFileCommandsTests : IDisposable
         Assert.Equal("Bicho.json", dialogs.LastSuggestedFileName);
     }
 
+    [AvaloniaFact]
+    public async Task Exportar_a_binario_escribe_los_dos_ficheros()
+    {
+        var dialogs = new TestDialogService { SavePath = Path.Combine(_folder, "bicho.bin") };
+        var main = new MainWindowViewModel(dialogs);
+        main.OpenSpriteBank(new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"));
+
+        await main.ExportSpriteBankBinaryCommand.ExecuteAsync(null);
+
+        Assert.True(File.Exists(Path.Combine(_folder, "bicho_patterns.bin")));
+        Assert.True(File.Exists(Path.Combine(_folder, "bicho_groups.bin")));
+
+        // Un patron de 16x16 son 32 bytes.
+        Assert.Equal(32, new FileInfo(Path.Combine(_folder, "bicho_patterns.bin")).Length);
+
+        // Y se dice que ficheros han salido, porque el nombre elegido se reparte en dos.
+        Assert.Single(dialogs.Messages);
+        Assert.Contains("bicho_patterns.bin", dialogs.Messages[0]);
+        Assert.Contains("bicho_groups.bin", dialogs.Messages[0]);
+    }
+
+    [AvaloniaFact]
+    public async Task Exportar_a_ensamblador_escribe_texto_con_etiquetas()
+    {
+        var dialogs = new TestDialogService { SavePath = Path.Combine(_folder, "bicho.asm") };
+        var main = new MainWindowViewModel(dialogs);
+        main.OpenSpriteBank(new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"));
+
+        await main.ExportSpriteBankAssemblerCommand.ExecuteAsync(null);
+
+        string patterns = await File.ReadAllTextAsync(Path.Combine(_folder, "bicho_patterns.asm"));
+
+        Assert.Contains("bicho_patterns:", patterns);
+        Assert.Contains("db  $00", patterns);
+    }
+
+    [Fact]
+    public void Exportar_esta_deshabilitado_sin_un_banco_abierto()
+    {
+        var main = new MainWindowViewModel();
+
+        Assert.False(main.ExportSpriteBankBinaryCommand.CanExecute(null));
+        Assert.False(main.ExportSpriteBankAssemblerCommand.CanExecute(null));
+
+        main.OpenSpriteBank(new SpriteBank(SpriteBank.SpriteType.MSX2, "Uno"));
+
+        Assert.True(main.ExportSpriteBankBinaryCommand.CanExecute(null));
+        Assert.True(main.ExportSpriteBankAssemblerCommand.CanExecute(null));
+    }
+
+    [AvaloniaFact]
+    public async Task Cancelar_la_exportacion_no_escribe_nada()
+    {
+        var dialogs = new TestDialogService { SavePath = null };
+        var main = new MainWindowViewModel(dialogs);
+        main.OpenSpriteBank(new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"));
+
+        await main.ExportSpriteBankBinaryCommand.ExecuteAsync(null);
+
+        Assert.Empty(Directory.GetFiles(_folder));
+        Assert.Empty(dialogs.Messages);
+    }
+
     private async Task<string> WriteBankAsync(string fileName, string bankName)
     {
         string path = Path.Combine(_folder, fileName);

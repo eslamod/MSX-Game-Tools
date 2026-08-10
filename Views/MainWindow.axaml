@@ -20,6 +20,9 @@
         <MenuItem Header="Load sprite bank..." Command="{Binding LoadSpriteBankCommand}" />
         <MenuItem Header="Save sprite bank as..." Command="{Binding SaveSpriteBankCommand}" />
         <Separator />
+        <MenuItem Header="Export sprite bank (binary)..." Command="{Binding ExportSpriteBankBinaryCommand}" />
+        <MenuItem Header="Export sprite bank (asm)..." Command="{Binding ExportSpriteBankAssemblerCommand}" />
+        <Separator />
         <MenuItem Header="Exit" />
       </MenuItem>
       <MenuItem Header="Palette">
