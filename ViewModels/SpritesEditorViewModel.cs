@@ -116,6 +116,8 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
 
         _selectedThumbnail = _currentSprite.ImageMini;
 
+        PixelSurface = new SpritePixelSurface(this);
+
         // El fondo lo guarda cada patrón, así que el selector lee y escribe siempre en
         // el que esté en el lienzo, no en uno fijo.
         PatternBackground = new BackgroundSelectionViewModel(
@@ -299,6 +301,9 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
 
     private void RenderGroup(SpriteGroupViewModel group) =>
         group.Render(ColorPalette, BackgroundColor.Color);
+
+    /// <summary>El patrón actual visto por el lienzo de pintado.</summary>
+    public IPixelSurface PixelSurface { get; }
 
     /// <summary>Imágenes de referencia disponibles, para los desplegables de fondo.</summary>
     public ReferenceImageLibrary Backgrounds => _backgrounds;

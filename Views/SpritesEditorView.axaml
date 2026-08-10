@@ -272,13 +272,10 @@
         </Image>
       </Panel>
 
-      <Canvas x:Name="CanvSprite"
-              Background="Gray"
-              Opacity="{Binding PatternOpacity}"
-              HorizontalAlignment="Left" VerticalAlignment="Top"
-              PointerPressed="OnCanvasPointerPressed"
-              PointerMoved="OnCanvasPointerMoved"
-              PointerReleased="OnCanvasPointerReleased" />
+      <views:PixelCanvas x:Name="CanvSprite"
+                         Surface="{Binding PixelSurface}"
+                         Opacity="{Binding PatternOpacity}"
+                         HorizontalAlignment="Left" VerticalAlignment="Top" />
     </Grid>
 
     <!-- Fondo del patrón que se está dibujando. Se elige aquí y no en el panel del
