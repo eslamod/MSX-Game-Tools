@@ -14,7 +14,7 @@ public class SpriteBankFileCommandsTests : IDisposable
 
     public void Dispose() => Directory.Delete(_folder, recursive: true);
 
-    [Fact]
+    [AvaloniaFact]
     public void Guardar_esta_deshabilitado_sin_un_banco_abierto()
     {
         var main = new MainWindowViewModel();
@@ -189,7 +189,7 @@ public class SpriteBankFileCommandsTests : IDisposable
             patterns);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Exportar_esta_deshabilitado_sin_un_banco_abierto()
     {
         var main = new MainWindowViewModel();

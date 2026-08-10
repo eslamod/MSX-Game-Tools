@@ -1,12 +1,13 @@
 using System.Collections.Specialized;
 using MSX_SpritesEditor.Entities;
 using Xunit;
+using Avalonia.Headless.XUnit;
 
 namespace MSX_SpritesEditor.Tests;
 
 public class PaletteLibraryTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void Arranca_con_la_paleta_msx_estandar_activa_y_protegida()
     {
         var library = new PaletteLibrary();
@@ -17,7 +18,7 @@ public class PaletteLibraryTests
         Assert.True(library.ActivePalette.IsReadOnly);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void La_estandar_no_se_puede_eliminar()
     {
         var library = new PaletteLibrary();
@@ -27,7 +28,7 @@ public class PaletteLibraryTests
         Assert.Single(library.Palettes);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Crear_copia_la_activa_y_la_deja_seleccionada()
     {
         var library = new PaletteLibrary();
@@ -47,7 +48,7 @@ public class PaletteLibraryTests
         }
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Editar_una_copia_no_toca_la_original()
     {
         var library = new PaletteLibrary();
@@ -60,7 +61,7 @@ public class PaletteLibraryTests
         Assert.Equal(2, standard[5].Red);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Los_nombres_generados_no_se_repiten()
     {
         var library = new PaletteLibrary();
@@ -70,7 +71,7 @@ public class PaletteLibraryTests
         Assert.Equal("Palette 3", library.Add().Name);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Eliminar_la_activa_pasa_el_foco_a_otra()
     {
         var library = new PaletteLibrary();
@@ -83,7 +84,7 @@ public class PaletteLibraryTests
         Assert.Equal("Palette 1", library.ActivePalette.Name);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Al_quitarla_de_la_coleccion_ya_no_es_la_activa()
     {
         var library = new PaletteLibrary();
@@ -104,7 +105,7 @@ public class PaletteLibraryTests
         Assert.False(stillActiveWhenRemoved);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void La_paleta_activa_ignora_que_le_asignen_null()
     {
         var library = new PaletteLibrary();
@@ -115,7 +116,7 @@ public class PaletteLibraryTests
         Assert.Same(standard, library.ActivePalette);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Eliminar_una_que_no_esta_activa_no_cambia_la_activa()
     {
         var library = new PaletteLibrary();

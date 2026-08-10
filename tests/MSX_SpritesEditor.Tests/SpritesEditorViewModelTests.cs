@@ -2,6 +2,7 @@ using MSX_SpritesEditor.Entities;
 using MSX_SpritesEditor.Services;
 using MSX_SpritesEditor.ViewModels;
 using Xunit;
+using Avalonia.Headless.XUnit;
 
 namespace MSX_SpritesEditor.Tests;
 
@@ -11,7 +12,7 @@ namespace MSX_SpritesEditor.Tests;
 /// </summary>
 public class SpritesEditorViewModelTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void Un_banco_nuevo_muestra_la_miniatura_de_su_primer_sprite()
     {
         SpritesEditorViewModel vm = NewEditor();
@@ -22,7 +23,7 @@ public class SpritesEditorViewModelTests
         Assert.Equal(1, vm.CurrentSpritePosition);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Anadir_sprite_actualiza_contador_y_miniaturas()
     {
         SpritesEditorViewModel vm = NewEditor();
@@ -33,7 +34,7 @@ public class SpritesEditorViewModelTests
         Assert.Equal(2, vm.ImagesMiniList.Count);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void El_sprite_recien_anadido_queda_seleccionado()
     {
         SpritesEditorViewModel vm = NewEditor();
@@ -45,7 +46,7 @@ public class SpritesEditorViewModelTests
         Assert.Same(vm.SpritesBank.SpritesList[1].ImageMini, vm.SelectedThumbnail);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task Borrar_sprite_elimina_tambien_su_miniatura()
     {
         SpritesEditorViewModel vm = NewEditor();
@@ -60,7 +61,7 @@ public class SpritesEditorViewModelTests
         Assert.Equal(2, vm.ImagesMiniList.Count);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void No_se_puede_borrar_el_ultimo_sprite()
     {
         SpritesEditorViewModel vm = NewEditor();
@@ -71,7 +72,7 @@ public class SpritesEditorViewModelTests
         Assert.True(vm.DeleteSpriteCommand.CanExecute(null));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void No_se_pueden_anadir_mas_sprites_de_los_que_admite_el_banco()
     {
         SpritesEditorViewModel vm = NewEditor();
@@ -89,7 +90,7 @@ public class SpritesEditorViewModelTests
         Assert.Equal(SpriteBank.MaxSprites, vm.ImagesMiniList.Count);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void La_navegacion_respeta_los_extremos()
     {
         SpritesEditorViewModel vm = NewEditor();
@@ -110,7 +111,7 @@ public class SpritesEditorViewModelTests
         Assert.Equal(2, vm.CurrentSpritePosition);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Cambiar_de_sprite_avisa_a_la_vista()
     {
         SpritesEditorViewModel vm = NewEditor();
@@ -126,7 +127,7 @@ public class SpritesEditorViewModelTests
         Assert.Same(vm.SpritesBank.SpritesList[1], vm.CurrentSprite);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task Borrar_pide_confirmacion_diciendo_que_sprite_es()
     {
         var dialogs = new TestDialogService { ConfirmAnswer = true };
@@ -140,7 +141,7 @@ public class SpritesEditorViewModelTests
         Assert.Equal(1, vm.NumberSprites);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task Cancelar_la_confirmacion_no_borra_el_sprite()
     {
         var dialogs = new TestDialogService { ConfirmAnswer = false };

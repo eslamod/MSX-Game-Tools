@@ -11,7 +11,7 @@ namespace MSX_SpritesEditor.Tests;
 /// </summary>
 public class SpriteColorTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void Un_banco_msx1_no_tiene_color_por_linea()
     {
         SpritesEditorViewModel vm = NewEditor(SpriteBank.SpriteType.MSX);
@@ -20,7 +20,7 @@ public class SpriteColorTests
         Assert.False(vm.IsMsx2);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Un_banco_msx2_tiene_una_casilla_por_linea()
     {
         SpritesEditorViewModel vm = NewEditor(SpriteBank.SpriteType.MSX2);
@@ -32,7 +32,7 @@ public class SpriteColorTests
             Assert.Equal(row, vm.RowColors[row].RowIndex);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void En_msx2_elegir_un_color_afecta_solo_a_esa_linea()
     {
         SpritesEditorViewModel vm = NewEditor(SpriteBank.SpriteType.MSX2);
@@ -49,7 +49,7 @@ public class SpriteColorTests
         }
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void En_msx1_el_color_elegido_se_aplica_a_las_16_lineas()
     {
         SpritesEditorViewModel vm = NewEditor(SpriteBank.SpriteType.MSX);
@@ -61,7 +61,7 @@ public class SpriteColorTests
         Assert.Equal("Dark yellow", vm.SpriteColor.Name);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Las_casillas_se_repuntan_al_cambiar_de_sprite()
     {
         SpritesEditorViewModel vm = NewEditor(SpriteBank.SpriteType.MSX2);
@@ -76,7 +76,7 @@ public class SpriteColorTests
         Assert.Equal(6, vm.RowColors[3].Color.Index);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void El_fondo_arranca_en_negro_y_no_ofrece_el_transparente()
     {
         SpritesEditorViewModel vm = NewEditor(SpriteBank.SpriteType.MSX2);

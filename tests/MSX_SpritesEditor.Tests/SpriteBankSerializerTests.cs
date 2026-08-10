@@ -2,6 +2,7 @@ using System.Text.Json;
 using MSX_SpritesEditor.Entities;
 using MSX_SpritesEditor.Services;
 using Xunit;
+using Avalonia.Headless.XUnit;
 
 namespace MSX_SpritesEditor.Tests;
 
@@ -11,7 +12,7 @@ namespace MSX_SpritesEditor.Tests;
 /// </summary>
 public class SpriteBankSerializerTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void Los_patrones_se_guardan_como_mascaras_de_bits()
     {
         SpriteBank bank = new(SpriteBank.SpriteType.MSX2, "Prueba");
@@ -33,7 +34,7 @@ public class SpriteBankSerializerTests
         Assert.Equal("0000", rows[3].GetString());
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Los_colores_del_patron_van_uno_por_linea_en_hexadecimal()
     {
         SpriteBank bank = new(SpriteBank.SpriteType.MSX2, "Prueba");
@@ -45,7 +46,7 @@ public class SpriteBankSerializerTests
         Assert.Equal("A0FFFFFFFFFFFFFF", document.RootElement.GetProperty("patterns")[0].GetProperty("colors").GetString());
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void La_paleta_va_embebida()
     {
         SpriteBank bank = new(SpriteBank.SpriteType.MSX2, "Prueba");
@@ -58,7 +59,7 @@ public class SpriteBankSerializerTests
         Assert.Equal(ColorPalette.Size, embedded.GetProperty("colors").GetArrayLength());
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Los_bits_de_linea_solo_se_escriben_cuando_estan_activos()
     {
         SpriteBank bank = new(SpriteBank.SpriteType.MSX2, "Prueba");
@@ -76,7 +77,7 @@ public class SpriteBankSerializerTests
         Assert.False(lines[2].TryGetProperty("ic", out _));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Una_ida_y_vuelta_conserva_el_banco_entero()
     {
         SpriteBank original = new(SpriteBank.SpriteType.MSX2, "Prueba");
@@ -132,7 +133,7 @@ public class SpriteBankSerializerTests
         Assert.Equal("705", loaded.Palette[3].HexRgb);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Un_banco_msx1_conserva_su_tipo()
     {
         SpriteBank bank = new(SpriteBank.SpriteType.MSX, "Uno");
@@ -142,7 +143,7 @@ public class SpriteBankSerializerTests
         Assert.Equal(SpriteBank.SpriteType.MSX, loaded.Bank.Type);
     }
 
-    [Theory]
+    [AvaloniaTheory]
     [InlineData("no soy json", "JSON válido")]
     [InlineData("{}", "la paleta")]
     public void Un_fichero_mal_formado_se_rechaza_con_un_motivo(string json, string expectedFragment)
@@ -152,7 +153,7 @@ public class SpriteBankSerializerTests
         Assert.Contains(expectedFragment, exception.Message);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Un_tipo_de_banco_desconocido_se_rechaza()
     {
         string json = Serialize(new SpriteBank(SpriteBank.SpriteType.MSX2, "Prueba"))
@@ -163,7 +164,7 @@ public class SpriteBankSerializerTests
         Assert.Contains("MSX9", exception.Message);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Una_linea_de_patron_con_digitos_de_mas_se_rechaza()
     {
         string json = Serialize(new SpriteBank(SpriteBank.SpriteType.MSX2, "Prueba"))
@@ -174,7 +175,7 @@ public class SpriteBankSerializerTests
         Assert.Contains("4 dígitos", exception.Message);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Un_grupo_que_apunta_a_un_patron_inexistente_se_rechaza()
     {
         SpriteBank bank = new(SpriteBank.SpriteType.MSX2, "Prueba");
@@ -187,7 +188,7 @@ public class SpriteBankSerializerTests
         Assert.Contains("patrón 40", exception.Message);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Un_fichero_de_una_version_mas_nueva_se_rechaza()
     {
         string json = Serialize(new SpriteBank(SpriteBank.SpriteType.MSX2, "Prueba"))

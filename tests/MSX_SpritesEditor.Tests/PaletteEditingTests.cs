@@ -14,7 +14,7 @@ namespace MSX_SpritesEditor.Tests;
 
 public class PaletteEditingTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void Cambiar_una_componente_actualiza_color_y_hex()
     {
         var color = new PaletteColor(5, "Light blue", 2, 3, 7);
@@ -26,7 +26,7 @@ public class PaletteEditingTests
         Assert.Equal("737", color.HexRgb);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void El_brush_es_siempre_el_mismo_objeto()
     {
         var color = new PaletteColor(5, "Light blue", 2, 3, 7);
@@ -40,7 +40,7 @@ public class PaletteEditingTests
         Assert.Equal(0, color.Color.G);
     }
 
-    [Theory]
+    [AvaloniaTheory]
     [InlineData(-3, 0)]
     [InlineData(0, 0)]
     [InlineData(7, 7)]
@@ -52,7 +52,7 @@ public class PaletteEditingTests
         Assert.Equal(expected, color.Red);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Cambiar_el_color_descarta_el_nombre_heredado()
     {
         ColorPalette palette = new PaletteLibrary().Add();
@@ -65,7 +65,7 @@ public class PaletteEditingTests
         Assert.Equal("Color 3", palette[3].DisplayName);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Un_nombre_puesto_a_mano_sobrevive_a_los_cambios_de_color()
     {
         ColorPalette palette = new PaletteLibrary().Add();
@@ -78,7 +78,7 @@ public class PaletteEditingTests
         Assert.Equal("piel", palette[3].DisplayName);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void El_caracter_del_nombre_se_conserva_al_copiar_la_paleta()
     {
         var library = new PaletteLibrary();
@@ -95,7 +95,7 @@ public class PaletteEditingTests
         Assert.Equal(string.Empty, second[4].Name);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Un_color_sin_nombre_se_muestra_por_su_indice()
     {
         var color = new PaletteColor(10, string.Empty, 1, 2, 3);
@@ -107,7 +107,7 @@ public class PaletteEditingTests
         Assert.Equal("sombra", color.DisplayName);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void La_paleta_estandar_conserva_sus_nombres()
     {
         ColorPalette standard = ColorPalette.CreateMsxStandard();
@@ -118,7 +118,7 @@ public class PaletteEditingTests
         Assert.Equal("Light green", standard[3].DisplayName);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void El_color_0_es_transparente_y_no_editable()
     {
         ColorPalette palette = ColorPalette.CreateMsxStandard();
@@ -128,7 +128,7 @@ public class PaletteEditingTests
         Assert.True(palette[1].IsEditable);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void La_paleta_avisa_cuando_cambia_uno_de_sus_colores()
     {
         ColorPalette palette = new PaletteLibrary().Add();
@@ -174,7 +174,7 @@ public class PaletteEditingTests
         Assert.Equal(PixelReader.Bgra(other[3].Color), PixelReader.At(vm.CurrentSprite.ImageMini!, 0, 0));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Los_comandos_de_paleta_respetan_la_estandar()
     {
         var main = new MainWindowViewModel();
@@ -188,7 +188,7 @@ public class PaletteEditingTests
         Assert.True(main.DeletePaletteCommand.CanExecute(null));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Crear_una_paleta_abre_su_editor_en_el_panel_derecho()
     {
         var main = new MainWindowViewModel();
@@ -391,7 +391,7 @@ public class PaletteEditingTests
         }
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task Eliminar_la_paleta_que_se_esta_editando_cierra_el_panel()
     {
         var main = new MainWindowViewModel();
@@ -403,7 +403,7 @@ public class PaletteEditingTests
         Assert.Equal(ColorPalette.StandardName, main.Palettes.ActivePalette.Name);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task Eliminar_pide_confirmacion_nombrando_la_paleta()
     {
         var dialogs = new TestDialogService { ConfirmAnswer = true };
@@ -419,7 +419,7 @@ public class PaletteEditingTests
         Assert.Single(main.Palettes.Palettes);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task Cancelar_la_confirmacion_no_elimina_nada()
     {
         var dialogs = new TestDialogService { ConfirmAnswer = false };

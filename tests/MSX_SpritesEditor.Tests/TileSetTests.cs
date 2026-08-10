@@ -23,7 +23,7 @@ public class TileSetTests
         Assert.All(tileset.ListOfTiles, tile => Assert.NotNull(tile.ImageMini));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void La_columna_0_es_el_bit_mas_significativo()
     {
         var row = new TileRow();
@@ -36,7 +36,7 @@ public class TileSetTests
         Assert.Equal(0x01, row.PatternByte);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Una_linea_entera_encendida_son_todos_los_bits()
     {
         var row = new TileRow();
@@ -46,7 +46,7 @@ public class TileSetTests
     }
 
     /// <summary>El nibble alto es el color de frente y el bajo el de fondo.</summary>
-    [Fact]
+    [AvaloniaFact]
     public void El_byte_de_color_lleva_frente_arriba_y_fondo_abajo()
     {
         var row = new TileRow { ForeColor = 15, BackColor = 4 };
@@ -54,7 +54,7 @@ public class TileSetTests
         Assert.Equal(0xF4, row.ColorByte);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Un_tile_tiene_ocho_lineas_de_ocho_pixeles()
     {
         var tile = new Tile();

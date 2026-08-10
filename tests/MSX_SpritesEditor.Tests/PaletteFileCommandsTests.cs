@@ -2,6 +2,7 @@
 using MSX_SpritesEditor.Services;
 using MSX_SpritesEditor.ViewModels;
 using Xunit;
+using Avalonia.Headless.XUnit;
 
 namespace MSX_SpritesEditor.Tests;
 
@@ -14,7 +15,7 @@ public class PaletteFileCommandsTests : IDisposable
 
     public void Dispose() => Directory.Delete(_folder, recursive: true);
 
-    [Fact]
+    [AvaloniaFact]
     public async Task Guardar_escribe_la_paleta_activa_en_el_fichero_elegido()
     {
         string path = Path.Combine(_folder, "nocturna.json");
@@ -33,7 +34,7 @@ public class PaletteFileCommandsTests : IDisposable
         Assert.Equal("705", saved[3].HexRgb);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task Guardar_sugiere_un_nombre_de_fichero_a_partir_del_de_la_paleta()
     {
         var dialogs = new TestDialogService { SavePath = null };
@@ -48,7 +49,7 @@ public class PaletteFileCommandsTests : IDisposable
         Assert.Equal("Cueva nivel 34.json", dialogs.LastSuggestedFileName);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task Cancelar_el_selector_no_escribe_nada()
     {
         var dialogs = new TestDialogService { SavePath = null };
@@ -60,7 +61,7 @@ public class PaletteFileCommandsTests : IDisposable
         Assert.Empty(dialogs.Messages);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task Cargar_anade_la_paleta_del_fichero_y_la_deja_activa()
     {
         string path = Path.Combine(_folder, "nocturna.json");
@@ -79,7 +80,7 @@ public class PaletteFileCommandsTests : IDisposable
         Assert.False(main.Palettes.ActivePalette.IsReadOnly);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task Cargar_dos_veces_el_mismo_fichero_no_repite_el_nombre()
     {
         string path = Path.Combine(_folder, "nocturna.json");
@@ -94,7 +95,7 @@ public class PaletteFileCommandsTests : IDisposable
         Assert.Equal(["MSX", "Nocturna", "Nocturna (2)"], main.Palettes.Palettes.Select(p => p.Name));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task Un_fichero_invalido_avisa_y_no_toca_la_biblioteca()
     {
         string path = Path.Combine(_folder, "roto.json");
@@ -110,7 +111,7 @@ public class PaletteFileCommandsTests : IDisposable
         Assert.Contains("JSON válido", dialogs.Messages[0]);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task Un_fichero_que_no_existe_avisa_en_vez_de_reventar()
     {
         var dialogs = new TestDialogService { OpenPath = Path.Combine(_folder, "no-existe.json") };

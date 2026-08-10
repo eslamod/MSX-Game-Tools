@@ -14,14 +14,14 @@ public class SpriteGroupTests
     private const int Size = SpriteGroupRenderer.PreviewSize;
     private const int Origin = SpriteGroupMember.MaxOffset;
 
-    [Fact]
+    [AvaloniaFact]
     public void El_lienzo_del_grupo_cubre_el_sprite_mas_el_desplazamiento_maximo()
     {
         // 16 del sprite mas 15 a cada lado.
         Assert.Equal(46, SpriteGroupRenderer.PreviewSize);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Un_grupo_nuevo_arranca_con_el_patron_indicado()
     {
         var bank = new SpriteBank();
@@ -35,7 +35,7 @@ public class SpriteGroupTests
         Assert.Equal("Group 1", group.Name);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Los_colores_del_miembro_se_siembran_del_patron_pero_son_suyos()
     {
         var bank = new SpriteBank();
@@ -53,7 +53,7 @@ public class SpriteGroupTests
         Assert.Equal(6, member.Rows[4].Color);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Un_grupo_no_pasa_de_cuatro_miembros_ni_baja_de_uno()
     {
         var bank = new SpriteBank();
@@ -73,7 +73,7 @@ public class SpriteGroupTests
         Assert.False(group.Remove(group.Members[0]));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void El_banco_no_pasa_de_32_grupos()
     {
         var bank = new SpriteBank();
@@ -86,7 +86,7 @@ public class SpriteGroupTests
         Assert.Equal(SpriteBank.MaxGroups, bank.Groups.Count);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Los_desplazamientos_se_limitan_a_mas_menos_15()
     {
         var bank = new SpriteBank();
@@ -99,7 +99,7 @@ public class SpriteGroupTests
         Assert.Equal(SpriteGroupMember.MinOffset, member.OffsetY);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Reordenar_cambia_la_prioridad_y_respeta_los_extremos()
     {
         var bank = new SpriteBank();
@@ -115,7 +115,7 @@ public class SpriteGroupTests
         Assert.Equal(1, group.MoveDown(second));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void El_grupo_avisa_cuando_cambia_algo_que_se_ve()
     {
         var bank = new SpriteBank();

@@ -105,7 +105,7 @@ public class BackgroundLibraryCommandsTests : IDisposable
         Assert.Single(main.Backgrounds.Images);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Eliminar_esta_deshabilitado_sin_ninguna_imagen()
         => Assert.False(new MainWindowViewModel().DeleteBackgroundCommand.CanExecute(null));
 

@@ -1,6 +1,7 @@
 using MSX_SpritesEditor.Entities;
 using MSX_SpritesEditor.Services;
 using Xunit;
+using Avalonia.Headless.XUnit;
 
 namespace MSX_SpritesEditor.Tests;
 
@@ -10,7 +11,7 @@ namespace MSX_SpritesEditor.Tests;
 /// </summary>
 public class SpriteBankExporterTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void Cada_patron_ocupa_32_bytes()
     {
         var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho");
@@ -20,7 +21,7 @@ public class SpriteBankExporterTests
         Assert.Equal(3 * SpriteBankExporter.PatternBytes, SpriteBankExporter.PatternsToBinary(bank).Length);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void La_mitad_izquierda_va_entera_antes_que_la_derecha()
     {
         var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho");
@@ -39,7 +40,7 @@ public class SpriteBankExporterTests
         Assert.Equal(0x01, bytes[31]);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void El_byte_de_color_lleva_EC_CC_IC_y_el_color()
     {
         var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho");
@@ -64,7 +65,7 @@ public class SpriteBankExporterTests
         Assert.Equal(0x25, bytes[4]); // IC
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void El_bit_4_del_byte_de_color_es_siempre_cero()
     {
         var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho");
@@ -84,7 +85,7 @@ public class SpriteBankExporterTests
         Assert.Equal(0xEF, bytes[1]);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Un_miembro_msx2_son_16_bytes_de_color_mas_Y_X_y_patron()
     {
         var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho");
@@ -103,7 +104,7 @@ public class SpriteBankExporterTests
         Assert.Equal(8, bytes[19]);    // patron 2 x 4
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Un_miembro_msx1_son_Y_X_patron_y_color()
     {
         var bank = new SpriteBank(SpriteBank.SpriteType.MSX, "Bicho");
@@ -130,7 +131,7 @@ public class SpriteBankExporterTests
         Assert.Equal(0x86, bytes[4]); // EC + color 6
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Cada_grupo_declara_cuantos_sprites_tiene()
     {
         var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho");
@@ -149,7 +150,7 @@ public class SpriteBankExporterTests
         Assert.Equal(2 + (4 * SpriteBankExporter.Msx2MemberBytes), bytes.Length);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void El_ensamblador_lleva_los_mismos_bytes_que_el_binario()
     {
         var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho");
@@ -160,7 +161,7 @@ public class SpriteBankExporterTests
         AssertSameBytes(SpriteBankExporter.GroupsToBinary(bank), SpriteBankExporter.GroupsToAssembler(bank));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void El_ensamblador_lleva_etiquetas_por_patron_y_por_grupo()
     {
         var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Sprite test 1");
@@ -176,7 +177,7 @@ public class SpriteBankExporterTests
     /// Sin estas etiquetas no hay forma de saber dónde acaban los datos: ni el fichero
     /// de patrones ni el de grupos llevan cuántos elementos traen.
     /// </summary>
-    [Fact]
+    [AvaloniaFact]
     public void El_ensamblador_marca_donde_acaba_cada_bloque()
     {
         var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Sprite test 1");
@@ -193,7 +194,7 @@ public class SpriteBankExporterTests
         Assert.EndsWith($"sprite_test_1_groups_end:{Environment.NewLine}", groups);
     }
 
-    [Theory]
+    [AvaloniaTheory]
     [InlineData("Sprite test 1", "sprite_test_1")]
     [InlineData("Bicho: nivel 3/4", "bicho__nivel_3_4")]
     [InlineData("3 enemigos", "s3_enemigos")]

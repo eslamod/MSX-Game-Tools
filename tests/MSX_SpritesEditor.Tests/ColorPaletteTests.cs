@@ -1,6 +1,7 @@
 using Avalonia.Media;
 using MSX_SpritesEditor.Entities;
 using Xunit;
+using Avalonia.Headless.XUnit;
 
 namespace MSX_SpritesEditor.Tests;
 
@@ -12,7 +13,7 @@ public class ColorPaletteTests
 {
     private static readonly ColorPalette Palette = ColorPalette.CreateMsxStandard();
 
-    [Fact]
+    [AvaloniaFact]
     public void La_paleta_tiene_16_colores_indexados_de_0_a_15()
     {
         Assert.Equal(16, Palette.Count);
@@ -22,7 +23,7 @@ public class ColorPaletteTests
             Assert.Equal(i, Palette.Colors[i].Index);
     }
 
-    [Theory]
+    [AvaloniaTheory]
     [InlineData(0, "0")]
     [InlineData(9, "9")]
     [InlineData(10, "A")]
@@ -30,7 +31,7 @@ public class ColorPaletteTests
     public void El_hex_es_el_indice_en_un_digito(int index, string expected)
         => Assert.Equal(expected, Palette[index].Hex);
 
-    [Fact]
+    [AvaloniaFact]
     public void Solo_el_color_0_es_transparente()
     {
         Assert.True(Palette[0].IsTransparent);
@@ -44,7 +45,7 @@ public class ColorPaletteTests
     }
 
     // Componentes nativas del VDP, 3 bits por canal.
-    [Theory]
+    [AvaloniaTheory]
     [InlineData(1, 0, 0, 0)]
     [InlineData(2, 1, 6, 1)]
     [InlineData(3, 3, 7, 3)]
@@ -71,7 +72,7 @@ public class ColorPaletteTests
 
     // La expansión canónica a 8 bits. Ojo con los 73: truncar en vez de redondear
     // daba 72, que es el valor que arrastraba la versión WPF.
-    [Theory]
+    [AvaloniaTheory]
     [InlineData(1, 0, 0, 0)]
     [InlineData(2, 36, 219, 36)]
     [InlineData(3, 109, 255, 109)]
@@ -96,7 +97,7 @@ public class ColorPaletteTests
         Assert.Equal(b, color.B);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void El_fondo_se_elige_entre_los_colores_1_a_F()
     {
         Assert.Equal(15, Palette.BackgroundChoices.Count);
@@ -105,7 +106,7 @@ public class ColorPaletteTests
         Assert.DoesNotContain(Palette.BackgroundChoices, c => c.IsTransparent);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Los_brushes_se_reutilizan_entre_llamadas()
     {
         // El lienzo son 256 celdas y se repinta entero a menudo.

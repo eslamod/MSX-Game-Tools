@@ -2,6 +2,7 @@ using System.Text.Json;
 using MSX_SpritesEditor.Entities;
 using MSX_SpritesEditor.Services;
 using Xunit;
+using Avalonia.Headless.XUnit;
 
 namespace MSX_SpritesEditor.Tests;
 
@@ -11,7 +12,7 @@ namespace MSX_SpritesEditor.Tests;
 /// </summary>
 public class PaletteSerializerTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void Guarda_las_componentes_como_tres_digitos_hexadecimales()
     {
         ColorPalette palette = ColorPalette.CreateMsxStandard();
@@ -26,7 +27,7 @@ public class PaletteSerializerTests
         Assert.Equal("Medium green", colors[2].GetProperty("name").GetString());
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Guarda_el_nombre_y_la_version_del_formato()
     {
         ColorPalette palette = new PaletteLibrary().Add("Nocturna");
@@ -37,7 +38,7 @@ public class PaletteSerializerTests
         Assert.Equal(PaletteSerializer.FormatVersion, document.RootElement.GetProperty("version").GetInt32());
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Una_ida_y_vuelta_conserva_nombre_y_colores()
     {
         ColorPalette original = new PaletteLibrary().Add("Nocturna");
@@ -59,7 +60,7 @@ public class PaletteSerializerTests
         }
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Los_nombres_leidos_de_fichero_no_se_descartan_al_editar()
     {
         ColorPalette original = new PaletteLibrary().Add("Nocturna");
@@ -71,7 +72,7 @@ public class PaletteSerializerTests
         Assert.Equal("Light green", copy[3].Name);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Un_color_sin_nombre_no_ocupa_sitio_en_el_fichero()
     {
         ColorPalette palette = new PaletteLibrary().Add("Nocturna");
@@ -86,7 +87,7 @@ public class PaletteSerializerTests
         Assert.Equal(string.Empty, PaletteSerializer.Deserialize(json)[3].Name);
     }
 
-    [Theory]
+    [AvaloniaTheory]
     [InlineData("no soy json", "JSON válido")]
     [InlineData("{}", "16 colores")]
     [InlineData("""{"version":1,"name":"x","colors":[{"rgb":"000"}]}""", "16 colores")]
@@ -97,7 +98,7 @@ public class PaletteSerializerTests
         Assert.Contains(expectedFragment, exception.Message);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Una_componente_fuera_del_rango_del_msx_se_rechaza()
     {
         // La F es hexadecimal válida pero el MSX sólo llega al 7.
@@ -109,7 +110,7 @@ public class PaletteSerializerTests
         Assert.Contains("color 3", exception.Message);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Un_digito_que_no_es_hexadecimal_se_rechaza()
     {
         string json = BuildJson(colorAt3: """{"rgb":"1Z1"}""");
@@ -119,7 +120,7 @@ public class PaletteSerializerTests
         Assert.Contains("hexadecimal", exception.Message);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Un_rgb_de_longitud_equivocada_se_rechaza()
     {
         string json = BuildJson(colorAt3: """{"rgb":"1234"}""");
@@ -127,7 +128,7 @@ public class PaletteSerializerTests
         Assert.Throws<FileFormatException>(() => PaletteSerializer.Deserialize(json));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Un_fichero_de_una_version_mas_nueva_se_rechaza()
     {
         string json = BuildJson(colorAt3: """{"rgb":"111"}""", version: PaletteSerializer.FormatVersion + 1);
@@ -137,7 +138,7 @@ public class PaletteSerializerTests
         Assert.Contains("versión", exception.Message);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Una_paleta_sin_nombre_recibe_uno_por_defecto()
     {
         string json = BuildJson(colorAt3: """{"rgb":"111"}""", name: "");

@@ -12,7 +12,7 @@ namespace MSX_SpritesEditor.Tests;
 /// </summary>
 public class ReferenceImageSlicerTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void Una_imagen_que_cabe_en_el_lienzo_del_grupo_entra_de_una_pieza()
     {
         IReadOnlyList<PixelRect> cells = ReferenceImageSlicer.Slice(new PixelSize(46, 46), cellSize: 16);
@@ -22,7 +22,7 @@ public class ReferenceImageSlicerTests
         Assert.Equal(new PixelRect(0, 0, 46, 46), cells[0]);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Una_imagen_mas_pequena_conserva_su_tamano()
     {
         IReadOnlyList<PixelRect> cells = ReferenceImageSlicer.Slice(new PixelSize(20, 12), cellSize: 16);
@@ -35,7 +35,7 @@ public class ReferenceImageSlicerTests
     /// La condición es que quepa por los dos lados. Una tira larga y baja se trocea
     /// aunque sea de 20 pixeles de alto, que si no cada fondo sería la tira entera.
     /// </summary>
-    [Fact]
+    [AvaloniaFact]
     public void Basta_con_pasarse_por_un_lado_para_que_se_trocee()
     {
         IReadOnlyList<PixelRect> cells = ReferenceImageSlicer.Slice(new PixelSize(200, 20), cellSize: 16);
@@ -47,7 +47,7 @@ public class ReferenceImageSlicerTests
         Assert.Equal(new PixelSize(8, 4), cells[25].Size);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Una_hoja_multiplo_del_tamano_de_celda_sale_exacta()
     {
         IReadOnlyList<PixelRect> cells = ReferenceImageSlicer.Slice(new PixelSize(64, 48), cellSize: 16);
@@ -65,7 +65,7 @@ public class ReferenceImageSlicerTests
     /// Lo que sobra en los bordes se coge recortado en vez de tirarlo: en una hoja de
     /// sprites el último trozo suele ser justo el que hace falta.
     /// </summary>
-    [Fact]
+    [AvaloniaFact]
     public void Los_bordes_que_no_llegan_a_la_celda_entera_salen_recortados()
     {
         IReadOnlyList<PixelRect> cells = ReferenceImageSlicer.Slice(new PixelSize(50, 40), cellSize: 16);
@@ -77,7 +77,7 @@ public class ReferenceImageSlicerTests
         Assert.Equal(new PixelRect(48, 32, 2, 8), cells[11]);   // la esquina, recortada dos veces
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Una_celda_mayor_que_la_imagen_deja_una_sola_celda_con_la_imagen_entera()
     {
         IReadOnlyList<PixelRect> cells = ReferenceImageSlicer.Slice(new PixelSize(100, 60), cellSize: 128);
@@ -86,12 +86,12 @@ public class ReferenceImageSlicerTests
         Assert.Equal(new PixelRect(0, 0, 100, 60), cells[0]);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void Un_tamano_de_celda_invalido_no_pasa_desapercibido()
         => Assert.Throws<ArgumentOutOfRangeException>(
             () => ReferenceImageSlicer.Slice(new PixelSize(100, 100), cellSize: 0));
 
-    [Fact]
+    [AvaloniaFact]
     public void Una_imagen_vacia_no_da_celdas()
         => Assert.Empty(ReferenceImageSlicer.Slice(new PixelSize(0, 0), cellSize: 16));
 }
