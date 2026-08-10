@@ -1,0 +1,43 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="220"
+        x:Class="MSX_SpritesEditor.Views.CellSizeWindow"
+        Title="Tamaño de celda"
+        SizeToContent="WidthAndHeight"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+
+  <Grid Margin="20" RowDefinitions="Auto,Auto,Auto,Auto" MinWidth="340">
+    <TextBlock x:Name="HeadingText" Grid.Row="0" FontWeight="Bold" Margin="0,0,8,8" />
+
+    <TextBlock x:Name="MessageText" Grid.Row="1"
+               TextWrapping="Wrap" MaxWidth="380" Margin="0,0,0,12" />
+
+    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
+      <NumericUpDown x:Name="SizeBox" Width="120"
+                     Minimum="1" Increment="1"
+                     FormatString="0"
+                     ToolTip.Tip="Lado de la celda en pixeles" />
+
+      <!-- Los de siempre a un clic; el resto se teclea. -->
+      <Button Content="8" Width="36" HorizontalContentAlignment="Center" Click="OnPreset" Tag="8" />
+      <Button Content="16" Width="36" HorizontalContentAlignment="Center" Click="OnPreset" Tag="16" />
+      <Button Content="24" Width="36" HorizontalContentAlignment="Center" Click="OnPreset" Tag="24" />
+      <Button Content="32" Width="36" HorizontalContentAlignment="Center" Click="OnPreset" Tag="32" />
+    </StackPanel>
+
+    <StackPanel Grid.Row="3" Orientation="Horizontal"
+                HorizontalAlignment="Right" Spacing="8" Margin="0,20,0,0">
+      <Button x:Name="ConfirmButton" Content="Cargar" Width="100"
+              HorizontalContentAlignment="Center"
+              Click="OnConfirm" />
+      <Button Content="Cancelar" Width="100"
+              HorizontalContentAlignment="Center"
+              IsCancel="True" IsDefault="True"
+              Click="OnCancel" />
+    </StackPanel>
+  </Grid>
+</Window>

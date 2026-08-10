@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Avalonia;
 using MSX_SpritesEditor.Entities;
 using MSX_SpritesEditor.Services;
 
@@ -36,6 +37,12 @@ public partial class MainWindowViewModel : ObservableObject
         };
 
         Palettes.Palettes.CollectionChanged += (_, _) => RefreshPaletteCommands();
+
+        Backgrounds.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(ReferenceImageLibrary.SelectedImage))
+                DeleteBackgroundCommand.NotifyCanExecuteChanged();
+        };
     }
 
     private void RefreshPaletteCommands()
@@ -49,6 +56,12 @@ public partial class MainWindowViewModel : ObservableObject
     /// tilesets y los mapas, dibujan con la paleta activa de aquí.
     /// </summary>
     public PaletteLibrary Palettes { get; } = new();
+
+    /// <summary>
+    /// Imagenes de referencia que se pueden poner de fondo. Recurso del espacio de
+    /// trabajo, como las paletas: se cargan una vez y las usa quien quiera.
+    /// </summary>
+    public ReferenceImageLibrary Backgrounds { get; } = new();
 
     /// <summary>Se reparte a los paneles que necesiten confirmar algo destructivo.</summary>
     public IDialogService Dialogs { get; }
@@ -65,7 +78,7 @@ public partial class MainWindowViewModel : ObservableObject
     /// <summary>Abre un banco en una pestaña nueva y lo cuelga del árbol.</summary>
     public SpritesEditorViewModel OpenSpriteBank(SpriteBank bank, int backgroundColorIndex = 1)
     {
-        var panel = new SpritesEditorViewModel(bank, Palettes, Dialogs)
+        var panel = new SpritesEditorViewModel(bank, Palettes, Dialogs, Backgrounds)
         {
             TagId = $"spb{CurrentSpriteBankCounter}",
             Header = $"{bank.Name} (SP)",
@@ -100,7 +113,7 @@ public partial class MainWindowViewModel : ObservableObject
             // La paleta va dentro: los sprites guardan indices, y sin ella el banco se
             // abriria con los colores que hubiera puestos en ese momento.
             string json = SpriteBankSerializer.Serialize(
-                editor.SpritesBank, editor.ColorPalette, editor.BackgroundColorIndex);
+                editor.SpritesBank, editor.ColorPalette, editor.BackgroundColorIndex, [.. Backgrounds.Images]);
 
             await File.WriteAllTextAsync(path, json);
         }
@@ -125,6 +138,7 @@ public partial class MainWindowViewModel : ObservableObject
             LoadedSpriteBank loaded = SpriteBankSerializer.Deserialize(json);
 
             Palettes.Activate(loaded.Palette);
+            await LoadBackgroundsAsync(loaded.Backgrounds);
             OpenSpriteBank(loaded.Bank, loaded.BackgroundColorIndex);
         }
         catch (FileFormatException exception)
@@ -173,6 +187,103 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     private bool CanDeletePalette() => Palettes.CanRemove(Palettes.ActivePalette);
+
+    /// <summary>
+    /// Carga un png o jpg como imagen de referencia. Si no cabe en el lienzo de un grupo
+    /// se pregunta con qué lado trocearla, y cada trozo pasa a ser un fondo.
+    /// </summary>
+    [RelayCommand]
+    private async Task LoadBackgroundAsync()
+    {
+        string? path = await Dialogs.PickFileToOpenAsync("Cargar imagen de referencia", PickerFileKind.Image);
+        if (path is null)
+            return;
+
+        try
+        {
+            PixelSize size = ReferenceImage.Measure(path);
+
+            int cellSize = 0;
+
+            if (size.Width > ReferenceImageSlicer.SingleTileMax || size.Height > ReferenceImageSlicer.SingleTileMax)
+            {
+                int? answer = await Dialogs.AskCellSizeAsync(
+                    "Tamaño de celda",
+                    $"«{Path.GetFileName(path)}» mide {size.Width}x{size.Height}, así que se carga como hoja de sprites. "
+                    + "¿De qué lado son las celdas? Lo que sobre en los bordes se coge recortado.",
+                    suggested: 16,
+                    maximum: Math.Max(size.Width, size.Height));
+
+                if (answer is not { } chosen)
+                    return;
+
+                cellSize = chosen;
+            }
+
+            Backgrounds.Load(path, cellSize);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo cargar la imagen", exception.Message);
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanDeleteBackground))]
+    private async Task DeleteBackgroundAsync()
+    {
+        if (Backgrounds.SelectedImage is not { } image)
+            return;
+
+        // Se borra la imagen entera, no un fondo suelto: de una hoja de sprites salen
+        // decenas y quitarlos de uno en uno no serviría de nada. Por eso se dice cuántos
+        // se lleva por delante.
+        bool confirmed = await Dialogs.ConfirmAsync(
+            "Eliminar imagen de referencia",
+            $"Se van a eliminar los {image.Tiles.Count} fondos de «{Path.GetFileName(image.Path)}». "
+            + "Los grupos que los usen se quedarán sin fondo.",
+            "Eliminar");
+
+        if (!confirmed)
+            return;
+
+        Backgrounds.Remove(image);
+    }
+
+    private bool CanDeleteBackground() => Backgrounds.SelectedImage is not null;
+
+    /// <summary>
+    /// Recarga las imágenes que traía un banco. Que falte una no impide abrirlo: los
+    /// grupos que la usaran se quedan sin fondo y ya está.
+    /// </summary>
+    private async Task LoadBackgroundsAsync(IReadOnlyList<BackgroundImageRef> references)
+    {
+        var missing = new List<string>();
+
+        foreach (BackgroundImageRef reference in references)
+        {
+            if (Backgrounds.Images.Any(image =>
+                    string.Equals(image.Path, reference.Path, StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+
+            try
+            {
+                Backgrounds.Load(reference.Path, reference.CellSize);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+            {
+                missing.Add(Path.GetFileName(reference.Path));
+            }
+        }
+
+        if (missing.Count > 0)
+        {
+            await Dialogs.ShowMessageAsync(
+                "Faltan imágenes de referencia",
+                $"No se han podido cargar: {string.Join(", ", missing)}. El banco se abre igual, sin esos fondos.");
+        }
+    }
 
     [RelayCommand]
     private async Task SavePaletteAsync()

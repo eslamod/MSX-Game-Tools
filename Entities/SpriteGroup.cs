@@ -21,6 +21,10 @@ public partial class SpriteGroup : ObservableObject
     [ObservableProperty]
     private string _name;
 
+    /// <summary>Imagen de referencia que se ve detrás de la composición de este grupo.</summary>
+    [ObservableProperty]
+    private BackgroundRef _background = BackgroundRef.None;
+
     public SpriteGroup(string name)
     {
         _name = name;

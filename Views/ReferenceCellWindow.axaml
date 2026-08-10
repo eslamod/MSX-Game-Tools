@@ -1,0 +1,65 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="640" d:DesignHeight="560"
+        x:Class="MSX_SpritesEditor.Views.ReferenceCellWindow"
+        Title="Elegir celda"
+        SizeToContent="WidthAndHeight"
+        CanResize="True"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+
+  <Window.Resources>
+    <!-- Una casilla por celda de la retícula, encima de la imagen. Sin relleno para no
+         taparla, y al pasar el ratón se tiñe para que se vea cuál vas a coger. -->
+    <ControlTheme x:Key="CellBox" TargetType="Border">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="#40FFFFFF" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Cursor" Value="Hand" />
+
+      <Style Selector="^:pointerover">
+        <Setter Property="Background" Value="#60FFC107" />
+        <Setter Property="BorderBrush" Value="#FFC107" />
+        <Setter Property="BorderThickness" Value="2" />
+      </Style>
+    </ControlTheme>
+  </Window.Resources>
+
+  <DockPanel Margin="12" MaxWidth="900" MaxHeight="700">
+
+    <TextBlock x:Name="HeadingText" DockPanel.Dock="Top"
+               FontWeight="Bold" Margin="0,0,0,8" />
+
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
+      <TextBlock x:Name="HoverText" VerticalAlignment="Center"
+                 FontFamily="Consolas" Margin="0,0,12,0" />
+      <Button Content="Sin fondo" Width="100" HorizontalContentAlignment="Center"
+              Click="OnClearBackground"
+              ToolTip.Tip="Quitar la imagen de referencia" />
+      <Button Content="Cancelar" Width="100" HorizontalContentAlignment="Center"
+              IsCancel="True" IsDefault="True" Click="OnCancel" />
+    </StackPanel>
+
+    <!-- Zoom entero: una hoja de 16x16 a tamaño real no hay quien la señale. -->
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="0,0,0,8">
+      <TextBlock Text="Zoom" VerticalAlignment="Center" Margin="0,0,4,0" />
+      <Button Content="x1" Width="36" HorizontalContentAlignment="Center" Click="OnZoom" Tag="1" />
+      <Button Content="x2" Width="36" HorizontalContentAlignment="Center" Click="OnZoom" Tag="2" />
+      <Button Content="x4" Width="36" HorizontalContentAlignment="Center" Click="OnZoom" Tag="4" />
+      <Button Content="x8" Width="36" HorizontalContentAlignment="Center" Click="OnZoom" Tag="8" />
+    </StackPanel>
+
+    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+      <Panel x:Name="SheetPanel" Background="#202020"
+             HorizontalAlignment="Left" VerticalAlignment="Top">
+        <Image x:Name="SheetImage"
+               HorizontalAlignment="Left" VerticalAlignment="Top"
+               RenderOptions.BitmapInterpolationMode="None" />
+        <Canvas x:Name="CellOverlay" />
+      </Panel>
+    </ScrollViewer>
+  </DockPanel>
+</Window>

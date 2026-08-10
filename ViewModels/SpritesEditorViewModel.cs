@@ -14,6 +14,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
     private readonly SpriteBank _spriteBank;
     private readonly PaletteLibrary _palettes;
     private readonly IDialogService _dialogs;
+    private readonly ReferenceImageLibrary _backgrounds;
 
     /// <summary>La paleta a cuyos cambios de color estamos suscritos ahora mismo.</summary>
     private ColorPalette _watchedPalette;
@@ -72,12 +73,31 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
     /// Para confirmar el borrado de un sprite. Sin él no se pregunta nada, que es lo
     /// que quieren los tests.
     /// </param>
-    public SpritesEditorViewModel(SpriteBank bank, PaletteLibrary palettes, IDialogService? dialogs = null)
+    /// <param name="backgrounds">
+    /// Imágenes de referencia del espacio de trabajo. Sin ellas el editor funciona
+    /// igual, simplemente no hay fondos que elegir.
+    /// </param>
+    public SpritesEditorViewModel(
+        SpriteBank bank,
+        PaletteLibrary palettes,
+        IDialogService? dialogs = null,
+        ReferenceImageLibrary? backgrounds = null)
     {
         _spriteBank = bank;
         _palettes = palettes;
         _dialogs = dialogs ?? new SilentDialogService();
+        _backgrounds = backgrounds ?? new ReferenceImageLibrary();
         _watchedPalette = palettes.ActivePalette;
+
+        // Cargar o borrar una imagen aparece y desaparece los controles de fondo.
+        _backgrounds.Tiles.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(HasBackgrounds));
+            OnPropertyChanged(nameof(PatternBackgroundTile));
+
+            foreach (SpriteGroupViewModel group in Groups)
+                RenderGroup(group);
+        };
 
         _palettes.PropertyChanged += OnLibraryPropertyChanged;
         _watchedPalette.ColorsChanged += OnActivePaletteColorsChanged;
@@ -95,6 +115,13 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
         }
 
         _selectedThumbnail = _currentSprite.ImageMini;
+
+        // El fondo lo guarda cada patrón, así que el selector lee y escribe siempre en
+        // el que esté en el lienzo, no en uno fijo.
+        PatternBackground = new BackgroundSelectionViewModel(
+            _backgrounds, _dialogs, () => CurrentSprite.Background, reference => CurrentSprite.Background = reference);
+
+        PatternBackground.Changed += () => OnPropertyChanged(nameof(PatternBackgroundTile));
 
         for (int row = 0; row < Sprite.Rows; row++)
         {
@@ -226,7 +253,15 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
     /// <summary>Engancha un grupo del banco al panel y lo deja dibujado.</summary>
     private SpriteGroupViewModel TrackGroup(SpriteGroup group)
     {
-        var viewModel = new SpriteGroupViewModel(group, _spriteBank, _palettes);
+        var viewModel = new SpriteGroupViewModel(group, _spriteBank, _palettes, _backgrounds, _dialogs);
+
+        // Cambiar de fondo cambia cómo se compone: con referencia el hueco va
+        // transparente, y sin ella vuelve al color de fondo.
+        viewModel.PropertyChanged += (sender, e) =>
+        {
+            if (e.PropertyName == nameof(SpriteGroupViewModel.BackgroundTile) && sender is SpriteGroupViewModel changed)
+                RenderGroup(changed);
+        };
 
         group.Changed += OnGroupChanged;
         viewModel.EditTargetChanged += OnGroupEditTargetChanged;
@@ -264,6 +299,26 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
 
     private void RenderGroup(SpriteGroupViewModel group) =>
         group.Render(ColorPalette, BackgroundColor.Color);
+
+    /// <summary>Imágenes de referencia disponibles, para los desplegables de fondo.</summary>
+    public ReferenceImageLibrary Backgrounds => _backgrounds;
+
+    /// <summary>Sin ninguna cargada, los controles de fondo no se enseñan.</summary>
+    public bool HasBackgrounds => _backgrounds.Tiles.Count > 0;
+
+    /// <summary>Fondo que se ve detrás del lienzo mientras se dibuja este patrón.</summary>
+    public ReferenceTile? PatternBackgroundTile
+    {
+        get => PatternBackground.Tile;
+        set => PatternBackground.Apply(value?.Ref ?? BackgroundRef.None);
+    }
+
+    /// <summary>El desplegable de imágenes y el botón de celda del lienzo.</summary>
+    public BackgroundSelectionViewModel PatternBackground { get; private set; } = null!;
+
+    /// <summary>Opacidad del sprite sobre el fondo, en el lienzo de edición.</summary>
+    [ObservableProperty]
+    private double _patternOpacity = 1.0;
 
     private void RenderAllGroups()
     {

@@ -13,6 +13,12 @@ public sealed class DialogService(Window owner) : IDialogService
         MimeTypes = ["application/json"],
     };
 
+    private static FilePickerFileType ImageFileType => new("Imagen")
+    {
+        Patterns = ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif"],
+        MimeTypes = ["image/*"],
+    };
+
     public async Task<bool> ConfirmAsync(string title, string message, string confirmLabel)
     {
         var dialog = new ConfirmationWindow(title, message, confirmLabel);
@@ -27,13 +33,27 @@ public sealed class DialogService(Window owner) : IDialogService
         await dialog.ShowDialog(owner);
     }
 
-    public async Task<string?> PickFileToOpenAsync(string title)
+    public async Task<int?> AskCellSizeAsync(string title, string message, int suggested, int maximum)
+    {
+        var dialog = new CellSizeWindow(title, message, suggested, maximum);
+
+        return await dialog.ShowDialog<int?>(owner);
+    }
+
+    public async Task<int?> PickReferenceCellAsync(Entities.ReferenceImage image, int currentCell)
+    {
+        var dialog = new ReferenceCellWindow(image, currentCell);
+
+        return await dialog.ShowDialog<int?>(owner);
+    }
+
+    public async Task<string?> PickFileToOpenAsync(string title, PickerFileKind kind = PickerFileKind.Json)
     {
         IReadOnlyList<IStorageFile> files = await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = title,
             AllowMultiple = false,
-            FileTypeFilter = [PaletteFileType],
+            FileTypeFilter = [kind == PickerFileKind.Image ? ImageFileType : PaletteFileType],
         });
 
         return files.Count > 0 ? files[0].TryGetLocalPath() : null;

@@ -14,4 +14,7 @@ public class Sprite
     public SpriteRow[] ArraySpriteRows { get; }
 
     public ImageMini? ImageMini { get; set; }
+
+    /// <summary>Imagen de referencia que se ve detras del lienzo al editar este patron.</summary>
+    public BackgroundRef Background { get; set; } = BackgroundRef.None;
 }

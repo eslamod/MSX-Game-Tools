@@ -3,6 +3,7 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MSX_SpritesEditor.Entities;
+using MSX_SpritesEditor.Services;
 
 namespace MSX_SpritesEditor.ViewModels;
 
@@ -11,6 +12,7 @@ public partial class SpriteGroupViewModel : ObservableObject
 {
     private readonly SpriteBank _bank;
     private readonly PaletteLibrary _palettes;
+    private readonly ReferenceImageLibrary _backgrounds;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(RemoveMemberCommand))]
@@ -20,11 +22,22 @@ public partial class SpriteGroupViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(MemberColor))]
     private SpriteGroupMember? _selectedMember;
 
-    public SpriteGroupViewModel(SpriteGroup group, SpriteBank bank, PaletteLibrary palettes)
+    public SpriteGroupViewModel(
+        SpriteGroup group,
+        SpriteBank bank,
+        PaletteLibrary palettes,
+        ReferenceImageLibrary backgrounds,
+        IDialogService dialogs)
     {
         Group = group;
         _bank = bank;
         _palettes = palettes;
+        _backgrounds = backgrounds;
+
+        Background = new BackgroundSelectionViewModel(
+            backgrounds, dialogs, () => group.Background, reference => group.Background = reference);
+
+        Background.Changed += () => OnPropertyChanged(nameof(BackgroundTile));
         Preview = SpriteGroupRenderer.CreatePreview();
 
         for (int row = 0; row < Sprite.Rows; row++)
@@ -54,6 +67,33 @@ public partial class SpriteGroupViewModel : ObservableObject
     public event Action<SpriteGroupMember>? EditTargetChanged;
 
     public SpriteGroup Group { get; }
+
+    /// <summary>Los fondos disponibles, para el desplegable del panel.</summary>
+    public ReferenceImageLibrary Backgrounds => _backgrounds;
+
+    /// <summary>
+    /// Imagen de referencia que se ve detrás de la composición.
+    /// </summary>
+    /// <remarks>
+    /// El grupo guarda la ruta y el número de celda, no la celda: es lo que sobrevive a
+    /// cerrar el editor. Aquí se resuelve contra la biblioteca, y si esa imagen ya no
+    /// está cargada sale <c>null</c> y el grupo se dibuja sin fondo.
+    /// </remarks>
+    public ReferenceTile? BackgroundTile
+    {
+        get => Background.Tile;
+        set => Background.Apply(value?.Ref ?? BackgroundRef.None);
+    }
+
+    /// <summary>El desplegable de imágenes y el botón de celda del panel.</summary>
+    public BackgroundSelectionViewModel Background { get; }
+
+    /// <summary>
+    /// Opacidad de los sprites sobre el fondo. Sirve para ver a la vez lo que estás
+    /// dibujando y el dibujo que hay debajo.
+    /// </summary>
+    [ObservableProperty]
+    private double _spriteOpacity = 1.0;
 
     /// <summary>La composición de los miembros, ya dibujada.</summary>
     public ImageMini Preview { get; }
@@ -146,8 +186,14 @@ public partial class SpriteGroupViewModel : ObservableObject
             EditTargetChanged?.Invoke(SelectedMember);
     }
 
-    public void Render(ColorPalette palette, Color background) =>
-        SpriteGroupRenderer.Render(Group, _bank, palette, background, Preview);
+    /// <remarks>
+    /// Con imagen de referencia el hueco se deja transparente en vez de pintarlo del
+    /// color de fondo. El renderizador ya trata igual las celdas vacías y el color 0,
+    /// que en el MSX es el transparente de verdad, así que con esto la composición pasa
+    /// a ser una capa que deja ver lo de debajo sin tocar nada más.
+    /// </remarks>
+    public void Render(ColorPalette palette, Color background) => SpriteGroupRenderer.Render(
+        Group, _bank, palette, Background.VisibleTile is null ? background : Colors.Transparent, Preview);
 
     /// <summary>
     /// Añade un sprite más con el mismo patrón que el seleccionado. Repetir el patrón

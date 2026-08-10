@@ -17,7 +17,27 @@ internal sealed class TestDialogService : IDialogService
     /// <summary>Ruta que devuelve el selector de guardar; <c>null</c> equivale a cancelar.</summary>
     public string? SavePath { get; init; }
 
+    /// <summary>Lo que contesta al preguntar el tamano de celda; <c>null</c> es cancelar.</summary>
+    public int? CellSize { get; init; }
+
     public int ConfirmCalls { get; private set; }
+
+    /// <summary>Celda que devuelve el selector de reticula; <c>null</c> es cancelar.</summary>
+    public int? PickedCell { get; set; }
+
+    public int CellSizeCalls { get; private set; }
+
+    public int PickCellCalls { get; private set; }
+
+    public MSX_SpritesEditor.Entities.ReferenceImage? LastPickCellImage { get; private set; }
+
+    public int LastPickCellCurrent { get; private set; }
+
+    public string LastCellSizeMessage { get; private set; } = string.Empty;
+
+    public int LastCellSizeMaximum { get; private set; }
+
+    public PickerFileKind LastPickerKind { get; private set; }
 
     public string LastConfirmMessage { get; private set; } = string.Empty;
 
@@ -44,7 +64,30 @@ internal sealed class TestDialogService : IDialogService
         return Task.CompletedTask;
     }
 
-    public Task<string?> PickFileToOpenAsync(string title) => Task.FromResult(OpenPath);
+    public Task<string?> PickFileToOpenAsync(string title, PickerFileKind kind = PickerFileKind.Json)
+    {
+        LastPickerKind = kind;
+
+        return Task.FromResult(OpenPath);
+    }
+
+    public Task<int?> PickReferenceCellAsync(MSX_SpritesEditor.Entities.ReferenceImage image, int currentCell)
+    {
+        PickCellCalls++;
+        LastPickCellImage = image;
+        LastPickCellCurrent = currentCell;
+
+        return Task.FromResult(PickedCell);
+    }
+
+    public Task<int?> AskCellSizeAsync(string title, string message, int suggested, int maximum)
+    {
+        CellSizeCalls++;
+        LastCellSizeMessage = message;
+        LastCellSizeMaximum = maximum;
+
+        return Task.FromResult(CellSize);
+    }
 
     public Task<string?> PickFileToSaveAsync(string title, string suggestedFileName)
     {

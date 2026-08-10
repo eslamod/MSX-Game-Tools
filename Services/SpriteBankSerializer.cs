@@ -26,8 +26,18 @@ public static class SpriteBankSerializer
 
     private const int PatternDigits = 4; // 16 columnas, cuatro dígitos hexadecimales
 
-    public static string Serialize(SpriteBank bank, ColorPalette palette, int backgroundColorIndex) =>
-        JsonSerializer.Serialize(ToFile(bank, palette, backgroundColorIndex), PaletteSerializer.Options);
+    /// <param name="backgrounds">
+    /// Las imágenes de referencia cargadas. Se guarda la ruta y el troceado, no la
+    /// imagen: son una ayuda para dibujar, y meter un png en base64 dentro del banco lo
+    /// dejaría ilegible y enorme para algo que no forma parte de lo que se exporta.
+    /// </param>
+    public static string Serialize(
+        SpriteBank bank,
+        ColorPalette palette,
+        int backgroundColorIndex,
+        IReadOnlyList<ReferenceImage>? backgrounds = null) =>
+        JsonSerializer.Serialize(
+            ToFile(bank, palette, backgroundColorIndex, backgrounds ?? []), PaletteSerializer.Options);
 
     /// <exception cref="FileFormatException">El contenido no es un banco válido.</exception>
     public static LoadedSpriteBank Deserialize(string json)
@@ -60,25 +70,48 @@ public static class SpriteBankSerializer
 
         int background = file.BackgroundColor is >= 1 and < ColorPalette.Size ? file.BackgroundColor : 1;
 
-        return new LoadedSpriteBank(bank, palette, background);
+        List<BackgroundImageRef> backgrounds =
+        [
+            .. (file.Backgrounds ?? [])
+                .Where(image => !string.IsNullOrWhiteSpace(image.Path))
+                .Select(image => new BackgroundImageRef(image.Path!, image.CellSize)),
+        ];
+
+        return new LoadedSpriteBank(bank, palette, background, backgrounds);
     }
 
-    private static BankFile ToFile(SpriteBank bank, ColorPalette palette, int backgroundColorIndex) => new(
+    private static BankFile ToFile(
+        SpriteBank bank,
+        ColorPalette palette,
+        int backgroundColorIndex,
+        IReadOnlyList<ReferenceImage> backgrounds) => new(
         FormatVersion,
         bank.Name,
         bank.Type.ToString(),
         backgroundColorIndex,
         PaletteSerializer.ToFile(palette),
         [.. bank.SpritesList.Select(ToFile)],
-        [.. bank.Groups.Select(ToFile)]);
+        [.. bank.Groups.Select(ToFile)],
+        [.. backgrounds.Select(image => new ReferenceFile(image.Path, image.CellSize))]);
 
     private static PatternFile ToFile(Sprite pattern) => new(
         [.. pattern.ArraySpriteRows.Select(row => RowToHex(row.ArrayColumns))],
-        string.Concat(pattern.ArraySpriteRows.Select(row => row.Color.ToString("X1"))));
+        string.Concat(pattern.ArraySpriteRows.Select(row => row.Color.ToString("X1"))),
+        ToFile(pattern.Background));
 
     private static GroupFile ToFile(SpriteGroup group) => new(
         group.Name,
-        [.. group.Members.Select(ToFile)]);
+        [.. group.Members.Select(ToFile)],
+        ToFile(group.Background));
+
+    /// <summary>Sin fondo no se escribe nada, para no llenar el fichero de nulos.</summary>
+    private static BackgroundFile? ToFile(BackgroundRef reference) =>
+        reference.HasValue ? new BackgroundFile(reference.Path, reference.Cell) : null;
+
+    private static BackgroundRef FromFile(BackgroundFile? file) =>
+        file?.Path is { Length: > 0 } path && file.Cell >= 0
+            ? new BackgroundRef(path, file.Cell)
+            : BackgroundRef.None;
 
     private static MemberFile ToFile(SpriteGroupMember member) => new(
         member.PatternIndex,
@@ -136,6 +169,8 @@ public static class SpriteBankSerializer
             HexToRow(file.Rows![row], pattern.ArraySpriteRows[row].ArrayColumns, patternIndex, row);
             pattern.ArraySpriteRows[row].Color = ParseColor(file.Colors![row], $"el patrón {patternIndex}, línea {row}");
         }
+
+        pattern.Background = FromFile(file.Background);
     }
 
     private static void ReadGroup(GroupFile file, SpriteBank bank)
@@ -151,6 +186,7 @@ public static class SpriteBankSerializer
                              ?? throw new FileFormatException($"El fichero trae más de {SpriteBank.MaxGroups} grupos.");
 
         group.Name = string.IsNullOrWhiteSpace(file.Name) ? group.Name : file.Name;
+        group.Background = FromFile(file.Background);
 
         ReadMember(file.Members[0], group.Members[0], file.Name);
 
@@ -252,11 +288,24 @@ public static class SpriteBankSerializer
         int BackgroundColor,
         PaletteSerializer.PaletteFile? Palette,
         IReadOnlyList<PatternFile>? Patterns,
-        IReadOnlyList<GroupFile>? Groups);
+        IReadOnlyList<GroupFile>? Groups,
+        IReadOnlyList<ReferenceFile>? Backgrounds);
 
-    private sealed record PatternFile(IReadOnlyList<string>? Rows, string? Colors);
+    /// <summary>Una imagen de referencia: dónde estaba y cómo se troceó.</summary>
+    private sealed record ReferenceFile(string? Path, int CellSize);
 
-    private sealed record GroupFile(string? Name, IReadOnlyList<MemberFile>? Members);
+    private sealed record PatternFile(
+        IReadOnlyList<string>? Rows,
+        string? Colors,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] BackgroundFile? Background);
+
+    private sealed record GroupFile(
+        string? Name,
+        IReadOnlyList<MemberFile>? Members,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] BackgroundFile? Background);
+
+    /// <summary>A qué celda de qué imagen apunta un grupo o un patrón.</summary>
+    private sealed record BackgroundFile(string? Path, int Cell);
 
     private sealed record MemberFile(
         int Pattern,
@@ -273,4 +322,14 @@ public static class SpriteBankSerializer
 }
 
 /// <summary>Lo que sale de leer un fichero de banco.</summary>
-public sealed record LoadedSpriteBank(SpriteBank Bank, ColorPalette Palette, int BackgroundColorIndex);
+public sealed record LoadedSpriteBank(
+    SpriteBank Bank,
+    ColorPalette Palette,
+    int BackgroundColorIndex,
+    IReadOnlyList<BackgroundImageRef> Backgrounds);
+
+/// <summary>
+/// Una imagen de referencia por cargar. Va aparte del banco porque cargarla toca disco
+/// y puede fallar sola, sin que eso impida abrir el banco.
+/// </summary>
+public sealed record BackgroundImageRef(string Path, int CellSize);

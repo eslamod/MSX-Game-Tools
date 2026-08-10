@@ -66,6 +66,31 @@
                 ToolTip.Tip="Eliminar la paleta activa" />
       </StackPanel>
 
+      <!-- Imagenes de referencia. Aqui va la gestion (cargar y borrar el fichero), no
+           la eleccion: que fondo lleva cada grupo se decide en el panel del grupo,
+           porque es estado suyo y no del espacio de trabajo. -->
+      <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="16,2,4,2">
+        <TextBlock Text="Fondo" VerticalAlignment="Center" Margin="0,0,6,0" />
+        <ComboBox Width="160"
+                  ItemsSource="{Binding Backgrounds.Images}"
+                  SelectedItem="{Binding Backgrounds.SelectedImage}"
+                  ToolTip.Tip="Imagenes de referencia cargadas">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="entities:ReferenceImage">
+              <TextBlock Text="{Binding DisplayName}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+        <Button Content="+" Width="28" Margin="6,0,0,0"
+                HorizontalContentAlignment="Center"
+                Command="{Binding LoadBackgroundCommand}"
+                ToolTip.Tip="Cargar una imagen de referencia" />
+        <Button Content="-" Width="28" Margin="2,0,0,0"
+                HorizontalContentAlignment="Center"
+                Command="{Binding DeleteBackgroundCommand}"
+                ToolTip.Tip="Eliminar la imagen seleccionada y todos sus fondos" />
+      </StackPanel>
+
       <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
         <Button Content="Add Map" Width="80" Margin="4" />
         <Button Content="Add Tileset" Width="100" Margin="4" />

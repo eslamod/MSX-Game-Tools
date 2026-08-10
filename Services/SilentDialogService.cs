@@ -12,7 +12,14 @@ public sealed class SilentDialogService : IDialogService
 
     public Task ShowMessageAsync(string title, string message) => Task.CompletedTask;
 
-    public Task<string?> PickFileToOpenAsync(string title) => Task.FromResult<string?>(null);
+    public Task<string?> PickFileToOpenAsync(string title, PickerFileKind kind = PickerFileKind.Json) =>
+        Task.FromResult<string?>(null);
+
+    public Task<int?> AskCellSizeAsync(string title, string message, int suggested, int maximum) =>
+        Task.FromResult<int?>(null);
+
+    public Task<int?> PickReferenceCellAsync(Entities.ReferenceImage image, int currentCell) =>
+        Task.FromResult<int?>(null);
 
     public Task<string?> PickFileToSaveAsync(string title, string suggestedFileName) =>
         Task.FromResult<string?>(null);
