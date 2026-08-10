@@ -92,15 +92,19 @@ public static class SpriteGroupRenderer
 
             if (!attributes.CombineColor)
             {
-                DrawLine(indices, pattern, member, row, canvasY, attributes.Color, combine: false);
+                if (member.IsVisible)
+                    DrawLine(indices, pattern, member, row, canvasY, attributes.Color, combine: false);
 
-                // Basta con que su línea caiga aquí, aunque no pinte ningún pixel.
+                // Basta con que su línea caiga aquí, aunque no pinte ningún pixel. Y
+                // sigue habilitando aunque esté oculto: ocultar un plano para mirar los
+                // demás no puede hacer que a los demás se les caigan sus líneas con CC,
+                // porque entonces no estarías viendo los demás, estarías viendo otra cosa.
                 enabledByHigherPriority = true;
 
                 continue;
             }
 
-            if (enabledByHigherPriority)
+            if (enabledByHigherPriority && member.IsVisible)
                 DrawLine(indices, pattern, member, row, canvasY, attributes.Color, combine: true);
         }
     }

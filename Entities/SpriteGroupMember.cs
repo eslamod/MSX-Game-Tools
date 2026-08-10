@@ -20,6 +20,17 @@ public partial class SpriteGroupMember : ObservableObject
     private int _offsetX;
     private int _offsetY;
 
+    /// <summary>
+    /// Si este plano se dibuja en la composición.
+    /// </summary>
+    /// <remarks>
+    /// Ayuda de edición, no un atributo del hardware: en el VDP un plano o está o no
+    /// está. Por eso no se guarda en el banco ni sale en la exportación, y al abrir un
+    /// banco todos los planos se ven.
+    /// </remarks>
+    [ObservableProperty]
+    private bool _isVisible = true;
+
     public SpriteGroupMember(int patternIndex, Sprite pattern)
     {
         _patternIndex = patternIndex;

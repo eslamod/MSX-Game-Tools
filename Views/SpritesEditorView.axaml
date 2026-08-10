@@ -5,6 +5,7 @@
              xmlns:entities="clr-namespace:MSX_SpritesEditor.Entities"
              xmlns:vm="clr-namespace:MSX_SpritesEditor.ViewModels"
              xmlns:views="clr-namespace:MSX_SpritesEditor.Views"
+             xmlns:converters="clr-namespace:MSX_SpritesEditor.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
              x:Class="MSX_SpritesEditor.Views.SpritesEditorView"
              x:DataType="vm:SpritesEditorViewModel">
@@ -37,6 +38,44 @@
            tienes el raton encima, debe seguir viendose roja. -->
       <Style Selector="^:selected /template/ Border#PART_Frame">
         <Setter Property="BorderBrush" Value="Red" />
+      </Style>
+    </ControlTheme>
+
+    <!-- Ojo de enseñar/ocultar. Dibujado y no un caracter: los emoji de ojo no estan
+         en todas las fuentes y saldrian como un cuadrado. Apagado se atenua y se tacha,
+         que a este tamaño se distingue mejor que un cambio de color. -->
+    <ControlTheme x:Key="EyeToggle" TargetType="ToggleButton">
+      <Setter Property="Width" Value="24" />
+      <Setter Property="Height" Value="16" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Name="PART_Root" Background="{TemplateBinding Background}">
+            <Canvas Name="PART_Eye" Width="18" Height="12"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+              <Path Data="M1,6 C4,1 14,1 17,6 C14,11 4,11 1,6 Z"
+                    Stroke="#303030" StrokeThickness="1.2" />
+              <Path Data="M9,3.6 A2.4,2.4 0 1,0 9,8.4 A2.4,2.4 0 1,0 9,3.6 Z"
+                    Fill="#303030" />
+              <Path Name="PART_Slash" Data="M1,11 L17,1"
+                    Stroke="#B00000" StrokeThickness="1.6" IsVisible="False" />
+            </Canvas>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+
+      <Style Selector="^:pointerover /template/ Border#PART_Root">
+        <Setter Property="Background" Value="#FFE9A8" />
+      </Style>
+
+      <Style Selector="^:not(:checked) /template/ Canvas#PART_Eye">
+        <Setter Property="Opacity" Value="0.45" />
+      </Style>
+
+      <Style Selector="^:not(:checked) /template/ Path#PART_Slash">
+        <Setter Property="IsVisible" Value="True" />
       </Style>
     </ControlTheme>
 
@@ -193,13 +232,110 @@
 
     <!-- Lienzo de edición 16x16 -->
     <Grid Grid.Row="1" Grid.Column="0">
+
+      <!-- La referencia va debajo del lienzo, centrada sobre los 16x16 y a la misma
+           escala que un pixel del sprite: si se estirara al hueco dejaria de
+           corresponderse con lo que se esta dibujando encima. Lo que la deja ver es la
+           opacidad del lienzo, porque el lienzo pinta un rectangulo por pixel, tambien
+           donde el sprite esta apagado. -->
+      <Panel x:Name="CanvasBackground"
+             HorizontalAlignment="Left" VerticalAlignment="Top"
+             IsVisible="{Binding PatternBackground.VisibleTile, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <Panel.Width>
+          <MultiBinding Converter="{x:Static converters:MultiplyConverter.Instance}">
+            <Binding Path="CellSize" RelativeSource="{RelativeSource AncestorType=views:SpritesEditorView}" />
+            <Binding Source="16" />
+          </MultiBinding>
+        </Panel.Width>
+        <Panel.Height>
+          <MultiBinding Converter="{x:Static converters:MultiplyConverter.Instance}">
+            <Binding Path="CellSize" RelativeSource="{RelativeSource AncestorType=views:SpritesEditorView}" />
+            <Binding Source="16" />
+          </MultiBinding>
+        </Panel.Height>
+
+        <Image Source="{Binding PatternBackground.VisibleTile.Image}"
+               HorizontalAlignment="Center" VerticalAlignment="Center"
+               RenderOptions.BitmapInterpolationMode="None">
+          <Image.Width>
+            <MultiBinding Converter="{x:Static converters:MultiplyConverter.Instance}">
+              <Binding Path="PatternBackground.VisibleTile.PixelWidth" />
+              <Binding Path="CellSize" RelativeSource="{RelativeSource AncestorType=views:SpritesEditorView}" />
+            </MultiBinding>
+          </Image.Width>
+          <Image.Height>
+            <MultiBinding Converter="{x:Static converters:MultiplyConverter.Instance}">
+              <Binding Path="PatternBackground.VisibleTile.PixelHeight" />
+              <Binding Path="CellSize" RelativeSource="{RelativeSource AncestorType=views:SpritesEditorView}" />
+            </MultiBinding>
+          </Image.Height>
+        </Image>
+      </Panel>
+
       <Canvas x:Name="CanvSprite"
               Background="Gray"
+              Opacity="{Binding PatternOpacity}"
               HorizontalAlignment="Left" VerticalAlignment="Top"
               PointerPressed="OnCanvasPointerPressed"
               PointerMoved="OnCanvasPointerMoved"
               PointerReleased="OnCanvasPointerReleased" />
     </Grid>
+
+    <!-- Fondo del patrón que se está dibujando. Se elige aquí y no en el panel del
+         grupo porque son dos preguntas distintas: qué escena hay detrás de una
+         composición, y qué dibujo estoy calcando en este sprite. -->
+    <!-- Mismo reparto que el panel del grupo: los tres controles en una fila y la
+         opacidad debajo. En una sola fila no caben en los 256 de la columna, y encima
+         la columna se estrecha o se ensancha con el zoom del lienzo. -->
+    <StackPanel Grid.Row="2" Grid.Column="0"
+                VerticalAlignment="Top" Margin="6,54,6,0"
+                IsVisible="{Binding HasBackgrounds}">
+
+      <TextBlock Text="Fondo" FontWeight="Bold" Margin="0,0,0,4" />
+
+      <Grid ColumnDefinitions="*,Auto,Auto">
+        <ComboBox Grid.Column="0" HorizontalAlignment="Stretch" FontSize="11"
+                  ItemsSource="{Binding Backgrounds.Images}"
+                  SelectedItem="{Binding PatternBackground.Image}"
+                  PlaceholderText="Sin fondo"
+                  ToolTip.Tip="Imagen de referencia detrás del lienzo">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="entities:ReferenceImage">
+              <TextBlock Text="{Binding DisplayName}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <!-- La celda se elige aqui y no en el desplegable: volver a elegir en un ComboBox
+             lo que ya estaba elegido no dispara nada, asi que sin este boton no habria
+             forma de cambiar de celda sin cambiar antes de imagen. -->
+        <Button Grid.Column="1"
+                Content="{Binding PatternBackground.CellLabel}"
+                MinWidth="52" Margin="4,0,0,0" FontFamily="Consolas" FontSize="11"
+                HorizontalContentAlignment="Center"
+                IsVisible="{Binding PatternBackground.CanPickCell}"
+                Command="{Binding PatternBackground.PickCellCommand}"
+                ToolTip.Tip="Elegir la celda de la hoja" />
+
+        <!-- Ocultar sin olvidar: "Sin fondo" borra la celda elegida, y para volver a
+             ponerla habria que acordarse de cual era. -->
+        <ToggleButton Grid.Column="2" Content="Ver"
+                      MinWidth="40" Margin="4,0,0,0" FontSize="11"
+                      HorizontalContentAlignment="Center"
+                      IsVisible="{Binding PatternBackground.HasTile}"
+                      IsChecked="{Binding PatternBackground.IsVisible}"
+                      ToolTip.Tip="Enseñar u ocultar la referencia" />
+      </Grid>
+
+      <Grid ColumnDefinitions="56,*" Margin="0,4,0,0">
+        <TextBlock Grid.Column="0" Text="Opacidad" VerticalAlignment="Center" FontSize="11" />
+        <Slider Grid.Column="1"
+                Minimum="0.15" Maximum="1"
+                Value="{Binding PatternOpacity}"
+                VerticalAlignment="Center"
+                ToolTip.Tip="Opacidad del sprite sobre la referencia" />
+      </Grid>
+    </StackPanel>
 
     <!-- MSX2: un color por linea, alineado con las filas del lienzo. -->
     <ItemsControl x:Name="RowColorStrip"
@@ -337,15 +473,23 @@
                  Height="84">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="entities:SpriteGroupMember">
-              <!-- Separadores explicitos: sin ellos "Patrón 0 x 0 y 0" se lee como si
-                   la x formara parte del numero anterior. -->
-              <StackPanel Orientation="Horizontal" TextElement.FontFamily="Consolas">
-                <TextBlock Text="{Binding PatternIndex, StringFormat='Patrón {0}'}" />
-                <TextBlock Text=" ; " Foreground="#909090" />
-                <TextBlock Text="{Binding OffsetX, StringFormat='x:{0}'}" />
-                <TextBlock Text=" ; " Foreground="#909090" />
-                <TextBlock Text="{Binding OffsetY, StringFormat='y:{0}'}" />
-              </StackPanel>
+              <Grid ColumnDefinitions="*,Auto">
+                <!-- Separadores explicitos: sin ellos "Patrón 0 x 0 y 0" se lee como si
+                     la x formara parte del numero anterior. -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal"
+                            VerticalAlignment="Center" TextElement.FontFamily="Consolas">
+                  <TextBlock Text="{Binding PatternIndex, StringFormat='Patrón {0}'}" />
+                  <TextBlock Text=" ; " Foreground="#909090" />
+                  <TextBlock Text="{Binding OffsetX, StringFormat='x:{0}'}" />
+                  <TextBlock Text=" ; " Foreground="#909090" />
+                  <TextBlock Text="{Binding OffsetY, StringFormat='y:{0}'}" />
+                </StackPanel>
+
+                <ToggleButton Grid.Column="1"
+                              Theme="{StaticResource EyeToggle}"
+                              IsChecked="{Binding IsVisible}"
+                              ToolTip.Tip="Enseñar u ocultar este plano en la composición" />
+              </Grid>
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
@@ -398,6 +542,51 @@
             <Button Grid.Column="3" Content="▼" HorizontalContentAlignment="Center"
                     Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="down" />
           </Grid>
+
+          <!-- Fondo del grupo. Es del grupo, no del miembro seleccionado: la referencia
+               es la escena contra la que se coloca la composicion entera. Sin ninguna
+               imagen cargada no se enseña nada. -->
+          <StackPanel IsVisible="{Binding HasBackgrounds}" Margin="0,10,0,0">
+            <TextBlock Text="Fondo" FontWeight="Bold" Margin="0,0,0,4" />
+
+            <Grid ColumnDefinitions="*,Auto,Auto">
+              <ComboBox Grid.Column="0" HorizontalAlignment="Stretch"
+                        ItemsSource="{Binding Backgrounds.Images}"
+                        SelectedItem="{Binding SelectedGroup.Background.Image}"
+                        PlaceholderText="Sin fondo"
+                        ToolTip.Tip="Imagen de referencia detrás de la composición">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="entities:ReferenceImage">
+                    <TextBlock Text="{Binding DisplayName}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+
+              <Button Grid.Column="1"
+                      Content="{Binding SelectedGroup.Background.CellLabel}"
+                      MinWidth="52" Margin="4,0,0,0" FontFamily="Consolas"
+                      HorizontalContentAlignment="Center"
+                      IsVisible="{Binding SelectedGroup.Background.CanPickCell}"
+                      Command="{Binding SelectedGroup.Background.PickCellCommand}"
+                      ToolTip.Tip="Elegir la celda de la hoja" />
+
+              <ToggleButton Grid.Column="2" Content="Ver"
+                            MinWidth="40" Margin="4,0,0,0"
+                            HorizontalContentAlignment="Center"
+                            IsVisible="{Binding SelectedGroup.Background.HasTile}"
+                            IsChecked="{Binding SelectedGroup.Background.IsVisible}"
+                            ToolTip.Tip="Enseñar u ocultar la referencia" />
+            </Grid>
+
+            <Grid ColumnDefinitions="56,*" Margin="0,4,0,0">
+              <TextBlock Grid.Column="0" Text="Opacidad" VerticalAlignment="Center" FontSize="11" />
+              <Slider Grid.Column="1"
+                      Minimum="0.15" Maximum="1"
+                      Value="{Binding SelectedGroup.SpriteOpacity}"
+                      VerticalAlignment="Center"
+                      ToolTip.Tip="Opacidad de los sprites sobre la referencia" />
+            </Grid>
+          </StackPanel>
         </StackPanel>
 
         <Grid Grid.Row="5" ColumnDefinitions="*,Auto" Margin="0,12,0,4">
@@ -572,11 +761,43 @@
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:SpriteGroupViewModel">
             <StackPanel>
-              <Image Source="{Binding Preview.SpritePreview}"
-                     Width="{Binding $parent[views:SpritesEditorView].GroupThumbnailSize}"
-                     Height="{Binding $parent[views:SpritesEditorView].GroupThumbnailSize}"
-                     Stretch="Fill"
-                     RenderOptions.BitmapInterpolationMode="None" />
+              <!-- Tres capas: el color de fondo del banco, la referencia encima y la
+                   composicion arriba del todo. La composicion se dibuja con el hueco
+                   transparente cuando hay referencia, asi que basta con superponerlas,
+                   y la referencia va centrada y a escala de pixel de sprite, no
+                   estirada al hueco.
+
+                   El color de fondo hace falta porque el lienzo del grupo es de 46x46
+                   (16 del sprite mas 15 de margen a cada lado) y una celda de 16 solo
+                   cubre el centro: sin esta capa por los bordes se veria el gris del
+                   panel de detras, que no es un color del banco ni significa nada. -->
+              <Panel Width="{Binding $parent[views:SpritesEditorView].GroupThumbnailSize}"
+                     Height="{Binding $parent[views:SpritesEditorView].GroupThumbnailSize}">
+                <Border Background="{Binding $parent[views:SpritesEditorView].((vm:SpritesEditorViewModel)DataContext).BackgroundColor.Brush}"
+                        IsVisible="{Binding Background.VisibleTile, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+                <Image Source="{Binding Background.VisibleTile.Image}"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       RenderOptions.BitmapInterpolationMode="None">
+                  <Image.Width>
+                    <MultiBinding Converter="{x:Static converters:MultiplyConverter.Instance}">
+                      <Binding Path="Background.VisibleTile.PixelWidth" />
+                      <Binding Path="GroupPixelSize" RelativeSource="{RelativeSource AncestorType=views:SpritesEditorView}" />
+                    </MultiBinding>
+                  </Image.Width>
+                  <Image.Height>
+                    <MultiBinding Converter="{x:Static converters:MultiplyConverter.Instance}">
+                      <Binding Path="Background.VisibleTile.PixelHeight" />
+                      <Binding Path="GroupPixelSize" RelativeSource="{RelativeSource AncestorType=views:SpritesEditorView}" />
+                    </MultiBinding>
+                  </Image.Height>
+                </Image>
+
+                <Image Source="{Binding Preview.SpritePreview}"
+                       Opacity="{Binding SpriteOpacity}"
+                       Stretch="Fill"
+                       RenderOptions.BitmapInterpolationMode="None" />
+              </Panel>
               <TextBlock Text="{Binding Group.Name}" FontSize="10"
                          HorizontalAlignment="Center" Margin="0,2,0,0" />
             </StackPanel>

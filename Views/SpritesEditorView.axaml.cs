@@ -58,6 +58,17 @@ public partial class SpritesEditorView : UserControl
             defaultValue: SpriteGroupRenderer.PreviewSize * ThumbnailBaseScale);
 
     /// <summary>
+    /// Lo que mide en pantalla un pixel del lienzo del grupo. La imagen de referencia se
+    /// escala con esto para quedar 1:1 con la composición sea cual sea el zoom. Es una
+    /// propiedad de Avalonia y no un simple getter porque los enlaces tienen que
+    /// enterarse al cambiar el zoom.
+    /// </summary>
+    public static readonly StyledProperty<double> GroupPixelSizeProperty =
+        AvaloniaProperty.Register<SpritesEditorView, double>(
+            nameof(GroupPixelSize),
+            defaultValue: ThumbnailBaseScale);
+
+    /// <summary>
     /// Alto de una fila del lienzo. La tira de colores por línea lo lee para quedar
     /// alineada con las filas del sprite sea cual sea el zoom.
     /// </summary>
@@ -95,6 +106,12 @@ public partial class SpritesEditorView : UserControl
     {
         get => GetValue(CellSizeProperty);
         set => SetValue(CellSizeProperty, value);
+    }
+
+    public double GroupPixelSize
+    {
+        get => GetValue(GroupPixelSizeProperty);
+        set => SetValue(GroupPixelSizeProperty, value);
     }
 
     protected override void OnLoaded(RoutedEventArgs e)
@@ -144,6 +161,7 @@ public partial class SpritesEditorView : UserControl
 
         ThumbnailSize = GridSize * scale;
         GroupThumbnailSize = SpriteGroupRenderer.PreviewSize * scale;
+        GroupPixelSize = scale;
     }
 
     private void OnThumbnailModeChanged(object? sender, RoutedEventArgs e)
