@@ -221,11 +221,38 @@ public class TileSetEditorTests
 
         ListBox grid = view.FindControl<ListBox>("TileGrid")!;
 
-        // 32 columnas y 8 filas del lado de la miniatura mas su linea de rejilla.
+        // 32 columnas y 8 filas del lado de la miniatura mas su linea de rejilla, y el
+        // cierre de la derecha y de abajo que pone el contenedor.
         double cell = view.ThumbnailSize + view.GridThickness.Left;
 
-        Assert.Equal(32 * cell, grid.Bounds.Width);
-        Assert.Equal(8 * cell, grid.Bounds.Height);
+        Assert.Equal((32 * cell) + view.GridEdgeThickness.Right, grid.Bounds.Width);
+        Assert.Equal((8 * cell) + view.GridEdgeThickness.Bottom, grid.Bounds.Height);
+    }
+
+    /// <summary>
+    /// Cada tile lleva linea solo arriba y a la izquierda para compartirla con su vecino,
+    /// asi que la ultima fila y la ultima columna se quedarian abiertas. Las cierra el
+    /// contenedor con dos lineas, en vez de dos por cada uno de los 256 tiles.
+    /// </summary>
+    [AvaloniaFact]
+    public void La_reticula_queda_cerrada_por_la_derecha_y_por_abajo()
+    {
+        var view = new TileSetEditorView { DataContext = NewEditor() };
+        var window = new Window { Content = view, Width = 2000, Height = 1000 };
+
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        ListBox grid = view.FindControl<ListBox>("TileGrid")!;
+
+        Assert.Equal(new Thickness(0, 0, 1, 1), grid.BorderThickness);
+        Assert.Equal(view.GridBrush, grid.BorderBrush);
+
+        // Y se apaga con el mismo interruptor que el resto de la rejilla.
+        view.ShowGrid = false;
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(default, grid.BorderThickness);
     }
 
     /// <summary>

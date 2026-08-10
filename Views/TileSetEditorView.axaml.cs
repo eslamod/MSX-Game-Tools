@@ -63,6 +63,19 @@ public partial class TileSetEditorView : UserControl
         AvaloniaProperty.Register<TileSetEditorView, Thickness>(
             nameof(GridThickness), defaultValue: new Thickness(1, 1, 0, 0));
 
+    /// <summary>
+    /// Cierre de la rejilla por la derecha y por abajo, en el contenedor.
+    /// </summary>
+    /// <remarks>
+    /// Como cada tile solo lleva linea arriba y a la izquierda, la ultima fila se queda
+    /// sin borde inferior y la ultima columna sin el derecho. Ponerlos aqui cuesta dos
+    /// lineas en total; darselos a cada tile serian dos por cada uno de los 256, y
+    /// ademas volverian a separarlos.
+    /// </remarks>
+    public static readonly StyledProperty<Thickness> GridEdgeThicknessProperty =
+        AvaloniaProperty.Register<TileSetEditorView, Thickness>(
+            nameof(GridEdgeThickness), defaultValue: new Thickness(0, 0, 1, 1));
+
     private TileSetEditorViewModel? _subscribed;
 
     public TileSetEditorView() => InitializeComponent();
@@ -97,6 +110,12 @@ public partial class TileSetEditorView : UserControl
         set => SetValue(GridThicknessProperty, value);
     }
 
+    public Thickness GridEdgeThickness
+    {
+        get => GetValue(GridEdgeThicknessProperty);
+        set => SetValue(GridEdgeThicknessProperty, value);
+    }
+
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
@@ -106,6 +125,7 @@ public partial class TileSetEditorView : UserControl
 
         GridBrush = ShowGrid ? Brushes.Black : Brushes.Transparent;
         GridThickness = ShowGrid ? new Thickness(1, 1, 0, 0) : default;
+        GridEdgeThickness = ShowGrid ? new Thickness(0, 0, 1, 1) : default;
     }
 
     protected override void OnLoaded(RoutedEventArgs e)

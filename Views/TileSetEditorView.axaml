@@ -240,7 +240,8 @@
                  SelectionMode="Single"
                  ItemContainerTheme="{StaticResource TileThumbnailItem}"
                  Background="Transparent"
-                 BorderThickness="0"
+                 BorderThickness="{Binding $parent[views:TileSetEditorView].GridEdgeThickness}"
+                 BorderBrush="{Binding $parent[views:TileSetEditorView].GridBrush}"
                  Padding="0">
           <ListBox.ItemsPanel>
             <ItemsPanelTemplate>
