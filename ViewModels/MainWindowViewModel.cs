@@ -69,6 +69,11 @@ public partial class MainWindowViewModel : ObservableObject
     /// </summary>
     public ReferenceImageLibrary Backgrounds { get; } = new();
 
+    /// <summary>
+    /// Ajustes de presentación comunes a todas las pestañas, como el zoom.
+    /// </summary>
+    public EditorPreferences Preferences { get; } = new();
+
     /// <summary>Se reparte a los paneles que necesiten confirmar algo destructivo.</summary>
     public IDialogService Dialogs { get; }
 
@@ -89,7 +94,7 @@ public partial class MainWindowViewModel : ObservableObject
     /// <summary>Abre un juego de tiles en una pestaña nueva y lo cuelga del árbol.</summary>
     public TileSetEditorViewModel OpenTileSet(TileSet tileSet)
     {
-        var panel = new TileSetEditorViewModel(tileSet, Palettes)
+        var panel = new TileSetEditorViewModel(tileSet, Palettes, Preferences)
         {
             TagId = $"tls{CurrentTileSetCounter}",
             Header = $"{tileSet.Name} (TS)",
@@ -108,7 +113,7 @@ public partial class MainWindowViewModel : ObservableObject
     /// <summary>Abre un banco en una pestaña nueva y lo cuelga del árbol.</summary>
     public SpritesEditorViewModel OpenSpriteBank(SpriteBank bank, int backgroundColorIndex = 1)
     {
-        var panel = new SpritesEditorViewModel(bank, Palettes, Dialogs, Backgrounds)
+        var panel = new SpritesEditorViewModel(bank, Palettes, Dialogs, Backgrounds, Preferences)
         {
             TagId = $"spb{CurrentSpriteBankCounter}",
             Header = $"{bank.Name} (SP)",

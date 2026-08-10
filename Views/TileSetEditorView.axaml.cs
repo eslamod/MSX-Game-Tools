@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using MSX_SpritesEditor.Entities;
 using MSX_SpritesEditor.ViewModels;
 
@@ -78,6 +79,12 @@ public partial class TileSetEditorView : UserControl
 
     private TileSetEditorViewModel? _subscribed;
 
+    /// <summary>
+    /// Donde vive el zoom entre pestañas. El TabControl reconstruye la vista cada vez que
+    /// se cambia, asi que la vista no puede recordarlo por su cuenta.
+    /// </summary>
+    private EditorPreferences? Preferences => (DataContext as TileSetEditorViewModel)?.Preferences;
+
     public TileSetEditorView() => InitializeComponent();
 
     public double ThumbnailSize
@@ -138,7 +145,30 @@ public partial class TileSetEditorView : UserControl
             vm.RefreshRequested += OnRefreshRequested;
         }
 
-        ApplyZoom(0);
+        RestoreZoom();
+    }
+
+    /// <summary>Deja marcados los botones del zoom que se estaba usando y lo aplica.</summary>
+    private void RestoreZoom()
+    {
+        int canvas = Preferences?.TileCanvasZoom ?? 0;
+
+        Check("TileZoom", canvas);
+        Check("TilePreviewZoom", Preferences?.TileThumbnailZoom ?? 1);
+
+        // Por si el zoom guardado ya era el que marca el XAML: entonces no ha saltado
+        // ningun IsCheckedChanged y hay que aplicarlo a mano.
+        ApplyZoom(canvas);
+    }
+
+    private void Check(string group, int tag)
+    {
+        RadioButton? button = this.GetVisualDescendants()
+            .OfType<RadioButton>()
+            .FirstOrDefault(r => r.GroupName == group && (string?)r.Tag == tag.ToString());
+
+        if (button is not null)
+            button.IsChecked = true;
     }
 
     protected override void OnUnloaded(RoutedEventArgs e)
@@ -160,13 +190,23 @@ public partial class TileSetEditorView : UserControl
             return;
 
         if (sender is RadioButton { IsChecked: true, Tag: string tag } && int.TryParse(tag, out int index))
+        {
+            if (Preferences is { } preferences)
+                preferences.TileCanvasZoom = index;
+
             ApplyZoom(index);
+        }
     }
 
     private void OnThumbnailZoomChanged(object? sender, RoutedEventArgs e)
     {
-        if (sender is RadioButton { IsChecked: true, Tag: string tag } && int.TryParse(tag, out int factor))
-            ThumbnailSize = TileRow.Columns * ThumbnailBaseScale * factor;
+        if (sender is not RadioButton { IsChecked: true, Tag: string tag } || !int.TryParse(tag, out int factor))
+            return;
+
+        if (Preferences is { } preferences)
+            preferences.TileThumbnailZoom = factor;
+
+        ThumbnailSize = TileRow.Columns * ThumbnailBaseScale * factor;
     }
 
     private void OnPaintModeChanged(object? sender, RoutedEventArgs e)

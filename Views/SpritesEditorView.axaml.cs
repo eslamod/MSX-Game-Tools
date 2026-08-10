@@ -4,6 +4,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using MSX_SpritesEditor.Entities;
 using MSX_SpritesEditor.ViewModels;
 
@@ -64,6 +65,12 @@ public partial class SpritesEditorView : UserControl
 
     private SpritesEditorViewModel? _subscribed;
 
+    /// <summary>
+    /// Donde vive el zoom entre pestañas. El TabControl reconstruye la vista cada vez que
+    /// se cambia, asi que la vista no puede recordarlo por su cuenta.
+    /// </summary>
+    private EditorPreferences? Preferences => (DataContext as SpritesEditorViewModel)?.Preferences;
+
     public SpritesEditorView() => InitializeComponent();
 
     public double ThumbnailSize
@@ -103,7 +110,30 @@ public partial class SpritesEditorView : UserControl
         // En WPF el lienzo arrancaba con Width = NaN porque el handler del RadioButton
         // se disparaba antes de que el constructor rellenase los arrays de tamaños,
         // así que hasta que no pulsabas un zoom no se pintaba nada.
-        ApplyZoom(0);
+        RestoreZoom();
+    }
+
+    /// <summary>Deja marcados los botones del zoom que se estaba usando y lo aplica.</summary>
+    private void RestoreZoom()
+    {
+        int canvas = Preferences?.SpriteCanvasZoom ?? 0;
+
+        Check("EditZoom", canvas);
+        Check("PreviewZoom", Preferences?.SpriteThumbnailZoom ?? 1);
+
+        // Por si el zoom guardado ya era el que marca el XAML: entonces no ha saltado
+        // ningun IsCheckedChanged y hay que aplicarlo a mano.
+        ApplyZoom(canvas);
+    }
+
+    private void Check(string group, int tag)
+    {
+        RadioButton? button = this.GetVisualDescendants()
+            .OfType<RadioButton>()
+            .FirstOrDefault(r => r.GroupName == group && (string?)r.Tag == tag.ToString());
+
+        if (button is not null)
+            button.IsChecked = true;
     }
 
     protected override void OnUnloaded(RoutedEventArgs e)
@@ -125,7 +155,12 @@ public partial class SpritesEditorView : UserControl
             return;
 
         if (sender is RadioButton { IsChecked: true, Tag: string tag } && int.TryParse(tag, out int index))
+        {
+            if (Preferences is { } preferences)
+                preferences.SpriteCanvasZoom = index;
+
             ApplyZoom(index);
+        }
     }
 
     private void OnThumbnailZoomChanged(object? sender, RoutedEventArgs e)
@@ -134,6 +169,9 @@ public partial class SpritesEditorView : UserControl
             return;
 
         int scale = ThumbnailBaseScale * factor;
+
+        if (Preferences is { } preferences)
+            preferences.SpriteThumbnailZoom = factor;
 
         ThumbnailSize = GridSize * scale;
         GroupThumbnailSize = SpriteGroupRenderer.PreviewSize * scale;

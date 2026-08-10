@@ -81,8 +81,11 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
         SpriteBank bank,
         PaletteLibrary palettes,
         IDialogService? dialogs = null,
-        ReferenceImageLibrary? backgrounds = null)
+        ReferenceImageLibrary? backgrounds = null,
+        EditorPreferences? preferences = null)
     {
+        Preferences = preferences ?? new EditorPreferences();
+
         _spriteBank = bank;
         _palettes = palettes;
         _dialogs = dialogs ?? new SilentDialogService();
@@ -301,6 +304,9 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
 
     private void RenderGroup(SpriteGroupViewModel group) =>
         group.Render(ColorPalette, BackgroundColor.Color);
+
+    /// <summary>Zoom y demás ajustes que sobreviven al cambio de pestaña.</summary>
+    public EditorPreferences Preferences { get; }
 
     /// <summary>El patrón actual visto por el lienzo de pintado.</summary>
     public IPixelSurface PixelSurface { get; }

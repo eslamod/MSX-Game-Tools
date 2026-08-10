@@ -34,8 +34,9 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
     [NotifyCanExecuteChangedFor(nameof(PreviousTileCommand))]
     private int _currentTilePosition = 1;
 
-    public TileSetEditorViewModel(TileSet tileSet, PaletteLibrary palettes)
+    public TileSetEditorViewModel(TileSet tileSet, PaletteLibrary palettes, EditorPreferences? preferences = null)
     {
+        Preferences = preferences ?? new EditorPreferences();
         _tileSet = tileSet;
         _palettes = palettes;
         _watchedPalette = palettes.ActivePalette;
@@ -65,6 +66,9 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
     public event Action? RefreshRequested;
 
     public TileSet TileSet => _tileSet;
+
+    /// <summary>Zoom y demás ajustes que sobreviven al cambio de pestaña.</summary>
+    public EditorPreferences Preferences { get; }
 
     public ColorPalette ColorPalette => _palettes.ActivePalette;
 
