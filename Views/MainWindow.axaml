@@ -15,7 +15,7 @@
     <Menu Grid.Row="0">
       <MenuItem Header="File">
         <MenuItem Header="Add sprite bank" Command="{Binding AddSpriteBankCommand}" />
-        <MenuItem Header="Add tileset" />
+        <MenuItem Header="Add tileset" Command="{Binding AddTileSetCommand}" />
         <Separator />
         <MenuItem Header="Load sprite bank..." Command="{Binding LoadSpriteBankCommand}" />
         <MenuItem Header="Save sprite bank as..." Command="{Binding SaveSpriteBankCommand}" />
@@ -93,7 +93,7 @@
 
       <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
         <Button Content="Add Map" Width="80" Margin="4" />
-        <Button Content="Add Tileset" Width="100" Margin="4" />
+        <Button Content="Add Tileset" Width="100" Margin="4" Command="{Binding AddTileSetCommand}" />
         <Button Content="Add sprite Bank" Width="128" Margin="4" Command="{Binding AddSpriteBankCommand}" />
       </StackPanel>
 

@@ -7,6 +7,7 @@ namespace MSX_SpritesEditor.ViewModels;
 public class TreeGeneralViewModel : PanelBaseViewModel
 {
     private readonly ItemTree _nodeSpriteBanks;
+    private readonly ItemTree _nodeTileSets;
 
     public TreeGeneralViewModel()
     {
@@ -16,10 +17,16 @@ public class TreeGeneralViewModel : PanelBaseViewModel
             Tag = Constants.TAG_ID_NODE_SPRITE_BANKS,
         };
 
+        _nodeTileSets = new ItemTree
+        {
+            DisplayText = "TileSets",
+            Tag = Constants.TAG_ID_NODE_TILESETS,
+        };
+
         PrimaryNodes =
         [
             _nodeSpriteBanks,
-            new ItemTree { DisplayText = "TileSets", Tag = Constants.TAG_ID_NODE_TILESETS },
+            _nodeTileSets,
             new ItemTree { DisplayText = "Maps", Tag = Constants.TAG_ID_NODE_MAPS },
             new ItemTree { DisplayText = "Animations", Tag = Constants.TAG_ID_NODE_ANIMATORS },
             new ItemTree { DisplayText = "Behavours", Tag = Constants.TAG_ID_NODE_BEHAVOURS },
@@ -51,14 +58,21 @@ public class TreeGeneralViewModel : PanelBaseViewModel
         return false;
     }
 
-    public void AddSpriteBank(string displayName, string tagId, PanelBaseViewModel vm)
+    public void AddSpriteBank(string displayName, string tagId, PanelBaseViewModel vm) =>
+        AddTo(_nodeSpriteBanks, displayName, tagId, vm);
+
+    public void AddTileSet(string displayName, string tagId, PanelBaseViewModel vm) =>
+        AddTo(_nodeTileSets, displayName, tagId, vm);
+
+    private static void AddTo(ItemTree parent, string displayName, string tagId, PanelBaseViewModel vm)
     {
         var item = new ItemTree
         {
             DisplayText = displayName,
             Tag = tagId,
         };
+
         item.PanelsList.Add(vm);
-        _nodeSpriteBanks.Childs.Add(item);
+        parent.Childs.Add(item);
     }
 }

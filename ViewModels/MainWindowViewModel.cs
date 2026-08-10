@@ -75,8 +75,32 @@ public partial class MainWindowViewModel : ObservableObject
 
     public int CurrentSpriteBankCounter { get; set; }
 
+    public int CurrentTileSetCounter { get; set; }
+
     [RelayCommand]
     private void AddSpriteBank() => RightPanViewModel = new EditSpriteBankViewModel(this);
+
+    [RelayCommand]
+    private void AddTileSet() => RightPanViewModel = new EditTileSetViewModel(this);
+
+    /// <summary>Abre un juego de tiles en una pestaña nueva y lo cuelga del árbol.</summary>
+    public TileSetEditorViewModel OpenTileSet(TileSet tileSet)
+    {
+        var panel = new TileSetEditorViewModel(tileSet, Palettes)
+        {
+            TagId = $"tls{CurrentTileSetCounter}",
+            Header = $"{tileSet.Name} (TS)",
+        };
+
+        CurrentTileSetCounter++;
+
+        AddPanelToDic(panel);
+        Tabs.Add(panel);
+        SelectedTab = panel;
+        TreeGeneralVm.AddTileSet(panel.Header, panel.TagId, panel);
+
+        return panel;
+    }
 
     /// <summary>Abre un banco en una pestaña nueva y lo cuelga del árbol.</summary>
     public SpritesEditorViewModel OpenSpriteBank(SpriteBank bank, int backgroundColorIndex = 1)
