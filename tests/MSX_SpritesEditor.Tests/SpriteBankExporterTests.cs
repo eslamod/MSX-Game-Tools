@@ -172,6 +172,27 @@ public class SpriteBankExporterTests
         Assert.Contains("sprite_test_1_group_0:", SpriteBankExporter.GroupsToAssembler(bank));
     }
 
+    /// <summary>
+    /// Sin estas etiquetas no hay forma de saber dónde acaban los datos: ni el fichero
+    /// de patrones ni el de grupos llevan cuántos elementos traen.
+    /// </summary>
+    [Fact]
+    public void El_ensamblador_marca_donde_acaba_cada_bloque()
+    {
+        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Sprite test 1");
+        bank.NewGroup(0);
+
+        string patterns = SpriteBankExporter.PatternsToAssembler(bank);
+        string groups = SpriteBankExporter.GroupsToAssembler(bank);
+
+        Assert.Contains("sprite_test_1_patterns_end:", patterns);
+        Assert.Contains("sprite_test_1_groups_end:", groups);
+
+        // Y al final del todo, que si no el tamaño que se calcule con ellas sale corto.
+        Assert.EndsWith($"sprite_test_1_patterns_end:{Environment.NewLine}", patterns);
+        Assert.EndsWith($"sprite_test_1_groups_end:{Environment.NewLine}", groups);
+    }
+
     [Theory]
     [InlineData("Sprite test 1", "sprite_test_1")]
     [InlineData("Bicho: nivel 3/4", "bicho__nivel_3_4")]

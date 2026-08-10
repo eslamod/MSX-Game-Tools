@@ -20,6 +20,13 @@ namespace MSX_SpritesEditor.Services;
 /// con cuántos sprites lo forman, porque un grupo puede tener de uno a cuatro y sin ese
 /// byte el fichero no se puede recorrer.
 /// </para>
+/// <para>
+/// <b>Etiquetas.</b> La salida en ensamblador cierra cada bloque con una etiqueta
+/// <c>_end</c>. Hace falta porque ninguno de los dos ficheros dice cuántos elementos
+/// trae: quien los consume recorre de <c>_patterns</c> a <c>_patterns_end</c> y de
+/// <c>_groups</c> a <c>_groups_end</c>, y de paso puede calcular el tamaño para
+/// volcarlo a VRAM sin escribir la cifra a mano.
+/// </para>
 /// </remarks>
 public static class SpriteBankExporter
 {
@@ -80,6 +87,7 @@ public static class SpriteBankExporter
         text.AppendLine($"; Sprite pattern table - {bank.Name}");
         text.AppendLine($"; {bank.SpritesList.Count} patterns, {PatternBytes} bytes each");
         text.AppendLine("; 16x16 layout: left half rows 0-15, then right half rows 0-15");
+        text.AppendLine($"; Size: {label}_patterns_end - {label}_patterns");
         text.AppendLine();
         text.AppendLine($"{label}_patterns:");
 
@@ -88,6 +96,8 @@ public static class SpriteBankExporter
             text.AppendLine($"{label}_pattern_{index}:");
             AppendBytes(text, PatternBytesOf(bank.SpritesList[index]));
         }
+
+        text.AppendLine($"{label}_patterns_end:");
 
         return text.ToString();
     }
@@ -106,6 +116,7 @@ public static class SpriteBankExporter
 
         text.AppendLine("; Offsets are relative to the group and stored as two's complement.");
         text.AppendLine("; Pattern numbers are already multiplied by 4, ready for the attribute table.");
+        text.AppendLine($"; There is no group count: walk from {label}_groups to {label}_groups_end.");
         text.AppendLine();
         text.AppendLine($"{label}_groups:");
 
@@ -122,6 +133,8 @@ public static class SpriteBankExporter
                 AppendBytes(text, MemberBytesOf(group.Members[member], bank.Type));
             }
         }
+
+        text.AppendLine($"{label}_groups_end:");
 
         return text.ToString();
     }
