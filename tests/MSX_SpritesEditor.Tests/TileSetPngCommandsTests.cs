@@ -129,6 +129,33 @@ public class TileSetPngCommandsTests : IDisposable
         Assert.Equal("070", main.Palettes.ActivePalette[2].HexRgb);
     }
 
+    /// <summary>
+    /// Lo que estaba vacío en GIMP tiene que seguir viéndose vacío al volver. Es código 0,
+    /// que se dibuja del color del borde, y el borde arrancaba fijo en el índice 1: el que
+    /// la paleta generada acaba de darle al primer color de la imagen.
+    /// </summary>
+    [AvaloniaFact]
+    public async Task Con_paleta_generada_lo_transparente_no_se_ve_del_primer_color()
+    {
+        // Un tile rojo y otro entero transparente, como al traer de GIMP un juego a medias.
+        string path = WritePng("medias.png", 16, 8, i => i % 16 < 8 ? unchecked((int)0xFFFF0000) : 0);
+
+        var dialogs = new TestDialogService { OpenPath = path, ChooseAnswer = true };
+        var main = new MainWindowViewModel(dialogs);
+
+        await main.ImportTileSetPngCommand.ExecuteAsync(null);
+
+        var editor = (TileSetEditorViewModel)main.Tabs[0];
+
+        Assert.Equal("700", main.Palettes.ActivePalette[1].HexRgb);
+        Assert.NotEqual(1, editor.BorderColorIndex);
+        Assert.Equal("000", editor.BorderColor.HexRgb);
+
+        // Y la miniatura del tile vacio sale negra de verdad, no roja.
+        Assert.Equal(0, editor.TileSet.ListOfTiles[1].ArrayTileRows[0].BackColor);
+        Assert.Equal(PixelReader.Bgra(Colors.Black), PixelReader.At(editor.Thumbnails[1], 0, 0));
+    }
+
     private string WritePng(string name, int width, int height, Func<int, int> pixel)
     {
         string path = Path.Combine(_folder, name);

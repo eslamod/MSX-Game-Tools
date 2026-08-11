@@ -94,14 +94,21 @@ public partial class MainWindowViewModel : ObservableObject
     private void AddTileSet() => RightPanViewModel = new EditTileSetViewModel(this);
 
     /// <summary>Abre un juego de tiles en una pestaña nueva y lo cuelga del árbol.</summary>
-    public TileSetEditorViewModel OpenTileSet(TileSet tileSet, int borderColorIndex = 1)
+    /// <param name="borderColorIndex">
+    /// El borde guardado en el fichero. Sin él manda el del editor, que lo busca en la
+    /// paleta: fijarlo aquí en el 1 daba por negro un índice que en una paleta generada
+    /// a partir de un png es el primer color de la imagen.
+    /// </param>
+    public TileSetEditorViewModel OpenTileSet(TileSet tileSet, int? borderColorIndex = null)
     {
         var panel = new TileSetEditorViewModel(tileSet, Palettes, Preferences)
         {
             TagId = $"tls{CurrentTileSetCounter}",
             Header = $"{tileSet.Name} (TS)",
-            BorderColorIndex = borderColorIndex,
         };
+
+        if (borderColorIndex is int border)
+            panel.BorderColorIndex = border;
 
         CurrentTileSetCounter++;
 
@@ -114,14 +121,17 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     /// <summary>Abre un banco en una pestaña nueva y lo cuelga del árbol.</summary>
-    public SpritesEditorViewModel OpenSpriteBank(SpriteBank bank, int backgroundColorIndex = 1)
+    /// <inheritdoc cref="OpenTileSet" path="/param[@name='borderColorIndex']"/>
+    public SpritesEditorViewModel OpenSpriteBank(SpriteBank bank, int? backgroundColorIndex = null)
     {
         var panel = new SpritesEditorViewModel(bank, Palettes, Dialogs, Backgrounds, Preferences)
         {
             TagId = $"spb{CurrentSpriteBankCounter}",
             Header = $"{bank.Name} (SP)",
-            BackgroundColorIndex = backgroundColorIndex,
         };
+
+        if (backgroundColorIndex is int background)
+            panel.BackgroundColorIndex = background;
 
         CurrentSpriteBankCounter++;
 
