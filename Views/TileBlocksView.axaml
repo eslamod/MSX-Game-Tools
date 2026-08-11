@@ -7,7 +7,7 @@
              mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="700"
              x:Class="MSX_SpritesEditor.Views.TileBlocksView"
              x:DataType="vm:TileBlocksViewModel"
-             Width="380" Background="Gainsboro">
+             Background="Gainsboro">
 
   <UserControl.Styles>
     <!-- El recuadro de seleccion va superpuesto y sin cambiar de grosor, igual que en la

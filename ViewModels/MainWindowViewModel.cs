@@ -14,6 +14,8 @@ public partial class MainWindowViewModel : ObservableObject
 
     private PanelBaseViewModel? _rightPanViewModel;
 
+    private double _rightPanelWidth = MinRightPanelWidth;
+
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveSpriteBankCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportSpriteBankBinaryCommand))]
@@ -91,6 +93,25 @@ public partial class MainWindowViewModel : ObservableObject
     /// trabaja, como los bloques de un juego de tiles.
     /// </remarks>
     public ObservableCollection<PanelBaseViewModel> RightPanels { get; } = [];
+
+    /// <summary>Lo más estrecho que puede quedar el lateral sin volverse inservible.</summary>
+    public const double MinRightPanelWidth = 380;
+
+    /// <summary>Lo más ancho, para que no se coma la zona de edición.</summary>
+    public const double MaxRightPanelWidth = 760;
+
+    /// <summary>
+    /// Ancho de la columna del lateral.
+    /// </summary>
+    /// <remarks>
+    /// El ancho que dejó el separador la última vez, para volver a abrir con él. Lo aplica
+    /// la ventana: una definición de columna no está en el árbol y no le llega un enlace.
+    /// </remarks>
+    public double RightPanelWidth
+    {
+        get => _rightPanelWidth;
+        set => _rightPanelWidth = Math.Clamp(value, MinRightPanelWidth, MaxRightPanelWidth);
+    }
 
     /// <summary>
     /// El panel del lateral que se está viendo.
