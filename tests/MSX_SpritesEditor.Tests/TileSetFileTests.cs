@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Avalonia.Headless.XUnit;
 using MSX_SpritesEditor.Entities;
 using MSX_SpritesEditor.Services;
@@ -206,6 +207,102 @@ public class TileSetFileTests : IDisposable
         Assert.Single(dialogs.Messages);
         Assert.Contains("bosque_patterns.bin", dialogs.Messages[0]);
         Assert.Contains("3 veces en VRAM", dialogs.Messages[0]);
+    }
+
+    // -------------------------------------------------------------------- bloques
+
+    /// <summary>
+    /// Los bloques van dentro del fichero del juego porque son números de tile, y esos
+    /// números sólo significan algo con este juego delante.
+    /// </summary>
+    [AvaloniaFact]
+    public void Los_bloques_van_dentro_del_fichero_del_juego()
+    {
+        var tileSet = new TileSet("Bosque");
+        var block = new TileBlock("Arbol");
+
+        block[1, 0] = 5;
+        block[0, 1] = 0;     // el tile 0, que no es una celda vacia
+        block[1, 1] = 200;
+
+        tileSet.Blocks.Add(block);
+
+        string json = TileSetSerializer.Serialize(tileSet, ColorPalette.CreateMsxStandard());
+
+        // Dos digitos por celda y .. donde no hay nada, una cadena por fila.
+        Assert.Contains("\"..05\"", json);
+        Assert.Contains("\"00C8\"", json);
+
+        LoadedTileSet loaded = TileSetSerializer.Deserialize(json);
+        TileBlock read = Assert.Single(loaded.TileSet.Blocks);
+
+        Assert.Equal("Arbol", read.Name);
+        Assert.Equal((2, 2), (read.Width, read.Height));
+        Assert.Null(read[0, 0]);
+        Assert.Equal(5, read[1, 0]);
+        Assert.Equal(0, read[0, 1]);
+        Assert.Equal(200, read[1, 1]);
+    }
+
+    /// <summary>
+    /// El tamaño lo dice la forma de las filas, no hasta dónde llega el último tile: un
+    /// supertile de 2x2 con la esquina vacía tiene que volver midiendo 2x2.
+    /// </summary>
+    [AvaloniaFact]
+    public void Un_bloque_con_la_esquina_vacia_vuelve_con_su_tamano()
+    {
+        var tileSet = new TileSet("Bosque");
+        var block = new TileBlock("Supertile");
+
+        block[1, 1] = 9;
+        block[1, 1] = null;
+        block[0, 0] = 3;
+
+        tileSet.Blocks.Add(block);
+
+        LoadedTileSet loaded = TileSetSerializer.Deserialize(
+            TileSetSerializer.Serialize(tileSet, ColorPalette.CreateMsxStandard()));
+
+        Assert.Equal((2, 2), (loaded.TileSet.Blocks[0].Width, loaded.TileSet.Blocks[0].Height));
+    }
+
+    /// <summary>Un juego guardado antes de que existieran los bloques se sigue abriendo.</summary>
+    [AvaloniaFact]
+    public void Un_fichero_sin_bloques_se_abre_igual()
+    {
+        var tileSet = new TileSet("Bosque");
+        Paint(tileSet.ListOfTiles[0], row: 0, pattern: 0x0F, fore: 2, back: 3);
+
+        string json = TileSetSerializer
+            .Serialize(tileSet, ColorPalette.CreateMsxStandard())
+            .Replace("\"version\": 2", "\"version\": 1");
+
+        LoadedTileSet loaded = TileSetSerializer.Deserialize(json);
+
+        Assert.Empty(loaded.TileSet.Blocks);
+        Assert.Equal(0x0F, loaded.TileSet.ListOfTiles[0].ArrayTileRows[0].PatternByte);
+    }
+
+    [AvaloniaTheory]
+    [InlineData("\"rows\": [\"0102\", \"03\"]", "no miden todas lo mismo")]
+    [InlineData("\"rows\": [\"010\"]", "dos por celda")]
+    [InlineData("\"rows\": [\"01ZZ\"]", "no es un número de tile")]
+    public void Un_bloque_estropeado_se_rechaza_diciendo_que_pasa(string rows, string expected)
+    {
+        var tileSet = new TileSet("Bosque");
+        tileSet.Blocks.Add(new TileBlock("Arbol") { [0, 0] = 1, [1, 0] = 2 });
+
+        // Por regex y no por texto literal: el json va indentado y depende del salto de linea.
+        string json = Regex.Replace(
+            TileSetSerializer.Serialize(tileSet, ColorPalette.CreateMsxStandard()),
+            @"""rows"": \[[^\]]*\]",
+            rows);
+
+        FileFormatException error = Assert.Throws<FileFormatException>(
+            () => TileSetSerializer.Deserialize(json));
+
+        Assert.Contains(expected, error.Message);
+        Assert.Contains("Arbol", error.Message);
     }
 
     private static void Paint(Tile tile, int row, int pattern, int fore, int back)

@@ -37,4 +37,14 @@ public class TileSet
     public string Name { get; set; }
 
     public IReadOnlyList<Tile> ListOfTiles { get; }
+
+    /// <summary>
+    /// Los bloques definidos con estos tiles.
+    /// </summary>
+    /// <remarks>
+    /// Cuelgan del juego y no de un sitio aparte porque un bloque son números de tile, y
+    /// esos números no significan nada sin saber de qué juego son. Teniendo varios
+    /// abiertos a la vez, un bloque suelto se vería como un churro con el juego que no es.
+    /// </remarks>
+    public IList<TileBlock> Blocks { get; } = new List<TileBlock>();
 }

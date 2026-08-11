@@ -23,13 +23,23 @@ namespace MSX_SpritesEditor.Services;
 /// índices, no colores, y sin ella el juego se abriría con los colores que hubiera
 /// puestos en ese momento.
 /// </para>
+/// <para>
+/// Los bloques van aquí dentro y no en un fichero aparte: son números de tile, y esos
+/// números sólo significan algo con este juego delante. Cada uno se escribe como una
+/// lista de filas, dos dígitos por celda y <c>..</c> donde no hay nada; así el tamaño del
+/// bloque es la forma de la lista y no hace falta guardarlo aparte.
+/// </para>
 /// </remarks>
 public static class TileSetSerializer
 {
-    public const int FormatVersion = 1;
+    /// <summary>La 2 añade los bloques. Un fichero de la 1 se sigue abriendo, sin ellos.</summary>
+    public const int FormatVersion = 2;
 
     /// <summary>Ocho bytes por tabla y dos dígitos por byte.</summary>
     private const int Digits = Tile.Rows * 2;
+
+    /// <summary>Una celda de bloque sin tile, que no es lo mismo que el tile 0.</summary>
+    private const string EmptyCell = "..";
 
     public static string Serialize(TileSet tileSet, ColorPalette palette, int borderColorIndex = 1) =>
         JsonSerializer.Serialize(ToFile(tileSet, palette, borderColorIndex), PaletteSerializer.Options);
@@ -65,6 +75,9 @@ public static class TileSetSerializer
         foreach (TileFile tile in file.Tiles ?? [])
             ReadTile(tile, tileSet);
 
+        foreach (BlockFile block in file.Blocks ?? [])
+            tileSet.Blocks.Add(ReadBlock(block));
+
         int border = file.BorderColor is >= 1 and < ColorPalette.Size ? file.BorderColor : 1;
 
         return new LoadedTileSet(tileSet, PaletteSerializer.FromFile(file.Palette), border);
@@ -75,7 +88,17 @@ public static class TileSetSerializer
         tileSet.Name,
         borderColorIndex,
         PaletteSerializer.ToFile(palette),
-        [.. Drawn(tileSet)]);
+        [.. Drawn(tileSet)],
+        [.. tileSet.Blocks.Select(ToFile)]);
+
+    private static BlockFile ToFile(TileBlock block) => new(
+        block.Name,
+        [.. Enumerable.Range(0, block.Height).Select(row => RowText(block, row))]);
+
+    /// <summary>Una fila del bloque: dos dígitos por celda, o <c>..</c> si está vacía.</summary>
+    private static string RowText(TileBlock block, int row) =>
+        string.Concat(Enumerable.Range(0, block.Width).Select(column =>
+            block[column, row] is int tile ? tile.ToString("X2") : EmptyCell));
 
     /// <summary>Los tiles que se han tocado, con su número delante.</summary>
     private static IEnumerable<TileFile> Drawn(TileSet tileSet)
@@ -157,14 +180,88 @@ public static class TileSetSerializer
         return bytes;
     }
 
+    private static TileBlock ReadBlock(BlockFile file)
+    {
+        var block = new TileBlock(file.Name ?? string.Empty);
+        IReadOnlyList<string> rows = file.Rows ?? [];
+
+        if (rows.Count == 0)
+            return block;
+
+        if (rows.Count > TileBlock.MaxSide)
+        {
+            throw new FileFormatException(
+                $"El bloque «{block.Name}» trae {rows.Count} filas y como mucho puede tener {TileBlock.MaxSide}.");
+        }
+
+        int width = Width(rows, block.Name);
+
+        // Antes de poner nada, para que el tamaño sea el del fichero y no hasta donde
+        // llegue el ultimo tile: un bloque con la esquina vacia sigue midiendo lo suyo.
+        block.Width = width;
+        block.Height = rows.Count;
+
+        for (int row = 0; row < rows.Count; row++)
+        {
+            for (int column = 0; column < width; column++)
+                block.Set(column, row, Cell(rows[row], column, block.Name));
+        }
+
+        return block;
+    }
+
+    /// <summary>El ancho que dicen las filas, comprobando que todas midan lo mismo.</summary>
+    private static int Width(IReadOnlyList<string> rows, string name)
+    {
+        int length = rows[0].Length;
+
+        if (length == 0 || length % 2 != 0)
+        {
+            throw new FileFormatException(
+                $"En el bloque «{name}», una fila mide {length} dígitos y tienen que ser dos por celda.");
+        }
+
+        if (rows.Any(row => row.Length != length))
+            throw new FileFormatException($"En el bloque «{name}», las filas no miden todas lo mismo.");
+
+        int width = length / 2;
+
+        if (width > TileBlock.MaxSide)
+        {
+            throw new FileFormatException(
+                $"El bloque «{name}» mide {width} de ancho y como mucho puede medir {TileBlock.MaxSide}.");
+        }
+
+        return width;
+    }
+
+    private static int? Cell(string row, int column, string name)
+    {
+        string cell = row.Substring(column * 2, 2);
+
+        if (cell == EmptyCell)
+            return null;
+
+        int high = PaletteSerializer.HexDigit(cell[0]) ?? throw NotHex(name, cell);
+        int low = PaletteSerializer.HexDigit(cell[1]) ?? throw NotHex(name, cell);
+
+        return (high << 4) | low;
+    }
+
+    private static FileFormatException NotHex(string name, string cell) => new(
+        $"En el bloque «{name}», la celda «{cell}» no es un número de tile ni está vacía.");
+
     private sealed record TileSetFile(
         int Version,
         string? Name,
         int BorderColor,
         PaletteSerializer.PaletteFile? Palette,
-        IReadOnlyList<TileFile>? Tiles);
+        IReadOnlyList<TileFile>? Tiles,
+        IReadOnlyList<BlockFile>? Blocks);
 
     private sealed record TileFile(int Index, string? Pattern, string? Colors);
+
+    private sealed record BlockFile(string? Name, IReadOnlyList<string>? Rows);
 }
 
 /// <summary>Lo que sale de leer un fichero de tiles.</summary>
