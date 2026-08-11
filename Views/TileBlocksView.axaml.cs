@@ -3,10 +3,10 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
-using MSX_SpritesEditor.Entities;
-using MSX_SpritesEditor.ViewModels;
+using MSX_GameTools.Entities;
+using MSX_GameTools.ViewModels;
 
-namespace MSX_SpritesEditor.Views;
+namespace MSX_GameTools.Views;
 
 public partial class TileBlocksView : UserControl
 {

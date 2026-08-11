@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace MSX_SpritesEditor.Entities;
+namespace MSX_GameTools.Entities;
 
 /// <summary>
 /// Una línea de la tabla de colores de un sprite del V9938: el color y los tres bits

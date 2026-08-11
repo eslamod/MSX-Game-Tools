@@ -3,7 +3,7 @@ using Avalonia;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 
-namespace MSX_SpritesEditor.Services;
+namespace MSX_GameTools.Services;
 
 /// <summary>
 /// Leer y escribir imágenes como un array de pixeles en BGRA.

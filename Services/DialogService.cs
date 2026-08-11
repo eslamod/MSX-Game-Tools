@@ -1,8 +1,8 @@
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
-using MSX_SpritesEditor.Views;
+using MSX_GameTools.Views;
 
-namespace MSX_SpritesEditor.Services;
+namespace MSX_GameTools.Services;
 
 /// <summary>Muestra los diálogos sobre la ventana principal.</summary>
 public sealed class DialogService(Window owner) : IDialogService

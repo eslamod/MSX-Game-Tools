@@ -1,4 +1,4 @@
-namespace MSX_SpritesEditor.Services;
+namespace MSX_GameTools.Services;
 
 /// <summary>
 /// Lo que un ViewModel necesita pedirle al usuario sin conocer la ventana. La

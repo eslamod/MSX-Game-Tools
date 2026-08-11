@@ -1,7 +1,7 @@
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace MSX_SpritesEditor.Entities;
+namespace MSX_GameTools.Entities;
 
 /// <summary>
 /// Una entrada de la paleta del MSX.

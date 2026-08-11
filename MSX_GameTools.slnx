@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/MSX_GameTools.Tests/MSX_GameTools.Tests.csproj" />
+  </Folder>
+  <Project Path="MSX_GameTools.csproj" />
+</Solution>

@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MSX_SpritesEditor.Entities;
+using MSX_GameTools.Entities;
 
-namespace MSX_SpritesEditor.ViewModels;
+namespace MSX_GameTools.ViewModels;
 
 /// <summary>
 /// Los dos colores de una línea de un tile.

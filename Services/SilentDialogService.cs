@@ -1,4 +1,4 @@
-namespace MSX_SpritesEditor.Services;
+namespace MSX_GameTools.Services;
 
 /// <summary>
 /// No abre nada: confirma sin preguntar, se traga los mensajes y cancela los

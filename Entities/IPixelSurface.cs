@@ -1,6 +1,6 @@
 using Avalonia.Media;
 
-namespace MSX_SpritesEditor.Entities;
+namespace MSX_GameTools.Entities;
 
 /// <summary>
 /// Lo que un lienzo de pintado necesita saber de lo que está editando.

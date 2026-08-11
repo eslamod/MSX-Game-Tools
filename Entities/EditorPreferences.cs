@@ -1,4 +1,4 @@
-namespace MSX_SpritesEditor.Entities;
+namespace MSX_GameTools.Entities;
 
 /// <summary>
 /// Ajustes de presentación que se mantienen al cambiar de pestaña.

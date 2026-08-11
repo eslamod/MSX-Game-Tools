@@ -2,11 +2,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:entities="clr-namespace:MSX_SpritesEditor.Entities"
-             xmlns:vm="clr-namespace:MSX_SpritesEditor.ViewModels"
-             xmlns:views="clr-namespace:MSX_SpritesEditor.Views"
+             xmlns:entities="clr-namespace:MSX_GameTools.Entities"
+             xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:views="clr-namespace:MSX_GameTools.Views"
              mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="500"
-             x:Class="MSX_SpritesEditor.Views.TileSetEditorView"
+             x:Class="MSX_GameTools.Views.TileSetEditorView"
              x:DataType="vm:TileSetEditorViewModel">
 
   <UserControl.Resources>

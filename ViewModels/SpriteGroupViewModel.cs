@@ -2,10 +2,10 @@ using System.Collections.ObjectModel;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MSX_SpritesEditor.Entities;
-using MSX_SpritesEditor.Services;
+using MSX_GameTools.Entities;
+using MSX_GameTools.Services;
 
-namespace MSX_SpritesEditor.ViewModels;
+namespace MSX_GameTools.ViewModels;
 
 /// <summary>Un grupo en el panel: su composición dibujada y la edición de sus miembros.</summary>
 public partial class SpriteGroupViewModel : ObservableObject

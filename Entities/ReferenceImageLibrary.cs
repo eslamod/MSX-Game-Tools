@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace MSX_SpritesEditor.Entities;
+namespace MSX_GameTools.Entities;
 
 /// <summary>
 /// Las imágenes de referencia cargadas y las celdas que ofrecen como fondo.

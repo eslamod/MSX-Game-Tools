@@ -1,4 +1,4 @@
-namespace MSX_SpritesEditor.ViewModels;
+namespace MSX_GameTools.ViewModels;
 
 /// <summary>Qué enseña el panel de miniaturas del editor de sprites.</summary>
 public enum ThumbnailMode

@@ -3,9 +3,9 @@ using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Media;
-using MSX_SpritesEditor.Entities;
+using MSX_GameTools.Entities;
 
-namespace MSX_SpritesEditor.Views;
+namespace MSX_GameTools.Views;
 
 /// <summary>
 /// Rejilla de pixeles que se pinta con el ratón.

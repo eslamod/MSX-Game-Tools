@@ -1,4 +1,4 @@
-namespace MSX_SpritesEditor.Entities;
+namespace MSX_GameTools.Entities;
 
 /// <summary>
 /// Apunta a una celda de una imagen de referencia. Es lo que guardan un grupo y un

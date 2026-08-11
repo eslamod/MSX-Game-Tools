@@ -1,11 +1,11 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using MSX_SpritesEditor.Services;
-using MSX_SpritesEditor.ViewModels;
-using MSX_SpritesEditor.Views;
+using MSX_GameTools.Services;
+using MSX_GameTools.ViewModels;
+using MSX_GameTools.Views;
 
-namespace MSX_SpritesEditor;
+namespace MSX_GameTools;
 
 public partial class App : Application
 {

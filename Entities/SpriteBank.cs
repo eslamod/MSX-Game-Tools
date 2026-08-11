@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 
-namespace MSX_SpritesEditor.Entities;
+namespace MSX_GameTools.Entities;
 
 public class SpriteBank
 {

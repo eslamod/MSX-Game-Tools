@@ -1,4 +1,4 @@
-namespace MSX_SpritesEditor.Entities;
+namespace MSX_GameTools.Entities;
 
 /// <summary>
 /// Un grupo de tiles colocados como van a quedar en el mapa: un árbol de 3x3, un

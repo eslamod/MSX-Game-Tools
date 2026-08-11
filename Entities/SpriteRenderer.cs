@@ -1,6 +1,6 @@
 using Avalonia.Media;
 
-namespace MSX_SpritesEditor.Entities;
+namespace MSX_GameTools.Entities;
 
 /// <summary>
 /// Traduce el estado de un sprite a pixeles, resolviendo el color de cada línea

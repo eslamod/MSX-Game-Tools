@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 
-namespace MSX_SpritesEditor.Entities;
+namespace MSX_GameTools.Entities;
 
 /// <summary>
 /// Una celda de una imagen de referencia, de las que se ofrecen como fondo.

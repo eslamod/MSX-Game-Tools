@@ -1,6 +1,6 @@
 using Avalonia.Media;
 
-namespace MSX_SpritesEditor.Entities;
+namespace MSX_GameTools.Entities;
 
 /// <summary>
 /// Compone en una imagen los sprites de un grupo con sus desplazamientos, siguiendo

@@ -1,6 +1,0 @@
-<Solution>
-  <Folder Name="/tests/">
-    <Project Path="tests/MSX_SpritesEditor.Tests/MSX_SpritesEditor.Tests.csproj" />
-  </Folder>
-  <Project Path="MSX_SpritesEditor.csproj" />
-</Solution>

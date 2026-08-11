@@ -1,4 +1,4 @@
-namespace MSX_SpritesEditor.Entities;
+namespace MSX_GameTools.Entities;
 
 /// <summary>Un patrón de 8x8 de los modos gráficos 2 y 3.</summary>
 public class Tile

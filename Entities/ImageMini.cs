@@ -5,7 +5,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace MSX_SpritesEditor.Entities;
+namespace MSX_GameTools.Entities;
 
 /// <summary>
 /// Miniatura de previsualización de un sprite.

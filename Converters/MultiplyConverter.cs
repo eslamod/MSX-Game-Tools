@@ -2,7 +2,7 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Data.Converters;
 
-namespace MSX_SpritesEditor.Converters;
+namespace MSX_GameTools.Converters;
 
 /// <summary>
 /// Multiplica los valores que le llegan. Se usa para colocar una imagen de referencia

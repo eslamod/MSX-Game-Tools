@@ -1,7 +1,7 @@
 using Avalonia.Media;
-using MSX_SpritesEditor.Entities;
+using MSX_GameTools.Entities;
 
-namespace MSX_SpritesEditor.ViewModels;
+namespace MSX_GameTools.ViewModels;
 
 /// <summary>
 /// El patrón que se está editando, visto por el lienzo de pintado.

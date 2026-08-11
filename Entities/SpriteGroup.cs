@@ -3,7 +3,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace MSX_SpritesEditor.Entities;
+namespace MSX_GameTools.Entities;
 
 /// <summary>
 /// Un personaje multicolor: de uno a cuatro sprites superpuestos con desplazamiento,

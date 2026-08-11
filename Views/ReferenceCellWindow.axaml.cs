@@ -4,9 +4,9 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
-using MSX_SpritesEditor.Entities;
+using MSX_GameTools.Entities;
 
-namespace MSX_SpritesEditor.Views;
+namespace MSX_GameTools.Views;
 
 /// <summary>
 /// Enseña una hoja de sprites con su retícula encima para elegir una celda con el ratón.

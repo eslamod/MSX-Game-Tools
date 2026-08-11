@@ -1,4 +1,4 @@
-namespace MSX_SpritesEditor.Entities;
+namespace MSX_GameTools.Entities;
 
 /// <summary>
 /// Un juego de patrones de 8x8 para los modos gráficos 2 y 3.

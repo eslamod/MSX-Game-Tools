@@ -1,7 +1,7 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:MSX_SpritesEditor"
-             x:Class="MSX_SpritesEditor.App"
+             xmlns:local="clr-namespace:MSX_GameTools"
+             x:Class="MSX_GameTools.App"
              RequestedThemeVariant="Light">
 
   <!-- Sustituye al antiguo ViewModelFacctory: resuelve XxxViewModel -> Views.XxxView -->

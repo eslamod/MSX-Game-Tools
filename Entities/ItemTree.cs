@@ -1,8 +1,8 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using MSX_SpritesEditor.ViewModels;
+using MSX_GameTools.ViewModels;
 
-namespace MSX_SpritesEditor.Entities;
+namespace MSX_GameTools.Entities;
 
 /// <summary>Nodo del árbol de proyecto (bancos de sprites, tilesets, mapas...).</summary>
 public partial class ItemTree : ObservableObject

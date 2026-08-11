@@ -1,6 +1,6 @@
 using Avalonia.Media;
 
-namespace MSX_SpritesEditor.Entities;
+namespace MSX_GameTools.Entities;
 
 /// <summary>
 /// Pinta un tile en su miniatura.

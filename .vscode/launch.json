@@ -6,7 +6,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/bin/Debug/net10.0/MSX_SpritesEditor.dll",
+      "program": "${workspaceFolder}/bin/Debug/net10.0/MSX_GameTools.dll",
       "args": [],
       "cwd": "${workspaceFolder}",
       "console": "internalConsole",

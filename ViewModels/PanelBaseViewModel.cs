@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace MSX_SpritesEditor.ViewModels;
+namespace MSX_GameTools.ViewModels;
 
 /// <summary>Base de todo panel que puede vivir en una pestaña o en el panel derecho.</summary>
 public abstract partial class PanelBaseViewModel : ObservableObject

@@ -1,7 +1,7 @@
 using System.Text;
-using MSX_SpritesEditor.Entities;
+using MSX_GameTools.Entities;
 
-namespace MSX_SpritesEditor.Services;
+namespace MSX_GameTools.Services;
 
 /// <summary>
 /// Vuelca un juego de tiles a las dos tablas que espera el VDP, en dos ficheros: la de

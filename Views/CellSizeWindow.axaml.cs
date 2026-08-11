@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 
-namespace MSX_SpritesEditor.Views;
+namespace MSX_GameTools.Views;
 
 /// <summary>
 /// Pregunta con qué lado de celda trocear una hoja de sprites.

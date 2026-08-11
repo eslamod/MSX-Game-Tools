@@ -2,9 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:MSX_SpritesEditor.ViewModels"
+             xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
              mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="300"
-             x:Class="MSX_SpritesEditor.Views.EditSpriteBankView"
+             x:Class="MSX_GameTools.Views.EditSpriteBankView"
              x:DataType="vm:EditSpriteBankViewModel"
              Background="Gainsboro">
 

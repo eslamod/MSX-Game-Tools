@@ -1,8 +1,8 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
-using MSX_SpritesEditor.Entities;
+using MSX_GameTools.Entities;
 
-namespace MSX_SpritesEditor.ViewModels;
+namespace MSX_GameTools.ViewModels;
 
 public class TreeGeneralViewModel : PanelBaseViewModel
 {

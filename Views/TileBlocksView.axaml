@@ -2,10 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:MSX_SpritesEditor.ViewModels"
-             xmlns:views="clr-namespace:MSX_SpritesEditor.Views"
+             xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:views="clr-namespace:MSX_GameTools.Views"
              mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="700"
-             x:Class="MSX_SpritesEditor.Views.TileBlocksView"
+             x:Class="MSX_GameTools.Views.TileBlocksView"
              x:DataType="vm:TileBlocksViewModel"
              Background="Gainsboro">
 

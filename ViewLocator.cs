@@ -1,8 +1,8 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using MSX_SpritesEditor.ViewModels;
+using MSX_GameTools.ViewModels;
 
-namespace MSX_SpritesEditor;
+namespace MSX_GameTools;
 
 /// <summary>
 /// Reemplaza al antiguo <c>ViewModelFacctory</c>. Registrado en App.axaml, permite que

@@ -1,8 +1,8 @@
 using System.ComponentModel;
 using Avalonia.Controls;
-using MSX_SpritesEditor.ViewModels;
+using MSX_GameTools.ViewModels;
 
-namespace MSX_SpritesEditor.Views;
+namespace MSX_GameTools.Views;
 
 public partial class MainWindow : Window
 {

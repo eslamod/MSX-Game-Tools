@@ -1,4 +1,4 @@
-namespace MSX_SpritesEditor.Services;
+namespace MSX_GameTools.Services;
 
 /// <summary>
 /// El fichero no contiene lo que dice contener. El mensaje explica qué falla, para

@@ -1,8 +1,8 @@
 using Avalonia;
 using Avalonia.Media;
-using MSX_SpritesEditor.Entities;
+using MSX_GameTools.Entities;
 
-namespace MSX_SpritesEditor.Services;
+namespace MSX_GameTools.Services;
 
 /// <summary>Un problema que impide importar una imagen.</summary>
 /// <param name="TileIndex">Tile donde está, o -1 si es de la imagen entera.</param>

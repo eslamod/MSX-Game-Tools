@@ -1,7 +1,7 @@
 using System.Text.Json;
-using MSX_SpritesEditor.Entities;
+using MSX_GameTools.Entities;
 
-namespace MSX_SpritesEditor.Services;
+namespace MSX_GameTools.Services;
 
 /// <summary>
 /// Formato de fichero de un juego de tiles: sus patrones y la paleta con la que se

@@ -2,12 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:entities="clr-namespace:MSX_SpritesEditor.Entities"
-             xmlns:vm="clr-namespace:MSX_SpritesEditor.ViewModels"
-             xmlns:views="clr-namespace:MSX_SpritesEditor.Views"
-             xmlns:converters="clr-namespace:MSX_SpritesEditor.Converters"
+             xmlns:entities="clr-namespace:MSX_GameTools.Entities"
+             xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:views="clr-namespace:MSX_GameTools.Views"
+             xmlns:converters="clr-namespace:MSX_GameTools.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
-             x:Class="MSX_SpritesEditor.Views.SpritesEditorView"
+             x:Class="MSX_GameTools.Views.SpritesEditorView"
              x:DataType="vm:SpritesEditorViewModel">
 
   <UserControl.Resources>

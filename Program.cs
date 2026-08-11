@@ -1,6 +1,6 @@
 using Avalonia;
 
-namespace MSX_SpritesEditor;
+namespace MSX_GameTools;
 
 internal static class Program
 {

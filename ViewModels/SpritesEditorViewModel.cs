@@ -1,10 +1,10 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MSX_SpritesEditor.Entities;
-using MSX_SpritesEditor.Services;
+using MSX_GameTools.Entities;
+using MSX_GameTools.Services;
 
-namespace MSX_SpritesEditor.ViewModels;
+namespace MSX_GameTools.ViewModels;
 
 public partial class SpritesEditorViewModel : PanelBaseViewModel
 {

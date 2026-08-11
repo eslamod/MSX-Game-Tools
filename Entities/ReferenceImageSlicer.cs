@@ -1,6 +1,6 @@
 using Avalonia;
 
-namespace MSX_SpritesEditor.Entities;
+namespace MSX_GameTools.Entities;
 
 /// <summary>
 /// Reparte una imagen de referencia en las celdas que se ofrecen como fondo.
