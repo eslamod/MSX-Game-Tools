@@ -107,6 +107,57 @@ public class TileBlocksPanelTests
         Assert.Null(Cell(panel, 0, 0).Image);
     }
 
+    /// <summary>
+    /// Tocar el tamaño a mano tiene que verse al momento. Antes no se enteraba nadie y
+    /// sólo se apreciaba cambiando de bloque y volviendo, así que mover el ancho o el
+    /// alto no daba ninguna señal de estar haciendo algo.
+    /// </summary>
+    [AvaloniaFact]
+    public void Cambiar_el_tamano_a_mano_se_ve_al_momento()
+    {
+        TileBlocksViewModel panel = NewPanel();
+        panel.AddBlockCommand.Execute(null);
+
+        Assert.Equal("1 x 1", panel.SizeLabel);
+        Assert.False(Cell(panel, 2, 0).IsInside);
+
+        panel.SelectedBlock!.Width = 3;
+
+        Assert.Equal("3 x 1", panel.SizeLabel);
+        Assert.True(Cell(panel, 2, 0).IsInside);
+    }
+
+    /// <summary>Encoger olvida lo que queda fuera, y la rejilla tiene que enseñarlo.</summary>
+    [AvaloniaFact]
+    public void Encoger_el_bloque_vacia_las_celdas_que_deja_fuera()
+    {
+        TileBlocksViewModel panel = NewPanel();
+        panel.AddBlockCommand.Execute(null);
+
+        panel.SelectTile(11);
+        panel.Paint(2, 0);
+
+        Assert.NotNull(Cell(panel, 2, 0).Image);
+
+        panel.SelectedBlock!.Width = 1;
+
+        Assert.Null(Cell(panel, 2, 0).Image);
+        Assert.False(Cell(panel, 2, 0).IsInside);
+    }
+
+    [AvaloniaFact]
+    public void Sin_bloque_seleccionado_no_hay_tamano_que_ensenar()
+    {
+        TileBlocksViewModel panel = NewPanel();
+
+        Assert.Equal(string.Empty, panel.SizeLabel);
+
+        panel.AddBlockCommand.Execute(null);
+        panel.DeleteBlockCommand.Execute(null);
+
+        Assert.Equal(string.Empty, panel.SizeLabel);
+    }
+
     [AvaloniaFact]
     public void Sin_bloque_seleccionado_pintar_no_revienta()
     {

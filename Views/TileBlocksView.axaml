@@ -84,7 +84,12 @@
                        Content="X3" Tag="3" Width="30" Margin="1"
                        IsCheckedChanged="OnGridZoomChanged" />
         </StackPanel>
-        <TextBlock Text="Composición" VerticalAlignment="Center" />
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Text="Composición" VerticalAlignment="Center" />
+          <TextBlock Text="{Binding SizeLabel}" VerticalAlignment="Center"
+                     Margin="8,0,0,0" FontWeight="Bold"
+                     ToolTip.Tip="Lo que mide el bloque" />
+        </StackPanel>
       </DockPanel>
 
       <!-- Nombre y tamaño del bloque. El tamaño crece solo al pintar mas alla, pero se

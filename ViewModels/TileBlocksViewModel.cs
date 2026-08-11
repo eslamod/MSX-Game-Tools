@@ -24,6 +24,9 @@ public partial class TileBlocksViewModel : PanelBaseViewModel
 {
     private readonly TileSetEditorViewModel _editor;
 
+    /// <summary>El bloque al que se le está escuchando el tamaño.</summary>
+    private TileBlockViewModel? _watched;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasBlock))]
     [NotifyCanExecuteChangedFor(nameof(DeleteBlockCommand))]
@@ -75,6 +78,9 @@ public partial class TileBlocksViewModel : PanelBaseViewModel
     public ObservableCollection<TileChoiceViewModel> Tiles { get; } = [];
 
     public bool HasBlock => SelectedBlock is not null;
+
+    /// <summary>Lo que mide el bloque, para ver el efecto de tocar el tamaño.</summary>
+    public string SizeLabel => SelectedBlock is { } block ? $"{block.Width} x {block.Height}" : string.Empty;
 
     public int GridSide => TileBlock.MaxSide;
 
@@ -189,7 +195,36 @@ public partial class TileBlocksViewModel : PanelBaseViewModel
         }
     }
 
-    partial void OnSelectedBlockChanged(TileBlockViewModel? value) => RefreshCells();
+    /// <summary>
+    /// El bloque avisa de su tamaño, y la rejilla tiene que enterarse.
+    /// </summary>
+    /// <remarks>
+    /// Cambiar el ancho o el alto a mano mueve el límite de lo que está dentro del bloque
+    /// y puede vaciar celdas. Sin escuchar al bloque, eso no se veía hasta cambiar de
+    /// bloque y volver, y tocar el tamaño no daba ninguna señal de estar haciendo algo.
+    /// </remarks>
+    partial void OnSelectedBlockChanged(TileBlockViewModel? value)
+    {
+        if (_watched is not null)
+            _watched.PropertyChanged -= OnBlockChanged;
+
+        _watched = value;
+
+        if (_watched is not null)
+            _watched.PropertyChanged += OnBlockChanged;
+
+        OnPropertyChanged(nameof(SizeLabel));
+        RefreshCells();
+    }
+
+    private void OnBlockChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is not (nameof(TileBlockViewModel.Width) or nameof(TileBlockViewModel.Height)))
+            return;
+
+        OnPropertyChanged(nameof(SizeLabel));
+        RefreshCells();
+    }
 
     /// <summary>«Bloque 3», saltándose los números que ya estén cogidos.</summary>
     private string NextAvailableName()
