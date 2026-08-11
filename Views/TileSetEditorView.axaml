@@ -195,6 +195,48 @@
     <!-- Zoom de las miniaturas y rejilla -->
     <DockPanel Grid.Row="0" Grid.Column="2" Margin="2">
       <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+
+        <!-- Color del borde: es lo que se ve donde un tile usa el codigo 0, que en
+             GRAPHIC 2 es transparente. Sin esto el editor enseñaba el 0 como un color
+             mas y la maquina mostraba otra cosa. -->
+        <TextBlock Text="Borde" VerticalAlignment="Center" Margin="4,0,4,0" />
+        <Button x:Name="BorderSwatch"
+                Theme="{StaticResource TileColorSwatch}"
+                Width="52" Height="22" Margin="0,2,8,2"
+                VerticalAlignment="Center"
+                ToolTip.Tip="{Binding BorderColor.DisplayName, StringFormat='Borde: {0}'}">
+          <Grid ColumnDefinitions="*,Auto">
+            <Border Grid.Column="0" Background="{Binding BorderColor.Brush}" />
+            <TextBlock Grid.Column="1" Text="{Binding BorderColor.Hex}"
+                       FontFamily="Consolas" FontSize="11" Width="16"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       TextAlignment="Center" />
+          </Grid>
+          <Button.Flyout>
+            <Flyout Placement="Bottom">
+              <ItemsControl ItemsSource="{Binding BorderChoices}" Width="152">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="entities:PaletteColor">
+                    <Button Theme="{StaticResource TileColorSwatch}"
+                            Width="34" Height="34" Margin="2"
+                            ToolTip.Tip="{Binding DisplayName}"
+                            Click="OnPaletteColorClick"
+                            Command="{Binding $parent[ItemsControl].((vm:TileSetEditorViewModel)DataContext).PickBorderColorCommand}"
+                            CommandParameter="{Binding}">
+                      <Border Background="{Binding Brush}" />
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Flyout>
+          </Button.Flyout>
+        </Button>
+
         <ToggleButton Content="Rejilla" Margin="2" Padding="8,2"
                       IsChecked="{Binding $parent[views:TileSetEditorView].ShowGrid}"
                       ToolTip.Tip="Marcar el borde de cada tile" />

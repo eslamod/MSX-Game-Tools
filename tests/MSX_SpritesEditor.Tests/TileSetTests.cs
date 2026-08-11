@@ -77,7 +77,7 @@ public class TileSetTests
         tile.ArrayTileRows[3].BackColor = 1;
         tile.ArrayTileRows[3].ArrayPattern[2] = true;
 
-        TileRenderer.Render(tile, palette, tile.ImageMini);
+        TileRenderer.Render(tile, palette, Colors.Black, tile.ImageMini);
 
         Assert.Equal(ToBgra(palette.GetColor(8)), PixelReader.At(tile.ImageMini, 2, 3));
         Assert.Equal(ToBgra(palette.GetColor(1)), PixelReader.At(tile.ImageMini, 3, 3));
@@ -92,10 +92,51 @@ public class TileSetTests
         tile.ArrayTileRows[0].BackColor = 4;
         tile.ArrayTileRows[1].BackColor = 6;
 
-        TileRenderer.Render(tile, palette, tile.ImageMini);
+        TileRenderer.Render(tile, palette, Colors.Black, tile.ImageMini);
 
         Assert.Equal(ToBgra(palette.GetColor(4)), PixelReader.At(tile.ImageMini, 0, 0));
         Assert.Equal(ToBgra(palette.GetColor(6)), PixelReader.At(tile.ImageMini, 0, 1));
+    }
+
+    /// <summary>
+    /// El codigo de color 0 es transparente y deja ver el color del borde, igual que en
+    /// los sprites: la tabla de colores de GRAPHIC 2 usa los mismos codigos. El editor lo
+    /// pintaba como un color mas de la paleta y enseñaba algo que la maquina no iba a
+    /// mostrar.
+    /// </summary>
+    [AvaloniaFact]
+    public void El_color_0_es_transparente_y_deja_ver_el_borde()
+    {
+        var tile = new Tile { ImageMini = new ImageMini(TileRow.Columns, Tile.Rows) };
+        var palette = ColorPalette.CreateMsxStandard();
+
+        tile.ArrayTileRows[0].ForeColor = 0;    // transparente
+        tile.ArrayTileRows[0].BackColor = 8;
+        tile.ArrayTileRows[0].ArrayPattern[0] = true;
+
+        Color border = palette.GetColor(6);
+        TileRenderer.Render(tile, palette, border, tile.ImageMini);
+
+        Assert.Equal(ToBgra(border), PixelReader.At(tile.ImageMini, 0, 0));
+        Assert.Equal(ToBgra(palette.GetColor(8)), PixelReader.At(tile.ImageMini, 1, 0));
+
+        // Y no es que se pinte del color 0 de la paleta, que es otro.
+        Assert.NotEqual(ToBgra(palette.GetColor(0)), PixelReader.At(tile.ImageMini, 0, 0));
+    }
+
+    [AvaloniaFact]
+    public void Cambiar_el_borde_cambia_lo_que_se_ve_donde_hay_un_0()
+    {
+        var tile = new Tile { ImageMini = new ImageMini(TileRow.Columns, Tile.Rows) };
+        var palette = ColorPalette.CreateMsxStandard();
+
+        tile.ArrayTileRows[0].BackColor = 0;
+
+        TileRenderer.Render(tile, palette, palette.GetColor(4), tile.ImageMini);
+        Assert.Equal(ToBgra(palette.GetColor(4)), PixelReader.At(tile.ImageMini, 0, 0));
+
+        TileRenderer.Render(tile, palette, palette.GetColor(9), tile.ImageMini);
+        Assert.Equal(ToBgra(palette.GetColor(9)), PixelReader.At(tile.ImageMini, 0, 0));
     }
 
     private static int ToBgra(Color color) => (color.A << 24) | (color.R << 16) | (color.G << 8) | color.B;

@@ -92,12 +92,13 @@ public partial class MainWindowViewModel : ObservableObject
     private void AddTileSet() => RightPanViewModel = new EditTileSetViewModel(this);
 
     /// <summary>Abre un juego de tiles en una pestaña nueva y lo cuelga del árbol.</summary>
-    public TileSetEditorViewModel OpenTileSet(TileSet tileSet)
+    public TileSetEditorViewModel OpenTileSet(TileSet tileSet, int borderColorIndex = 1)
     {
         var panel = new TileSetEditorViewModel(tileSet, Palettes, Preferences)
         {
             TagId = $"tls{CurrentTileSetCounter}",
             Header = $"{tileSet.Name} (TS)",
+            BorderColorIndex = borderColorIndex,
         };
 
         CurrentTileSetCounter++;
@@ -435,7 +436,7 @@ public partial class MainWindowViewModel : ObservableObject
         {
             // La paleta va dentro por lo mismo que en un banco: los tiles guardan
             // indices, y sin ella se abriria con los colores que hubiera puestos.
-            await File.WriteAllTextAsync(path, TileSetSerializer.Serialize(editor.TileSet, editor.ColorPalette));
+            await File.WriteAllTextAsync(path, TileSetSerializer.Serialize(editor.TileSet, editor.ColorPalette, editor.BorderColorIndex));
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
@@ -458,7 +459,7 @@ public partial class MainWindowViewModel : ObservableObject
             LoadedTileSet loaded = TileSetSerializer.Deserialize(json);
 
             Palettes.Activate(loaded.Palette);
-            OpenTileSet(loaded.TileSet);
+            OpenTileSet(loaded.TileSet, loaded.BorderColorIndex);
         }
         catch (FileFormatException exception)
         {

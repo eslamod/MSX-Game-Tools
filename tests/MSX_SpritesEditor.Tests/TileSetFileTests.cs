@@ -70,6 +70,15 @@ public class TileSetFileTests : IDisposable
     }
 
     [AvaloniaFact]
+    public void El_color_del_borde_viaja_con_el_juego()
+    {
+        string json = TileSetSerializer.Serialize(
+            new TileSet("Bosque"), ColorPalette.CreateMsxStandard(), borderColorIndex: 7);
+
+        Assert.Equal(7, TileSetSerializer.Deserialize(json).BorderColorIndex);
+    }
+
+    [AvaloniaFact]
     public void La_paleta_viaja_con_el_juego()
     {
         var palette = new PaletteLibrary().Add("Nocturna");

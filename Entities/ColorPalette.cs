@@ -72,6 +72,20 @@ public sealed class ColorPalette : ObservableObject
     public IReadOnlyList<PaletteColor> Colors => _colors;
 
     /// <summary>Colores elegibles como fondo del lienzo y de las miniaturas: del 1 al F.</summary>
+    /// <summary>
+    /// El color con el que se ve un índice, con el 0 resuelto contra el fondo.
+    /// </summary>
+    /// <remarks>
+    /// El código de color 0 del VDP es transparente y deja ver el color del borde, y eso
+    /// vale igual para la tabla de colores de los sprites que para la de los tiles: es
+    /// la misma tabla de códigos. Vive aquí y no en un renderizador porque es una regla
+    /// de la paleta, no de lo que se esté dibujando.
+    /// </remarks>
+    public Color Resolve(int index, Color background) => index == 0 ? background : GetColor(index);
+
+    /// <inheritdoc cref="Resolve(int, Color)"/>
+    public IBrush ResolveBrush(int index, IBrush background) => index == 0 ? background : GetBrush(index);
+
     public IReadOnlyList<PaletteColor> BackgroundChoices => _backgroundChoices;
 
     public int Count => _colors.Length;

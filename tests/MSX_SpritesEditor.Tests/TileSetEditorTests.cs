@@ -290,6 +290,33 @@ public class TileSetEditorTests
         Assert.True(right.X <= window.Width, $"A X{zoom} la barra acaba en {right.X} y la ventana mide {window.Width}.");
     }
 
+    /// <summary>El borde se ve en todos los tiles que usen el 0, no solo en el actual.</summary>
+    [AvaloniaFact]
+    public void Cambiar_el_borde_repinta_todas_las_miniaturas()
+    {
+        TileSetEditorViewModel editor = NewEditor();
+
+        // Un tile lejos del actual, con el fondo de su primera linea transparente.
+        editor.TileSet.ListOfTiles[200].ArrayTileRows[0].BackColor = 0;
+        editor.BorderColorIndex = 1;
+
+        Assert.Equal(
+            ToBgra(editor.ColorPalette.GetColor(1)),
+            PixelReader.At(editor.TileSet.ListOfTiles[200].ImageMini!, 0, 0));
+
+        editor.PickBorderColorCommand.Execute(editor.ColorPalette[10]);
+
+        Assert.Equal(10, editor.BorderColorIndex);
+        Assert.Equal(
+            ToBgra(editor.ColorPalette.GetColor(10)),
+            PixelReader.At(editor.TileSet.ListOfTiles[200].ImageMini!, 0, 0));
+    }
+
+    /// <summary>El 0 no se ofrece como borde: es el transparente, no un color.</summary>
+    [AvaloniaFact]
+    public void El_borde_no_puede_ser_el_color_0()
+        => Assert.DoesNotContain(NewEditor().BorderChoices, color => color.Index == 0);
+
     private static TileSetEditorViewModel NewEditor() =>
         new(new TileSet("Bosque"), new PaletteLibrary());
 

@@ -14,11 +14,11 @@ public static class SpriteRenderer
     /// aquí se dibuja con el color de fondo.
     /// </summary>
     public static Color ResolveRowColor(ColorPalette palette, int colorIndex, Color background)
-        => colorIndex == 0 ? background : palette.GetColor(colorIndex);
+        => palette.Resolve(colorIndex, background);
 
     /// <inheritdoc cref="ResolveRowColor"/>
     public static IBrush ResolveRowBrush(ColorPalette palette, int colorIndex, IBrush background)
-        => colorIndex == 0 ? background : palette.GetBrush(colorIndex);
+        => palette.ResolveBrush(colorIndex, background);
 
     /// <summary>Repinta la miniatura entera a partir del estado del sprite.</summary>
     public static void Render(Sprite sprite, ColorPalette palette, Color background, ImageMini target)

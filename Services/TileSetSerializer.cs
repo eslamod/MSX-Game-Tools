@@ -31,8 +31,8 @@ public static class TileSetSerializer
     /// <summary>Ocho bytes por tabla y dos dígitos por byte.</summary>
     private const int Digits = Tile.Rows * 2;
 
-    public static string Serialize(TileSet tileSet, ColorPalette palette) =>
-        JsonSerializer.Serialize(ToFile(tileSet, palette), PaletteSerializer.Options);
+    public static string Serialize(TileSet tileSet, ColorPalette palette, int borderColorIndex = 1) =>
+        JsonSerializer.Serialize(ToFile(tileSet, palette, borderColorIndex), PaletteSerializer.Options);
 
     /// <exception cref="FileFormatException">El contenido no es un juego de tiles válido.</exception>
     public static LoadedTileSet Deserialize(string json)
@@ -65,12 +65,15 @@ public static class TileSetSerializer
         foreach (TileFile tile in file.Tiles ?? [])
             ReadTile(tile, tileSet);
 
-        return new LoadedTileSet(tileSet, PaletteSerializer.FromFile(file.Palette));
+        int border = file.BorderColor is >= 1 and < ColorPalette.Size ? file.BorderColor : 1;
+
+        return new LoadedTileSet(tileSet, PaletteSerializer.FromFile(file.Palette), border);
     }
 
-    private static TileSetFile ToFile(TileSet tileSet, ColorPalette palette) => new(
+    private static TileSetFile ToFile(TileSet tileSet, ColorPalette palette, int borderColorIndex) => new(
         FormatVersion,
         tileSet.Name,
+        borderColorIndex,
         PaletteSerializer.ToFile(palette),
         [.. Drawn(tileSet)]);
 
@@ -157,6 +160,7 @@ public static class TileSetSerializer
     private sealed record TileSetFile(
         int Version,
         string? Name,
+        int BorderColor,
         PaletteSerializer.PaletteFile? Palette,
         IReadOnlyList<TileFile>? Tiles);
 
@@ -164,4 +168,4 @@ public static class TileSetSerializer
 }
 
 /// <summary>Lo que sale de leer un fichero de tiles.</summary>
-public sealed record LoadedTileSet(TileSet TileSet, ColorPalette Palette);
+public sealed record LoadedTileSet(TileSet TileSet, ColorPalette Palette, int BorderColorIndex);

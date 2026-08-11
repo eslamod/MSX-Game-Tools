@@ -11,6 +11,9 @@ namespace MSX_SpritesEditor.ViewModels;
 /// </summary>
 public partial class TileSetEditorViewModel : PanelBaseViewModel
 {
+    /// <summary>Negro, el borde con el que arranca el editor.</summary>
+    private const int DefaultBorderIndex = 1;
+
     private readonly TileSet _tileSet;
     private readonly PaletteLibrary _palettes;
 
@@ -33,6 +36,18 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
     [NotifyCanExecuteChangedFor(nameof(NextTileCommand))]
     [NotifyCanExecuteChangedFor(nameof(PreviousTileCommand))]
     private int _currentTilePosition = 1;
+
+    /// <summary>
+    /// Color del borde, que es lo que se ve donde un tile use el código 0.
+    /// </summary>
+    /// <remarks>
+    /// En GRAPHIC 2 el código de color 0 es transparente y deja pasar el color del borde
+    /// (R#7). Sin esto el editor pintaba el 0 como un color más de la paleta y enseñaba
+    /// algo que la máquina no iba a mostrar.
+    /// </remarks>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BorderColor))]
+    private int _borderColorIndex = DefaultBorderIndex;
 
     public TileSetEditorViewModel(TileSet tileSet, PaletteLibrary palettes, EditorPreferences? preferences = null)
     {
@@ -71,6 +86,11 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
     public EditorPreferences Preferences { get; }
 
     public ColorPalette ColorPalette => _palettes.ActivePalette;
+
+    /// <summary>Los colores que puede tomar el borde. El 0 no, que es el transparente.</summary>
+    public IReadOnlyList<PaletteColor> BorderChoices => ColorPalette.BackgroundChoices;
+
+    public PaletteColor BorderColor => ColorPalette[BorderColorIndex];
 
     /// <summary>El tile actual visto por el lienzo de pintado.</summary>
     public IPixelSurface PixelSurface { get; }
@@ -116,7 +136,7 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
     public void RenderCurrent()
     {
         if (CurrentTile.ImageMini is not null)
-            TileRenderer.Render(CurrentTile, ColorPalette, CurrentTile.ImageMini);
+            TileRenderer.Render(CurrentTile, ColorPalette, BorderColor.Color, CurrentTile.ImageMini);
     }
 
     partial void OnSelectedThumbnailChanged(ImageMini? value)
@@ -131,10 +151,24 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
 
     partial void OnCurrentTilePositionChanged(int value) => OnPropertyChanged(nameof(TileLabel));
 
+    /// <summary>El borde se ve en todos los tiles que usen el 0, no sólo en el actual.</summary>
+    partial void OnBorderColorIndexChanged(int value)
+    {
+        RenderAll();
+        RefreshRequested?.Invoke();
+    }
+
+    [RelayCommand]
+    private void PickBorderColor(PaletteColor? color)
+    {
+        if (color is not null)
+            BorderColorIndex = color.Index;
+    }
+
     private void OnRowColorPicked(int rowIndex)
     {
         if (CurrentTile.ImageMini is not null)
-            TileRenderer.RenderRow(CurrentTile, rowIndex, ColorPalette, CurrentTile.ImageMini);
+            TileRenderer.RenderRow(CurrentTile, rowIndex, ColorPalette, BorderColor.Color, CurrentTile.ImageMini);
 
         RefreshRequested?.Invoke();
     }
@@ -155,6 +189,8 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
     private void OnActivePaletteColorsChanged(ColorPalette? palette = null)
     {
         OnPropertyChanged(nameof(ColorPalette));
+        OnPropertyChanged(nameof(BorderChoices));
+        OnPropertyChanged(nameof(BorderColor));
 
         foreach (TileRowColorViewModel row in RowColors)
             row.Refresh();
@@ -168,7 +204,7 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
         foreach (Tile tile in _tileSet.ListOfTiles)
         {
             if (tile.ImageMini is not null)
-                TileRenderer.Render(tile, ColorPalette, tile.ImageMini);
+                TileRenderer.Render(tile, ColorPalette, BorderColor.Color, tile.ImageMini);
         }
     }
 
@@ -193,11 +229,11 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
             row.ArrayPattern[x] = on;
 
             editor.CurrentTile.ImageMini?.SetPixel(
-                x, y, editor.ColorPalette.GetColor(on ? row.ForeColor : row.BackColor));
+                x, y, editor.ColorPalette.Resolve(on ? row.ForeColor : row.BackColor, editor.BorderColor.Color));
         }
 
         public IBrush BrushAt(int x, int y) =>
-            TileRenderer.BrushAt(editor.CurrentTile, editor.ColorPalette, x, y);
+            TileRenderer.BrushAt(editor.CurrentTile, editor.ColorPalette, editor.BorderColor.Brush, x, y);
 
         // Un tile no lo compone nadie: nada que recalcular al soltar.
         public void EndStroke()
