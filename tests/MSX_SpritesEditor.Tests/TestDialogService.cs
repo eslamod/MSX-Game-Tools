@@ -20,6 +20,13 @@ internal sealed class TestDialogService : IDialogService
     /// <summary>Lo que contesta al preguntar el tamano de celda; <c>null</c> es cancelar.</summary>
     public int? CellSize { get; init; }
 
+    /// <summary>Que contesta a una eleccion entre dos: null es cancelar.</summary>
+    public bool? ChooseAnswer { get; init; } = false;
+
+    public int ChooseCalls { get; private set; }
+
+    public string LastChooseMessage { get; private set; } = string.Empty;
+
     public int ConfirmCalls { get; private set; }
 
     /// <summary>Celda que devuelve el selector de reticula; <c>null</c> es cancelar.</summary>
@@ -89,10 +96,19 @@ internal sealed class TestDialogService : IDialogService
         return Task.FromResult(CellSize);
     }
 
-    public Task<string?> PickFileToSaveAsync(string title, string suggestedFileName)
+    public Task<string?> PickFileToSaveAsync(
+        string title, string suggestedFileName, PickerFileKind kind = PickerFileKind.Json)
     {
         LastSuggestedFileName = suggestedFileName;
 
         return Task.FromResult(SavePath);
+    }
+
+    public Task<bool?> ChooseAsync(string title, string message, string firstLabel, string secondLabel)
+    {
+        ChooseCalls++;
+        LastChooseMessage = message;
+
+        return Task.FromResult(ChooseAnswer);
     }
 }

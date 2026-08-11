@@ -26,8 +26,27 @@ public partial class ConfirmationWindow : Window
         }
     }
 
-    // Cerrar por la X equivale a cancelar: ShowDialog<bool> devuelve false.
+    /// <summary>
+    /// Tres salidas en vez de dos: una para cada opción y una para cancelar.
+    /// </summary>
+    /// <remarks>
+    /// Con <c>ShowDialog&lt;bool?&gt;</c>, cerrar por la X devuelve null, que es
+    /// cancelar. Hace falta cuando las dos opciones hacen algo y no vale confundir
+    /// "la otra" con "déjalo".
+    /// </remarks>
+    public ConfirmationWindow(string title, string message, string yesLabel, string noLabel, bool threeWay)
+        : this(title, message, yesLabel)
+    {
+        AlternativeButton.Content = noLabel;
+        AlternativeButton.IsVisible = threeWay;
+    }
+
     private void OnConfirm(object? sender, RoutedEventArgs e) => Close(true);
 
-    private void OnCancel(object? sender, RoutedEventArgs e) => Close(false);
+    private void OnAlternative(object? sender, RoutedEventArgs e) => Close(false);
+
+    // Null y no false: con ShowDialog<bool?> es lo que distingue cancelar de la segunda
+    // opcion, y con ShowDialog<bool> sigue llegando como false, que era el comportamiento
+    // de antes. Cerrar por la X pasa por aqui igual.
+    private void OnCancel(object? sender, RoutedEventArgs e) => Close(null);
 }

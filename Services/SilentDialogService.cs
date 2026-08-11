@@ -21,6 +21,10 @@ public sealed class SilentDialogService : IDialogService
     public Task<int?> PickReferenceCellAsync(Entities.ReferenceImage image, int currentCell) =>
         Task.FromResult<int?>(null);
 
-    public Task<string?> PickFileToSaveAsync(string title, string suggestedFileName) =>
+    public Task<string?> PickFileToSaveAsync(
+        string title, string suggestedFileName, PickerFileKind kind = PickerFileKind.Json) =>
         Task.FromResult<string?>(null);
+
+    public Task<bool?> ChooseAsync(string title, string message, string firstLabel, string secondLabel) =>
+        Task.FromResult<bool?>(null);
 }

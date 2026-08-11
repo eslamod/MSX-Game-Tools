@@ -27,6 +27,8 @@
         <MenuItem Header="Save tileset as..." Command="{Binding SaveTileSetCommand}" />
         <MenuItem Header="Export tileset (binary)..." Command="{Binding ExportTileSetBinaryCommand}" />
         <MenuItem Header="Export tileset (asm)..." Command="{Binding ExportTileSetAssemblerCommand}" />
+        <MenuItem Header="Export tileset to png..." Command="{Binding ExportTileSetPngCommand}" />
+        <MenuItem Header="Import tileset from png..." Command="{Binding ImportTileSetPngCommand}" />
         <Separator />
         <MenuItem Header="Exit" />
       </MenuItem>

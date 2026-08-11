@@ -18,6 +18,9 @@
 
     <StackPanel Grid.Row="2" Orientation="Horizontal"
                 HorizontalAlignment="Right" Spacing="8" Margin="0,20,0,0">
+      <Button x:Name="AlternativeButton" Width="120" IsVisible="False"
+              HorizontalContentAlignment="Center"
+              Click="OnAlternative" />
       <Button x:Name="ConfirmButton" Width="100"
               HorizontalContentAlignment="Center"
               Click="OnConfirm" />

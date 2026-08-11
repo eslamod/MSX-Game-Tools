@@ -53,23 +53,34 @@ public sealed class DialogService(Window owner) : IDialogService
         {
             Title = title,
             AllowMultiple = false,
-            FileTypeFilter = [kind == PickerFileKind.Image ? ImageFileType : PaletteFileType],
+            FileTypeFilter = [TypeOf(kind)],
         });
 
         return files.Count > 0 ? files[0].TryGetLocalPath() : null;
     }
 
-    public async Task<string?> PickFileToSaveAsync(string title, string suggestedFileName)
+    public async Task<string?> PickFileToSaveAsync(
+        string title, string suggestedFileName, PickerFileKind kind = PickerFileKind.Json)
     {
         IStorageFile? file = await owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = title,
             SuggestedFileName = suggestedFileName,
-            DefaultExtension = "json",
-            FileTypeChoices = [PaletteFileType],
+            DefaultExtension = Path.GetExtension(suggestedFileName).TrimStart('.'),
+            FileTypeChoices = kind == PickerFileKind.Any ? null : [TypeOf(kind)],
             ShowOverwritePrompt = true,
         });
 
         return file?.TryGetLocalPath();
     }
+
+    public async Task<bool?> ChooseAsync(string title, string message, string firstLabel, string secondLabel)
+    {
+        var dialog = new ConfirmationWindow(title, message, firstLabel, secondLabel, threeWay: true);
+
+        return await dialog.ShowDialog<bool?>(owner);
+    }
+
+    private static FilePickerFileType TypeOf(PickerFileKind kind) =>
+        kind == PickerFileKind.Image ? ImageFileType : PaletteFileType;
 }

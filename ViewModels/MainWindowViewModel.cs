@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Avalonia;
+using Avalonia.Media;
 using MSX_SpritesEditor.Entities;
 using MSX_SpritesEditor.Services;
 
@@ -21,6 +22,7 @@ public partial class MainWindowViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(SaveTileSetCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetBinaryCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetAssemblerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExportTileSetPngCommand))]
     private PanelBaseViewModel? _selectedTab;
 
     /// <param name="dialogs">
@@ -565,6 +567,135 @@ public partial class MainWindowViewModel : ObservableObject
         {
             await Dialogs.ShowMessageAsync("No se pudo exportar la paleta", exception.Message);
         }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanSaveTileSet))]
+    private async Task ExportTileSetPngAsync()
+    {
+        if (SelectedTab is not TileSetEditorViewModel editor)
+            return;
+
+        string? path = await Dialogs.PickFileToSaveAsync(
+            "Exportar el juego de tiles a png",
+            $"{SpriteBankExporter.LabelOf(editor.TileSet.Name)}.png",
+            PickerFileKind.Image);
+
+        if (path is null)
+            return;
+
+        try
+        {
+            PngFile.Write(
+                path,
+                TileSetPngConverter.ToPixels(editor.TileSet, editor.ColorPalette),
+                TileSetPngConverter.FullSize);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo exportar el png", exception.Message);
+        }
+    }
+
+    /// <summary>
+    /// Trae un png como juego de tiles, comprobando antes que se puede.
+    /// </summary>
+    /// <remarks>
+    /// Se rechaza en vez de aproximar en silencio: una imagen que no cumple las reglas de
+    /// GRAPHIC 2 se puede convertir igualmente, pero el resultado no se parece a lo que
+    /// dibujaste y no sabrías por qué. Es mejor decir dónde está el problema.
+    /// </remarks>
+    [RelayCommand]
+    private async Task ImportTileSetPngAsync()
+    {
+        string? path = await Dialogs.PickFileToOpenAsync("Importar un png como juego de tiles", PickerFileKind.Image);
+        if (path is null)
+            return;
+
+        int[] pixels;
+        PixelSize size;
+
+        try
+        {
+            (pixels, size) = PngFile.Read(path);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo abrir la imagen", exception.Message);
+
+            return;
+        }
+
+        string name = Path.GetFileNameWithoutExtension(path);
+
+        ColorPalette? palette = await ChoosePaletteForImportAsync(pixels, name);
+        if (palette is null)
+            return;
+
+        TileSetImportResult result = TileSetPngConverter.Analyse(pixels, size, palette, name);
+
+        if (!result.Ok)
+        {
+            await Dialogs.ShowMessageAsync("La imagen no se puede importar", Describe(result));
+
+            return;
+        }
+
+        if (!ReferenceEquals(palette, Palettes.ActivePalette))
+            Palettes.Activate(palette);
+
+        OpenTileSet(result.TileSet!);
+    }
+
+    /// <summary>
+    /// Decide con qué paleta se lee la imagen: la activa, o una nueva con sus colores.
+    /// </summary>
+    /// <remarks>
+    /// Sólo se ofrece generar cuando los colores caben, y caben quince y no dieciséis: el
+    /// índice 0 del VDP es transparente y darle un color haría que esos pixeles enseñaran
+    /// el borde en la máquina.
+    /// </remarks>
+    private async Task<ColorPalette?> ChoosePaletteForImportAsync(int[] pixels, string name)
+    {
+        IReadOnlyList<Color> colors = TileSetPngConverter.DistinctColors(pixels);
+
+        if (colors.Count > TileSetPngConverter.MaxGeneratedColors)
+        {
+            await Dialogs.ShowMessageAsync(
+                "La imagen tiene demasiados colores",
+                $"Trae {colors.Count} colores distintos y como mucho pueden ser "
+                + $"{TileSetPngConverter.MaxGeneratedColors}, porque el color 0 del MSX está reservado para el "
+                + "transparente. Reduce los colores en tu editor de imagen y vuelve a intentarlo.");
+
+            return null;
+        }
+
+        bool? generate = await Dialogs.ChooseAsync(
+            "Colores de la imagen",
+            $"La imagen usa {colors.Count} colores. Puedes crear una paleta nueva con ellos, que los respeta "
+            + $"tal cual, o buscar los más parecidos en la paleta activa «{Palettes.ActivePalette.Name}», que "
+            + "puede cambiarlos.",
+            "Crear una paleta",
+            "Usar la activa");
+
+        return generate switch
+        {
+            null => null,
+            true => TileSetPngConverter.BuildPalette($"{name} (png)", colors),
+            false => Palettes.ActivePalette,
+        };
+    }
+
+    private static string Describe(TileSetImportResult result)
+    {
+        IEnumerable<string> lines = result.Problems
+            .Take(TileSetPngConverter.MaxReportedProblems)
+            .Select(problem => problem.Message);
+
+        string text = string.Join(Environment.NewLine, lines);
+
+        return result.Problems.Count > TileSetPngConverter.MaxReportedProblems
+            ? $"{text}{Environment.NewLine}...y alguno más."
+            : text;
     }
 
     /// <summary>El nombre de una paleta puede llevar caracteres que no valen en un fichero.</summary>

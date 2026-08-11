@@ -10,6 +10,9 @@ public enum PickerFileKind
 {
     Json,
     Image,
+
+    /// <summary>Sin filtro. Para las exportaciones, que salen en varios formatos.</summary>
+    Any,
 }
 
 public interface IDialogService
@@ -36,5 +39,16 @@ public interface IDialogService
     Task<int?> PickReferenceCellAsync(Entities.ReferenceImage image, int currentCell);
 
     /// <summary>Ruta donde guardar, o <c>null</c> si se cancela.</summary>
-    Task<string?> PickFileToSaveAsync(string title, string suggestedFileName);
+    Task<string?> PickFileToSaveAsync(
+        string title, string suggestedFileName, PickerFileKind kind = PickerFileKind.Json);
+
+    /// <summary>
+    /// Pregunta entre dos opciones que hacen algo distinto. <c>true</c> la primera,
+    /// <c>false</c> la segunda y <c>null</c> si se cancela.
+    /// </summary>
+    /// <remarks>
+    /// Distinto de <see cref="ConfirmAsync"/>, donde cancelar y decir que no son lo
+    /// mismo. Aquí las dos opciones siguen adelante y hace falta una tercera salida.
+    /// </remarks>
+    Task<bool?> ChooseAsync(string title, string message, string firstLabel, string secondLabel);
 }
