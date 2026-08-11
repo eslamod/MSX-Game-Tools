@@ -11,6 +11,17 @@
 
   <Application.Styles>
     <FluentTheme />
+
+    <!-- Fluent le da a las pestañas una fuente mucho mayor que la del resto de la
+         interfaz y unas cabeceras muy altas. Va aqui y no en cada TabControl porque
+         se quiere igual en las pestañas del centro y en las del lateral. MinHeight y
+         Padding tambien: solo con la fuente, la tira se queda igual de gruesa con la
+         letra pequeña flotando dentro. -->
+    <Style Selector="TabItem">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Padding" Value="10,6" />
+    </Style>
   </Application.Styles>
 
   <Application.Resources>
