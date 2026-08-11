@@ -132,7 +132,10 @@
         <TabControl.ItemTemplate>
           <!-- Plantilla de la cabecera de la pestaña. El contenido lo resuelve el ViewLocator. -->
           <DataTemplate x:DataType="vm:PanelBaseViewModel">
-            <StackPanel Orientation="Horizontal">
+            <!-- Margen abajo: la linea que marca la pestaña seleccionada se alinea al
+                 fondo de este bloque, no al de la pestaña, asi que sin aire se le queda
+                 rozando el texto. -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
               <TextBlock Text="{Binding Header}" VerticalAlignment="Center" />
 
               <!-- Cerrar no es eliminar: la pestaña se va de la vista pero el elemento
@@ -160,7 +163,10 @@
                   IsVisible="{Binding RightPanViewModel, Converter={x:Static ObjectConverters.IsNotNull}}">
         <TabControl.ItemTemplate>
           <DataTemplate x:DataType="vm:PanelBaseViewModel">
-            <StackPanel Orientation="Horizontal">
+            <!-- Margen abajo: la linea que marca la pestaña seleccionada se alinea al
+                 fondo de este bloque, no al de la pestaña, asi que sin aire se le queda
+                 rozando el texto. -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
               <TextBlock Text="{Binding Header}" VerticalAlignment="Center" />
               <Button Content="✕" FontSize="10" Padding="4,0" Margin="8,0,0,0"
                       VerticalAlignment="Center"
