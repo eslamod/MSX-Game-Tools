@@ -294,61 +294,6 @@
                          HorizontalAlignment="Left" VerticalAlignment="Top" />
     </Grid>
 
-    <!-- Fondo del patrón que se está dibujando. Se elige aquí y no en el panel del
-         grupo porque son dos preguntas distintas: qué escena hay detrás de una
-         composición, y qué dibujo estoy calcando en este sprite. -->
-    <!-- Mismo reparto que el panel del grupo: los tres controles en una fila y la
-         opacidad debajo. En una sola fila no caben en los 256 de la columna, y encima
-         la columna se estrecha o se ensancha con el zoom del lienzo. -->
-    <StackPanel Grid.Row="2" Grid.Column="0"
-                VerticalAlignment="Top" Margin="6,54,6,0"
-                IsVisible="{Binding HasBackgrounds}">
-
-      <TextBlock Text="Fondo" FontWeight="Bold" Margin="0,0,0,4" />
-
-      <Grid ColumnDefinitions="*,Auto,Auto">
-        <ComboBox Grid.Column="0" HorizontalAlignment="Stretch" FontSize="11"
-                  ItemsSource="{Binding Backgrounds.Images}"
-                  SelectedItem="{Binding PatternBackground.Image}"
-                  PlaceholderText="Sin fondo"
-                  ToolTip.Tip="Imagen de referencia detrás del lienzo">
-          <ComboBox.ItemTemplate>
-            <DataTemplate x:DataType="entities:ReferenceImage">
-              <TextBlock Text="{Binding DisplayName}" />
-            </DataTemplate>
-          </ComboBox.ItemTemplate>
-        </ComboBox>
-
-        <!-- La celda se elige aqui y no en el desplegable: volver a elegir en un ComboBox
-             lo que ya estaba elegido no dispara nada, asi que sin este boton no habria
-             forma de cambiar de celda sin cambiar antes de imagen. -->
-        <Button Grid.Column="1"
-                Content="{Binding PatternBackground.CellLabel}"
-                MinWidth="52" Margin="4,0,0,0" FontFamily="Consolas" FontSize="11"
-                HorizontalContentAlignment="Center"
-                IsVisible="{Binding PatternBackground.CanPickCell}"
-                Command="{Binding PatternBackground.PickCellCommand}"
-                ToolTip.Tip="Elegir la celda de la hoja" />
-
-        <!-- Ocultar sin olvidar: "Sin fondo" borra la celda elegida, y para volver a
-             ponerla habria que acordarse de cual era. -->
-        <ToggleButton Grid.Column="2" Content="Ver"
-                      MinWidth="40" Margin="4,0,0,0" FontSize="11"
-                      HorizontalContentAlignment="Center"
-                      IsVisible="{Binding PatternBackground.HasTile}"
-                      IsChecked="{Binding PatternBackground.IsVisible}"
-                      ToolTip.Tip="Enseñar u ocultar la referencia" />
-      </Grid>
-
-      <Grid ColumnDefinitions="56,*" Margin="0,4,0,0">
-        <TextBlock Grid.Column="0" Text="Opacidad" VerticalAlignment="Center" FontSize="11" />
-        <Slider Grid.Column="1"
-                Minimum="0.15" Maximum="1"
-                Value="{Binding PatternOpacity}"
-                VerticalAlignment="Center"
-                ToolTip.Tip="Opacidad del sprite sobre la referencia" />
-      </Grid>
-    </StackPanel>
 
     <!-- MSX2: un color por linea, alineado con las filas del lienzo. -->
     <ItemsControl x:Name="RowColorStrip"
@@ -844,6 +789,62 @@
       <Button Width="44" Content="X" FontSize="20" Margin="3" Foreground="Red"
               HorizontalContentAlignment="Center"
               Command="{Binding DeleteSpriteCommand}" />
+    </StackPanel>
+
+    <!-- Fondo del patrón que se está dibujando. Se elige aquí y no en el panel del
+       grupo porque son dos preguntas distintas: qué escena hay detrás de una
+       composición, y qué dibujo estoy calcando en este sprite. -->
+    <!-- Mismo reparto que el panel del grupo: los tres controles en una fila y la
+       opacidad debajo. En una sola fila no caben en los 256 de la columna, y encima
+       la columna se estrecha o se ensancha con el zoom del lienzo. -->
+    <StackPanel Grid.Row="2" Grid.Column="0"
+              VerticalAlignment="Top" Margin="6,54,6,0"
+              IsVisible="{Binding HasBackgrounds}">
+
+    <TextBlock Text="Fondo" FontWeight="Bold" Margin="0,0,0,4" />
+
+    <Grid ColumnDefinitions="*,Auto,Auto">
+      <ComboBox Grid.Column="0" HorizontalAlignment="Stretch" FontSize="11"
+                ItemsSource="{Binding Backgrounds.Images}"
+                SelectedItem="{Binding PatternBackground.Image}"
+                PlaceholderText="Sin fondo"
+                ToolTip.Tip="Imagen de referencia detrás del lienzo">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="entities:ReferenceImage">
+            <TextBlock Text="{Binding DisplayName}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+
+      <!-- La celda se elige aqui y no en el desplegable: volver a elegir en un ComboBox
+           lo que ya estaba elegido no dispara nada, asi que sin este boton no habria
+           forma de cambiar de celda sin cambiar antes de imagen. -->
+      <Button Grid.Column="1"
+              Content="{Binding PatternBackground.CellLabel}"
+              MinWidth="52" Margin="4,0,0,0" FontFamily="Consolas" FontSize="11"
+              HorizontalContentAlignment="Center"
+              IsVisible="{Binding PatternBackground.CanPickCell}"
+              Command="{Binding PatternBackground.PickCellCommand}"
+              ToolTip.Tip="Elegir la celda de la hoja" />
+
+      <!-- Ocultar sin olvidar: "Sin fondo" borra la celda elegida, y para volver a
+           ponerla habria que acordarse de cual era. -->
+      <ToggleButton Grid.Column="2" Content="Ver"
+                    MinWidth="40" Margin="4,0,0,0" FontSize="11"
+                    HorizontalContentAlignment="Center"
+                    IsVisible="{Binding PatternBackground.HasTile}"
+                    IsChecked="{Binding PatternBackground.IsVisible}"
+                    ToolTip.Tip="Enseñar u ocultar la referencia" />
+    </Grid>
+
+    <Grid ColumnDefinitions="56,*" Margin="0,4,0,0">
+      <TextBlock Grid.Column="0" Text="Opacidad" VerticalAlignment="Center" FontSize="11" />
+      <Slider Grid.Column="1"
+              Minimum="0.15" Maximum="1"
+              Value="{Binding PatternOpacity}"
+              VerticalAlignment="Center"
+              ToolTip.Tip="Opacidad del sprite sobre la referencia" />
+    </Grid>
     </StackPanel>
 
   </Grid>
