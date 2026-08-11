@@ -169,10 +169,24 @@ public partial class MainWindowViewModel : ObservableObject
     public int CurrentTileSetCounter { get; set; }
 
     [RelayCommand]
-    private void AddSpriteBank() => RightPanViewModel = new EditSpriteBankViewModel(this);
+    private void AddSpriteBank() => OpenForm(() => new EditSpriteBankViewModel(this));
 
     [RelayCommand]
-    private void AddTileSet() => RightPanViewModel = new EditTileSetViewModel(this);
+    private void AddTileSet() => OpenForm(() => new EditTileSetViewModel(this));
+
+    /// <summary>
+    /// Abre un formulario del lateral, o trae el que ya estuviera abierto.
+    /// </summary>
+    /// <remarks>
+    /// Sin esto, cada pulsación del botón dejaba otra pestaña igual. Se trae la que hay en
+    /// vez de deshabilitar el botón: con el lateral sin el foco, un botón apagado no dice
+    /// por qué y el usuario se queda mirándolo.
+    /// </remarks>
+    private void OpenForm<T>(Func<T> create)
+        where T : PanelBaseViewModel
+    {
+        RightPanViewModel = RightPanels.OfType<T>().FirstOrDefault() ?? create();
+    }
 
     /// <summary>Abre un juego de tiles en una pestaña nueva y lo cuelga del árbol.</summary>
     /// <param name="borderColorIndex">
@@ -291,15 +305,33 @@ public partial class MainWindowViewModel : ObservableObject
 
     /// <summary>Crea una copia editable de la paleta activa y abre su editor.</summary>
     [RelayCommand]
-    private void AddPalette()
-    {
-        ColorPalette created = Palettes.Add();
-        RightPanViewModel = new EditPaletteViewModel(this, created);
-    }
+    private void AddPalette() => OpenPaletteEditor(Palettes.Add());
 
     [RelayCommand(CanExecute = nameof(CanEditPalette))]
-    private void EditPalette() =>
-        RightPanViewModel = new EditPaletteViewModel(this, Palettes.ActivePalette);
+    private void EditPalette() => OpenPaletteEditor(Palettes.ActivePalette);
+
+    /// <summary>
+    /// Abre el editor de esa paleta, sin dejar dos editores abiertos.
+    /// </summary>
+    /// <remarks>
+    /// Si el que hay es de otra paleta se cambia por éste: dos editores de paleta a la vez
+    /// no sirven para nada y se acaban apilando pestañas iguales.
+    /// </remarks>
+    private void OpenPaletteEditor(ColorPalette palette)
+    {
+        if (RightPanels.OfType<EditPaletteViewModel>().FirstOrDefault() is { } open)
+        {
+            if (open.Palette == palette)
+            {
+                RightPanViewModel = open;
+                return;
+            }
+
+            CloseRightPanel(open);
+        }
+
+        RightPanViewModel = new EditPaletteViewModel(this, palette);
+    }
 
     private bool CanEditPalette() => !Palettes.ActivePalette.IsReadOnly;
 

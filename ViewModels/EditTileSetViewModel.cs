@@ -21,7 +21,14 @@ public partial class EditTileSetViewModel : PanelBaseViewModel
     [NotifyPropertyChangedFor(nameof(HasError))]
     private string? _errorMessage;
 
-    public EditTileSetViewModel(MainWindowViewModel mainWindowVm) => _mainWindowVm = mainWindowVm;
+    public EditTileSetViewModel(MainWindowViewModel mainWindowVm)
+    {
+        _mainWindowVm = mainWindowVm;
+
+        // Con la cabecera vacia la pestaña parecia rota.
+        Header = "Agregar tileset";
+        TagId = "new:tileset";
+    }
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 

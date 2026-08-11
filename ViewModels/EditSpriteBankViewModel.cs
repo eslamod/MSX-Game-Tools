@@ -21,7 +21,13 @@ public partial class EditSpriteBankViewModel : PanelBaseViewModel
     private string? _errorMessage;
 
     public EditSpriteBankViewModel(MainWindowViewModel mainWindowVm)
-        => _mainWindowVm = mainWindowVm;
+    {
+        _mainWindowVm = mainWindowVm;
+
+        // Con la cabecera vacia la pestaña parecia rota.
+        Header = "Agregar banco de sprites";
+        TagId = "new:spritebank";
+    }
 
     public IReadOnlyList<SpriteBank.SpriteType> SpriteTypes { get; } = Enum.GetValues<SpriteBank.SpriteType>();
 
