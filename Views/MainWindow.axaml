@@ -113,9 +113,9 @@
     <Grid x:Name="MainArea" Grid.Row="2">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="225" />
-        <ColumnDefinition Width="4" />
+        <ColumnDefinition Width="3" />
         <ColumnDefinition Width="*" />
-        <ColumnDefinition Width="4" />
+        <ColumnDefinition Width="3" />
         <!-- Ni Auto ni enlazada: con Auto la columna toma el ancho que pide el contenido
              (los 32 tiles del selector de bloques) y se sale, y un enlace no le llega a
              la definicion de columna, que no esta en el arbol. La lleva el code-behind. -->
@@ -124,7 +124,7 @@
 
       <views:TreeGeneralView Grid.Column="0" DataContext="{Binding TreeGeneralVm}" />
 
-      <GridSplitter Grid.Column="1" Width="4" Background="DarkGray" ResizeDirection="Columns" />
+      <GridSplitter Grid.Column="1" Width="3" Background="DarkGray" ResizeDirection="Columns" />
 
       <TabControl Grid.Column="2"
                   ItemsSource="{Binding Tabs}"
@@ -152,7 +152,7 @@
         </TabControl.ItemTemplate>
       </TabControl>
 
-      <GridSplitter Grid.Column="3" Width="4" Background="DarkGray" ResizeDirection="Columns"
+      <GridSplitter Grid.Column="3" Width="3" Background="DarkGray" ResizeDirection="Columns"
                     IsVisible="{Binding RightPanViewModel, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
       <!-- Pestañas y no un solo panel: los formularios de un uso conviven con las
