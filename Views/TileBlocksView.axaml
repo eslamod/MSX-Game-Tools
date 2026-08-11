@@ -1,0 +1,200 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MSX_SpritesEditor.ViewModels"
+             xmlns:views="clr-namespace:MSX_SpritesEditor.Views"
+             mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="700"
+             x:Class="MSX_SpritesEditor.Views.TileBlocksView"
+             x:DataType="vm:TileBlocksViewModel"
+             Width="380" Background="Gainsboro">
+
+  <UserControl.Styles>
+    <!-- El recuadro de seleccion va superpuesto y sin cambiar de grosor, igual que en la
+         rejilla del editor: si el borde creciera al seleccionar, los tiles bailarian. -->
+    <Style Selector="Border.tile">
+      <Setter Property="BorderBrush" Value="Black" />
+      <Setter Property="BorderThickness" Value="1,1,0,0" />
+    </Style>
+
+    <Style Selector="Border.mark">
+      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="IsHitTestVisible" Value="False" />
+    </Style>
+
+    <Style Selector="Border.mark.selected">
+      <Setter Property="BorderBrush" Value="Red" />
+    </Style>
+
+    <!-- Fuera del tamaño del bloque se puede pintar igual, y al hacerlo el bloque crece.
+         Se ve apagado para saber hasta donde llega de verdad. -->
+    <Style Selector="Border.cell">
+      <Setter Property="Background" Value="White" />
+    </Style>
+
+    <Style Selector="Border.cell.outside">
+      <Setter Property="Background" Value="#D0D0D0" />
+    </Style>
+  </UserControl.Styles>
+
+  <!-- Las tres areas en columna, con separadores movibles: cuanto sitio quiere cada una
+       depende de lo que se este haciendo, y el panel comparte ancho con lo demas. -->
+  <Grid Margin="6" RowDefinitions="Auto,120,4,*,4,*">
+
+    <TextBlock Grid.Row="0" Text="Bloques de tiles" FontWeight="Bold" Margin="0,0,0,6" />
+
+    <!-- 1. Los bloques definidos -->
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+      <ListBox Grid.Column="0"
+               ItemsSource="{Binding Blocks}"
+               SelectedItem="{Binding SelectedBlock}"
+               Background="White">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:TileBlockViewModel">
+            <TextBlock Text="{Binding Name}" />
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <StackPanel Grid.Column="1" Margin="4,0,0,0">
+        <Button Content="+" Width="28" HorizontalContentAlignment="Center"
+                Command="{Binding AddBlockCommand}"
+                ToolTip.Tip="Agregar un bloque" />
+        <Button Content="-" Width="28" Margin="0,4,0,0" HorizontalContentAlignment="Center"
+                Command="{Binding DeleteBlockCommand}"
+                ToolTip.Tip="Eliminar el bloque seleccionado" />
+      </StackPanel>
+    </Grid>
+
+    <GridSplitter Grid.Row="2" Height="4" Background="DarkGray" ResizeDirection="Rows" />
+
+    <!-- 2. Composicion del bloque -->
+    <Grid Grid.Row="3" RowDefinitions="Auto,Auto,*" IsEnabled="{Binding HasBlock}">
+
+      <DockPanel Grid.Row="0" Margin="0,0,0,4">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+          <RadioButton GroupName="BlockGridZoom" Theme="{StaticResource ToggleRadioButton}"
+                       Content="X1" Tag="1" Width="30" Margin="1"
+                       IsCheckedChanged="OnGridZoomChanged" />
+          <RadioButton GroupName="BlockGridZoom" Theme="{StaticResource ToggleRadioButton}"
+                       Content="X2" Tag="2" Width="30" Margin="1" IsChecked="True"
+                       IsCheckedChanged="OnGridZoomChanged" />
+          <RadioButton GroupName="BlockGridZoom" Theme="{StaticResource ToggleRadioButton}"
+                       Content="X3" Tag="3" Width="30" Margin="1"
+                       IsCheckedChanged="OnGridZoomChanged" />
+        </StackPanel>
+        <TextBlock Text="Composición" VerticalAlignment="Center" />
+      </DockPanel>
+
+      <!-- Nombre y tamaño del bloque. El tamaño crece solo al pintar mas alla, pero se
+           puede fijar: un supertile de 2x2 con la esquina vacia sigue siendo de 2x2. -->
+      <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto,Auto,Auto" Margin="0,0,0,4">
+        <TextBox Grid.Column="0" Watermark="Sin nombre"
+                 Text="{Binding SelectedBlock.Name}" />
+        <TextBlock Grid.Column="1" Text="W" VerticalAlignment="Center" Margin="6,0,2,0" />
+        <NumericUpDown Grid.Column="2" Width="70" ShowButtonSpinner="True"
+                       Minimum="1" Maximum="16" Increment="1" FormatString="0"
+                       Value="{Binding SelectedBlock.Width}" />
+        <TextBlock Grid.Column="3" Text="H" VerticalAlignment="Center" Margin="6,0,2,0" />
+        <NumericUpDown Grid.Column="4" Width="70" ShowButtonSpinner="True"
+                       Minimum="1" Maximum="16" Increment="1" FormatString="0"
+                       Value="{Binding SelectedBlock.Height}" />
+      </Grid>
+
+      <Border Grid.Row="2" Background="Gray" Padding="4">
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                      AllowAutoHide="False">
+          <!-- Alineado a Left/Top para que la rejilla se dimensione a su contenido: si se
+               estira al hueco, el UniformGrid reparte el ancho entre sus 16 columnas y las
+               celdas dejan de ser cuadradas. -->
+          <!-- Los gestos van en el contenedor y no en cada celda: al pulsar, Avalonia
+               captura el puntero para el control pulsado y las vecinas no reciben nada,
+               asi que arrastrar no pintaria mas que la primera. -->
+          <ItemsControl x:Name="BlockGrid"
+                        ItemsSource="{Binding Cells}"
+                        HorizontalAlignment="Left" VerticalAlignment="Top"
+                        BorderThickness="0,0,1,1" BorderBrush="Black"
+                        PointerPressed="OnGridPressed"
+                        PointerMoved="OnGridMoved">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <UniformGrid Columns="16" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:BlockCellViewModel">
+                <Border Classes="tile cell"
+                        Classes.outside="{Binding !IsInside}"
+                        Width="{Binding $parent[views:TileBlocksView].CellSize}"
+                        Height="{Binding $parent[views:TileBlocksView].CellSize}">
+                  <Image Source="{Binding Image.SpritePreview}"
+                         Stretch="Fill"
+                         RenderOptions.BitmapInterpolationMode="None" />
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </Border>
+    </Grid>
+
+    <GridSplitter Grid.Row="4" Height="4" Background="DarkGray" ResizeDirection="Rows" />
+
+    <!-- 3. Los tiles del juego, para elegir -->
+    <Grid Grid.Row="5" RowDefinitions="Auto,*">
+
+      <DockPanel Grid.Row="0" Margin="0,0,0,4">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+          <RadioButton GroupName="BlockTileZoom" Theme="{StaticResource ToggleRadioButton}"
+                       Content="X1" Tag="1" Width="30" Margin="1" IsChecked="True"
+                       IsCheckedChanged="OnTileZoomChanged" />
+          <RadioButton GroupName="BlockTileZoom" Theme="{StaticResource ToggleRadioButton}"
+                       Content="X2" Tag="2" Width="30" Margin="1"
+                       IsCheckedChanged="OnTileZoomChanged" />
+          <RadioButton GroupName="BlockTileZoom" Theme="{StaticResource ToggleRadioButton}"
+                       Content="X3" Tag="3" Width="30" Margin="1"
+                       IsCheckedChanged="OnTileZoomChanged" />
+        </StackPanel>
+        <TextBlock Text="Tiles" VerticalAlignment="Center" />
+      </DockPanel>
+
+      <Border Grid.Row="1" Background="Gray" Padding="4">
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                      AllowAutoHide="False">
+          <!-- 32 columnas, las mismas que el editor de tiles y que el png. Es la unica
+               disposicion en la que coger un rectangulo significa algo: repartiendo los
+               tiles segun el ancho, un arbol dibujado en tres filas dejaria de serlo. -->
+          <ItemsControl x:Name="TileChoices"
+                        ItemsSource="{Binding Tiles}"
+                        HorizontalAlignment="Left" VerticalAlignment="Top"
+                        BorderThickness="0,0,1,1" BorderBrush="Black"
+                        PointerPressed="OnTilesPressed"
+                        PointerMoved="OnTilesMoved">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <UniformGrid Columns="32" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:TileChoiceViewModel">
+                <!-- Con fondo transparente a proposito: un Panel sin fondo no responde a
+                     la busqueda por posicion y el tile no se podria coger. -->
+                <Panel Background="Transparent">
+                  <Border Classes="tile"
+                          Width="{Binding $parent[views:TileBlocksView].TileSize}"
+                          Height="{Binding $parent[views:TileBlocksView].TileSize}">
+                    <Image Source="{Binding Image.SpritePreview}"
+                           Stretch="Fill"
+                           RenderOptions.BitmapInterpolationMode="None" />
+                  </Border>
+                  <Border Classes="mark" Classes.selected="{Binding IsSelected}" />
+                </Panel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </Border>
+    </Grid>
+  </Grid>
+</UserControl>

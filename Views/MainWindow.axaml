@@ -139,7 +139,26 @@
         </TabControl.ItemTemplate>
       </TabControl>
 
-      <ContentControl Grid.Column="3" Content="{Binding RightPanViewModel}" />
+      <!-- Pestañas y no un solo panel: los formularios de un uso conviven con las
+           herramientas que se quedan puestas, como los bloques de un juego de tiles. -->
+      <TabControl Grid.Column="3"
+                  ItemsSource="{Binding RightPanels}"
+                  SelectedItem="{Binding RightPanViewModel}"
+                  IsVisible="{Binding RightPanViewModel, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <TabControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:PanelBaseViewModel">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="{Binding Header}" VerticalAlignment="Center" />
+              <Button Content="✕" FontSize="10" Padding="4,0" Margin="8,0,0,0"
+                      VerticalAlignment="Center"
+                      Background="Transparent" BorderThickness="0"
+                      Command="{Binding $parent[TabControl].((vm:MainWindowViewModel)DataContext).CloseRightPanelCommand}"
+                      CommandParameter="{Binding}"
+                      ToolTip.Tip="Cerrar el panel" />
+            </StackPanel>
+          </DataTemplate>
+        </TabControl.ItemTemplate>
+      </TabControl>
     </Grid>
 
     <!-- Avalonia no tiene StatusBar; un Border con el texto hace el mismo papel. -->

@@ -12,7 +12,6 @@ public partial class MainWindowViewModel : ObservableObject
 {
     private readonly Dictionary<string, PanelBaseViewModel> _panels = [];
 
-    [ObservableProperty]
     private PanelBaseViewModel? _rightPanViewModel;
 
     [ObservableProperty]
@@ -83,6 +82,67 @@ public partial class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<PanelBaseViewModel> Tabs { get; } = [];
 
+    /// <summary>
+    /// Los paneles del lateral derecho.
+    /// </summary>
+    /// <remarks>
+    /// Conviven los formularios de un solo uso (crear un juego, editar la paleta), que se
+    /// cierran solos al aceptar, y las herramientas que se quedan puestas mientras se
+    /// trabaja, como los bloques de un juego de tiles.
+    /// </remarks>
+    public ObservableCollection<PanelBaseViewModel> RightPanels { get; } = [];
+
+    /// <summary>
+    /// El panel del lateral que se está viendo.
+    /// </summary>
+    /// <remarks>
+    /// Asignarlo abre ese panel; asignar <c>null</c> cierra el que estuviera delante, que
+    /// es lo que hacen los formularios al aceptar o cancelar.
+    /// </remarks>
+    public PanelBaseViewModel? RightPanViewModel
+    {
+        get => _rightPanViewModel;
+        set
+        {
+            if (value is null)
+            {
+                CloseRightPanel(_rightPanViewModel);
+                return;
+            }
+
+            if (!RightPanels.Contains(value))
+                RightPanels.Add(value);
+
+            SetProperty(ref _rightPanViewModel, value);
+        }
+    }
+
+    /// <summary>
+    /// Cierra un panel del lateral.
+    /// </summary>
+    /// <remarks>
+    /// La selección se mueve antes de quitarlo de la colección: si se quita primero, el
+    /// TabControl escribe <c>null</c> de vuelta y el lateral se queda en blanco aunque
+    /// queden paneles.
+    /// </remarks>
+    [RelayCommand]
+    public void CloseRightPanel(PanelBaseViewModel? panel)
+    {
+        if (panel is null)
+            return;
+
+        int index = RightPanels.IndexOf(panel);
+        if (index < 0)
+            return;
+
+        SetProperty(
+            ref _rightPanViewModel,
+            RightPanels.Count > 1 ? RightPanels[index == 0 ? 1 : index - 1] : null,
+            nameof(RightPanViewModel));
+
+        RightPanels.RemoveAt(index);
+    }
+
     public int CurrentSpriteBankCounter { get; set; }
 
     public int CurrentTileSetCounter { get; set; }
@@ -110,12 +170,21 @@ public partial class MainWindowViewModel : ObservableObject
         if (borderColorIndex is int border)
             panel.BorderColorIndex = border;
 
+        // El panel de bloques nace con el juego aunque no se abra: es suyo, y asi el
+        // nodo del arbol ya esta ahi con lo que trajera el fichero.
+        var blocks = new TileBlocksViewModel(panel)
+        {
+            TagId = $"blk{CurrentTileSetCounter}",
+            Header = $"Bloques de {tileSet.Name}",
+        };
+
         CurrentTileSetCounter++;
 
         AddPanelToDic(panel);
+        AddPanelToDic(blocks);
         Tabs.Add(panel);
         SelectedTab = panel;
-        TreeGeneralVm.AddTileSet(panel.Header, panel.TagId, panel);
+        TreeGeneralVm.AddTileSet(panel.Header, panel.TagId, panel, blocks);
 
         return panel;
     }
@@ -742,7 +811,7 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private async Task DeleteTreeItemAsync(ItemTree? item)
     {
-        if (item is not { IsPanelNode: true })
+        if (item is not { CanDelete: true })
             return;
 
         bool confirmed = await Dialogs.ConfirmAsync(
@@ -758,6 +827,16 @@ public partial class MainWindowViewModel : ObservableObject
         {
             CloseTab(panel);
             _panels.Remove(item.Tag);
+        }
+
+        // Lo que cuelga del elemento se va con él: los bloques de un juego de tiles no
+        // son un elemento aparte y no tienen sentido sin sus tiles.
+        foreach (ItemTree child in item.Childs)
+        {
+            if (GetPanelFromDic(child.Tag) is { } tool)
+                CloseRightPanel(tool);
+
+            _panels.Remove(child.Tag);
         }
 
         TreeGeneralVm.Remove(item);
@@ -793,6 +872,13 @@ public partial class MainWindowViewModel : ObservableObject
         PanelBaseViewModel? panel = GetPanelFromDic(panelId);
         if (panel is null)
             return;
+
+        // Una herramienta va al lateral, para verla a la vez que lo que se edita.
+        if (panel.IsTool)
+        {
+            RightPanViewModel = panel;
+            return;
+        }
 
         if (!Tabs.Contains(panel))
             Tabs.Add(panel);

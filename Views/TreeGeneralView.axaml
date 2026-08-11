@@ -29,7 +29,7 @@
                         Click="OnOpenItem" />
               <Separator />
               <MenuItem Header="Eliminar del proyecto"
-                        IsEnabled="{Binding IsPanelNode}"
+                        IsEnabled="{Binding CanDelete}"
                         Click="OnDeleteItem" />
             </ContextMenu>
           </TextBlock.ContextMenu>

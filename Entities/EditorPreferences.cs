@@ -31,4 +31,10 @@ public sealed class EditorPreferences
 
     /// <inheritdoc cref="SpriteThumbnailZoom"/>
     public int TileThumbnailZoom { get; set; } = 1;
+
+    /// <summary>Factor del zoom de la rejilla donde se compone el bloque.</summary>
+    public int BlockGridZoom { get; set; } = 2;
+
+    /// <summary>Factor del zoom del selector de tiles del panel de bloques.</summary>
+    public int BlockTileZoom { get; set; } = 1;
 }

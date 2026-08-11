@@ -10,6 +10,8 @@ public partial class ItemTree : ObservableObject
     [ObservableProperty]
     private string _displayText = string.Empty;
 
+    private bool _deletable = true;
+
     public string? Type { get; set; }
 
     public int Id { get; set; }
@@ -25,4 +27,18 @@ public partial class ItemTree : ObservableObject
     /// («Sprite Banks», «TileSets»...) no lo son: son cajones, no elementos.
     /// </summary>
     public bool IsPanelNode => PanelsList.Count > 0;
+
+    /// <summary>
+    /// Si el nodo se puede eliminar del proyecto.
+    /// </summary>
+    /// <remarks>
+    /// Los bloques de un juego de tiles se abren como cualquier otro nodo pero no se
+    /// eliminan: no son un elemento aparte, son parte del juego, y se van con él.
+    /// </remarks>
+    public bool CanDelete
+    {
+        // Los de categoría siguen sin poder eliminarse, como antes: son cajones.
+        get => IsPanelNode && _deletable;
+        set => _deletable = value;
+    }
 }

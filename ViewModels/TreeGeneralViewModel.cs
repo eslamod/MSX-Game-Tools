@@ -61,10 +61,29 @@ public class TreeGeneralViewModel : PanelBaseViewModel
     public void AddSpriteBank(string displayName, string tagId, PanelBaseViewModel vm) =>
         AddTo(_nodeSpriteBanks, displayName, tagId, vm);
 
-    public void AddTileSet(string displayName, string tagId, PanelBaseViewModel vm) =>
-        AddTo(_nodeTileSets, displayName, tagId, vm);
+    /// <param name="blocks">
+    /// El panel de bloques del juego, que cuelga de él como un hijo. No se elimina por su
+    /// cuenta: no es un elemento aparte, es parte del juego y se va con él.
+    /// </param>
+    public void AddTileSet(string displayName, string tagId, PanelBaseViewModel vm, PanelBaseViewModel? blocks = null)
+    {
+        ItemTree item = AddTo(_nodeTileSets, displayName, tagId, vm);
 
-    private static void AddTo(ItemTree parent, string displayName, string tagId, PanelBaseViewModel vm)
+        if (blocks is null)
+            return;
+
+        var child = new ItemTree
+        {
+            DisplayText = "Bloques",
+            Tag = blocks.TagId,
+            CanDelete = false,
+        };
+
+        child.PanelsList.Add(blocks);
+        item.Childs.Add(child);
+    }
+
+    private static ItemTree AddTo(ItemTree parent, string displayName, string tagId, PanelBaseViewModel vm)
     {
         var item = new ItemTree
         {
@@ -74,5 +93,7 @@ public class TreeGeneralViewModel : PanelBaseViewModel
 
         item.PanelsList.Add(vm);
         parent.Childs.Add(item);
+
+        return item;
     }
 }
