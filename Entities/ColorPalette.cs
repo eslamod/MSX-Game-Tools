@@ -71,7 +71,6 @@ public sealed class ColorPalette : ObservableObject
     /// <summary>Los 16 colores, en orden de índice.</summary>
     public IReadOnlyList<PaletteColor> Colors => _colors;
 
-    /// <summary>Colores elegibles como fondo del lienzo y de las miniaturas: del 1 al F.</summary>
     /// <summary>
     /// El color con el que se ve un índice, con el 0 resuelto contra el fondo.
     /// </summary>
@@ -86,7 +85,34 @@ public sealed class ColorPalette : ObservableObject
     /// <inheritdoc cref="Resolve(int, Color)"/>
     public IBrush ResolveBrush(int index, IBrush background) => index == 0 ? background : GetBrush(index);
 
+    /// <summary>Colores elegibles como fondo del lienzo y de las miniaturas: del 1 al F.</summary>
     public IReadOnlyList<PaletteColor> BackgroundChoices => _backgroundChoices;
+
+    /// <summary>
+    /// Fondo con el que arranca un editor: el color más oscuro de la paleta.
+    /// </summary>
+    /// <remarks>
+    /// Un editor no puede fijar el fondo en el índice 1 y darlo por negro. Lo es en la
+    /// paleta estándar del MSX, pero en una generada a partir de un png el 1 es el primer
+    /// color de la imagen, y entonces todo lo que use el código 0 —que es justo lo que
+    /// estaba vacío— se vería de ese color.
+    /// </remarks>
+    public int DefaultBackgroundIndex
+    {
+        get
+        {
+            PaletteColor darkest = _backgroundChoices[0];
+
+            foreach (PaletteColor color in _backgroundChoices)
+            {
+                // A igual oscuridad gana el índice menor: en la estándar, el negro del 1.
+                if (Darkness(color) < Darkness(darkest))
+                    darkest = color;
+            }
+
+            return darkest.Index;
+        }
+    }
 
     public int Count => _colors.Length;
 
@@ -109,6 +135,9 @@ public sealed class ColorPalette : ObservableObject
         _colors.Select(color => color.Clone()));
 
     public override string ToString() => Name;
+
+    /// <summary>Lo oscuro que es un color, sumando sus tres componentes del VDP.</summary>
+    private static int Darkness(PaletteColor color) => color.Red + color.Green + color.Blue;
 
     private void OnColorChanged(PaletteColor color) => ColorsChanged?.Invoke(this);
 }

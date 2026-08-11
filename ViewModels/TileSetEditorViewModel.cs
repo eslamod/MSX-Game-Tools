@@ -11,9 +11,6 @@ namespace MSX_SpritesEditor.ViewModels;
 /// </summary>
 public partial class TileSetEditorViewModel : PanelBaseViewModel
 {
-    /// <summary>Negro, el borde con el que arranca el editor.</summary>
-    private const int DefaultBorderIndex = 1;
-
     private readonly TileSet _tileSet;
     private readonly PaletteLibrary _palettes;
 
@@ -47,7 +44,7 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
     /// </remarks>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BorderColor))]
-    private int _borderColorIndex = DefaultBorderIndex;
+    private int _borderColorIndex;
 
     public TileSetEditorViewModel(TileSet tileSet, PaletteLibrary palettes, EditorPreferences? preferences = null)
     {
@@ -55,6 +52,7 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
         _tileSet = tileSet;
         _palettes = palettes;
         _watchedPalette = palettes.ActivePalette;
+        _borderColorIndex = _watchedPalette.DefaultBackgroundIndex;
 
         _currentTile = tileSet.ListOfTiles[0];
 

@@ -106,6 +106,24 @@ public class ColorPaletteTests
         Assert.DoesNotContain(Palette.BackgroundChoices, c => c.IsTransparent);
     }
 
+    /// <summary>
+    /// El fondo con el que arranca un editor se busca por color y no por número: en la
+    /// estándar el negro cae en el 1, pero en una paleta propia puede estar en cualquier
+    /// sitio y el 1 ser un color chillón.
+    /// </summary>
+    [AvaloniaFact]
+    public void El_fondo_de_partida_es_el_color_mas_oscuro()
+    {
+        Assert.Equal(1, Palette.DefaultBackgroundIndex);
+
+        ColorPalette propia = Palette.Clone("Propia");
+
+        propia[1].SetComponents(7, 0, 0);
+        propia[9].SetComponents(0, 0, 0);
+
+        Assert.Equal(9, propia.DefaultBackgroundIndex);
+    }
+
     [AvaloniaFact]
     public void Los_brushes_se_reutilizan_entre_llamadas()
     {

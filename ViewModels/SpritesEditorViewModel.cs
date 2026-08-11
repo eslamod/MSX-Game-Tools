@@ -8,9 +8,6 @@ namespace MSX_SpritesEditor.ViewModels;
 
 public partial class SpritesEditorViewModel : PanelBaseViewModel
 {
-    /// <summary>Negro, el fondo con el que arranca el editor.</summary>
-    private const int DefaultBackgroundIndex = 1;
-
     private readonly SpriteBank _spriteBank;
     private readonly PaletteLibrary _palettes;
     private readonly IDialogService _dialogs;
@@ -55,7 +52,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BackgroundColor))]
-    private int _backgroundColorIndex = DefaultBackgroundIndex;
+    private int _backgroundColorIndex;
 
     /// <summary>Qué enseña el panel de la derecha: los patrones del banco o los grupos.</summary>
     [ObservableProperty]
@@ -91,6 +88,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
         _dialogs = dialogs ?? new SilentDialogService();
         _backgrounds = backgrounds ?? new ReferenceImageLibrary();
         _watchedPalette = palettes.ActivePalette;
+        _backgroundColorIndex = _watchedPalette.DefaultBackgroundIndex;
 
         // Cargar o borrar una imagen aparece y desaparece los controles de fondo.
         _backgrounds.Tiles.CollectionChanged += (_, _) =>

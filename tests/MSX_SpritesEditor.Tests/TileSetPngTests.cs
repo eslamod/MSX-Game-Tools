@@ -3,6 +3,7 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Media;
 using MSX_SpritesEditor.Entities;
 using MSX_SpritesEditor.Services;
+using MSX_SpritesEditor.ViewModels;
 using Xunit;
 
 namespace MSX_SpritesEditor.Tests;
@@ -214,6 +215,32 @@ public class TileSetPngTests
         // y usarlo como color haria que esos pixeles enseñaran el borde en la maquina.
         Assert.Equal("700", palette[1].HexRgb);
         Assert.Equal("070", palette[2].HexRgb);
+    }
+
+    /// <summary>
+    /// Traer un png con paleta generada dejaba el juego entero de color: lo vacío es el
+    /// código 0, el editor lo pinta del color del borde, y el borde arrancaba fijo en el
+    /// índice 1, que la paleta generada acababa de darle al primer color de la imagen.
+    /// </summary>
+    [AvaloniaFact]
+    public void El_borde_de_una_paleta_generada_no_se_lleva_el_primer_color_de_la_imagen()
+    {
+        ColorPalette generated = TileSetPngConverter.BuildPalette(
+            "De la imagen", [Color.FromRgb(255, 0, 0), Color.FromRgb(0, 0, 255)]);
+
+        var palettes = new PaletteLibrary();
+        palettes.Palettes.Add(generated);
+        palettes.ActivePalette = generated;
+
+        var editor = new TileSetEditorViewModel(new TileSet("Importado"), palettes);
+
+        Assert.NotEqual(1, editor.BorderColorIndex);
+        Assert.Equal("000", editor.BorderColor.HexRgb);
+
+        // Y un tile recién importado, que es todo código 0, se ve de ese negro.
+        Assert.Equal(
+            Color.FromRgb(0, 0, 0),
+            TileRenderer.ColorAt(editor.TileSet.ListOfTiles[0], generated, editor.BorderColor.Color, 0, 0));
     }
 
     [AvaloniaFact]
