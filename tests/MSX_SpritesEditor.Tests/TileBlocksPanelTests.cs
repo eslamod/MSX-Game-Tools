@@ -145,6 +145,54 @@ public class TileBlocksPanelTests
         Assert.False(Cell(panel, 2, 0).IsInside);
     }
 
+    /// <summary>
+    /// El tamaño no encoge solo al borrar, para no romper un supertile con una esquina
+    /// vacía. Cuando de verdad sobra sitio, se pide con el botón.
+    /// </summary>
+    [AvaloniaFact]
+    public void Ajustar_encoge_el_bloque_hasta_los_tiles_puestos()
+    {
+        TileBlocksViewModel panel = NewPanel();
+        panel.AddBlockCommand.Execute(null);
+
+        panel.SelectTile(20);
+        panel.Paint(3, 2);
+        panel.Erase(3, 2);
+        panel.Paint(1, 0);
+
+        Assert.Equal("4 x 3", panel.SizeLabel);
+
+        panel.FitToContentCommand.Execute(null);
+
+        Assert.Equal("2 x 1", panel.SizeLabel);
+        Assert.Equal(20, panel.SelectedBlock!.Block[1, 0]);
+        Assert.False(Cell(panel, 2, 0).IsInside);
+    }
+
+    [AvaloniaFact]
+    public void Ajustar_un_bloque_vacio_lo_deja_en_una_celda()
+    {
+        TileBlocksViewModel panel = NewPanel();
+        panel.AddBlockCommand.Execute(null);
+
+        panel.SelectedBlock!.Width = 5;
+        panel.FitToContentCommand.Execute(null);
+
+        Assert.Equal("1 x 1", panel.SizeLabel);
+    }
+
+    [AvaloniaFact]
+    public void Sin_bloque_no_se_puede_ajustar()
+    {
+        TileBlocksViewModel panel = NewPanel();
+
+        Assert.False(panel.FitToContentCommand.CanExecute(null));
+
+        panel.AddBlockCommand.Execute(null);
+
+        Assert.True(panel.FitToContentCommand.CanExecute(null));
+    }
+
     [AvaloniaFact]
     public void Sin_bloque_seleccionado_no_hay_tamano_que_ensenar()
     {

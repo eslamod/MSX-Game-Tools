@@ -30,6 +30,7 @@ public partial class TileBlocksViewModel : PanelBaseViewModel
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasBlock))]
     [NotifyCanExecuteChangedFor(nameof(DeleteBlockCommand))]
+    [NotifyCanExecuteChangedFor(nameof(FitToContentCommand))]
     private TileBlockViewModel? _selectedBlock;
 
     /// <summary>
@@ -115,6 +116,26 @@ public partial class TileBlocksViewModel : PanelBaseViewModel
         SelectedBlock = Blocks.Count > 1 ? Blocks[index == 0 ? 1 : index - 1] : null;
 
         Blocks.RemoveAt(index);
+    }
+
+    /// <summary>
+    /// Encoge el bloque hasta lo que ocupan los tiles puestos.
+    /// </summary>
+    /// <remarks>
+    /// El tamaño no se deduce solo al borrar, que dejaría un supertile de 2x2 con la
+    /// esquina vacía convertido en 2x1. Cuando de verdad sobra sitio, se pide con esto.
+    /// </remarks>
+    [RelayCommand(CanExecute = nameof(HasBlock))]
+    private void FitToContent()
+    {
+        if (SelectedBlock is not { } block)
+            return;
+
+        (int width, int height) = block.Block.UsedSize();
+
+        // Un bloque vacío se queda en una celda: el tamaño mínimo, no cero.
+        block.Width = Math.Max(1, width);
+        block.Height = Math.Max(1, height);
     }
 
     /// <summary>Coge un tile suelto, que es un trozo de una celda.</summary>

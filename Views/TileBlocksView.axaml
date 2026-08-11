@@ -94,7 +94,7 @@
 
       <!-- Nombre y tamaño del bloque. El tamaño crece solo al pintar mas alla, pero se
            puede fijar: un supertile de 2x2 con la esquina vacia sigue siendo de 2x2. -->
-      <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto,Auto,Auto" Margin="0,0,0,4">
+      <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" Margin="0,0,0,4">
         <TextBox Grid.Column="0" Watermark="Sin nombre"
                  Text="{Binding SelectedBlock.Name}" />
         <TextBlock Grid.Column="1" Text="W" VerticalAlignment="Center" Margin="6,0,2,0" />
@@ -105,6 +105,9 @@
         <NumericUpDown Grid.Column="4" Width="70" ShowButtonSpinner="True"
                        Minimum="1" Maximum="16" Increment="1" FormatString="0"
                        Value="{Binding SelectedBlock.Height}" />
+        <Button Grid.Column="5" Content="Ajustar" Margin="6,0,0,0" Padding="8,2"
+                Command="{Binding FitToContentCommand}"
+                ToolTip.Tip="Encoger el bloque hasta lo que ocupan los tiles puestos" />
       </Grid>
 
       <Border Grid.Row="2" Background="Gray" Padding="4">
