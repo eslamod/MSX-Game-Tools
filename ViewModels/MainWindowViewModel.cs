@@ -26,6 +26,8 @@ public partial class MainWindowViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetPngCommand))]
     [NotifyCanExecuteChangedFor(nameof(SaveMapCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportMapCsvCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExportMapBinaryCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExportMapAssemblerCommand))]
     private PanelBaseViewModel? _selectedTab;
 
     /// <param name="dialogs">
@@ -769,6 +771,111 @@ public partial class MainWindowViewModel : ObservableObject
         catch (FileFormatException exception)
         {
             await Dialogs.ShowMessageAsync("El csv no se puede importar", exception.Message);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo abrir el fichero", exception.Message);
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanSaveMap))]
+    private Task ExportMapBinaryAsync() => ExportMapAsync(binary: true);
+
+    [RelayCommand(CanExecute = nameof(CanSaveMap))]
+    private Task ExportMapAssemblerAsync() => ExportMapAsync(binary: false);
+
+    /// <summary>
+    /// Escribe la tabla de nombres con su tamaño delante.
+    /// </summary>
+    /// <remarks>
+    /// Avisa si el mapa tiene celdas vacías: en un byte no cabe el hueco y van a salir con
+    /// el tile de relleno, que más vale decirlo que escribirlo en silencio.
+    /// </remarks>
+    private async Task ExportMapAsync(bool binary)
+    {
+        if (SelectedTab is not MapEditorViewModel editor)
+            return;
+
+        TileMap map = editor.Map;
+        string extension = binary ? "bin" : "asm";
+
+        string? path = await Dialogs.PickFileToSaveAsync(
+            $"Exportar mapa ({extension})",
+            $"{SuggestedFileName(map.Name)}.{extension}",
+            PickerFileKind.Any);
+
+        if (path is null)
+            return;
+
+        try
+        {
+            if (binary)
+                await File.WriteAllBytesAsync(path, MapExporter.ToBinary(map));
+            else
+                await File.WriteAllTextAsync(path, MapExporter.ToAssembler(map));
+
+            if (HasEmptyCells(map))
+            {
+                await Dialogs.ShowMessageAsync(
+                    "Mapa exportado",
+                    $"Las celdas vacías han salido con el tile {map.EmptyTile}: la tabla de nombres "
+                    + "del VDP siempre dibuja algo y en un byte no cabe el hueco. Se puede cambiar en "
+                    + "«Vacío» junto al tamaño del mapa.");
+            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo exportar el mapa", exception.Message);
+        }
+    }
+
+    private static bool HasEmptyCells(TileMap map)
+    {
+        TileGrid flat = map.Flatten();
+
+        for (int row = 0; row < flat.Height; row++)
+        {
+            for (int column = 0; column < flat.Width; column++)
+            {
+                if (flat[column, row] is null)
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <inheritdoc cref="ImportMapCsvAsync"/>
+    [RelayCommand]
+    private async Task ImportMapBinaryAsync()
+    {
+        if (TileSetForImport() is not { } tileSet)
+        {
+            await Dialogs.ShowMessageAsync(
+                "No se sabe con qué tiles dibujarlo",
+                "Un binario no dice de qué juego de tiles son sus números. Abre el juego que le "
+                + "corresponde, o ponte en el mapa que ya lo use, y vuelve a importar.");
+
+            return;
+        }
+
+        string? path = await Dialogs.PickFileToOpenAsync("Importar un binario como mapa", PickerFileKind.Any);
+        if (path is null)
+            return;
+
+        try
+        {
+            TileMap map = MapExporter.FromBinary(
+                await File.ReadAllBytesAsync(path),
+                Path.GetFileNameWithoutExtension(path));
+
+            map.BackgroundColorIndex = tileSet.ColorPalette.DefaultBackgroundIndex;
+
+            OpenMap(map, tileSet);
+        }
+        catch (FileFormatException exception)
+        {
+            await Dialogs.ShowMessageAsync("El binario no se puede importar", exception.Message);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {

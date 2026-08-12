@@ -57,6 +57,17 @@ public class TileMap
     /// <summary>El juego de tiles con el que se dibuja. Sin él los números no dicen nada.</summary>
     public string TileSetName { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Con qué tile se rellenan las celdas vacías al exportar a binario.
+    /// </summary>
+    /// <remarks>
+    /// En un byte no cabe el hueco: los 256 valores son tiles de verdad y la tabla de
+    /// nombres del VDP siempre dibuja algo en cada celda. Así que al salir a la máquina
+    /// hay que elegir qué se pone donde el editor no tiene nada, y más vale decirlo aquí
+    /// que escribir ceros en silencio. En csv sí cabe el hueco y se escribe -1.
+    /// </remarks>
+    public int EmptyTile { get; set; }
+
     public UndoStack Undo { get; } = new();
 
     /// <summary>

@@ -65,6 +65,9 @@ public static class MapSerializer
         if (file.BackgroundColor is >= 0 and < ColorPalette.Size)
             map.BackgroundColorIndex = file.BackgroundColor;
 
+        if (file.EmptyTile is >= 0 and < TileSet.TileCount)
+            map.EmptyTile = file.EmptyTile;
+
         map.Layers.Clear();
 
         foreach (LayerFile layer in file.Layers ?? [])
@@ -84,6 +87,7 @@ public static class MapSerializer
         map.Height,
         map.BackgroundColorIndex,
         map.TileSetName,
+        map.EmptyTile,
         [.. map.Layers.Select(ToFile)]);
 
     private static LayerFile ToFile(MapLayer layer) => new(
@@ -144,6 +148,7 @@ public static class MapSerializer
         int Height,
         int BackgroundColor,
         string? TileSet,
+        int EmptyTile,
         IReadOnlyList<LayerFile>? Layers);
 
     private sealed record LayerFile(

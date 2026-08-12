@@ -19,3 +19,6 @@ packages/
 
 ## drawio backups
 .$*.bkp
+
+# Informes de la extension VSCodeCounter, que no son del proyecto
+.VSCodeCounter/

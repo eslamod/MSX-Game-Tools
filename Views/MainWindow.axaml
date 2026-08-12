@@ -35,6 +35,9 @@
         <MenuItem Header="Save map as..." Command="{Binding SaveMapCommand}" />
         <MenuItem Header="Export map to csv..." Command="{Binding ExportMapCsvCommand}" />
         <MenuItem Header="Import map from csv..." Command="{Binding ImportMapCsvCommand}" />
+        <MenuItem Header="Export map (binary)..." Command="{Binding ExportMapBinaryCommand}" />
+        <MenuItem Header="Export map (asm)..." Command="{Binding ExportMapAssemblerCommand}" />
+        <MenuItem Header="Import map from binary..." Command="{Binding ImportMapBinaryCommand}" />
         <Separator />
         <MenuItem Header="Exit" />
       </MenuItem>

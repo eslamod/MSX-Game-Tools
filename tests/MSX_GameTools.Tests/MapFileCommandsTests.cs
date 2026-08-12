@@ -1,5 +1,6 @@
 using Avalonia.Headless.XUnit;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Services;
 using MSX_GameTools.ViewModels;
 using Xunit;
 
@@ -249,6 +250,122 @@ public class MapFileCommandsTests : IDisposable
 
         Assert.Empty(main.Tabs.OfType<MapEditorViewModel>());
         Assert.Contains("fila 1", dialogs.Messages[0]);
+    }
+
+    // ------------------------------------------------------------------ binario y asm
+
+    [AvaloniaFact]
+    public async Task Exportar_a_binario_escribe_la_cabecera_y_la_tabla()
+    {
+        string path = Path.Combine(_folder, "nivel.bin");
+        var main = new MainWindowViewModel(new TestDialogService { SavePath = path });
+
+        main.OpenTileSet(new TileSet("Bosque"));
+
+        MapEditorViewModel editor = NewMap(main, "Nivel 1", 3, 2);
+        editor.PickTile(TilePatch.Single(9), "Tile 9");
+        editor.Paint(0, 0);
+
+        await main.ExportMapBinaryCommand.ExecuteAsync(null);
+
+        byte[] bytes = await File.ReadAllBytesAsync(path);
+
+        Assert.Equal(MapExporter.HeaderBytes + 6, bytes.Length);
+        Assert.Equal([3, 0, 2, 0], bytes[..4]);
+        Assert.Equal(9, bytes[4]);
+    }
+
+    /// <summary>
+    /// El aviso sale sólo si hay huecos: en un byte no cabe el vacío y salen con el tile
+    /// de relleno, y eso hay que decirlo en vez de escribirlo en silencio.
+    /// </summary>
+    [AvaloniaFact]
+    public async Task Al_exportar_con_huecos_se_avisa_del_tile_de_relleno()
+    {
+        var dialogs = new TestDialogService { SavePath = Path.Combine(_folder, "nivel.bin") };
+        var main = new MainWindowViewModel(dialogs);
+
+        main.OpenTileSet(new TileSet("Bosque"));
+        NewMap(main, "Nivel 1", 2, 1);
+
+        await main.ExportMapBinaryCommand.ExecuteAsync(null);
+
+        Assert.Single(dialogs.Messages);
+        Assert.Contains("celdas vacías", dialogs.Messages[0]);
+    }
+
+    [AvaloniaFact]
+    public async Task Sin_huecos_no_se_avisa_de_nada()
+    {
+        var dialogs = new TestDialogService { SavePath = Path.Combine(_folder, "nivel.bin") };
+        var main = new MainWindowViewModel(dialogs);
+
+        main.OpenTileSet(new TileSet("Bosque"));
+
+        MapEditorViewModel editor = NewMap(main, "Nivel 1", 2, 1);
+        editor.Select(0, 0, 1, 0);
+        editor.FillSelectionCommand.Execute(null);
+
+        await main.ExportMapBinaryCommand.ExecuteAsync(null);
+
+        Assert.Empty(dialogs.Messages);
+    }
+
+    /// <summary>
+    /// Que el asm traiga los mismos bytes que el binario se comprueba en MapExporterTests,
+    /// y ademas ensamblandolo de verdad. Aqui solo que el comando escribe el fichero.
+    /// </summary>
+    [AvaloniaFact]
+    public async Task Exportar_a_asm_escribe_el_fichero_con_su_etiqueta()
+    {
+        string path = Path.Combine(_folder, "nivel.asm");
+        var main = new MainWindowViewModel(new TestDialogService { SavePath = path });
+
+        main.OpenTileSet(new TileSet("Bosque"));
+        NewMap(main, "Nivel 1", 4, 3);
+
+        await main.ExportMapAssemblerCommand.ExecuteAsync(null);
+
+        string asm = await File.ReadAllTextAsync(path);
+
+        Assert.Contains("nivel_1_map:", asm);
+        Assert.Contains("nivel_1_map_end:", asm);
+    }
+
+    [AvaloniaFact]
+    public async Task Importar_un_binario_abre_un_mapa_nuevo()
+    {
+        string path = Path.Combine(_folder, "desde_rom.bin");
+        await File.WriteAllBytesAsync(path, [3, 0, 2, 0, 1, 2, 3, 4, 5, 6]);
+
+        var main = new MainWindowViewModel(new TestDialogService { OpenPath = path });
+
+        main.OpenTileSet(new TileSet("Bosque"));
+
+        await main.ImportMapBinaryCommand.ExecuteAsync(null);
+
+        MapEditorViewModel editor = Assert.Single(main.Tabs.OfType<MapEditorViewModel>());
+
+        Assert.Equal("desde_rom", editor.Map.Name);
+        Assert.Equal((3, 2), (editor.Map.Width, editor.Map.Height));
+        Assert.Equal(6, editor.Map.Layers[0].Grid[2, 1]);
+    }
+
+    [AvaloniaFact]
+    public async Task Un_binario_que_no_es_un_mapa_se_rechaza()
+    {
+        string path = Path.Combine(_folder, "cualquiera.bin");
+        await File.WriteAllBytesAsync(path, [0xFF, 0xFF, 0xFF, 0xFF, 1, 2]);
+
+        var dialogs = new TestDialogService { OpenPath = path };
+        var main = new MainWindowViewModel(dialogs);
+
+        main.OpenTileSet(new TileSet("Bosque"));
+
+        await main.ImportMapBinaryCommand.ExecuteAsync(null);
+
+        Assert.Empty(main.Tabs.OfType<MapEditorViewModel>());
+        Assert.Single(dialogs.Messages);
     }
 
     private static string MapSerializerText(string name, string tileSet) =>
