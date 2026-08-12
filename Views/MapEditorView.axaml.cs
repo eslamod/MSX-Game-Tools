@@ -206,10 +206,11 @@ public partial class MapEditorView : UserControl
 
         if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
         {
-            editor.Zoom = Math.Clamp(
-                editor.Zoom + Math.Sign(e.Delta.Y),
-                MapEditorViewModel.MinZoom,
-                MapEditorViewModel.MaxZoom);
+            // Por los pasos del zoom y no sumando uno: por debajo de x1 van en mitades.
+            if (e.Delta.Y > 0)
+                editor.ZoomInCommand.Execute(null);
+            else
+                editor.ZoomOutCommand.Execute(null);
 
             e.Handled = true;
         }

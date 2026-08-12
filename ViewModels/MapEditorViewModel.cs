@@ -50,10 +50,19 @@ public readonly record struct MapRegion(int Left, int Top, int Width, int Height
 /// </remarks>
 public partial class MapEditorViewModel : PanelBaseViewModel
 {
-    /// <summary>Pixeles de pantalla por pixel de tile con el zoom a 1.</summary>
-    public const int MinZoom = 1;
+    /// <summary>
+    /// Los pasos del zoom, en pixeles de pantalla por pixel de tile.
+    /// </summary>
+    /// <remarks>
+    /// Por debajo de uno van potencias de dos: dividen exacto el tile de ocho y no
+    /// descuadran la rejilla. Hacen falta para que un mapa grande quepa entero, que con
+    /// el mínimo en x1 un mapa de 96x96 ocupa 768 pixeles y no entra en la pantalla.
+    /// </remarks>
+    public static readonly double[] ZoomSteps = [0.25, 0.5, 1, 2, 3, 4, 5, 6, 7, 8];
 
-    public const int MaxZoom = 8;
+    public const double MinZoom = 0.25;
+
+    public const double MaxZoom = 8;
 
     /// <summary>Tiles por fila del selector, los mismos que el editor y el png.</summary>
     public const int TilesPerRow = 32;
@@ -68,7 +77,7 @@ public partial class MapEditorViewModel : PanelBaseViewModel
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ZoomLabel))]
-    private int _zoom = 2;
+    private double _zoom = 2;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelection))]
@@ -209,7 +218,13 @@ public partial class MapEditorViewModel : PanelBaseViewModel
     /// </remarks>
     public IBrush BackgroundBrush => _tiles.ColorPalette.GetBrush(Map.BackgroundColorIndex);
 
-    public string ZoomLabel => $"x{Zoom}";
+    /// <summary>El zoom para leerlo: los pasos de menos de uno se escriben en quebrado.</summary>
+    public string ZoomLabel => Zoom switch
+    {
+        0.25 => "x¼",
+        0.5 => "x½",
+        _ => $"x{Zoom:0}",
+    };
 
     public string BrushLabel => BrushName;
 
@@ -233,10 +248,10 @@ public partial class MapEditorViewModel : PanelBaseViewModel
     private void UsePan() => Tool = MapTool.Pan;
 
     [RelayCommand]
-    private void ZoomIn() => Zoom = Math.Min(MaxZoom, Zoom + 1);
+    private void ZoomIn() => Zoom = ZoomSteps.FirstOrDefault(step => step > Zoom, MaxZoom);
 
     [RelayCommand]
-    private void ZoomOut() => Zoom = Math.Max(MinZoom, Zoom - 1);
+    private void ZoomOut() => Zoom = ZoomSteps.LastOrDefault(step => step < Zoom, MinZoom);
 
     /// <summary>El zoom más grande con el que el mapa entero cabe en ese hueco.</summary>
     public void FitZoom(double availableWidth, double availableHeight)
@@ -246,8 +261,11 @@ public partial class MapEditorViewModel : PanelBaseViewModel
 
         double byWidth = availableWidth / (Map.Width * TileRow.Columns);
         double byHeight = availableHeight / (Map.Height * Tile.Rows);
+        double fits = Math.Min(byWidth, byHeight);
 
-        Zoom = Math.Clamp((int)Math.Floor(Math.Min(byWidth, byHeight)), MinZoom, MaxZoom);
+        // El paso más grande con el que todavía cabe. Si no cabe ni con el más pequeño,
+        // ése: es lo más lejos que se puede mirar.
+        Zoom = ZoomSteps.LastOrDefault(step => step <= fits, MinZoom);
     }
 
     // ------------------------------------------------------------------ pintar
@@ -529,7 +547,7 @@ public partial class MapEditorViewModel : PanelBaseViewModel
             layer.IsActive = ReferenceEquals(layer, value);
     }
 
-    partial void OnZoomChanged(int value) => RefreshRequested?.Invoke();
+    partial void OnZoomChanged(double value) => RefreshRequested?.Invoke();
 }
 
 /// <summary>Una capa en el panel del mapa.</summary>

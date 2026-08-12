@@ -324,7 +324,7 @@ public class MapEditorTests
         Assert.Equal(MapEditorViewModel.MinZoom, editor.Zoom);
     }
 
-    /// <summary>El ajuste coge el zoom más grande con el que el mapa entero cabe.</summary>
+    /// <summary>El ajuste coge el paso más grande con el que el mapa entero cabe.</summary>
     [AvaloniaFact]
     public void Ajustar_el_zoom_mete_el_mapa_entero()
     {
@@ -337,6 +337,52 @@ public class MapEditorTests
         editor.FitZoom(64, 48);
 
         Assert.Equal(1, editor.Zoom);
+    }
+
+    /// <summary>
+    /// Un mapa grande no cabía con el mínimo en x1: 96x96 tiles son 768 pixeles y no
+    /// entran en la pantalla, así que «Ajustar» no ajustaba nada.
+    /// </summary>
+    [AvaloniaFact]
+    public void Un_mapa_grande_cabe_gracias_a_los_pasos_de_menos_de_uno()
+    {
+        var editor = new MapEditorViewModel(
+            new TileMap("Grande", 96, 96),
+            new TileSetEditorViewModel(new TileSet("Bosque"), new PaletteLibrary()));
+
+        // 96 tiles son 768 pixeles a x1; en 700 de alto solo cabe a la mitad.
+        editor.FitZoom(1500, 700);
+
+        Assert.Equal(0.5, editor.Zoom);
+        Assert.Equal("x½", editor.ZoomLabel);
+
+        // Y en un hueco diminuto, al cuarto.
+        editor.FitZoom(300, 300);
+
+        Assert.Equal(0.25, editor.Zoom);
+        Assert.Equal("x¼", editor.ZoomLabel);
+    }
+
+    /// <summary>Los pasos van en mitades por debajo de uno y de uno en uno por encima.</summary>
+    [AvaloniaFact]
+    public void El_zoom_recorre_sus_pasos()
+    {
+        MapEditorViewModel editor = NewEditor();
+
+        editor.Zoom = 1;
+
+        editor.ZoomOutCommand.Execute(null);
+        Assert.Equal(0.5, editor.Zoom);
+
+        editor.ZoomOutCommand.Execute(null);
+        Assert.Equal(0.25, editor.Zoom);
+
+        editor.ZoomInCommand.Execute(null);
+        Assert.Equal(0.5, editor.Zoom);
+
+        editor.Zoom = 4;
+        editor.ZoomInCommand.Execute(null);
+        Assert.Equal(5, editor.Zoom);
     }
 
     [AvaloniaFact]

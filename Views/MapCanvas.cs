@@ -32,8 +32,8 @@ public class MapCanvas : Control
     public static readonly StyledProperty<IList<ImageMini>?> TilesProperty =
         AvaloniaProperty.Register<MapCanvas, IList<ImageMini>?>(nameof(Tiles));
 
-    public static readonly StyledProperty<int> ZoomProperty =
-        AvaloniaProperty.Register<MapCanvas, int>(nameof(Zoom), defaultValue: 2);
+    public static readonly StyledProperty<double> ZoomProperty =
+        AvaloniaProperty.Register<MapCanvas, double>(nameof(Zoom), defaultValue: 2);
 
     /// <summary>Lo que se ve donde no hay tile en ninguna capa: el borde de la máquina.</summary>
     public static readonly StyledProperty<IBrush> BackgroundProperty =
@@ -78,8 +78,7 @@ public class MapCanvas : Control
         ClipToBounds = true;
         Focusable = true;
 
-        // Los tiles son de 8x8 estirados: sin esto salen borrosos al ampliar.
-        RenderOptions.SetBitmapInterpolationMode(this, BitmapInterpolationMode.None);
+        ApplyInterpolation();
     }
 
     /// <summary>Se ha pulsado sobre una celda.</summary>
@@ -106,7 +105,7 @@ public class MapCanvas : Control
         set => SetValue(TilesProperty, value);
     }
 
-    public int Zoom
+    public double Zoom
     {
         get => GetValue(ZoomProperty);
         set => SetValue(ZoomProperty, value);
@@ -144,6 +143,18 @@ public class MapCanvas : Control
 
     /// <summary>Lo que mide un tile en pantalla con el zoom actual.</summary>
     public double TileSize => TileRow.Columns * Zoom;
+
+    /// <summary>
+    /// Cómo se escalan los tiles al dibujarlos.
+    /// </summary>
+    /// <remarks>
+    /// Ampliando, sin interpolar: los tiles son de 8x8 y se quieren ver los pixeles
+    /// nítidos. Alejando por debajo de uno hay que tirar información —cada pixel del MSX
+    /// ocupa menos de uno de pantalla— y sin suavizar sale un moteado ilegible.
+    /// </remarks>
+    private void ApplyInterpolation() => RenderOptions.SetBitmapInterpolationMode(
+        this,
+        Zoom < 1 ? BitmapInterpolationMode.MediumQuality : BitmapInterpolationMode.None);
 
     /// <summary>Deja el mapa pegado a la esquina, que es donde se empieza a mirar.</summary>
     public void ResetOffset()
@@ -406,12 +417,13 @@ public class MapCanvas : Control
 
         if (change.Property == ZoomProperty)
         {
-            int before = change.OldValue is int old && old > 0 ? old : Zoom;
+            double before = change.OldValue is double old && old > 0 ? old : Zoom;
 
             if (before != Zoom)
                 _offset = new Point(_offset.X * Zoom / before, _offset.Y * Zoom / before);
 
             ClampOffset();
+            ApplyInterpolation();
         }
         else if (change.Property == MapProperty)
         {

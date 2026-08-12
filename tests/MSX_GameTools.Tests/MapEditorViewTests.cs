@@ -128,7 +128,7 @@ public class MapEditorViewTests : IDisposable
     [AvaloniaFact]
     public void Control_y_rueda_cambian_el_zoom()
     {
-        int before = Editor.Zoom;
+        double before = Editor.Zoom;
 
         Wheel(1, KeyModifiers.Control);
 
@@ -154,7 +154,7 @@ public class MapEditorViewTests : IDisposable
     [AvaloniaFact]
     public void La_rueda_sola_no_toca_ni_el_zoom_ni_el_bloque()
     {
-        int zoom = Editor.Zoom;
+        double zoom = Editor.Zoom;
         Editor.PickBlock(Editor.Blocks[0]);
 
         Wheel(1, KeyModifiers.None);
