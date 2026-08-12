@@ -1,5 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.LogicalTree;
+using Avalonia.Threading;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
@@ -175,6 +178,13 @@ public partial class MapEditorView : UserControl
     {
         if (this.FindAncestorOfType<MainWindow>()?.DataContext is MainWindowViewModel main)
             main.ReplaceTilesCommand.Execute(null);
+    }
+
+    /// <inheritdoc cref="TileSetEditorView.OnPaletteColorClick"/>
+    private void OnPaletteColorClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control control && control.FindLogicalAncestorOfType<Popup>() is { } popup)
+            Dispatcher.UIThread.Post(() => popup.Close());
     }
 
     private void OnFitZoom(object? sender, RoutedEventArgs e) =>

@@ -167,6 +167,39 @@ public partial class MapEditorViewModel : PanelBaseViewModel
 
     public bool HasSelection => Selection is not null;
 
+    /// <summary>Los colores que puede tomar el fondo. El 0 no, que es el transparente.</summary>
+    public IReadOnlyList<PaletteColor> BackgroundChoices => _tiles.ColorPalette.BackgroundChoices;
+
+    public PaletteColor BackgroundColor => _tiles.ColorPalette[Map.BackgroundColorIndex];
+
+    /// <summary>
+    /// Con qué tile salen las celdas vacías al exportar a binario.
+    /// </summary>
+    /// <remarks>
+    /// Va por el ViewModel y no directo al mapa para poder enseñar cuál es: un número
+    /// suelto no dice nada, y con la miniatura al lado se ve lo que va a salir.
+    /// </remarks>
+    public int EmptyTile
+    {
+        get => Map.EmptyTile;
+        set
+        {
+            int tile = Math.Clamp(value, 0, Tiles.Count - 1);
+
+            if (Map.EmptyTile == tile)
+                return;
+
+            Map.EmptyTile = tile;
+
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(EmptyTileImage));
+        }
+    }
+
+    /// <summary>La miniatura del tile de relleno, para verlo y no sólo leer su número.</summary>
+    public ImageMini? EmptyTileImage =>
+        (uint)Map.EmptyTile < (uint)Tiles.Count ? Tiles[Map.EmptyTile] : null;
+
     /// <summary>
     /// Con qué se pinta donde no hay tile en ninguna capa.
     /// </summary>
@@ -266,6 +299,27 @@ public partial class MapEditorViewModel : PanelBaseViewModel
 
     [RelayCommand]
     private void ClearSelection() => Selection = null;
+
+    /// <summary>
+    /// Cambia el color que se ve donde no hay tile en ninguna capa.
+    /// </summary>
+    /// <remarks>
+    /// Es el mismo R#7 del borde en el editor de tiles, y aquí también hay que poder
+    /// tocarlo: enseñarlo sin dejar cambiarlo no sirve de nada.
+    /// </remarks>
+    [RelayCommand]
+    private void PickBackgroundColor(PaletteColor? color)
+    {
+        if (color is null || Map.BackgroundColorIndex == color.Index)
+            return;
+
+        Map.BackgroundColorIndex = color.Index;
+
+        OnPropertyChanged(nameof(BackgroundColor));
+        OnPropertyChanged(nameof(BackgroundBrush));
+
+        RefreshRequested?.Invoke();
+    }
 
     /// <summary>Llena la selección repitiendo lo que haya cogido.</summary>
     [RelayCommand(CanExecute = nameof(HasSelection))]

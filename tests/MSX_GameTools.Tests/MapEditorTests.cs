@@ -178,6 +178,64 @@ public class MapEditorTests
         Assert.False(editor.BlockChoices[0].IsSelected);
     }
 
+    // ------------------------------------------------------------------ atributos
+
+    /// <summary>
+    /// El fondo se puede cambiar, no sólo mirar: es el mismo R#7 del borde del editor de
+    /// tiles y aquí también hace falta tocarlo.
+    /// </summary>
+    [AvaloniaFact]
+    public void Elegir_el_color_de_fondo_lo_cambia_y_repinta()
+    {
+        MapEditorViewModel editor = NewEditor();
+
+        int repaints = 0;
+        editor.RefreshRequested += () => repaints++;
+
+        editor.PickBackgroundColorCommand.Execute(editor.BackgroundChoices[7]);
+
+        Assert.Equal(editor.BackgroundChoices[7].Index, editor.Map.BackgroundColorIndex);
+        Assert.Same(editor.BackgroundChoices[7], editor.BackgroundColor);
+        Assert.Equal(1, repaints);
+    }
+
+    /// <summary>El 0 no vale de fondo: es el transparente.</summary>
+    [AvaloniaFact]
+    public void El_fondo_no_se_elige_entre_el_color_0()
+    {
+        MapEditorViewModel editor = NewEditor();
+
+        Assert.DoesNotContain(editor.BackgroundChoices, color => color.Index == 0);
+    }
+
+    /// <summary>
+    /// El tile de relleno enseña su dibujo: un número suelto no dice qué va a salir donde
+    /// el mapa está vacío.
+    /// </summary>
+    [AvaloniaFact]
+    public void El_tile_de_relleno_ensena_su_miniatura()
+    {
+        MapEditorViewModel editor = NewEditor();
+
+        Assert.Same(editor.Tiles[0], editor.EmptyTileImage);
+
+        editor.EmptyTile = 42;
+
+        Assert.Equal(42, editor.Map.EmptyTile);
+        Assert.Same(editor.Tiles[42], editor.EmptyTileImage);
+    }
+
+    [AvaloniaFact]
+    public void El_tile_de_relleno_no_se_sale_del_juego()
+    {
+        MapEditorViewModel editor = NewEditor();
+
+        editor.EmptyTile = 9999;
+
+        Assert.Equal(255, editor.Map.EmptyTile);
+        Assert.NotNull(editor.EmptyTileImage);
+    }
+
     // ------------------------------------------------------------------ deshacer
 
     [AvaloniaFact]

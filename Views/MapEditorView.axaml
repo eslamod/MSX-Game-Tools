@@ -147,7 +147,7 @@
         <!-- Atributos del mapa -->
         <TextBlock Grid.Row="2" Text="Mapa" FontWeight="Bold" Margin="0,8,0,4" />
 
-        <Grid Grid.Row="3" ColumnDefinitions="60,*" RowDefinitions="Auto,Auto,Auto">
+        <Grid Grid.Row="3" ColumnDefinitions="60,*" RowDefinitions="Auto,Auto,Auto,Auto">
           <TextBlock Grid.Row="0" Grid.Column="0" Text="Nombre" VerticalAlignment="Center" />
           <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Map.Name}" Margin="0,0,0,4" />
 
@@ -163,20 +163,58 @@
                     ToolTip.Tip="Cambiar el tamaño del mapa" />
           </StackPanel>
 
+          <!-- El fondo se puede cambiar, no solo mirar: es el mismo R#7 del borde del
+               editor de tiles y aqui tambien hay que poder tocarlo. -->
           <TextBlock Grid.Row="2" Grid.Column="0" Text="Fondo" VerticalAlignment="Center" />
-          <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
-            <Border Height="20" Width="40" VerticalAlignment="Center"
-                    BorderBrush="#606060" BorderThickness="1"
-                    Background="{Binding BackgroundBrush}"
-                    ToolTip.Tip="Lo que se ve donde no hay tile en ninguna capa" />
+          <Button Grid.Row="2" Grid.Column="1"
+                  Theme="{StaticResource TileColorSwatch}"
+                  Width="60" Height="22" HorizontalAlignment="Left" Margin="0,0,0,4"
+                  ToolTip.Tip="{Binding BackgroundColor.DisplayName, StringFormat='Fondo: {0}'}">
+            <Grid ColumnDefinitions="*,Auto">
+              <Border Grid.Column="0" Background="{Binding BackgroundColor.Brush}" />
+              <TextBlock Grid.Column="1" Text="{Binding BackgroundColor.Hex}"
+                         FontFamily="Consolas" FontSize="11" Width="16"
+                         HorizontalAlignment="Center" VerticalAlignment="Center"
+                         TextAlignment="Center" />
+            </Grid>
+            <Button.Flyout>
+              <Flyout Placement="Bottom">
+                <ItemsControl ItemsSource="{Binding BackgroundChoices}" Width="152">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <WrapPanel />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="entities:PaletteColor">
+                      <Button Theme="{StaticResource TileColorSwatch}"
+                              Width="34" Height="22" Margin="2"
+                              ToolTip.Tip="{Binding DisplayName}"
+                              Click="OnPaletteColorClick"
+                              Command="{Binding $parent[ItemsControl].((vm:MapEditorViewModel)DataContext).PickBackgroundColorCommand}"
+                              CommandParameter="{Binding}">
+                        <Border Background="{Binding Brush}" />
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
 
-            <!-- En el binario no cabe el hueco: la tabla de nombres siempre dibuja algo,
-                 asi que hay que decir con que sale lo que aqui esta vacio. -->
-            <TextBlock Text="Vacío" VerticalAlignment="Center" Margin="10,0,4,0" />
-            <NumericUpDown Width="80" ShowButtonSpinner="True" FormatString="0"
+          <!-- El tile de relleno con su dibujo al lado: un numero suelto no dice nada, y
+               asi se ve lo que va a salir donde el mapa esta vacio. -->
+          <TextBlock Grid.Row="3" Grid.Column="0" Text="Vacío" VerticalAlignment="Center"
+                     ToolTip.Tip="Tile con el que salen las celdas vacías al exportar a binario" />
+          <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal">
+            <NumericUpDown Width="100" ShowButtonSpinner="True" FormatString="0"
                            Minimum="0" Maximum="255" Increment="1"
-                           Value="{Binding Map.EmptyTile}"
-                           ToolTip.Tip="Tile con el que salen las celdas vacías al exportar a binario" />
+                           Value="{Binding EmptyTile}" />
+            <Border BorderBrush="#606060" BorderThickness="1" Margin="6,0,0,0"
+                    Width="24" Height="24" VerticalAlignment="Center">
+              <Image Source="{Binding EmptyTileImage.SpritePreview}"
+                     Stretch="Fill" RenderOptions.BitmapInterpolationMode="None" />
+            </Border>
           </StackPanel>
         </Grid>
       </Grid>
