@@ -28,6 +28,7 @@ public partial class MainWindowViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(ExportMapCsvCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportMapBinaryCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportMapAssemblerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ResizeMapCommand))]
     private PanelBaseViewModel? _selectedTab;
 
     /// <param name="dialogs">
@@ -776,6 +777,13 @@ public partial class MainWindowViewModel : ObservableObject
         {
             await Dialogs.ShowMessageAsync("No se pudo abrir el fichero", exception.Message);
         }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanSaveMap))]
+    private void ResizeMap()
+    {
+        if (SelectedTab is MapEditorViewModel editor)
+            OpenForm(() => new ResizeMapViewModel(this, editor));
     }
 
     [RelayCommand(CanExecute = nameof(CanSaveMap))]

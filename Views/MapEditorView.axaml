@@ -156,8 +156,8 @@
             <!-- Redimensionar es un botón y no editar el número: la operación descoloca
                  el mapa entero y no puede dispararse al teclear un dígito. -->
             <Button Content="Redimensionar" Margin="8,0,0,0" Padding="6,1" FontSize="11"
-                    IsEnabled="False"
-                    ToolTip.Tip="Pendiente de la fase 3" />
+                    Click="OnResize"
+                    ToolTip.Tip="Cambiar el tamaño del mapa" />
           </StackPanel>
 
           <TextBlock Grid.Row="2" Grid.Column="0" Text="Fondo" VerticalAlignment="Center" />

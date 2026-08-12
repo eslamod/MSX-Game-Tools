@@ -37,12 +37,19 @@ public sealed class LayerRectEdit(int layer, int left, int top, TilePatch before
 /// enteras. Redimensionar es raro y deliberado, así que el coste está bien puesto.
 /// </remarks>
 public sealed class MapResizeEdit(
-    int widthBefore, int heightBefore, IReadOnlyList<TilePatch> before, int widthAfter, int heightAfter)
+    int widthBefore,
+    int heightBefore,
+    IReadOnlyList<TilePatch> before,
+    int widthAfter,
+    int heightAfter,
+    IReadOnlyList<TilePatch> after)
     : IMapEdit
 {
     public void Undo(TileMap map) => map.RestoreSize(widthBefore, heightBefore, before);
 
-    public void Redo(TileMap map) => map.RestoreSize(widthAfter, heightAfter, null);
+    // También con su contenido: al redimensionar se puede desplazar lo que había, y
+    // rehacer sólo el tamaño lo dejaría en otro sitio.
+    public void Redo(TileMap map) => map.RestoreSize(widthAfter, heightAfter, after);
 }
 
 /// <summary>

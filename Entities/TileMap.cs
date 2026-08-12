@@ -143,24 +143,43 @@ public class TileMap
     /// <summary>
     /// Cambia el tamaño del mapa y de todas sus capas.
     /// </summary>
+    /// <param name="offsetColumn">
+    /// Dónde queda lo que había. Con cero se ancla a la izquierda; con un número positivo
+    /// el contenido se desplaza, que es lo que hace falta para alargar un nivel por el
+    /// principio sin repintarlo.
+    /// </param>
+    /// <param name="offsetRow"><inheritdoc cref="offsetColumn"/></param>
     /// <remarks>
-    /// El contenido se ancla arriba a la izquierda: lo que se sale al encoger se pierde, y
-    /// por eso este cambio guarda las capas enteras para poder deshacerse.
+    /// Lo que se sale al encoger se pierde, y por eso este cambio guarda las capas enteras
+    /// para poder deshacerse.
     /// </remarks>
-    public void Resize(int width, int height)
+    public void Resize(int width, int height, int offsetColumn = 0, int offsetRow = 0)
     {
         width = Math.Clamp(width, 1, MaxSide);
         height = Math.Clamp(height, 1, MaxSide);
 
-        if (width == Width && height == Height)
+        if (width == Width && height == Height && offsetColumn == 0 && offsetRow == 0)
             return;
 
+        // El tamaño de antes se guarda aquí: al construir el registro más abajo, Width y
+        // Height ya son los nuevos.
+        (int oldWidth, int oldHeight) = (Width, Height);
+
         var before = Layers.Select(layer => layer.Grid.ToPatch()).ToList();
-        var edit = new MapResizeEdit(Width, Height, before, width, height);
 
         ApplySize(width, height);
 
-        Undo.Push(edit);
+        // Se vacía y se vuelve a poner en su sitio: la rejilla al redimensionar conserva
+        // las coordenadas, y aquí puede hacer falta correrlo todo.
+        for (int index = 0; index < Layers.Count; index++)
+        {
+            Layers[index].Grid.Clear();
+            Layers[index].Grid.Stamp(offsetColumn, offsetRow, before[index]);
+        }
+
+        var after = Layers.Select(layer => layer.Grid.ToPatch()).ToList();
+
+        Undo.Push(new MapResizeEdit(oldWidth, oldHeight, before, width, height, after));
     }
 
     /// <summary>Añade una capa vacía encima de las demás.</summary>
@@ -195,7 +214,10 @@ public class TileMap
             return;
 
         for (int index = 0; index < Math.Min(contents.Count, Layers.Count); index++)
+        {
+            Layers[index].Grid.Clear();
             Layers[index].Grid.Stamp(0, 0, contents[index]);
+        }
     }
 
     private void ApplySize(int width, int height)

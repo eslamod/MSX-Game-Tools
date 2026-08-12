@@ -157,6 +157,19 @@ public partial class MapEditorView : UserControl
         }
     }
 
+    /// <summary>
+    /// Redimensionar abre su formulario en el lateral.
+    /// </summary>
+    /// <remarks>
+    /// Lo pide la ventana principal y no el panel: los formularios del lateral los reparte
+    /// ella, que es quien sabe cuáles hay abiertos.
+    /// </remarks>
+    private void OnResize(object? sender, RoutedEventArgs e)
+    {
+        if (this.FindAncestorOfType<MainWindow>()?.DataContext is MainWindowViewModel main)
+            main.ResizeMapCommand.Execute(null);
+    }
+
     private void OnFitZoom(object? sender, RoutedEventArgs e) =>
         Editor?.FitZoom(Canvas.Bounds.Width, Canvas.Bounds.Height);
 

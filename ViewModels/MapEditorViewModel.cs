@@ -236,6 +236,21 @@ public partial class MapEditorViewModel : PanelBaseViewModel
             RefreshRequested?.Invoke();
     }
 
+    /// <summary>
+    /// El mapa ha cambiado de tamaño: se repinta y se olvida la selección.
+    /// </summary>
+    /// <remarks>
+    /// La selección se tira porque señalaba celdas que puede que ya no existan, y dejarla
+    /// apuntando a cualquier sitio es peor que no tenerla.
+    /// </remarks>
+    public void AfterResize()
+    {
+        Selection = null;
+
+        OnPropertyChanged(nameof(Map));
+        RefreshRequested?.Invoke();
+    }
+
     /// <summary>Marca el rectángulo que va de una celda a otra.</summary>
     public void Select(int fromColumn, int fromRow, int toColumn, int toRow)
     {

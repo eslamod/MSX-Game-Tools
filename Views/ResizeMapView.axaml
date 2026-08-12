@@ -1,0 +1,52 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="300"
+             x:Class="MSX_GameTools.Views.ResizeMapView"
+             x:DataType="vm:ResizeMapViewModel"
+             Background="Gainsboro">
+
+  <Grid Margin="10" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*,Auto">
+
+    <TextBlock Grid.Row="0" Text="Redimensionar" FontWeight="Bold" Margin="0,0,0,4" />
+    <TextBlock Grid.Row="1" Text="{Binding CurrentLabel}" Margin="0,0,0,10" />
+
+    <Grid Grid.Row="2" ColumnDefinitions="70,*" Margin="0,0,0,6">
+      <TextBlock Grid.Column="0" Text="Columnas" VerticalAlignment="Center" />
+      <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
+                     Minimum="1" Maximum="{Binding MaxSide}" Increment="1"
+                     Value="{Binding Columns}" />
+    </Grid>
+
+    <Grid Grid.Row="3" ColumnDefinitions="70,*" Margin="0,0,0,6">
+      <TextBlock Grid.Column="0" Text="Filas" VerticalAlignment="Center" />
+      <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
+                     Minimum="1" Maximum="{Binding MaxSide}" Increment="1"
+                     Value="{Binding Rows}" />
+    </Grid>
+
+    <!-- Sin ancla solo se podria crecer por abajo y por la derecha, y alargar un nivel
+         por el principio obligaria a repintarlo entero. -->
+    <Grid Grid.Row="4" ColumnDefinitions="70,*" Margin="0,0,0,6">
+      <TextBlock Grid.Column="0" Text="Anclar" VerticalAlignment="Center" />
+      <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                ItemsSource="{Binding Anchors}"
+                SelectedItem="{Binding Anchor}"
+                ToolTip.Tip="Dónde queda lo que ya había" />
+    </Grid>
+
+    <TextBlock Grid.Row="5" Margin="0,4,0,0" TextWrapping="Wrap" Foreground="#505050"
+               Text="Al encoger se pierde lo que quede fuera. Se puede deshacer." />
+
+    <TextBlock Grid.Row="6" Text="{Binding ErrorMessage}" Foreground="Firebrick"
+               TextWrapping="Wrap" VerticalAlignment="Top" Margin="0,8,0,0"
+               IsVisible="{Binding HasError}" />
+
+    <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Right">
+      <Button Content="Accept" Width="90" Command="{Binding AcceptResizeCommand}" />
+      <Button Content="Cancel" Width="90" Margin="8,0,0,0" Command="{Binding CancelResizeCommand}" />
+    </StackPanel>
+  </Grid>
+</UserControl>
