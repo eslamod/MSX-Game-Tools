@@ -25,6 +25,7 @@ public partial class MainWindowViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetAssemblerCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetPngCommand))]
     [NotifyCanExecuteChangedFor(nameof(SaveMapCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExportMapCsvCommand))]
     private PanelBaseViewModel? _selectedTab;
 
     /// <param name="dialogs">
@@ -705,6 +706,81 @@ public partial class MainWindowViewModel : ObservableObject
             await Dialogs.ShowMessageAsync("No se pudo abrir el fichero", exception.Message);
         }
     }
+
+    [RelayCommand(CanExecute = nameof(CanSaveMap))]
+    private async Task ExportMapCsvAsync()
+    {
+        if (SelectedTab is not MapEditorViewModel editor)
+            return;
+
+        string? path = await Dialogs.PickFileToSaveAsync(
+            "Exportar mapa a csv",
+            $"{SuggestedFileName(editor.Map.Name)}.csv",
+            PickerFileKind.Any);
+
+        if (path is null)
+            return;
+
+        try
+        {
+            await File.WriteAllTextAsync(path, MapCsv.Write(editor.Map));
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo exportar el mapa", exception.Message);
+        }
+    }
+
+    /// <summary>
+    /// Trae un csv como un mapa nuevo.
+    /// </summary>
+    /// <remarks>
+    /// Un csv no dice con qué juego de tiles se dibuja, así que se coge el del mapa que
+    /// esté delante; si no hay ninguno, el único juego abierto. Con varios y sin mapa
+    /// delante no hay forma de adivinarlo y se pide que se elija abriendo uno.
+    /// </remarks>
+    [RelayCommand]
+    private async Task ImportMapCsvAsync()
+    {
+        if (TileSetForImport() is not { } tileSet)
+        {
+            await Dialogs.ShowMessageAsync(
+                "No se sabe con qué tiles dibujarlo",
+                "Un csv no dice de qué juego de tiles son sus números. Abre el juego que le "
+                + "corresponde, o ponte en el mapa que ya lo use, y vuelve a importar.");
+
+            return;
+        }
+
+        string? path = await Dialogs.PickFileToOpenAsync("Importar un csv como mapa", PickerFileKind.Any);
+        if (path is null)
+            return;
+
+        try
+        {
+            TileMap map = MapCsv.Read(
+                await File.ReadAllTextAsync(path),
+                Path.GetFileNameWithoutExtension(path));
+
+            map.BackgroundColorIndex = tileSet.ColorPalette.DefaultBackgroundIndex;
+
+            OpenMap(map, tileSet);
+        }
+        catch (FileFormatException exception)
+        {
+            await Dialogs.ShowMessageAsync("El csv no se puede importar", exception.Message);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo abrir el fichero", exception.Message);
+        }
+    }
+
+    /// <inheritdoc cref="ImportMapCsvAsync"/>
+    private TileSetEditorViewModel? TileSetForImport() =>
+        SelectedTab is MapEditorViewModel map
+            ? TileSets.FirstOrDefault(tiles => tiles.TileSet.Name == map.Map.TileSetName)
+            : TileSets.Count == 1 ? TileSets[0] : null;
 
     [RelayCommand(CanExecute = nameof(CanSaveTileSet))]
     private Task ExportTileSetBinaryAsync() => ExportTileSetAsync(binary: true);

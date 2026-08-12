@@ -33,6 +33,8 @@
         <Separator />
         <MenuItem Header="Load map..." Command="{Binding LoadMapCommand}" />
         <MenuItem Header="Save map as..." Command="{Binding SaveMapCommand}" />
+        <MenuItem Header="Export map to csv..." Command="{Binding ExportMapCsvCommand}" />
+        <MenuItem Header="Import map from csv..." Command="{Binding ImportMapCsvCommand}" />
         <Separator />
         <MenuItem Header="Exit" />
       </MenuItem>
