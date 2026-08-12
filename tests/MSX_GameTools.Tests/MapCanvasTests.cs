@@ -221,6 +221,100 @@ public class MapCanvasTests : IDisposable
         Assert.Equal(0, visible.Top);
     }
 
+    /// <summary>
+    /// Al cambiar el zoom se sigue mirando el mismo sitio del mapa.
+    /// </summary>
+    /// <remarks>
+    /// El desplazamiento va en pixeles de pantalla, así que hay que reescalarlo: sin eso,
+    /// alejarse desde un mapa grande dejaba la vista más allá del final del mapa y no se
+    /// pintaba ni una celda, sólo el fondo. Parecía que se hubiera borrado todo.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Cambiar_el_zoom_deja_mirando_al_mismo_sitio()
+    {
+        _canvas.Map = new TileMap("Grande", 96, 96);
+        _canvas.Zoom = 4;
+        Pump();
+
+        _window.MouseDown(new Point(300, 200), MouseButton.Middle);
+        Pump();
+        _window.MouseMove(new Point(10, 10), RawInputModifiers.MiddleMouseButton);
+        Pump();
+        _window.MouseUp(new Point(10, 10), MouseButton.Middle);
+        Pump();
+
+        MapRegion cerca = _canvas.VisibleRange();
+
+        Assert.True(cerca.Left > 0, "Hacía falta estar desplazado para probar esto.");
+
+        _canvas.Zoom = 1;
+        Pump();
+
+        MapRegion lejos = _canvas.VisibleRange();
+
+        // La misma columna arriba a la izquierda, y ahora se ven mas celdas.
+        Assert.Equal(cerca.Left, lejos.Left);
+        Assert.Equal(cerca.Top, lejos.Top);
+        Assert.True(lejos.Width > cerca.Width);
+
+        // Y sobre todo: se pinta algo. Sin reescalar no entraba en el bucle ni una celda.
+        Assert.True(lejos.Width > 0 && lejos.Height > 0);
+    }
+
+    /// <summary>
+    /// Alejarse desde el otro extremo de un mapa grande tiene que seguir enseñando mapa.
+    /// </summary>
+    /// <remarks>
+    /// Este es el fallo tal como se vio: en un mapa de 96x96 mirado de cerca y desplazado
+    /// al fondo, pulsar «Ajustar» dejaba el desplazamiento apuntando más allá del final
+    /// del mapa. No entraba ni una celda en el bucle de pintado y la pantalla se quedaba
+    /// del color del fondo.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Alejarse_desde_el_fondo_de_un_mapa_grande_sigue_enseñando_mapa()
+    {
+        _canvas.Map = new TileMap("Grande", 96, 96);
+        _canvas.Zoom = 8;
+        Pump();
+
+        // Hasta el tope: arrastrar mucho mas alla del borde.
+        _window.MouseDown(new Point(300, 200), MouseButton.Middle);
+        Pump();
+        _window.MouseMove(new Point(-6000, -6000), RawInputModifiers.MiddleMouseButton);
+        Pump();
+        _window.MouseUp(new Point(-6000, -6000), MouseButton.Middle);
+        Pump();
+
+        Assert.True(_canvas.VisibleRange().Left > 50, "Hacía falta estar en el fondo del mapa.");
+
+        _canvas.Zoom = 1;
+        Pump();
+
+        MapRegion visible = _canvas.VisibleRange();
+
+        Assert.True(visible.Width > 0, "No se pintaba ni una celda: la pantalla se quedaba negra.");
+        Assert.True(visible.Left < _canvas.Map.Width);
+    }
+
+    /// <summary>Abrir otro mapa empieza por su esquina, que es donde se empieza a mirar.</summary>
+    [AvaloniaFact]
+    public void Cambiar_de_mapa_vuelve_a_la_esquina()
+    {
+        _window.MouseDown(new Point(200, 200), MouseButton.Middle);
+        Pump();
+        _window.MouseMove(new Point(100, 100), RawInputModifiers.MiddleMouseButton);
+        Pump();
+        _window.MouseUp(new Point(100, 100), MouseButton.Middle);
+        Pump();
+
+        Assert.True(_canvas.VisibleRange().Left > 0);
+
+        _canvas.Map = new TileMap("Otro", 40, 30);
+        Pump();
+
+        Assert.Equal(0, _canvas.VisibleRange().Left);
+    }
+
     /// <summary>Un mapa más pequeño que el hueco no se recorre más allá de su borde.</summary>
     [AvaloniaFact]
     public void Un_mapa_pequeno_no_se_recorre_de_mas()

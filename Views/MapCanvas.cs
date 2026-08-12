@@ -359,29 +359,65 @@ public class MapCanvas : Control
         HoverChanged?.Invoke(null);
     }
 
+    /// <summary>Mueve el mapa dentro del hueco.</summary>
+    private void Pan(Point position)
+    {
+        Point delta = position - _panFrom;
+        _panFrom = position;
+
+        _offset = new Point(_offset.X - delta.X, _offset.Y - delta.Y);
+
+        ClampOffset();
+        InvalidateVisual();
+    }
+
     /// <summary>
-    /// Mueve el mapa dentro del hueco.
+    /// Devuelve el desplazamiento a donde hay mapa.
     /// </summary>
     /// <remarks>
     /// Se deja pasar un poco del borde a propósito, para poder trabajar cómodo en la
     /// última fila; lo que no se deja es perder el mapa de vista del todo.
     /// </remarks>
-    private void Pan(Point position)
+    private void ClampOffset()
     {
         if (Map is not { } map)
             return;
-
-        Point delta = position - _panFrom;
-        _panFrom = position;
 
         double maxX = Math.Max(0, (map.Width * TileSize) - (Bounds.Width / 2));
         double maxY = Math.Max(0, (map.Height * TileSize) - (Bounds.Height / 2));
 
         _offset = new Point(
-            Math.Clamp(_offset.X - delta.X, 0, maxX),
-            Math.Clamp(_offset.Y - delta.Y, 0, maxY));
+            Math.Clamp(_offset.X, 0, maxX),
+            Math.Clamp(_offset.Y, 0, maxY));
+    }
 
-        InvalidateVisual();
+    /// <summary>
+    /// El desplazamiento va en pixeles de pantalla, así que al cambiar el zoom hay que
+    /// reescalarlo.
+    /// </summary>
+    /// <remarks>
+    /// Sin esto, alejarse desde un mapa grande dejaba la vista fuera del mapa: el
+    /// desplazamiento seguía valiendo miles de pixeles cuando el mapa entero ya medía
+    /// unos cientos, y se veía el fondo pelado.
+    /// </remarks>
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == ZoomProperty)
+        {
+            int before = change.OldValue is int old && old > 0 ? old : Zoom;
+
+            if (before != Zoom)
+                _offset = new Point(_offset.X * Zoom / before, _offset.Y * Zoom / before);
+
+            ClampOffset();
+        }
+        else if (change.Property == MapProperty)
+        {
+            // Otro mapa empieza por su esquina, que es donde se empieza a mirar.
+            _offset = default;
+        }
     }
 
     private bool Inside(int column, int row) =>
