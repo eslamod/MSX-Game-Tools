@@ -24,6 +24,7 @@ public partial class MainWindowViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetBinaryCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetAssemblerCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetPngCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SaveMapCommand))]
     private PanelBaseViewModel? _selectedTab;
 
     /// <param name="dialogs">
@@ -634,6 +635,70 @@ public partial class MainWindowViewModel : ObservableObject
         catch (FileFormatException exception)
         {
             await Dialogs.ShowMessageAsync("El juego de tiles no es válido", exception.Message);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo abrir el fichero", exception.Message);
+        }
+    }
+
+    // ------------------------------------------------------------------ mapas
+
+    [RelayCommand(CanExecute = nameof(CanSaveMap))]
+    private async Task SaveMapAsync()
+    {
+        if (SelectedTab is not MapEditorViewModel editor)
+            return;
+
+        string? path = await Dialogs.PickFileToSaveAsync("Guardar mapa", SuggestedFileName(editor.Map.Name));
+        if (path is null)
+            return;
+
+        try
+        {
+            await File.WriteAllTextAsync(path, MapSerializer.Serialize(editor.Map));
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo guardar el mapa", exception.Message);
+        }
+    }
+
+    private bool CanSaveMap() => SelectedTab is MapEditorViewModel;
+
+    /// <summary>
+    /// Abre un mapa de un fichero.
+    /// </summary>
+    /// <remarks>
+    /// El juego de tiles no viene dentro, sólo su nombre: hace falta tenerlo abierto en el
+    /// proyecto. Se dice cuál falta en vez de abrir un mapa que no se podría ni dibujar.
+    /// </remarks>
+    [RelayCommand]
+    private async Task LoadMapAsync()
+    {
+        string? path = await Dialogs.PickFileToOpenAsync("Cargar mapa");
+        if (path is null)
+            return;
+
+        try
+        {
+            TileMap map = MapSerializer.Deserialize(await File.ReadAllTextAsync(path));
+
+            if (TileSets.FirstOrDefault(tiles => tiles.TileSet.Name == map.TileSetName) is not { } tileSet)
+            {
+                await Dialogs.ShowMessageAsync(
+                    "Falta el juego de tiles",
+                    $"El mapa «{map.Name}» se dibuja con el juego «{map.TileSetName}», que no está abierto. "
+                    + "Ábrelo primero y vuelve a cargar el mapa.");
+
+                return;
+            }
+
+            OpenMap(map, tileSet);
+        }
+        catch (FileFormatException exception)
+        {
+            await Dialogs.ShowMessageAsync("El mapa no es válido", exception.Message);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {

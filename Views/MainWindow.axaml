@@ -31,6 +31,9 @@
         <MenuItem Header="Export tileset to png..." Command="{Binding ExportTileSetPngCommand}" />
         <MenuItem Header="Import tileset from png..." Command="{Binding ImportTileSetPngCommand}" />
         <Separator />
+        <MenuItem Header="Load map..." Command="{Binding LoadMapCommand}" />
+        <MenuItem Header="Save map as..." Command="{Binding SaveMapCommand}" />
+        <Separator />
         <MenuItem Header="Exit" />
       </MenuItem>
       <MenuItem Header="Palette">

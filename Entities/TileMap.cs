@@ -21,10 +21,11 @@ public class TileMap
     /// Lo más grande que puede ser un mapa de lado.
     /// </summary>
     /// <remarks>
-    /// El límite existe para que el editor pueda decir que no en vez de quedarse pensando
-    /// con una rejilla que no cabe en memoria ni tiene sentido en un MSX.
+    /// Mil veinticuatro y no más porque la cabecera del binario lleva dos bytes por lado:
+    /// diez bits bastan para el tamaño y quedan seis libres en cada uno para banderas. Y
+    /// un lado de mil tiles ya son treinta pantallas seguidas.
     /// </remarks>
-    public const int MaxSide = 512;
+    public const int MaxSide = 1024;
 
     public TileMap(string name = "", int width = 32, int height = 24)
     {
