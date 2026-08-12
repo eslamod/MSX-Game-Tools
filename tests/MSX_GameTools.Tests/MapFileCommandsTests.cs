@@ -192,11 +192,11 @@ public class MapFileCommandsTests : IDisposable
     }
 
     /// <summary>
-    /// Un csv no dice de qué juego son sus números. Con varios abiertos y sin un mapa
-    /// delante que lo diga, no hay forma de adivinarlo.
+    /// Un csv no dice de qué juego son sus números. Con varios en el proyecto y delante
+    /// algo que no es ni un juego ni un mapa, no hay forma de adivinarlo.
     /// </summary>
     [AvaloniaFact]
-    public async Task Con_varios_juegos_y_sin_mapa_delante_no_se_adivina_el_juego()
+    public async Task Con_varios_juegos_y_nada_que_lo_diga_no_se_adivina()
     {
         string path = Path.Combine(_folder, "mapa.csv");
         await File.WriteAllTextAsync(path, "1,2\n");
@@ -207,10 +207,41 @@ public class MapFileCommandsTests : IDisposable
         main.OpenTileSet(new TileSet("Bosque"));
         main.OpenTileSet(new TileSet("Ciudad"));
 
+        // Delante un banco de sprites, que no dice nada de tiles.
+        main.OpenSpriteBank(new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"));
+
         await main.ImportMapCsvCommand.ExecuteAsync(null);
 
         Assert.Empty(main.Tabs.OfType<MapEditorViewModel>());
         Assert.Single(dialogs.Messages);
+    }
+
+    /// <summary>
+    /// Tener el juego delante es la señal más explícita que puede dar el usuario, aunque
+    /// haya varios en el proyecto. Sin esto salía «no se sabe con qué tiles dibujarlo»
+    /// teniendo el juego justo delante, que es de las cosas que más desconciertan.
+    /// </summary>
+    [AvaloniaFact]
+    public async Task Con_el_juego_de_tiles_delante_se_usa_ese()
+    {
+        string path = Path.Combine(_folder, "mapa.csv");
+        await File.WriteAllTextAsync(path, "1,2\n");
+
+        var dialogs = new TestDialogService { OpenPath = path };
+        var main = new MainWindowViewModel(dialogs);
+
+        main.OpenTileSet(new TileSet("Bosque"));
+        main.OpenTileSet(new TileSet("Ciudad"));
+        TileSetEditorViewModel tiles3 = main.OpenTileSet(new TileSet("Tiles3"));
+
+        Assert.Same(tiles3, main.SelectedTab);
+
+        await main.ImportMapCsvCommand.ExecuteAsync(null);
+
+        MapEditorViewModel imported = Assert.Single(main.Tabs.OfType<MapEditorViewModel>());
+
+        Assert.Equal("Tiles3", imported.Map.TileSetName);
+        Assert.Empty(dialogs.Messages);
     }
 
     /// <summary>Con un mapa delante se hereda su juego, aunque haya varios abiertos.</summary>

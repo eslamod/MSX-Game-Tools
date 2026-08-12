@@ -750,8 +750,8 @@ public partial class MainWindowViewModel : ObservableObject
         {
             await Dialogs.ShowMessageAsync(
                 "No se sabe con qué tiles dibujarlo",
-                "Un csv no dice de qué juego de tiles son sus números. Abre el juego que le "
-                + "corresponde, o ponte en el mapa que ya lo use, y vuelve a importar.");
+                "Un csv no dice de qué juego de tiles son sus números. Ponte en la pestaña del "
+                + "juego que le corresponde, o en la de un mapa que ya lo use, y vuelve a importar.");
 
             return;
         }
@@ -869,8 +869,8 @@ public partial class MainWindowViewModel : ObservableObject
         {
             await Dialogs.ShowMessageAsync(
                 "No se sabe con qué tiles dibujarlo",
-                "Un binario no dice de qué juego de tiles son sus números. Abre el juego que le "
-                + "corresponde, o ponte en el mapa que ya lo use, y vuelve a importar.");
+                "Un binario no dice de qué juego de tiles son sus números. Ponte en la pestaña del "
+                + "juego que le corresponde, o en la de un mapa que ya lo use, y vuelve a importar.");
 
             return;
         }
@@ -899,11 +899,20 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    /// <inheritdoc cref="ImportMapCsvAsync"/>
-    private TileSetEditorViewModel? TileSetForImport() =>
-        SelectedTab is MapEditorViewModel map
-            ? TileSets.FirstOrDefault(tiles => tiles.TileSet.Name == map.Map.TileSetName)
-            : TileSets.Count == 1 ? TileSets[0] : null;
+    /// <summary>
+    /// Con qué juego de tiles se dibuja lo que se importa.
+    /// </summary>
+    /// <remarks>
+    /// Manda lo que haya delante, que es la señal más explícita que puede dar el usuario:
+    /// el juego que tenga abierto, o el del mapa que esté editando. Sólo cuando no hay ni
+    /// una cosa ni la otra se recurre a que haya un único juego en el proyecto.
+    /// </remarks>
+    private TileSetEditorViewModel? TileSetForImport() => SelectedTab switch
+    {
+        TileSetEditorViewModel tiles => tiles,
+        MapEditorViewModel map => TileSets.FirstOrDefault(tiles => tiles.TileSet.Name == map.Map.TileSetName),
+        _ => TileSets.Count == 1 ? TileSets[0] : null,
+    };
 
     [RelayCommand(CanExecute = nameof(CanSaveTileSet))]
     private Task ExportTileSetBinaryAsync() => ExportTileSetAsync(binary: true);
