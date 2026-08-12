@@ -8,6 +8,7 @@ public class TreeGeneralViewModel : PanelBaseViewModel
 {
     private readonly ItemTree _nodeSpriteBanks;
     private readonly ItemTree _nodeTileSets;
+    private readonly ItemTree _nodeMaps;
 
     public TreeGeneralViewModel()
     {
@@ -23,11 +24,17 @@ public class TreeGeneralViewModel : PanelBaseViewModel
             Tag = Constants.TAG_ID_NODE_TILESETS,
         };
 
+        _nodeMaps = new ItemTree
+        {
+            DisplayText = "Maps",
+            Tag = Constants.TAG_ID_NODE_MAPS,
+        };
+
         PrimaryNodes =
         [
             _nodeSpriteBanks,
             _nodeTileSets,
-            new ItemTree { DisplayText = "Maps", Tag = Constants.TAG_ID_NODE_MAPS },
+            _nodeMaps,
             new ItemTree { DisplayText = "Animations", Tag = Constants.TAG_ID_NODE_ANIMATORS },
             new ItemTree { DisplayText = "Behavours", Tag = Constants.TAG_ID_NODE_BEHAVOURS },
             new ItemTree { DisplayText = "Sounds", Tag = Constants.TAG_ID_NODE_SOUNDS },
@@ -82,6 +89,9 @@ public class TreeGeneralViewModel : PanelBaseViewModel
         child.PanelsList.Add(blocks);
         item.Childs.Add(child);
     }
+
+    public void AddMap(string displayName, string tagId, PanelBaseViewModel vm) =>
+        AddTo(_nodeMaps, displayName, tagId, vm);
 
     private static ItemTree AddTo(ItemTree parent, string displayName, string tagId, PanelBaseViewModel vm)
     {

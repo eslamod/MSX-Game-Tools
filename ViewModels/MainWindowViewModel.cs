@@ -174,6 +174,42 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void AddTileSet() => OpenForm(() => new EditTileSetViewModel(this));
 
+    [RelayCommand]
+    private void AddMap() => OpenForm(() => new EditMapViewModel(this));
+
+    /// <summary>
+    /// Los juegos de tiles que hay en el proyecto.
+    /// </summary>
+    /// <remarks>
+    /// Un mapa son números de tile: hace falta elegir con qué juego se dibuja, y sin
+    /// ninguno abierto no hay mapa que crear.
+    /// </remarks>
+    public IReadOnlyList<TileSetEditorViewModel> TileSets =>
+        [.. _panels.Values.OfType<TileSetEditorViewModel>()];
+
+    /// <summary>Abre un mapa en una pestaña nueva y lo cuelga del árbol.</summary>
+    public MapEditorViewModel OpenMap(TileMap map, TileSetEditorViewModel tiles)
+    {
+        map.TileSetName = tiles.TileSet.Name;
+
+        var panel = new MapEditorViewModel(map, tiles, Preferences)
+        {
+            TagId = $"map{CurrentMapCounter}",
+            Header = $"{map.Name} (MP)",
+        };
+
+        CurrentMapCounter++;
+
+        AddPanelToDic(panel);
+        Tabs.Add(panel);
+        SelectedTab = panel;
+        TreeGeneralVm.AddMap(panel.Header, panel.TagId, panel);
+
+        return panel;
+    }
+
+    public int CurrentMapCounter { get; set; }
+
     /// <summary>
     /// Abre un formulario del lateral, o trae el que ya estuviera abierto.
     /// </summary>

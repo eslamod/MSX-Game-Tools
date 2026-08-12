@@ -1,0 +1,94 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using MSX_GameTools.Entities;
+
+namespace MSX_GameTools.ViewModels;
+
+/// <summary>
+/// Formulario de creación de un mapa.
+/// </summary>
+/// <remarks>
+/// Además del nombre pide el tamaño y el juego de tiles. El juego no es un adorno: un
+/// mapa son números de tile y esos números no significan nada sin saber de cuál son, así
+/// que sin ningún juego en el proyecto no hay mapa que crear.
+/// </remarks>
+public partial class EditMapViewModel : PanelBaseViewModel
+{
+    private readonly MainWindowViewModel _mainWindowVm;
+
+    [ObservableProperty]
+    private string _name = string.Empty;
+
+    [ObservableProperty]
+    private int _columns = 32;
+
+    [ObservableProperty]
+    private int _rows = 24;
+
+    [ObservableProperty]
+    private TileSetEditorViewModel? _tileSet;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasError))]
+    private string? _errorMessage;
+
+    public EditMapViewModel(MainWindowViewModel mainWindowVm)
+    {
+        _mainWindowVm = mainWindowVm;
+
+        // Con la cabecera vacia la pestaña parecia rota.
+        Header = "Agregar mapa";
+        TagId = "new:map";
+
+        TileSets = mainWindowVm.TileSets;
+        TileSet = TileSets.FirstOrDefault();
+
+        if (TileSets.Count == 0)
+            ErrorMessage = "Antes de un mapa hace falta un juego de tiles con el que dibujarlo.";
+    }
+
+    /// <summary>Los juegos entre los que elegir, tal como estaban al abrir el formulario.</summary>
+    public IReadOnlyList<TileSetEditorViewModel> TileSets { get; }
+
+    public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+
+    /// <summary>Lo más grande que se puede pedir, que es lo que aguanta el mapa.</summary>
+    public int MaxSide => TileMap.MaxSide;
+
+    [RelayCommand]
+    private void AcceptMap()
+    {
+        if (string.IsNullOrWhiteSpace(Name))
+        {
+            ErrorMessage = "El nombre del mapa no puede estar vacío.";
+            return;
+        }
+
+        if (TileSet is not { } tiles)
+        {
+            ErrorMessage = "Hace falta elegir el juego de tiles con el que se dibuja.";
+            return;
+        }
+
+        if (Columns is < 1 || Rows is < 1 || Columns > MaxSide || Rows > MaxSide)
+        {
+            ErrorMessage = $"El tamaño tiene que estar entre 1 y {MaxSide} en cada lado.";
+            return;
+        }
+
+        ErrorMessage = null;
+
+        var map = new TileMap(Name, Columns, Rows)
+        {
+            // El fondo arranca en el color más oscuro de la paleta y no en un índice fijo:
+            // dar por negro el 1 ya nos costó un fallo con las paletas generadas.
+            BackgroundColorIndex = tiles.ColorPalette.DefaultBackgroundIndex,
+        };
+
+        _mainWindowVm.OpenMap(map, tiles);
+        _mainWindowVm.RightPanViewModel = null;
+    }
+
+    [RelayCommand]
+    private void CancelMap() => _mainWindowVm.RightPanViewModel = null;
+}

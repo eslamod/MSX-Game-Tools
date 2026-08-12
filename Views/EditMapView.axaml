@@ -1,0 +1,60 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="300"
+             x:Class="MSX_GameTools.Views.EditMapView"
+             x:DataType="vm:EditMapViewModel"
+             Background="Gainsboro">
+
+  <Grid Margin="10" RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto">
+
+    <TextBlock Grid.Row="0" Text="New map" FontWeight="Bold" Margin="0,0,0,10" />
+
+    <Grid Grid.Row="1" ColumnDefinitions="70,*" Margin="0,0,0,6">
+      <TextBlock Grid.Column="0" Text="Name" VerticalAlignment="Center" />
+      <TextBox Grid.Column="1" Text="{Binding Name}" Watermark="Mapa 1" />
+    </Grid>
+
+    <!-- El tamaño se pide al crear y no se deduce: un mapa vacío no tiene contenido del
+         que sacarlo, y cambiarlo después es una operación aparte. -->
+    <Grid Grid.Row="2" ColumnDefinitions="70,*" Margin="0,0,0,6">
+      <TextBlock Grid.Column="0" Text="Columnas" VerticalAlignment="Center" />
+      <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
+                     Minimum="1" Maximum="{Binding MaxSide}" Increment="1"
+                     Value="{Binding Columns}" />
+    </Grid>
+
+    <Grid Grid.Row="3" ColumnDefinitions="70,*" Margin="0,0,0,6">
+      <TextBlock Grid.Column="0" Text="Filas" VerticalAlignment="Center" />
+      <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
+                     Minimum="1" Maximum="{Binding MaxSide}" Increment="1"
+                     Value="{Binding Rows}" />
+    </Grid>
+
+    <!-- Con qué juego se dibuja. Un mapa son números de tile: sin saber de cuál son, no
+         significan nada. -->
+    <Grid Grid.Row="4" ColumnDefinitions="70,*" Margin="0,0,0,6">
+      <TextBlock Grid.Column="0" Text="Tiles" VerticalAlignment="Center" />
+      <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                ItemsSource="{Binding TileSets}"
+                SelectedItem="{Binding TileSet}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:TileSetEditorViewModel">
+            <TextBlock Text="{Binding TileSet.Name}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+    </Grid>
+
+    <TextBlock Grid.Row="5" Text="{Binding ErrorMessage}" Foreground="Firebrick"
+               TextWrapping="Wrap" VerticalAlignment="Top"
+               IsVisible="{Binding HasError}" />
+
+    <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right">
+      <Button Content="Accept" Width="90" Command="{Binding AcceptMapCommand}" />
+      <Button Content="Cancel" Width="90" Margin="8,0,0,0" Command="{Binding CancelMapCommand}" />
+    </StackPanel>
+  </Grid>
+</UserControl>
