@@ -10,9 +10,13 @@ namespace MSX_GameTools.Views;
 
 public partial class MapEditorView : UserControl
 {
+    /// <summary>Pixeles de pantalla por pixel de tile en el selector con el zoom a 1.</summary>
+    private const int TileBaseScale = 8;
+
     /// <summary>Lado de un tile en el selector de abajo.</summary>
     public static readonly StyledProperty<double> TileSizeProperty =
-        AvaloniaProperty.Register<MapEditorView, double>(nameof(TileSize), defaultValue: 16);
+        AvaloniaProperty.Register<MapEditorView, double>(
+            nameof(TileSize), defaultValue: TileBaseScale * 2);
 
     /// <summary>El tile por el que se empezó a arrastrar, para coger el rectángulo.</summary>
     private int _anchor = -1;
@@ -45,6 +49,42 @@ public partial class MapEditorView : UserControl
             // Los bloques se editan en otro panel: al volver aqui pueden ser otros.
             editor.RefreshBlocks();
         }
+
+        RestoreTileZoom();
+    }
+
+    /// <summary>
+    /// Deja marcado el zoom del selector que se estaba usando y lo aplica.
+    /// </summary>
+    /// <remarks>
+    /// El TabControl reconstruye la vista al cambiar de pestaña, así que el zoom vive en
+    /// los ajustes del espacio de trabajo y no aquí.
+    /// </remarks>
+    private void RestoreTileZoom()
+    {
+        int factor = Editor?.Preferences.MapTileZoom ?? 2;
+
+        RadioButton? button = this.GetVisualDescendants()
+            .OfType<RadioButton>()
+            .FirstOrDefault(r => r.GroupName == "MapTileZoom" && (string?)r.Tag == factor.ToString());
+
+        if (button is not null)
+            button.IsChecked = true;
+
+        // Por si el guardado ya era el que marca el XAML: entonces no ha saltado ningun
+        // IsCheckedChanged y hay que aplicarlo a mano.
+        TileSize = TileBaseScale * factor;
+    }
+
+    private void OnTileZoomChanged(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not RadioButton { IsChecked: true, Tag: string tag } || !int.TryParse(tag, out int factor))
+            return;
+
+        if (Editor is { } editor)
+            editor.Preferences.MapTileZoom = factor;
+
+        TileSize = TileBaseScale * factor;
     }
 
     protected override void OnUnloaded(RoutedEventArgs e)

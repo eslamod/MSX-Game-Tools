@@ -37,4 +37,7 @@ public sealed class EditorPreferences
 
     /// <summary>Factor del zoom del selector de tiles del panel de bloques.</summary>
     public int BlockTileZoom { get; set; } = 1;
+
+    /// <summary>Factor del zoom del selector de tiles y bloques del editor de mapas.</summary>
+    public int MapTileZoom { get; set; } = 2;
 }

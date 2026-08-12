@@ -163,6 +163,55 @@ public class MapEditorViewTests : IDisposable
         Assert.Contains("Arbol", Editor.BrushName);
     }
 
+    // ------------------------------------------------------------------ zoom del selector
+
+    /// <summary>Los tiles y los bloques de abajo crecen con el mismo zoom.</summary>
+    [AvaloniaFact]
+    public void Los_botones_de_abajo_cambian_el_tamano_de_los_tiles()
+    {
+        Assert.Equal(16, _view.TileSize);
+
+        Check("MapTileZoom", 4);
+
+        Assert.Equal(32, _view.TileSize);
+        Assert.Equal(4, Editor.Preferences.MapTileZoom);
+
+        Check("MapTileZoom", 1);
+
+        Assert.Equal(8, _view.TileSize);
+    }
+
+    /// <summary>
+    /// El TabControl reconstruye la vista al cambiar de pestaña, así que el zoom tiene que
+    /// vivir en los ajustes y no en el control.
+    /// </summary>
+    [AvaloniaFact]
+    public void El_zoom_del_selector_sobrevive_a_montar_la_vista_de_nuevo()
+    {
+        Check("MapTileZoom", 3);
+
+        var other = new MapEditorView { DataContext = Editor };
+        var window = new Window { Content = other, Width = 1100, Height = 800 };
+
+        window.Show();
+        Pump();
+
+        Assert.Equal(24, other.TileSize);
+
+        window.Close();
+        Pump();
+    }
+
+    private void Check(string group, int factor)
+    {
+        RadioButton button = _view.GetVisualDescendants()
+            .OfType<RadioButton>()
+            .First(r => r.GroupName == group && (string?)r.Tag == factor.ToString());
+
+        button.IsChecked = true;
+        Pump();
+    }
+
     private MapCanvas Canvas() => _view.GetVisualDescendants().OfType<MapCanvas>().Single();
 
     private void ShowBlocksTab()
