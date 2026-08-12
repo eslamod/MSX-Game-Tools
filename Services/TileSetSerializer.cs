@@ -38,9 +38,6 @@ public static class TileSetSerializer
     /// <summary>Ocho bytes por tabla y dos dígitos por byte.</summary>
     private const int Digits = Tile.Rows * 2;
 
-    /// <summary>Una celda de bloque sin tile, que no es lo mismo que el tile 0.</summary>
-    private const string EmptyCell = "..";
-
     public static string Serialize(TileSet tileSet, ColorPalette palette, int borderColorIndex = 1) =>
         JsonSerializer.Serialize(ToFile(tileSet, palette, borderColorIndex), PaletteSerializer.Options);
 
@@ -93,12 +90,7 @@ public static class TileSetSerializer
 
     private static BlockFile ToFile(TileBlock block) => new(
         block.Name,
-        [.. Enumerable.Range(0, block.Height).Select(row => RowText(block, row))]);
-
-    /// <summary>Una fila del bloque: dos dígitos por celda, o <c>..</c> si está vacía.</summary>
-    private static string RowText(TileBlock block, int row) =>
-        string.Concat(Enumerable.Range(0, block.Width).Select(column =>
-            block[column, row] is int tile ? tile.ToString("X2") : EmptyCell));
+        [.. Enumerable.Range(0, block.Height).Select(row => TileGridText.Row(block.Grid, row))]);
 
     /// <summary>Los tiles que se han tocado, con su número delante.</summary>
     private static IEnumerable<TileFile> Drawn(TileSet tileSet)
@@ -204,7 +196,7 @@ public static class TileSetSerializer
         for (int row = 0; row < rows.Count; row++)
         {
             for (int column = 0; column < width; column++)
-                block.Set(column, row, Cell(rows[row], column, block.Name));
+                block.Set(column, row, TileGridText.Cell(rows[row], column, Describe(block)));
         }
 
         return block;
@@ -213,18 +205,10 @@ public static class TileSetSerializer
     /// <summary>El ancho que dicen las filas, comprobando que todas midan lo mismo.</summary>
     private static int Width(IReadOnlyList<string> rows, string name)
     {
-        int length = rows[0].Length;
+        int width = TileGridText.WidthOf(rows[0], $"el bloque «{name}»");
 
-        if (length == 0 || length % 2 != 0)
-        {
-            throw new FileFormatException(
-                $"En el bloque «{name}», una fila mide {length} dígitos y tienen que ser dos por celda.");
-        }
-
-        if (rows.Any(row => row.Length != length))
+        if (rows.Any(row => row.Length != rows[0].Length))
             throw new FileFormatException($"En el bloque «{name}», las filas no miden todas lo mismo.");
-
-        int width = length / 2;
 
         if (width > TileBlock.MaxSide)
         {
@@ -235,21 +219,7 @@ public static class TileSetSerializer
         return width;
     }
 
-    private static int? Cell(string row, int column, string name)
-    {
-        string cell = row.Substring(column * 2, 2);
-
-        if (cell == EmptyCell)
-            return null;
-
-        int high = PaletteSerializer.HexDigit(cell[0]) ?? throw NotHex(name, cell);
-        int low = PaletteSerializer.HexDigit(cell[1]) ?? throw NotHex(name, cell);
-
-        return (high << 4) | low;
-    }
-
-    private static FileFormatException NotHex(string name, string cell) => new(
-        $"En el bloque «{name}», la celda «{cell}» no es un número de tile ni está vacía.");
+    private static string Describe(TileBlock block) => $"el bloque «{block.Name}»";
 
     private sealed record TileSetFile(
         int Version,
