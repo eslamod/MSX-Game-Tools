@@ -1,0 +1,237 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:entities="clr-namespace:MSX_GameTools.Entities"
+             xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:views="clr-namespace:MSX_GameTools.Views"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="MSX_GameTools.Views.MapEditorView"
+             x:DataType="vm:MapEditorViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="Border.choice">
+      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Margin" Value="3" />
+    </Style>
+
+    <Style Selector="Border.choice.selected">
+      <Setter Property="BorderBrush" Value="Red" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*,3,220">
+
+    <!-- Barra de herramientas. Las tres primeras son modos y por eso son RadioButton:
+         sólo una manda a la vez. Lo demás son acciones sobre lo que haya. -->
+    <DockPanel Grid.Row="0" Background="Gainsboro">
+
+      <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="4,3">
+        <RadioButton GroupName="MapTool" Theme="{StaticResource ToggleRadioButton}"
+                     Content="Estampar" Tag="Stamp" Margin="1" IsChecked="True"
+                     IsCheckedChanged="OnToolChanged"
+                     ToolTip.Tip="Colocar lo que haya cogido abajo" />
+        <RadioButton GroupName="MapTool" Theme="{StaticResource ToggleRadioButton}"
+                     Content="Seleccionar" Tag="Select" Margin="1"
+                     IsCheckedChanged="OnToolChanged"
+                     ToolTip.Tip="Marcar un rectángulo del mapa" />
+        <RadioButton GroupName="MapTool" Theme="{StaticResource ToggleRadioButton}"
+                     Content="Mover" Tag="Pan" Margin="1"
+                     IsCheckedChanged="OnToolChanged"
+                     ToolTip.Tip="Desplazar el mapa (o la rueda pulsada en cualquier modo)" />
+
+        <Border Width="1" Background="DarkGray" Margin="6,2" />
+
+        <Button Content="Rellenar" Margin="1" Padding="8,2"
+                Command="{Binding FillSelectionCommand}"
+                ToolTip.Tip="Llenar la selección con lo que haya cogido" />
+        <Button Content="Copiar" Margin="1" Padding="8,2"
+                Command="{Binding CopySelectionCommand}"
+                ToolTip.Tip="Coger lo que hay en la selección" />
+        <Button Content="Vaciar" Margin="1" Padding="8,2"
+                Command="{Binding EraseSelectionCommand}"
+                ToolTip.Tip="Dejar la selección sin tiles" />
+
+        <Border Width="1" Background="DarkGray" Margin="6,2" />
+
+        <Button Content="↶" Margin="1" Padding="8,2" FontSize="14"
+                Command="{Binding UndoCommand}" ToolTip.Tip="Deshacer" />
+        <Button Content="↷" Margin="1" Padding="8,2" FontSize="14"
+                Command="{Binding RedoCommand}" ToolTip.Tip="Rehacer" />
+
+        <Border Width="1" Background="DarkGray" Margin="6,2" />
+
+        <Button Content="−" Margin="1" Padding="10,2" FontSize="14"
+                Command="{Binding ZoomOutCommand}" ToolTip.Tip="Alejar" />
+        <Button Content="+" Margin="1" Padding="10,2" FontSize="14"
+                Command="{Binding ZoomInCommand}" ToolTip.Tip="Acercar" />
+        <Button Content="Ajustar" Margin="1" Padding="8,2"
+                Click="OnFitZoom" ToolTip.Tip="Que quepa el mapa entero" />
+      </StackPanel>
+
+      <!-- Lo que se lee mientras se trabaja: dónde está el ratón, el zoom y lo cogido. -->
+      <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="4,3"
+                  VerticalAlignment="Center">
+        <TextBlock Text="{Binding HoverLabel}" FontFamily="Consolas" MinWidth="60"
+                   VerticalAlignment="Center" />
+        <TextBlock Text="{Binding ZoomLabel}" Margin="10,0" MinWidth="28"
+                   VerticalAlignment="Center" />
+        <TextBlock Text="{Binding BrushLabel}" FontWeight="Bold" Margin="6,0"
+                   VerticalAlignment="Center" />
+      </StackPanel>
+
+      <Border />
+    </DockPanel>
+
+    <!-- Mapa a la izquierda, capas y atributos a la derecha -->
+    <Grid Grid.Row="1" ColumnDefinitions="*,3,250">
+
+      <views:MapCanvas x:Name="Canvas" Grid.Column="0"
+                       Map="{Binding Map}"
+                       Tiles="{Binding Tiles}"
+                       Zoom="{Binding Zoom}"
+                       Background="{Binding BackgroundBrush}"
+                       Selection="{Binding Selection}"
+                       Tool="{Binding Tool}" />
+
+      <GridSplitter Grid.Column="1" Width="3" Background="DarkGray" ResizeDirection="Columns" />
+
+      <Grid Grid.Column="2" Background="Gainsboro" RowDefinitions="Auto,*,Auto,Auto"
+            Margin="4">
+
+        <!-- Capas -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,4">
+          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+            <Button Content="+" Width="26" HorizontalContentAlignment="Center"
+                    Command="{Binding AddLayerCommand}" ToolTip.Tip="Agregar una capa" />
+            <Button Content="-" Width="26" Margin="3,0,0,0" HorizontalContentAlignment="Center"
+                    Command="{Binding DeleteLayerCommand}" ToolTip.Tip="Eliminar la capa activa" />
+          </StackPanel>
+          <TextBlock Text="Capas" FontWeight="Bold" VerticalAlignment="Center" />
+        </DockPanel>
+
+        <ListBox Grid.Row="1" Background="White"
+                 ItemsSource="{Binding Layers}"
+                 SelectedItem="{Binding ActiveLayer}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:MapLayerViewModel">
+              <Grid ColumnDefinitions="*,Auto,Auto">
+                <TextBox Grid.Column="0" Text="{Binding Name}" BorderThickness="0"
+                         Background="Transparent" VerticalAlignment="Center" />
+                <ToggleButton Grid.Column="1" Content="👁" Padding="4,0" FontSize="11"
+                              IsChecked="{Binding IsVisible}"
+                              ToolTip.Tip="Ver u ocultar la capa" />
+                <ToggleButton Grid.Column="2" Content="🔒" Padding="4,0" FontSize="11" Margin="2,0,0,0"
+                              IsChecked="{Binding IsLocked}"
+                              ToolTip.Tip="Bloquear la capa para no tocarla" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- Atributos del mapa -->
+        <TextBlock Grid.Row="2" Text="Mapa" FontWeight="Bold" Margin="0,8,0,4" />
+
+        <Grid Grid.Row="3" ColumnDefinitions="60,*" RowDefinitions="Auto,Auto,Auto">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="Nombre" VerticalAlignment="Center" />
+          <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Map.Name}" Margin="0,0,0,4" />
+
+          <TextBlock Grid.Row="1" Grid.Column="0" Text="Tamaño" VerticalAlignment="Center" />
+          <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,4">
+            <TextBlock Text="{Binding Map.Width}" VerticalAlignment="Center" />
+            <TextBlock Text=" x " VerticalAlignment="Center" />
+            <TextBlock Text="{Binding Map.Height}" VerticalAlignment="Center" />
+            <!-- Redimensionar es un botón y no editar el número: la operación descoloca
+                 el mapa entero y no puede dispararse al teclear un dígito. -->
+            <Button Content="Redimensionar" Margin="8,0,0,0" Padding="6,1" FontSize="11"
+                    IsEnabled="False"
+                    ToolTip.Tip="Pendiente de la fase 3" />
+          </StackPanel>
+
+          <TextBlock Grid.Row="2" Grid.Column="0" Text="Fondo" VerticalAlignment="Center" />
+          <Border Grid.Row="2" Grid.Column="1" Height="20" HorizontalAlignment="Left" Width="40"
+                  BorderBrush="#606060" BorderThickness="1"
+                  Background="{Binding BackgroundBrush}"
+                  ToolTip.Tip="Lo que se ve donde no hay tile en ninguna capa" />
+        </Grid>
+      </Grid>
+    </Grid>
+
+    <GridSplitter Grid.Row="2" Height="3" Background="DarkGray" ResizeDirection="Rows" />
+
+    <!-- Los dos orígenes de lo que se estampa -->
+    <TabControl Grid.Row="3" Background="Gainsboro">
+
+      <TabItem Header="Tiles">
+        <Border Background="Gray" Padding="4">
+          <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                        AllowAutoHide="False">
+            <!-- 32 columnas, las mismas que el editor y que el png: es la unica
+                 disposicion en la que coger un rectangulo significa algo. -->
+            <ItemsControl x:Name="TileChoices"
+                          ItemsSource="{Binding Tiles}"
+                          HorizontalAlignment="Left" VerticalAlignment="Top"
+                          PointerPressed="OnTilesPressed"
+                          PointerMoved="OnTilesMoved">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <UniformGrid Columns="32" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="entities:ImageMini">
+                  <Border BorderThickness="1,1,0,0" BorderBrush="Black"
+                          Width="{Binding $parent[views:MapEditorView].TileSize}"
+                          Height="{Binding $parent[views:MapEditorView].TileSize}">
+                    <Image Source="{Binding SpritePreview}" Stretch="Fill"
+                           RenderOptions.BitmapInterpolationMode="None" />
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Border>
+      </TabItem>
+
+      <TabItem Header="Bloques">
+        <Border Background="Gray" Padding="4">
+          <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                        AllowAutoHide="False">
+            <!-- Todos a la vista y tantos por fila como quepan: un bloque se reconoce por
+                 su dibujo, no por su nombre. -->
+            <ItemsControl ItemsSource="{Binding BlockChoices}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:BlockChoiceViewModel">
+                  <Border Classes="choice" Classes.selected="{Binding IsSelected}"
+                          Background="#404040"
+                          PointerPressed="OnBlockPressed"
+                          ToolTip.Tip="{Binding Label}">
+                    <ItemsControl ItemsSource="{Binding Cells}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <UniformGrid Columns="{Binding Columns}" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="entities:ImageMini">
+                          <Image Source="{Binding SpritePreview}" Width="16" Height="16"
+                                 Stretch="Fill" RenderOptions.BitmapInterpolationMode="None" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Border>
+      </TabItem>
+    </TabControl>
+  </Grid>
+</UserControl>

@@ -216,6 +216,10 @@ public class MapCanvasTests : IDisposable
         Point origin = _canvas.TranslatePoint(new Point(0, 0), _window)
                        ?? throw new InvalidOperationException("El lienzo no está montado.");
 
+        // Dos veces a proposito: con varias ventanas vivas en el proceso, la primera
+        // captura devuelve el fotograma de otra. La segunda ya es la de esta.
+        _window.CaptureRenderedFrame();
+
         using WriteableBitmap frame = _window.CaptureRenderedFrame()
                                      ?? throw new InvalidOperationException("No se pudo capturar el fotograma.");
 

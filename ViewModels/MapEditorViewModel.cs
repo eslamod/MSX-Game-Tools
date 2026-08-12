@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Avalonia.Media;
 using MSX_GameTools.Entities;
 
 namespace MSX_GameTools.ViewModels;
@@ -106,6 +107,8 @@ public partial class MapEditorViewModel : PanelBaseViewModel
 
         ActiveLayer = Layers.LastOrDefault();
 
+        RefreshBlocks();
+
         map.Undo.Changed += OnUndoChanged;
     }
 
@@ -123,12 +126,40 @@ public partial class MapEditorViewModel : PanelBaseViewModel
     public IList<TileBlock> Blocks => _tiles.TileSet.Blocks;
 
     /// <summary>
+    /// Los bloques con su dibujo, para enseñarlos todos a la vez.
+    /// </summary>
+    /// <remarks>
+    /// Todos visibles y no una lista de nombres con vista previa: un bloque se reconoce
+    /// por su dibujo, no por llamarse «Bloque 7», y con una lista habría que ir uno a uno
+    /// hasta dar con el que se busca.
+    /// </remarks>
+    public ObservableCollection<BlockChoiceViewModel> BlockChoices { get; } = [];
+
+    /// <summary>Vuelve a leer los bloques del juego, que se editan en otro panel.</summary>
+    public void RefreshBlocks()
+    {
+        BlockChoices.Clear();
+
+        foreach (TileBlock block in Blocks)
+            BlockChoices.Add(new BlockChoiceViewModel(block, _tiles.Thumbnails));
+    }
+
+    /// <summary>
     /// En el mismo orden que el mapa: la primera es la de abajo y la última la que tapa.
     /// La vista las enseña del revés, que es como se leen las capas.
     /// </summary>
     public ObservableCollection<MapLayerViewModel> Layers { get; } = [];
 
     public bool HasSelection => Selection is not null;
+
+    /// <summary>
+    /// Con qué se pinta donde no hay tile en ninguna capa.
+    /// </summary>
+    /// <remarks>
+    /// Es el mismo R#7 que el borde del editor de tiles: en la máquina, una celda sin nada
+    /// enseña el color del borde.
+    /// </remarks>
+    public IBrush BackgroundBrush => _tiles.ColorPalette.GetBrush(Map.BackgroundColorIndex);
 
     public string ZoomLabel => $"x{Zoom}";
 
@@ -255,6 +286,9 @@ public partial class MapEditorViewModel : PanelBaseViewModel
         Brush = block.ToPatch();
         BrushName = $"{block.Name} ({block.Width}x{block.Height})";
         _blockIndex = Blocks.IndexOf(block);
+
+        foreach (BlockChoiceViewModel choice in BlockChoices)
+            choice.IsSelected = ReferenceEquals(choice.Block, block);
     }
 
     /// <summary>Pasa al bloque siguiente o al anterior, para la rueda con shift.</summary>
@@ -408,4 +442,35 @@ public partial class MapLayerViewModel : ObservableObject
     }
 
     public override string ToString() => Name;
+}
+
+/// <summary>Un bloque en el selector de abajo, con su dibujo.</summary>
+public partial class BlockChoiceViewModel : ObservableObject
+{
+    [ObservableProperty]
+    private bool _isSelected;
+
+    public BlockChoiceViewModel(TileBlock block, IList<ImageMini> tiles)
+    {
+        Block = block;
+
+        for (int row = 0; row < block.Height; row++)
+        {
+            for (int column = 0; column < block.Width; column++)
+            {
+                int? tile = block[column, row];
+
+                Cells.Add(tile is int index && (uint)index < (uint)tiles.Count ? tiles[index] : null);
+            }
+        }
+    }
+
+    public TileBlock Block { get; }
+
+    /// <summary>Las celdas por filas, que la vista reparte en <see cref="Columns"/>.</summary>
+    public ObservableCollection<ImageMini?> Cells { get; } = [];
+
+    public int Columns => Block.Width;
+
+    public string Label => $"{Block.Name} ({Block.Width}x{Block.Height})";
 }
