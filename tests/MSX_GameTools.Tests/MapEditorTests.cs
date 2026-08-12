@@ -121,6 +121,63 @@ public class MapEditorTests
         Assert.Contains("2x1", editor.BrushName);
     }
 
+    // ------------------------------------------------------------------ lo cogido
+
+    /// <summary>
+    /// El rectángulo se coge sobre las 32 columnas del selector, que son las del editor y
+    /// las del png: los tiles 1 y 34 son las esquinas de un cuadrado de 2x2.
+    /// </summary>
+    [AvaloniaFact]
+    public void Coger_un_rectangulo_de_tiles_lo_marca_entero()
+    {
+        MapEditorViewModel editor = NewEditor();
+
+        editor.PickTiles(1, 34);
+
+        Assert.Equal((2, 2), (editor.Brush.Width, editor.Brush.Height));
+        Assert.Equal(34, editor.Brush[1, 1]);
+
+        Assert.True(editor.TileChoices[1].IsSelected);
+        Assert.True(editor.TileChoices[33].IsSelected);
+        Assert.False(editor.TileChoices[3].IsSelected);
+    }
+
+    [AvaloniaFact]
+    public void Coger_otro_tile_borra_la_marca_anterior()
+    {
+        MapEditorViewModel editor = NewEditor();
+
+        editor.PickTiles(1, 34);
+        editor.PickTiles(7, 7);
+
+        Assert.True(editor.TileChoices[7].IsSelected);
+        Assert.False(editor.TileChoices[1].IsSelected);
+        Assert.Equal("Tile 7", editor.BrushName);
+    }
+
+    /// <summary>
+    /// Sólo se estampa una cosa a la vez, así que dos recuadros rojos a la vez serían
+    /// mentira: coger un bloque apaga la marca de los tiles y al revés.
+    /// </summary>
+    [AvaloniaFact]
+    public void Coger_un_bloque_apaga_la_marca_de_los_tiles()
+    {
+        MapEditorViewModel editor = NewEditor(out TileSet tileSet);
+
+        tileSet.Blocks.Add(new TileBlock("Arbol") { [0, 0] = 1 });
+        editor.RefreshBlocks();
+
+        editor.PickTiles(5, 5);
+        editor.PickBlock(tileSet.Blocks[0]);
+
+        Assert.True(editor.BlockChoices[0].IsSelected);
+        Assert.False(editor.TileChoices[5].IsSelected);
+
+        editor.PickTiles(5, 5);
+
+        Assert.False(editor.BlockChoices[0].IsSelected);
+    }
+
     // ------------------------------------------------------------------ deshacer
 
     [AvaloniaFact]

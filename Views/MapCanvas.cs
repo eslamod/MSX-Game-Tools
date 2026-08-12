@@ -45,6 +45,10 @@ public class MapCanvas : Control
     public static readonly StyledProperty<MapTool> ToolProperty =
         AvaloniaProperty.Register<MapCanvas, MapTool>(nameof(Tool), defaultValue: MapTool.Stamp);
 
+    /// <summary>Lo que se va a estampar, para enseñarlo bajo el ratón antes de soltar.</summary>
+    public static readonly StyledProperty<TilePatch?> BrushProperty =
+        AvaloniaProperty.Register<MapCanvas, TilePatch?>(nameof(Brush));
+
     public static readonly StyledProperty<bool> ShowGridProperty =
         AvaloniaProperty.Register<MapCanvas, bool>(nameof(ShowGrid), defaultValue: true);
 
@@ -54,6 +58,9 @@ public class MapCanvas : Control
 
     private Point _offset;
 
+    /// <summary>La celda bajo el ratón, para pintar ahí lo que se va a estampar.</summary>
+    private (int Column, int Row)? _hover;
+
     /// <summary>Dónde empezó el arrastre, para desplazar o para marcar.</summary>
     private Point _panFrom;
     private (int Column, int Row)? _dragFrom;
@@ -62,7 +69,8 @@ public class MapCanvas : Control
 
     static MapCanvas()
     {
-        AffectsRender<MapCanvas>(MapProperty, ZoomProperty, BackgroundProperty, SelectionProperty, ShowGridProperty);
+        AffectsRender<MapCanvas>(
+            MapProperty, ZoomProperty, BackgroundProperty, SelectionProperty, ShowGridProperty, BrushProperty);
     }
 
     public MapCanvas()
@@ -126,6 +134,12 @@ public class MapCanvas : Control
     {
         get => GetValue(ShowGridProperty);
         set => SetValue(ShowGridProperty, value);
+    }
+
+    public TilePatch? Brush
+    {
+        get => GetValue(BrushProperty);
+        set => SetValue(BrushProperty, value);
     }
 
     /// <summary>Lo que mide un tile en pantalla con el zoom actual.</summary>
@@ -194,6 +208,7 @@ public class MapCanvas : Control
         }
 
         DrawEdge(context, map, size);
+        DrawGhost(context, map, tiles, size);
         DrawSelection(context, size);
     }
 
@@ -203,6 +218,43 @@ public class MapCanvas : Control
         return new Size(
             double.IsInfinity(availableSize.Width) ? 0 : availableSize.Width,
             double.IsInfinity(availableSize.Height) ? 0 : availableSize.Height);
+    }
+
+    /// <summary>
+    /// Lo que se va a estampar, dibujado bajo el ratón antes de pulsar.
+    /// </summary>
+    /// <remarks>
+    /// Se ve translúcido para distinguirlo de lo que ya está puesto. Sin esto hay que
+    /// acordarse de lo que se cogió abajo, y con un bloque además de por dónde cae.
+    /// </remarks>
+    private void DrawGhost(DrawingContext context, TileMap map, IList<ImageMini> tiles, double size)
+    {
+        if (_hover is not { } hover || Brush is not { } brush || Tool != MapTool.Stamp)
+            return;
+
+        using (context.PushOpacity(0.65))
+        {
+            for (int row = 0; row < brush.Height; row++)
+            {
+                for (int column = 0; column < brush.Width; column++)
+                {
+                    if (brush[column, row] is not int tile || (uint)tile >= (uint)tiles.Count)
+                        continue;
+
+                    int atColumn = hover.Column + column;
+                    int atRow = hover.Row + row;
+
+                    if (atColumn >= map.Width || atRow >= map.Height)
+                        continue;
+
+                    context.DrawImage(tiles[tile].SpritePreview, new Rect(
+                        (atColumn * size) - _offset.X,
+                        (atRow * size) - _offset.Y,
+                        size,
+                        size));
+                }
+            }
+        }
     }
 
     /// <summary>El borde del mapa, para saber dónde se acaba cuando sobra hueco.</summary>
@@ -269,8 +321,15 @@ public class MapCanvas : Control
         }
 
         (int column, int row) = CellAt(position);
+        (int Column, int Row)? cell = Inside(column, row) ? (column, row) : null;
 
-        HoverChanged?.Invoke(Inside(column, row) ? (column, row) : null);
+        if (cell != _hover)
+        {
+            _hover = cell;
+            InvalidateVisual();
+        }
+
+        HoverChanged?.Invoke(cell);
 
         if (_painting)
             CellDragged?.Invoke(column, row);
@@ -293,6 +352,9 @@ public class MapCanvas : Control
     protected override void OnPointerExited(PointerEventArgs e)
     {
         base.OnPointerExited(e);
+
+        _hover = null;
+        InvalidateVisual();
 
         HoverChanged?.Invoke(null);
     }

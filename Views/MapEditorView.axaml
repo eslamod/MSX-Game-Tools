@@ -19,6 +19,16 @@
     <Style Selector="Border.choice.selected">
       <Setter Property="BorderBrush" Value="Red" />
     </Style>
+
+    <Style Selector="Border.mark">
+      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="IsHitTestVisible" Value="False" />
+    </Style>
+
+    <Style Selector="Border.mark.selected">
+      <Setter Property="BorderBrush" Value="Red" />
+    </Style>
   </UserControl.Styles>
 
   <Grid RowDefinitions="Auto,*,3,220">
@@ -92,6 +102,7 @@
                        Tiles="{Binding Tiles}"
                        Zoom="{Binding Zoom}"
                        Background="{Binding BackgroundBrush}"
+                       Brush="{Binding Brush}"
                        Selection="{Binding Selection}"
                        Tool="{Binding Tool}" />
 
@@ -170,7 +181,7 @@
             <!-- 32 columnas, las mismas que el editor y que el png: es la unica
                  disposicion en la que coger un rectangulo significa algo. -->
             <ItemsControl x:Name="TileChoices"
-                          ItemsSource="{Binding Tiles}"
+                          ItemsSource="{Binding TileChoices}"
                           HorizontalAlignment="Left" VerticalAlignment="Top"
                           PointerPressed="OnTilesPressed"
                           PointerMoved="OnTilesMoved">
@@ -180,13 +191,18 @@
                 </ItemsPanelTemplate>
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="entities:ImageMini">
-                  <Border BorderThickness="1,1,0,0" BorderBrush="Black"
-                          Width="{Binding $parent[views:MapEditorView].TileSize}"
-                          Height="{Binding $parent[views:MapEditorView].TileSize}">
-                    <Image Source="{Binding SpritePreview}" Stretch="Fill"
-                           RenderOptions.BitmapInterpolationMode="None" />
-                  </Border>
+                <DataTemplate x:DataType="vm:TileChoiceViewModel">
+                  <!-- El recuadro va superpuesto y sin cambiar de grosor: un borde
+                       alrededor separaria los tiles al seleccionar. -->
+                  <Panel>
+                    <Border BorderThickness="1,1,0,0" BorderBrush="Black"
+                            Width="{Binding $parent[views:MapEditorView].TileSize}"
+                            Height="{Binding $parent[views:MapEditorView].TileSize}">
+                      <Image Source="{Binding Image.SpritePreview}" Stretch="Fill"
+                             RenderOptions.BitmapInterpolationMode="None" />
+                    </Border>
+                    <Border Classes="mark" Classes.selected="{Binding IsSelected}" />
+                  </Panel>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>

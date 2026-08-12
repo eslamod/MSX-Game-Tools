@@ -14,9 +14,6 @@ public partial class MapEditorView : UserControl
     public static readonly StyledProperty<double> TileSizeProperty =
         AvaloniaProperty.Register<MapEditorView, double>(nameof(TileSize), defaultValue: 16);
 
-    /// <summary>Tiles por fila del selector, los mismos que el editor y el png.</summary>
-    private const int TilesPerRow = 32;
-
     /// <summary>El tile por el que se empezó a arrastrar, para coger el rectángulo.</summary>
     private int _anchor = -1;
 
@@ -157,29 +154,22 @@ public partial class MapEditorView : UserControl
 
     private void OnTilesPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (Under<ImageMini>(TileChoices, e.GetPosition(TileChoices)) is not { } image)
+        if (Under<TileChoiceViewModel>(TileChoices, e.GetPosition(TileChoices)) is not { } choice)
             return;
 
-        _anchor = Editor?.Tiles.IndexOf(image) ?? -1;
+        _anchor = choice.Index;
 
-        if (_anchor >= 0)
-            Editor?.PickTile(TilePatch.Single(_anchor), $"Tile {_anchor}");
+        Editor?.PickTiles(_anchor, _anchor);
     }
 
     /// <summary>Arrastrar coge el rectángulo, igual que en el panel de bloques.</summary>
     private void OnTilesMoved(object? sender, PointerEventArgs e)
     {
-        if (_anchor < 0 || Editor is not { } editor)
+        if (_anchor < 0)
             return;
 
-        if (Under<ImageMini>(TileChoices, e.GetPosition(TileChoices)) is not { } image)
-            return;
-
-        int index = editor.Tiles.IndexOf(image);
-        if (index < 0)
-            return;
-
-        editor.PickTile(Rectangle(_anchor, index), $"Tiles {_anchor}-{index}");
+        if (Under<TileChoiceViewModel>(TileChoices, e.GetPosition(TileChoices)) is { } choice)
+            Editor?.PickTiles(_anchor, choice.Index);
     }
 
     private void OnBlockPressed(object? sender, PointerPressedEventArgs e)
@@ -194,25 +184,6 @@ public partial class MapEditorView : UserControl
 
         _anchor = -1;
         _selectingFrom = null;
-    }
-
-    /// <summary>El rectángulo de tiles que va de uno a otro en la disposición de 32.</summary>
-    private static TilePatch Rectangle(int from, int to)
-    {
-        int left = Math.Min(from % TilesPerRow, to % TilesPerRow);
-        int right = Math.Max(from % TilesPerRow, to % TilesPerRow);
-        int top = Math.Min(from / TilesPerRow, to / TilesPerRow);
-        int bottom = Math.Max(from / TilesPerRow, to / TilesPerRow);
-
-        var patch = new TilePatch(right - left + 1, bottom - top + 1);
-
-        for (int row = 0; row < patch.Height; row++)
-        {
-            for (int column = 0; column < patch.Width; column++)
-                patch[column, row] = ((top + row) * TilesPerRow) + left + column;
-        }
-
-        return patch;
     }
 
     /// <inheritdoc cref="TileBlocksView.Under{T}"/>

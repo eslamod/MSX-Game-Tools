@@ -97,10 +97,13 @@ public class MapEditorViewTests : IDisposable
     {
         ItemsControl choices = _view.FindControl<ItemsControl>("TileChoices")!;
 
-        Click(Container(choices, Editor.Tiles[7]));
+        Click(Container(choices, Editor.TileChoices[7]));
 
         Assert.Equal(7, Editor.Brush[0, 0]);
         Assert.Equal("Tile 7", Editor.BrushName);
+
+        // Y se marca, que sin señal hay que acordarse de lo que se cogio.
+        Assert.True(Editor.TileChoices[7].IsSelected);
     }
 
     [AvaloniaFact]

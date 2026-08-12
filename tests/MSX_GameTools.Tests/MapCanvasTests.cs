@@ -144,6 +144,41 @@ public class MapCanvasTests : IDisposable
         Assert.Equal(Colors.Magenta, PixelAt(200, 200));
     }
 
+    /// <summary>
+    /// Lo que se va a estampar se ve bajo el ratón antes de pulsar. Sin esto hay que
+    /// acordarse de lo que se cogió abajo, y con un bloque además de por dónde cae.
+    /// </summary>
+    [AvaloniaFact]
+    public void Lo_que_se_va_a_estampar_se_ve_bajo_el_raton()
+    {
+        _canvas.Brush = TilePatch.Single(1);
+
+        _window.MouseMove(new Point((CellSize * 2) + 4, (CellSize * 2) + 4));
+        Pump();
+
+        // Translucido: ni el blanco del tile ni el fondo pelado.
+        Color ghost = PixelAt((int)(CellSize * 2) + 4, (int)(CellSize * 2) + 4);
+
+        Assert.NotEqual(Colors.Magenta, ghost);
+        Assert.NotEqual(Colors.White, ghost);
+
+        // Y donde no está el ratón sigue el fondo.
+        Assert.Equal(Colors.Magenta, PixelAt(4, 4));
+    }
+
+    /// <summary>Marcando o desplazando no se estampa nada, así que no hay nada que enseñar.</summary>
+    [AvaloniaFact]
+    public void Marcando_no_se_ensena_lo_que_se_estamparia()
+    {
+        _canvas.Brush = TilePatch.Single(1);
+        _canvas.Tool = MapTool.Select;
+
+        _window.MouseMove(new Point((CellSize * 2) + 4, (CellSize * 2) + 4));
+        Pump();
+
+        Assert.Equal(Colors.Magenta, PixelAt((int)(CellSize * 2) + 4, (int)(CellSize * 2) + 4));
+    }
+
     // ------------------------------------------------------------------ lo visible
 
     /// <summary>

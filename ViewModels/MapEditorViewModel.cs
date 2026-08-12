@@ -55,6 +55,9 @@ public partial class MapEditorViewModel : PanelBaseViewModel
 
     public const int MaxZoom = 8;
 
+    /// <summary>Tiles por fila del selector, los mismos que el editor y el png.</summary>
+    public const int TilesPerRow = 32;
+
     private readonly TileSetEditorViewModel _tiles;
 
     /// <summary>El bloque que se cogió, para poder pasar al siguiente con la rueda.</summary>
@@ -107,6 +110,9 @@ public partial class MapEditorViewModel : PanelBaseViewModel
 
         ActiveLayer = Layers.LastOrDefault();
 
+        for (int index = 0; index < Tiles.Count; index++)
+            TileChoices.Add(new TileChoiceViewModel(index, Tiles[index]));
+
         RefreshBlocks();
 
         map.Undo.Changed += OnUndoChanged;
@@ -119,8 +125,17 @@ public partial class MapEditorViewModel : PanelBaseViewModel
 
     public EditorPreferences Preferences { get; }
 
-    /// <summary>Las miniaturas del juego, para pintar el mapa y para elegir.</summary>
+    /// <summary>Las miniaturas del juego, para pintar el mapa.</summary>
     public ObservableCollection<ImageMini> Tiles => _tiles.Thumbnails;
+
+    /// <summary>
+    /// Los tiles del selector de abajo, cada uno sabiendo si está cogido.
+    /// </summary>
+    /// <remarks>
+    /// Hace falta el envoltorio para poder marcarlos: sin señal de lo que se ha cogido,
+    /// hay que acordarse, y con un rectángulo de varios no hay quien se acuerde.
+    /// </remarks>
+    public ObservableCollection<TileChoiceViewModel> TileChoices { get; } = [];
 
     /// <summary>Los bloques del juego, que son el otro origen de lo que se estampa.</summary>
     public IList<TileBlock> Blocks => _tiles.TileSet.Blocks;
@@ -278,6 +293,57 @@ public partial class MapEditorViewModel : PanelBaseViewModel
         Brush = patch;
         BrushName = name;
         _blockIndex = -1;
+
+        Unmark();
+    }
+
+    /// <summary>
+    /// Coge el rectángulo de tiles que va de uno a otro.
+    /// </summary>
+    /// <remarks>
+    /// El rectángulo se calcula sobre las 32 columnas del selector, que son las mismas del
+    /// editor y las del png: es la única disposición en la que coger un rectángulo
+    /// significa algo, porque un árbol dibujado en tres filas sólo es un rectángulo si las
+    /// filas miden lo que medían al dibujarlo.
+    /// </remarks>
+    public void PickTiles(int from, int to)
+    {
+        if ((uint)from >= (uint)TileChoices.Count || (uint)to >= (uint)TileChoices.Count)
+            return;
+
+        int left = Math.Min(from % TilesPerRow, to % TilesPerRow);
+        int right = Math.Max(from % TilesPerRow, to % TilesPerRow);
+        int top = Math.Min(from / TilesPerRow, to / TilesPerRow);
+        int bottom = Math.Max(from / TilesPerRow, to / TilesPerRow);
+
+        var patch = new TilePatch(right - left + 1, bottom - top + 1);
+
+        Unmark();
+
+        for (int row = 0; row < patch.Height; row++)
+        {
+            for (int column = 0; column < patch.Width; column++)
+            {
+                int index = ((top + row) * TilesPerRow) + left + column;
+
+                patch[column, row] = index;
+                TileChoices[index].IsSelected = true;
+            }
+        }
+
+        Brush = patch;
+        BrushName = patch.Width * patch.Height == 1 ? $"Tile {from}" : $"Tiles {patch.Width}x{patch.Height}";
+        _blockIndex = -1;
+    }
+
+    /// <summary>Quita las marcas de los dos selectores: sólo se coge de uno a la vez.</summary>
+    private void Unmark()
+    {
+        foreach (TileChoiceViewModel tile in TileChoices)
+            tile.IsSelected = false;
+
+        foreach (BlockChoiceViewModel block in BlockChoices)
+            block.IsSelected = false;
     }
 
     /// <summary>Coge un bloque, que se estampa entero.</summary>
@@ -286,6 +352,8 @@ public partial class MapEditorViewModel : PanelBaseViewModel
         Brush = block.ToPatch();
         BrushName = $"{block.Name} ({block.Width}x{block.Height})";
         _blockIndex = Blocks.IndexOf(block);
+
+        Unmark();
 
         foreach (BlockChoiceViewModel choice in BlockChoices)
             choice.IsSelected = ReferenceEquals(choice.Block, block);
