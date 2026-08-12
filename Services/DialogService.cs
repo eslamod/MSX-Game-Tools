@@ -7,7 +7,14 @@ namespace MSX_GameTools.Services;
 /// <summary>Muestra los diálogos sobre la ventana principal.</summary>
 public sealed class DialogService(Window owner) : IDialogService
 {
-    private static FilePickerFileType PaletteFileType => new("Paleta MSX")
+    /// <summary>
+    /// Los ficheros del editor: paletas, bancos, juegos de tiles y mapas.
+    /// </summary>
+    /// <remarks>
+    /// Se llamaba «Paleta MSX» porque fue lo primero que se guardó, y desde entonces salía
+    /// eso mismo al abrir un mapa o un tileset.
+    /// </remarks>
+    private static FilePickerFileType EditorFileType => new("Ficheros del editor")
     {
         Patterns = ["*.json"],
         MimeTypes = ["application/json"],
@@ -53,7 +60,7 @@ public sealed class DialogService(Window owner) : IDialogService
         {
             Title = title,
             AllowMultiple = false,
-            FileTypeFilter = [TypeOf(kind)],
+            FileTypeFilter = FiltersFor(kind),
         });
 
         return files.Count > 0 ? files[0].TryGetLocalPath() : null;
@@ -67,7 +74,7 @@ public sealed class DialogService(Window owner) : IDialogService
             Title = title,
             SuggestedFileName = suggestedFileName,
             DefaultExtension = Path.GetExtension(suggestedFileName).TrimStart('.'),
-            FileTypeChoices = kind == PickerFileKind.Any ? null : [TypeOf(kind)],
+            FileTypeChoices = FiltersFor(kind),
             ShowOverwritePrompt = true,
         });
 
@@ -81,6 +88,18 @@ public sealed class DialogService(Window owner) : IDialogService
         return await dialog.ShowDialog<bool?>(owner);
     }
 
-    private static FilePickerFileType TypeOf(PickerFileKind kind) =>
-        kind == PickerFileKind.Image ? ImageFileType : PaletteFileType;
+    /// <summary>
+    /// Qué tipos ofrece el diálogo, o <c>null</c> para no filtrar nada.
+    /// </summary>
+    /// <remarks>
+    /// <c>Any</c> significa cualquier fichero, y hay que decirlo con un <c>null</c>: al
+    /// abrir, el filtro se aplicaba siempre, así que importar un csv acababa enseñando
+    /// sólo los json del editor.
+    /// </remarks>
+    public static IReadOnlyList<FilePickerFileType>? FiltersFor(PickerFileKind kind) => kind switch
+    {
+        PickerFileKind.Any => null,
+        PickerFileKind.Image => [ImageFileType],
+        _ => [EditorFileType],
+    };
 }
