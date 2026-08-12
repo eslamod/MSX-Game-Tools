@@ -251,6 +251,9 @@ public partial class MapEditorViewModel : PanelBaseViewModel
         RefreshRequested?.Invoke();
     }
 
+    /// <summary>Han cambiado tiles por debajo: hay que repintar.</summary>
+    public void AfterReplace() => RefreshRequested?.Invoke();
+
     /// <summary>Marca el rectángulo que va de una celda a otra.</summary>
     public void Select(int fromColumn, int fromRow, int toColumn, int toRow)
     {

@@ -170,6 +170,13 @@ public partial class MapEditorView : UserControl
             main.ResizeMapCommand.Execute(null);
     }
 
+    /// <inheritdoc cref="OnResize"/>
+    private void OnReplaceTiles(object? sender, RoutedEventArgs e)
+    {
+        if (this.FindAncestorOfType<MainWindow>()?.DataContext is MainWindowViewModel main)
+            main.ReplaceTilesCommand.Execute(null);
+    }
+
     private void OnFitZoom(object? sender, RoutedEventArgs e) =>
         Editor?.FitZoom(Canvas.Bounds.Width, Canvas.Bounds.Height);
 

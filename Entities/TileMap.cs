@@ -141,6 +141,73 @@ public class TileMap
         });
 
     /// <summary>
+    /// Cambia unos tiles por otros dentro de un rectángulo.
+    /// </summary>
+    /// <param name="fromFirst">Primer tile de los que se sustituyen.</param>
+    /// <param name="fromLast">Último, que puede ser el mismo para cambiar sólo uno.</param>
+    /// <param name="toFirst">
+    /// Por cuál empieza la serie nueva. El desplazamiento es el mismo para todo el rango,
+    /// así que del 10, 11 y 12 al 20 salen 20, 21 y 22 de una pasada.
+    /// </param>
+    /// <param name="layers">En qué capas. Vacío es ninguna, y las bloqueadas se saltan.</param>
+    /// <returns>Cuántas celdas han cambiado.</returns>
+    public int Replace(
+        int fromFirst, int fromLast, int toFirst,
+        int left, int top, int width, int height,
+        IEnumerable<int> layers)
+    {
+        if (fromLast < fromFirst)
+            (fromFirst, fromLast) = (fromLast, fromFirst);
+
+        int shift = toFirst - fromFirst;
+        int changed = 0;
+        var edits = new List<IMapEdit>();
+
+        foreach (int layer in layers)
+        {
+            if ((uint)layer >= (uint)Layers.Count || Layers[layer].IsLocked)
+                continue;
+
+            TileGrid grid = Layers[layer].Grid;
+            TilePatch before = grid.ToPatch(left, top, width, height);
+            int here = 0;
+
+            for (int row = 0; row < height; row++)
+            {
+                for (int column = 0; column < width; column++)
+                {
+                    if (grid[left + column, top + row] is not int tile)
+                        continue;
+
+                    if (tile < fromFirst || tile > fromLast)
+                        continue;
+
+                    int replacement = tile + shift;
+
+                    // Lo que se saldría del juego de tiles se deja como está: mejor no
+                    // tocarlo que dejar un número que no existe.
+                    if ((uint)replacement >= (uint)TileSet.TileCount)
+                        continue;
+
+                    grid[left + column, top + row] = replacement;
+                    here++;
+                }
+            }
+
+            if (here == 0)
+                continue;
+
+            changed += here;
+            edits.Add(new LayerRectEdit(layer, left, top, before, grid.ToPatch(left, top, width, height)));
+        }
+
+        if (edits.Count > 0)
+            Undo.Push(new MapEditGroup(edits));
+
+        return changed;
+    }
+
+    /// <summary>
     /// Cambia el tamaño del mapa y de todas sus capas.
     /// </summary>
     /// <param name="offsetColumn">

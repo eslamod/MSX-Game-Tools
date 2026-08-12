@@ -29,6 +29,7 @@ public partial class MainWindowViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(ExportMapBinaryCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportMapAssemblerCommand))]
     [NotifyCanExecuteChangedFor(nameof(ResizeMapCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ReplaceTilesCommand))]
     private PanelBaseViewModel? _selectedTab;
 
     /// <param name="dialogs">
@@ -784,6 +785,13 @@ public partial class MainWindowViewModel : ObservableObject
     {
         if (SelectedTab is MapEditorViewModel editor)
             OpenForm(() => new ResizeMapViewModel(this, editor));
+    }
+
+    [RelayCommand(CanExecute = nameof(CanSaveMap))]
+    private void ReplaceTiles()
+    {
+        if (SelectedTab is MapEditorViewModel editor)
+            OpenForm(() => new ReplaceTilesViewModel(this, editor));
     }
 
     [RelayCommand(CanExecute = nameof(CanSaveMap))]

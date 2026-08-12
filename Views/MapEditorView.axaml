@@ -62,6 +62,9 @@
         <Button Content="Vaciar" Margin="1" Padding="8,2"
                 Command="{Binding EraseSelectionCommand}"
                 ToolTip.Tip="Dejar la selección sin tiles" />
+        <Button Content="Sustituir" Margin="1" Padding="8,2"
+                Click="OnReplaceTiles"
+                ToolTip.Tip="Cambiar unos tiles por otros" />
 
         <Border Width="1" Background="DarkGray" Margin="6,2" />
 

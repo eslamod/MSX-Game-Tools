@@ -53,6 +53,29 @@ public sealed class MapResizeEdit(
 }
 
 /// <summary>
+/// Varios cambios que se deshacen de una vez.
+/// </summary>
+/// <remarks>
+/// Una sustitución de tiles sobre todas las capas son varios rectángulos, pero para quien
+/// la pidió es una sola cosa: deshacerla capa por capa sería desconcertante.
+/// </remarks>
+public sealed class MapEditGroup(IReadOnlyList<IMapEdit> edits) : IMapEdit
+{
+    public void Undo(TileMap map)
+    {
+        // Al revés de como se hicieron, que es lo que hace bien cualquier pila.
+        for (int index = edits.Count - 1; index >= 0; index--)
+            edits[index].Undo(map);
+    }
+
+    public void Redo(TileMap map)
+    {
+        foreach (IMapEdit edit in edits)
+            edit.Redo(map);
+    }
+}
+
+/// <summary>
 /// La pila de deshacer de un mapa.
 /// </summary>
 /// <remarks>
