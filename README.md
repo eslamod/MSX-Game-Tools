@@ -1,5 +1,7 @@
 # MSX Game Tools
 
+*[Read in English](README.en.md)*
+
 Herramientas de creación de gráficos y mapas para juegos de MSX: sprites, juegos de
 tiles, paletas, bloques y mapas, con exportación a los formatos que espera el VDP.
 
