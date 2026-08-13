@@ -1,5 +1,6 @@
 using Avalonia.Headless.XUnit;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Localization;
 using MSX_GameTools.ViewModels;
 using Xunit;
 
@@ -15,15 +16,15 @@ namespace MSX_GameTools.Tests;
 public class RightPanelFormsTests
 {
     [AvaloniaTheory]
-    [InlineData("AddTileSet", "Agregar tileset")]
-    [InlineData("AddSpriteBank", "Agregar banco de sprites")]
-    public void El_formulario_dice_en_la_pestana_lo_que_es(string command, string expected)
+    [InlineData("AddTileSet", "NewTileSetTitle")]
+    [InlineData("AddSpriteBank", "NewSpriteBankTitle")]
+    public void El_formulario_dice_en_la_pestana_lo_que_es(string command, string key)
     {
         var main = new MainWindowViewModel();
 
         Execute(main, command);
 
-        Assert.Equal(expected, main.RightPanViewModel!.Header);
+        Assert.Equal(Localizer.Instance[key], main.RightPanViewModel!.Header);
     }
 
     [AvaloniaTheory]

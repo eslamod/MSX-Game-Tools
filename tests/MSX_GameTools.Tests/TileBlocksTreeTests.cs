@@ -40,7 +40,7 @@ public class TileBlocksTreeTests
 
         var panel = Assert.IsType<TileBlocksViewModel>(main.RightPanViewModel);
 
-        Assert.Equal("Bloques de Bosque", panel.Header);
+        Assert.EndsWith(": Bosque", panel.Header, StringComparison.Ordinal);
         Assert.Contains(panel, main.RightPanels);
 
         // La pestaña del centro sigue siendo el editor, que es lo que se quiere ver a la vez.

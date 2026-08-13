@@ -1,7 +1,11 @@
 using System.Collections;
 using System.Globalization;
 using System.Resources;
+using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Headless.XUnit;
+using Avalonia.LogicalTree;
+using Avalonia.Threading;
 using MSX_GameTools.Localization;
 using Xunit;
 
@@ -37,19 +41,70 @@ public class LocalizationTests : IDisposable
         Assert.Equal("Fitxer", Localizer.Instance["MenuFile"]);
     }
 
-    /// <summary>Es lo que hace que los enlaces del XAML se relean sin reiniciar.</summary>
+    /// <summary>
+    /// Cambiar de idioma cambia lo que se lee en pantalla, sin reiniciar.
+    /// </summary>
+    /// <remarks>
+    /// Con un control montado de verdad y no comprobando que se lanza el aviso: que el
+    /// Localizer avise no sirve de nada si el enlace no lo escucha, y eso fue exactamente
+    /// lo que pasó. Los menús se quedaban en español y la prueba seguía en verde.
+    /// </remarks>
     [AvaloniaFact]
-    public void Cambiar_de_idioma_avisa_de_que_todos_los_textos_cambian()
+    public void Cambiar_de_idioma_cambia_lo_que_se_lee_en_pantalla()
     {
         Localizer.Instance.Language = "es";
 
-        var changed = new List<string?>();
+        var window = new Window { Content = new TextBlock { [!TextBlock.TextProperty] = Bound("MenuFile") } };
 
-        Localizer.Instance.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        var text = (TextBlock)window.Content!;
+
+        Assert.Equal("Archivo", text.Text);
+
         Localizer.Instance.Language = "en";
+        Dispatcher.UIThread.RunJobs();
 
-        Assert.Contains("Item[]", changed);
+        Assert.Equal("File", text.Text);
+
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
     }
+
+    /// <summary>Y en la ventana de verdad, que es donde se vio que no pasaba.</summary>
+    [AvaloniaFact]
+    public void Los_menus_cambian_de_idioma_sin_reiniciar()
+    {
+        Localizer.Instance.Language = "es";
+
+        var main = new MSX_GameTools.ViewModels.MainWindowViewModel(
+            new TestDialogService { ChooseAnswer = false });
+
+        var window = new MSX_GameTools.Views.MainWindow { DataContext = main };
+
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Contains(Menus(window), header => header == "Archivo");
+
+        Localizer.Instance.Language = "ca";
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Contains(Menus(window), header => header == "Fitxer");
+        Assert.DoesNotContain(Menus(window), header => header == "Archivo");
+
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+        Dispatcher.UIThread.RunJobs();
+    }
+
+    private static IEnumerable<string?> Menus(Window window) =>
+        window.GetLogicalDescendants().OfType<MenuItem>().Select(item => item.Header as string);
+
+    /// <summary>Lo mismo que pone el XAML con {l:Localize ...}.</summary>
+    private static IBinding Bound(string key) =>
+        (IBinding)new LocalizeExtension(key).ProvideValue(null!);
 
     [AvaloniaFact]
     public void Un_idioma_que_no_hablamos_se_ignora()

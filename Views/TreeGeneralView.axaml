@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:entities="clr-namespace:MSX_GameTools.Entities"
              xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:l="clr-namespace:MSX_GameTools.Localization"
              mc:Ignorable="d" d:DesignWidth="225" d:DesignHeight="400"
              x:Class="MSX_GameTools.Views.TreeGeneralView"
              x:DataType="vm:TreeGeneralViewModel"
@@ -25,15 +26,15 @@
         <TextBlock Text="{Binding DisplayText}">
           <TextBlock.ContextMenu>
             <ContextMenu>
-              <MenuItem Header="Abrir"
+              <MenuItem Header="{l:Localize TreeOpen}"
                         IsEnabled="{Binding IsPanelNode}"
                         Click="OnOpenItem" />
-              <MenuItem Header="Propiedades"
+              <MenuItem Header="{l:Localize TreeProperties}"
                         InputGesture="F2"
                         IsEnabled="{Binding IsPanelNode}"
                         Click="OnShowProperties" />
               <Separator />
-              <MenuItem Header="Eliminar del proyecto"
+              <MenuItem Header="{l:Localize TreeDelete}"
                         IsEnabled="{Binding CanDelete}"
                         Click="OnDeleteItem" />
             </ContextMenu>

@@ -25,6 +25,14 @@ public sealed class SilentDialogService : IDialogService
         string title, string suggestedFileName, PickerFileKind kind = PickerFileKind.Json) =>
         Task.FromResult<string?>(null);
 
+    /// <summary>
+    /// La segunda opción, no cancelar.
+    /// </summary>
+    /// <remarks>
+    /// Cancelar significa «no sigas», y este servicio existe para no estorbar: con null,
+    /// cerrar la ventana sin un servicio de diálogos de verdad se quedaba a medias para
+    /// siempre. Sigue adelante, igual que <see cref="ConfirmAsync"/>.
+    /// </remarks>
     public Task<bool?> ChooseAsync(string title, string message, string firstLabel, string secondLabel) =>
-        Task.FromResult<bool?>(null);
+        Task.FromResult<bool?>(false);
 }

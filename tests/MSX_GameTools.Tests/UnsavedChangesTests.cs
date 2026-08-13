@@ -333,6 +333,11 @@ public class UnsavedChangesTests : IDisposable
 
         Assert.True(window.IsVisible);
 
+        // Y ahora se cierra de verdad: una ventana que se queda abierta se queda abierta
+        // para todo el proceso, y las pruebas que vinieran detrás la arrastrarían.
+        foreach (PanelBaseViewModel document in main.UnsavedDocuments())
+            document.MarkClean();
+
         Close(window);
     }
 

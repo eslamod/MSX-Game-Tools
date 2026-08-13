@@ -1,5 +1,6 @@
 using Avalonia.Headless.XUnit;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Localization;
 using MSX_GameTools.ViewModels;
 using Xunit;
 
@@ -17,7 +18,7 @@ public class AddMapTests
 
         var form = Assert.IsType<EditMapViewModel>(main.RightPanViewModel);
 
-        Assert.Equal("Agregar mapa", form.Header);
+        Assert.Equal(Localizer.Instance["NewMapTitle"], form.Header);
         Assert.Equal((32, 24), (form.Columns, form.Rows));
         Assert.Same(main.TileSets[0], form.TileSet);
         Assert.False(form.HasError);

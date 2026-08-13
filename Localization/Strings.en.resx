@@ -109,4 +109,61 @@
   <data name="MenuPreferences" xml:space="preserve">
     <value>Preferences...</value>
   </data>
+
+  <data name="BarPalette" xml:space="preserve"><value>Palette</value></data>
+  <data name="BarPaletteTip" xml:space="preserve"><value>The palette of the document in front</value></data>
+  <data name="BarPaletteAddTip" xml:space="preserve"><value>Create a palette from this one</value></data>
+  <data name="BarPaletteEditTip" xml:space="preserve"><value>Edit this palette</value></data>
+  <data name="BarPaletteDeleteTip" xml:space="preserve"><value>Delete this palette</value></data>
+  <data name="BarBackground" xml:space="preserve"><value>Background</value></data>
+  <data name="BarBackgroundTip" xml:space="preserve"><value>Reference images loaded</value></data>
+  <data name="BarBackgroundAddTip" xml:space="preserve"><value>Load a reference image</value></data>
+  <data name="BarBackgroundDeleteTip" xml:space="preserve"><value>Delete the selected image and all its backgrounds</value></data>
+  <data name="BarAddSpriteBank" xml:space="preserve"><value>New bank</value></data>
+  <data name="BarAddTileSet" xml:space="preserve"><value>New set</value></data>
+  <data name="BarAddMap" xml:space="preserve"><value>New map</value></data>
+  <data name="TabCloseTip" xml:space="preserve"><value>Close the tab</value></data>
+  <data name="PanelCloseTip" xml:space="preserve"><value>Close the panel</value></data>
+
+  <data name="TreeSpriteBanks" xml:space="preserve"><value>Sprite banks</value></data>
+  <data name="TreeTileSets" xml:space="preserve"><value>Tile sets</value></data>
+  <data name="TreeMaps" xml:space="preserve"><value>Maps</value></data>
+  <data name="TreeAnimations" xml:space="preserve"><value>Animations</value></data>
+  <data name="TreeBehaviours" xml:space="preserve"><value>Behaviours</value></data>
+  <data name="TreeSounds" xml:space="preserve"><value>Sounds</value></data>
+  <data name="TreeMusic" xml:space="preserve"><value>Music</value></data>
+  <data name="TreeBlocks" xml:space="preserve"><value>Blocks</value></data>
+  <data name="TreeOpen" xml:space="preserve"><value>Open</value></data>
+  <data name="TreeProperties" xml:space="preserve"><value>Properties</value></data>
+  <data name="TreeDelete" xml:space="preserve"><value>Delete from the project</value></data>
+
+  <data name="FormAccept" xml:space="preserve"><value>Accept</value></data>
+  <data name="FormCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="FormName" xml:space="preserve"><value>Name</value></data>
+  <data name="FormPalette" xml:space="preserve"><value>Palette</value></data>
+
+  <data name="NewSpriteBankTitle" xml:space="preserve"><value>New sprite bank</value></data>
+  <data name="NewSpriteBankHint" xml:space="preserve"><value>Bank 1</value></data>
+  <data name="NewSpriteBankType" xml:space="preserve"><value>Type</value></data>
+
+  <data name="NewTileSetTitle" xml:space="preserve"><value>New tile set</value></data>
+  <data name="NewTileSetHint" xml:space="preserve"><value>Set 1</value></data>
+  <data name="NewTileSetNote" xml:space="preserve"><value>256 tiles of 8x8, empty.</value></data>
+
+  <data name="NewMapTitle" xml:space="preserve"><value>New map</value></data>
+  <data name="NewMapHint" xml:space="preserve"><value>Map 1</value></data>
+  <data name="NewMapColumns" xml:space="preserve"><value>Columns</value></data>
+  <data name="NewMapRows" xml:space="preserve"><value>Rows</value></data>
+  <data name="NewMapTileSet" xml:space="preserve"><value>Tiles</value></data>
+
+  <data name="PreferencesTitle" xml:space="preserve"><value>Preferences</value></data>
+  <data name="PreferencesLanguage" xml:space="preserve"><value>Language</value></data>
+  <data name="PreferencesZoom" xml:space="preserve"><value>Starting zoom</value></data>
+  <data name="PreferencesSpriteCanvas" xml:space="preserve"><value>Sprite canvas</value></data>
+  <data name="PreferencesSpriteThumbnails" xml:space="preserve"><value>Sprite thumbnails</value></data>
+  <data name="PreferencesTileCanvas" xml:space="preserve"><value>Tile canvas</value></data>
+  <data name="PreferencesTileThumbnails" xml:space="preserve"><value>Tile thumbnails</value></data>
+  <data name="PreferencesBlockGrid" xml:space="preserve"><value>Block grid</value></data>
+  <data name="PreferencesBlockTiles" xml:space="preserve"><value>Tiles in blocks</value></data>
+  <data name="PreferencesMapTiles" xml:space="preserve"><value>Tiles in the map</value></data>
 </root>

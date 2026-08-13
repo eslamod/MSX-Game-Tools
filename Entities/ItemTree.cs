@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using MSX_GameTools.Localization;
 using MSX_GameTools.ViewModels;
 
 namespace MSX_GameTools.Entities;
@@ -11,6 +12,25 @@ public partial class ItemTree : ObservableObject
     private string _displayText = string.Empty;
 
     private bool _deletable = true;
+
+    /// <summary>
+    /// La clave de su texto, si es un nodo fijo. Lo pone traducido al asignarla.
+    /// </summary>
+    /// <remarks>
+    /// Se resuelve una vez y se queda: el nodo no escucha al idioma. Enlazarlo a algo del
+    /// <see cref="Localizer"/>, que es único para todo el proceso, ata cada TextBlock del
+    /// árbol a un objeto que no muere nunca, y entonces no se recoge ninguno. Cambiar de
+    /// idioma mueve los menús y los paneles al momento; los cajones del árbol esperan al
+    /// siguiente arranque.
+    /// </remarks>
+    public string? NameKey
+    {
+        init
+        {
+            if (value is { } key)
+                DisplayText = Localizer.Instance[key];
+        }
+    }
 
     public string? Type { get; set; }
 

@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MSX_GameTools.Localization;
 
 namespace MSX_GameTools.ViewModels;
 
@@ -36,7 +37,7 @@ public partial class EditPropertiesViewModel : PanelBaseViewModel
         Document = document;
         _name = document.DocumentName;
 
-        Header = $"Propiedades de {document.DocumentName}";
+        Header = $"{Localizer.Instance["TreeProperties"]}: {document.DocumentName}";
         TagId = "properties";
     }
 

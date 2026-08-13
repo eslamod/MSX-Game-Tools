@@ -97,11 +97,11 @@
       <!-- Las paletas del proyecto. Cual usa cada documento lo lleva el documento, que
            la guarda dentro de su fichero: esto enseña la del que este delante. -->
       <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="4,2">
-        <TextBlock Text="Palette" VerticalAlignment="Center" Margin="0,0,6,0" />
+        <TextBlock Text="{l:Localize BarPalette}" VerticalAlignment="Center" Margin="0,0,6,0" />
         <ComboBox Width="160"
                   ItemsSource="{Binding Palettes.Palettes}"
                   SelectedItem="{Binding Palettes.ActivePalette}"
-                  ToolTip.Tip="Paleta del documento que está delante">
+                  ToolTip.Tip="{l:Localize BarPaletteTip}">
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="entities:ColorPalette">
               <TextBlock Text="{Binding Name}" />
@@ -111,26 +111,26 @@
         <Button Content="+" Width="28" Margin="6,0,0,0"
                 HorizontalContentAlignment="Center"
                 Command="{Binding AddPaletteCommand}"
-                ToolTip.Tip="Crear una paleta a partir de ésta" />
+                ToolTip.Tip="{l:Localize BarPaletteAddTip}" />
         <Button Content="E" Width="28" Margin="2,0,0,0"
                 HorizontalContentAlignment="Center"
                 Command="{Binding EditPaletteCommand}"
-                ToolTip.Tip="Editar esta paleta" />
+                ToolTip.Tip="{l:Localize BarPaletteEditTip}" />
         <Button Content="-" Width="28" Margin="2,0,0,0"
                 HorizontalContentAlignment="Center"
                 Command="{Binding DeletePaletteCommand}"
-                ToolTip.Tip="Eliminar esta paleta" />
+                ToolTip.Tip="{l:Localize BarPaletteDeleteTip}" />
       </StackPanel>
 
       <!-- Imagenes de referencia. Aqui va la gestion (cargar y borrar el fichero), no
            la eleccion: que fondo lleva cada grupo se decide en el panel del grupo,
            porque es estado suyo y no del espacio de trabajo. -->
       <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="16,2,4,2">
-        <TextBlock Text="Fondo" VerticalAlignment="Center" Margin="0,0,6,0" />
+        <TextBlock Text="{l:Localize BarBackground}" VerticalAlignment="Center" Margin="0,0,6,0" />
         <ComboBox Width="160"
                   ItemsSource="{Binding Backgrounds.Images}"
                   SelectedItem="{Binding Backgrounds.SelectedImage}"
-                  ToolTip.Tip="Imagenes de referencia cargadas">
+                  ToolTip.Tip="{l:Localize BarBackgroundTip}">
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="entities:ReferenceImage">
               <TextBlock Text="{Binding DisplayName}" />
@@ -140,17 +140,17 @@
         <Button Content="+" Width="28" Margin="6,0,0,0"
                 HorizontalContentAlignment="Center"
                 Command="{Binding LoadBackgroundCommand}"
-                ToolTip.Tip="Cargar una imagen de referencia" />
+                ToolTip.Tip="{l:Localize BarBackgroundAddTip}" />
         <Button Content="-" Width="28" Margin="2,0,0,0"
                 HorizontalContentAlignment="Center"
                 Command="{Binding DeleteBackgroundCommand}"
-                ToolTip.Tip="Eliminar la imagen seleccionada y todos sus fondos" />
+                ToolTip.Tip="{l:Localize BarBackgroundDeleteTip}" />
       </StackPanel>
 
       <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-        <Button Content="Add Map" Width="80" Margin="4" Command="{Binding AddMapCommand}" />
-        <Button Content="Add Tileset" Width="100" Margin="4" Command="{Binding AddTileSetCommand}" />
-        <Button Content="Add sprite Bank" Width="128" Margin="4" Command="{Binding AddSpriteBankCommand}" />
+        <Button Content="{l:Localize BarAddMap}" MinWidth="90" Margin="4" Command="{Binding AddMapCommand}" />
+        <Button Content="{l:Localize BarAddTileSet}" MinWidth="90" Margin="4" Command="{Binding AddTileSetCommand}" />
+        <Button Content="{l:Localize BarAddSpriteBank}" MinWidth="90" Margin="4" Command="{Binding AddSpriteBankCommand}" />
       </StackPanel>
 
       <Border />
@@ -193,7 +193,7 @@
                       Background="Transparent" BorderThickness="0"
                       Command="{Binding $parent[TabControl].((vm:MainWindowViewModel)DataContext).CloseTabCommand}"
                       CommandParameter="{Binding}"
-                      ToolTip.Tip="Cerrar la pestaña" />
+                      ToolTip.Tip="{l:Localize TabCloseTip}" />
             </StackPanel>
           </DataTemplate>
         </TabControl.ItemTemplate>
@@ -221,7 +221,7 @@
                       Background="Transparent" BorderThickness="0"
                       Command="{Binding $parent[TabControl].((vm:MainWindowViewModel)DataContext).CloseRightPanelCommand}"
                       CommandParameter="{Binding}"
-                      ToolTip.Tip="Cerrar el panel" />
+                      ToolTip.Tip="{l:Localize PanelCloseTip}" />
             </StackPanel>
           </DataTemplate>
         </TabControl.ItemTemplate>
@@ -230,7 +230,7 @@
 
     <!-- Avalonia no tiene StatusBar; un Border con el texto hace el mismo papel. -->
     <Border Grid.Row="3" Background="Gainsboro" BorderBrush="DarkGray" BorderThickness="0,1,0,0" Padding="8,4">
-      <TextBlock Text="MSX Game Editor V1.0" VerticalAlignment="Center" />
+      <TextBlock Text="MSX Game Tools" VerticalAlignment="Center" />
     </Border>
 
   </Grid>

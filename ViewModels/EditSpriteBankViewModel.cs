@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Localization;
 
 namespace MSX_GameTools.ViewModels;
 
@@ -30,7 +31,7 @@ public partial class EditSpriteBankViewModel : PanelBaseViewModel
         _palette = mainWindowVm.Palettes.ActivePalette;
 
         // Con la cabecera vacia la pestaña parecia rota.
-        Header = "Agregar banco de sprites";
+        Header = Localizer.Instance["NewSpriteBankTitle"];
         TagId = "new:spritebank";
     }
 

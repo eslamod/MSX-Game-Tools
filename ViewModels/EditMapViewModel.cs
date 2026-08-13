@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Localization;
 
 namespace MSX_GameTools.ViewModels;
 
@@ -37,7 +38,9 @@ public partial class EditMapViewModel : PanelBaseViewModel
         _mainWindowVm = mainWindowVm;
 
         // Con la cabecera vacia la pestaña parecia rota.
-        Header = "Agregar mapa";
+        // La cabecera se fija al abrir el formulario, así que un cambio de idioma con él
+        // ya abierto no la mueve. Se abren y se cierran en un momento; no compensa más.
+        Header = Localizer.Instance["NewMapTitle"];
         TagId = "new:map";
 
         TileSets = mainWindowVm.TileSets;

@@ -287,7 +287,7 @@ public partial class MainWindowViewModel : ObservableObject
         foreach (TileBlocksViewModel blocks in _panels.Values.OfType<TileBlocksViewModel>())
         {
             if (ReferenceEquals(blocks.TileSet, tiles.TileSet))
-                blocks.Header = $"Bloques de {tiles.TileSet.Name}";
+                blocks.Header = $"{Localization.Localizer.Instance["TreeBlocks"]}: {tiles.TileSet.Name}";
         }
 
         foreach (MapEditorViewModel map in MapsOf(tiles))
@@ -388,7 +388,7 @@ public partial class MainWindowViewModel : ObservableObject
         var blocks = new TileBlocksViewModel(panel)
         {
             TagId = $"blk{CurrentTileSetCounter}",
-            Header = $"Bloques de {tileSet.Name}",
+            Header = $"{Localization.Localizer.Instance["TreeBlocks"]}: {tileSet.Name}",
         };
 
         CurrentTileSetCounter++;
@@ -849,6 +849,9 @@ public partial class MainWindowViewModel : ObservableObject
     /// </remarks>
     public IReadOnlyList<PanelBaseViewModel> UnsavedDocuments() =>
         [.. _panels.Values.Where(panel => panel.HasUnsavedChanges())];
+
+    /// <summary>Si hay algo que perder, para saber si hace falta preguntar antes de cerrar.</summary>
+    public bool HasAnythingToLose() => UnsavedDocuments().Count > 0 || HasProjectChanges();
 
     /// <summary>
     /// Pregunta qué hacer con lo que está sin guardar antes de cerrar.

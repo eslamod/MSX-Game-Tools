@@ -8,7 +8,8 @@ namespace MSX_GameTools.Localization;
 /// </summary>
 /// <remarks>
 /// Devuelve un enlace y no el texto ya resuelto: si devolviera la cadena, cambiar de
-/// idioma no movería nada de lo que ya está en pantalla.
+/// idioma no movería nada de lo que ya está en pantalla. Y a una propiedad normal y no al
+/// indizador del <see cref="Localizer"/>, que Avalonia no reevalúa aunque se le avise.
 /// </remarks>
 public sealed class LocalizeExtension(string key) : MarkupExtension
 {
@@ -16,9 +17,9 @@ public sealed class LocalizeExtension(string key) : MarkupExtension
     public string Key { get; set; } = key;
 
     public override object ProvideValue(IServiceProvider serviceProvider) =>
-        new Binding($"[{Key}]")
+        new Binding(nameof(LocalizedText.Value))
         {
-            Source = Localizer.Instance,
+            Source = Localizer.Instance.Bind(Key),
             Mode = BindingMode.OneWay,
         };
 }

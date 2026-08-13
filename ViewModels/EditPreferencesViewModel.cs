@@ -64,7 +64,7 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
         _blockTileZoom = zoom.BlockTileZoom;
         _mapTileZoom = zoom.MapTileZoom;
 
-        Header = "Preferencias";
+        Header = Localizer.Instance["PreferencesTitle"];
         TagId = "preferences";
     }
 

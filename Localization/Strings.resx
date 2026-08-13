@@ -121,4 +121,68 @@
   <data name="MenuPreferences" xml:space="preserve">
     <value>Preferencias...</value>
   </data>
+
+  <!-- La barra de arriba -->
+  <data name="BarPalette" xml:space="preserve"><value>Paleta</value></data>
+  <data name="BarPaletteTip" xml:space="preserve"><value>La paleta del documento que está delante</value></data>
+  <data name="BarPaletteAddTip" xml:space="preserve"><value>Crear una paleta a partir de ésta</value></data>
+  <data name="BarPaletteEditTip" xml:space="preserve"><value>Editar esta paleta</value></data>
+  <data name="BarPaletteDeleteTip" xml:space="preserve"><value>Eliminar esta paleta</value></data>
+  <data name="BarBackground" xml:space="preserve"><value>Fondo</value></data>
+  <data name="BarBackgroundTip" xml:space="preserve"><value>Imágenes de referencia cargadas</value></data>
+  <data name="BarBackgroundAddTip" xml:space="preserve"><value>Cargar una imagen de referencia</value></data>
+  <data name="BarBackgroundDeleteTip" xml:space="preserve"><value>Eliminar la imagen seleccionada y todos sus fondos</value></data>
+  <data name="BarAddSpriteBank" xml:space="preserve"><value>Nuevo banco</value></data>
+  <data name="BarAddTileSet" xml:space="preserve"><value>Nuevo juego</value></data>
+  <data name="BarAddMap" xml:space="preserve"><value>Nuevo mapa</value></data>
+  <data name="TabCloseTip" xml:space="preserve"><value>Cerrar la pestaña</value></data>
+  <data name="PanelCloseTip" xml:space="preserve"><value>Cerrar el panel</value></data>
+
+  <!-- El árbol del proyecto -->
+  <data name="TreeSpriteBanks" xml:space="preserve"><value>Bancos de sprites</value></data>
+  <data name="TreeTileSets" xml:space="preserve"><value>Juegos de tiles</value></data>
+  <data name="TreeMaps" xml:space="preserve"><value>Mapas</value></data>
+  <data name="TreeAnimations" xml:space="preserve"><value>Animaciones</value></data>
+  <data name="TreeBehaviours" xml:space="preserve"><value>Comportamientos</value></data>
+  <data name="TreeSounds" xml:space="preserve"><value>Sonidos</value></data>
+  <data name="TreeMusic" xml:space="preserve"><value>Músicas</value></data>
+  <data name="TreeBlocks" xml:space="preserve"><value>Bloques</value></data>
+  <data name="TreeOpen" xml:space="preserve"><value>Abrir</value></data>
+  <data name="TreeProperties" xml:space="preserve"><value>Propiedades</value></data>
+  <data name="TreeDelete" xml:space="preserve"><value>Eliminar del proyecto</value></data>
+
+  <!-- Comunes a los formularios del lateral -->
+  <data name="FormAccept" xml:space="preserve"><value>Aceptar</value></data>
+  <data name="FormCancel" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="FormName" xml:space="preserve"><value>Nombre</value></data>
+  <data name="FormPalette" xml:space="preserve"><value>Paleta</value></data>
+
+  <!-- Crear un banco de sprites -->
+  <data name="NewSpriteBankTitle" xml:space="preserve"><value>Nuevo banco de sprites</value></data>
+  <data name="NewSpriteBankHint" xml:space="preserve"><value>Banco 1</value></data>
+  <data name="NewSpriteBankType" xml:space="preserve"><value>Tipo</value></data>
+
+  <!-- Crear un juego de tiles -->
+  <data name="NewTileSetTitle" xml:space="preserve"><value>Nuevo juego de tiles</value></data>
+  <data name="NewTileSetHint" xml:space="preserve"><value>Juego 1</value></data>
+  <data name="NewTileSetNote" xml:space="preserve"><value>256 tiles de 8x8, vacíos.</value></data>
+
+  <!-- Crear un mapa -->
+  <data name="NewMapTitle" xml:space="preserve"><value>Nuevo mapa</value></data>
+  <data name="NewMapHint" xml:space="preserve"><value>Mapa 1</value></data>
+  <data name="NewMapColumns" xml:space="preserve"><value>Columnas</value></data>
+  <data name="NewMapRows" xml:space="preserve"><value>Filas</value></data>
+  <data name="NewMapTileSet" xml:space="preserve"><value>Tiles</value></data>
+
+  <!-- Preferencias -->
+  <data name="PreferencesTitle" xml:space="preserve"><value>Preferencias</value></data>
+  <data name="PreferencesLanguage" xml:space="preserve"><value>Idioma</value></data>
+  <data name="PreferencesZoom" xml:space="preserve"><value>Zoom de partida</value></data>
+  <data name="PreferencesSpriteCanvas" xml:space="preserve"><value>Lienzo de sprites</value></data>
+  <data name="PreferencesSpriteThumbnails" xml:space="preserve"><value>Miniaturas de sprites</value></data>
+  <data name="PreferencesTileCanvas" xml:space="preserve"><value>Lienzo de tiles</value></data>
+  <data name="PreferencesTileThumbnails" xml:space="preserve"><value>Miniaturas de tiles</value></data>
+  <data name="PreferencesBlockGrid" xml:space="preserve"><value>Rejilla de bloques</value></data>
+  <data name="PreferencesBlockTiles" xml:space="preserve"><value>Tiles en los bloques</value></data>
+  <data name="PreferencesMapTiles" xml:space="preserve"><value>Tiles en el mapa</value></data>
 </root>

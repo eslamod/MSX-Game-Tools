@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Localization;
 
 namespace MSX_GameTools.ViewModels;
 
@@ -14,19 +15,19 @@ public class TreeGeneralViewModel : PanelBaseViewModel
     {
         _nodeSpriteBanks = new ItemTree
         {
-            DisplayText = "Sprite Banks",
+            NameKey = "TreeSpriteBanks",
             Tag = Constants.TAG_ID_NODE_SPRITE_BANKS,
         };
 
         _nodeTileSets = new ItemTree
         {
-            DisplayText = "TileSets",
+            NameKey = "TreeTileSets",
             Tag = Constants.TAG_ID_NODE_TILESETS,
         };
 
         _nodeMaps = new ItemTree
         {
-            DisplayText = "Maps",
+            NameKey = "TreeMaps",
             Tag = Constants.TAG_ID_NODE_MAPS,
         };
 
@@ -35,11 +36,12 @@ public class TreeGeneralViewModel : PanelBaseViewModel
             _nodeSpriteBanks,
             _nodeTileSets,
             _nodeMaps,
-            new ItemTree { DisplayText = "Animations", Tag = Constants.TAG_ID_NODE_ANIMATORS },
-            new ItemTree { DisplayText = "Behavours", Tag = Constants.TAG_ID_NODE_BEHAVOURS },
-            new ItemTree { DisplayText = "Sounds", Tag = Constants.TAG_ID_NODE_SOUNDS },
-            new ItemTree { DisplayText = "Musics", Tag = Constants.TAG_ID_NODE_MUSIC },
+            new ItemTree { NameKey = "TreeAnimations", Tag = Constants.TAG_ID_NODE_ANIMATORS },
+            new ItemTree { NameKey = "TreeBehaviours", Tag = Constants.TAG_ID_NODE_BEHAVOURS },
+            new ItemTree { NameKey = "TreeSounds", Tag = Constants.TAG_ID_NODE_SOUNDS },
+            new ItemTree { NameKey = "TreeMusic", Tag = Constants.TAG_ID_NODE_MUSIC },
         ];
+
     }
 
     public ObservableCollection<ItemTree> PrimaryNodes { get; }
@@ -108,7 +110,7 @@ public class TreeGeneralViewModel : PanelBaseViewModel
 
         var child = new ItemTree
         {
-            DisplayText = "Bloques",
+            NameKey = "TreeBlocks",
             Tag = blocks.TagId,
             CanDelete = false,
         };

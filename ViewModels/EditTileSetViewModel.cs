@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Localization;
 
 namespace MSX_GameTools.ViewModels;
 
@@ -31,7 +32,7 @@ public partial class EditTileSetViewModel : PanelBaseViewModel
         _palette = mainWindowVm.Palettes.ActivePalette;
 
         // Con la cabecera vacia la pestaña parecia rota.
-        Header = "Agregar tileset";
+        Header = Localizer.Instance["NewTileSetTitle"];
         TagId = "new:tileset";
     }
 

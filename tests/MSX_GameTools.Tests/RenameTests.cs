@@ -94,7 +94,7 @@ public class RenameTests
             .OfType<TileBlocksViewModel>()
             .Single();
 
-        Assert.Equal("Bloques de Cueva", blocks.Header);
+        Assert.EndsWith(": Cueva", blocks.Header, StringComparison.Ordinal);
     }
 
     /// <summary>El documento y su fichero son cosas distintas.</summary>

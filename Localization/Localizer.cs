@@ -34,6 +34,16 @@ public sealed partial class Localizer : ObservableObject
     private static readonly ResourceManager Resources =
         new("MSX_GameTools.Localization.Strings", typeof(Localizer).Assembly);
 
+    /// <summary>
+    /// Un objeto por clave pedida, para poder avisarles al cambiar de idioma.
+    /// </summary>
+    /// <remarks>
+    /// Concurrente porque esto es único para todo el proceso: en la aplicación lo pide
+    /// siempre el hilo de la interfaz, pero las pruebas montan ventanas en paralelo y un
+    /// diccionario normal escrito a la vez desde dos sitios se queda girando al leerlo.
+    /// </remarks>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, LocalizedText> _texts = new();
+
     private CultureInfo _culture = Default();
 
     /// <summary>El único que hay. Los enlaces del XAML apuntan aquí.</summary>
@@ -41,6 +51,17 @@ public sealed partial class Localizer : ObservableObject
 
     /// <summary>El texto de esa clave, o la clave misma si falta.</summary>
     public string this[string key] => Resources.GetString(key, _culture) ?? key;
+
+    /// <summary>
+    /// El texto de esa clave como algo a lo que un enlace se puede quedar escuchando.
+    /// </summary>
+    /// <remarks>
+    /// Un objeto por clave, con una propiedad normal, en vez de enlazar al indizador de
+    /// aquí: Avalonia no reevalúa un enlace a indizador por mucho que se avise de que ha
+    /// cambiado, así que los menús se quedaban en el idioma de antes. Se reutiliza el
+    /// mismo objeto para la misma clave, que son unos pocos cientos en todo el programa.
+    /// </remarks>
+    public LocalizedText Bind(string key) => _texts.GetOrAdd(key, static k => new LocalizedText(k));
 
     /// <summary>Código del idioma en uso: «es», «en» o «ca».</summary>
     public string Language
@@ -55,9 +76,9 @@ public sealed partial class Localizer : ObservableObject
 
             OnPropertyChanged();
 
-            // Lo que relee todos los textos enlazados: es el nombre que usa un enlace a
-            // un indizador para enterarse de que su valor puede haber cambiado.
-            OnPropertyChanged("Item[]");
+            // Lo que relee lo que hay en pantalla: cada texto avisa por su cuenta.
+            foreach (LocalizedText text in _texts.Values)
+                text.Refresh();
         }
     }
 
@@ -78,3 +99,20 @@ public sealed partial class Localizer : ObservableObject
 
 /// <summary>Un idioma al que se puede cambiar, con su nombre en él mismo.</summary>
 public sealed record LanguageChoice(string Code, string Name);
+
+/// <summary>
+/// Un texto traducido que avisa cuando cambia el idioma.
+/// </summary>
+/// <remarks>
+/// Vive dentro del <see cref="Localizer"/>, que es único para todo el proceso, así que
+/// todo lo que se enlace aquí queda enraizado desde un objeto que no muere nunca. Vale
+/// para lo que dura lo que la ventana —los menús, los paneles— y no para cosas que van y
+/// vienen: enlazar aquí cada nodo de un árbol que se reconstruye deja los controles
+/// viejos vivos para siempre.
+/// </remarks>
+public sealed partial class LocalizedText(string key) : ObservableObject
+{
+    public string Value => Localizer.Instance[key];
+
+    internal void Refresh() => OnPropertyChanged(nameof(Value));
+}

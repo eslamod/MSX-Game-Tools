@@ -110,4 +110,61 @@
   <data name="MenuPreferences" xml:space="preserve">
     <value>Preferències...</value>
   </data>
+
+  <data name="BarPalette" xml:space="preserve"><value>Paleta</value></data>
+  <data name="BarPaletteTip" xml:space="preserve"><value>La paleta del document que hi ha al davant</value></data>
+  <data name="BarPaletteAddTip" xml:space="preserve"><value>Crea una paleta a partir d'aquesta</value></data>
+  <data name="BarPaletteEditTip" xml:space="preserve"><value>Edita aquesta paleta</value></data>
+  <data name="BarPaletteDeleteTip" xml:space="preserve"><value>Elimina aquesta paleta</value></data>
+  <data name="BarBackground" xml:space="preserve"><value>Fons</value></data>
+  <data name="BarBackgroundTip" xml:space="preserve"><value>Imatges de referència carregades</value></data>
+  <data name="BarBackgroundAddTip" xml:space="preserve"><value>Carrega una imatge de referència</value></data>
+  <data name="BarBackgroundDeleteTip" xml:space="preserve"><value>Elimina la imatge seleccionada i tots els seus fons</value></data>
+  <data name="BarAddSpriteBank" xml:space="preserve"><value>Banc nou</value></data>
+  <data name="BarAddTileSet" xml:space="preserve"><value>Joc nou</value></data>
+  <data name="BarAddMap" xml:space="preserve"><value>Mapa nou</value></data>
+  <data name="TabCloseTip" xml:space="preserve"><value>Tanca la pestanya</value></data>
+  <data name="PanelCloseTip" xml:space="preserve"><value>Tanca el plafó</value></data>
+
+  <data name="TreeSpriteBanks" xml:space="preserve"><value>Bancs de sprites</value></data>
+  <data name="TreeTileSets" xml:space="preserve"><value>Jocs de tiles</value></data>
+  <data name="TreeMaps" xml:space="preserve"><value>Mapes</value></data>
+  <data name="TreeAnimations" xml:space="preserve"><value>Animacions</value></data>
+  <data name="TreeBehaviours" xml:space="preserve"><value>Comportaments</value></data>
+  <data name="TreeSounds" xml:space="preserve"><value>Sons</value></data>
+  <data name="TreeMusic" xml:space="preserve"><value>Músiques</value></data>
+  <data name="TreeBlocks" xml:space="preserve"><value>Blocs</value></data>
+  <data name="TreeOpen" xml:space="preserve"><value>Obre</value></data>
+  <data name="TreeProperties" xml:space="preserve"><value>Propietats</value></data>
+  <data name="TreeDelete" xml:space="preserve"><value>Elimina del projecte</value></data>
+
+  <data name="FormAccept" xml:space="preserve"><value>D'acord</value></data>
+  <data name="FormCancel" xml:space="preserve"><value>Cancel·la</value></data>
+  <data name="FormName" xml:space="preserve"><value>Nom</value></data>
+  <data name="FormPalette" xml:space="preserve"><value>Paleta</value></data>
+
+  <data name="NewSpriteBankTitle" xml:space="preserve"><value>Banc de sprites nou</value></data>
+  <data name="NewSpriteBankHint" xml:space="preserve"><value>Banc 1</value></data>
+  <data name="NewSpriteBankType" xml:space="preserve"><value>Tipus</value></data>
+
+  <data name="NewTileSetTitle" xml:space="preserve"><value>Joc de tiles nou</value></data>
+  <data name="NewTileSetHint" xml:space="preserve"><value>Joc 1</value></data>
+  <data name="NewTileSetNote" xml:space="preserve"><value>256 tiles de 8x8, buits.</value></data>
+
+  <data name="NewMapTitle" xml:space="preserve"><value>Mapa nou</value></data>
+  <data name="NewMapHint" xml:space="preserve"><value>Mapa 1</value></data>
+  <data name="NewMapColumns" xml:space="preserve"><value>Columnes</value></data>
+  <data name="NewMapRows" xml:space="preserve"><value>Files</value></data>
+  <data name="NewMapTileSet" xml:space="preserve"><value>Tiles</value></data>
+
+  <data name="PreferencesTitle" xml:space="preserve"><value>Preferències</value></data>
+  <data name="PreferencesLanguage" xml:space="preserve"><value>Idioma</value></data>
+  <data name="PreferencesZoom" xml:space="preserve"><value>Zoom de partida</value></data>
+  <data name="PreferencesSpriteCanvas" xml:space="preserve"><value>Llenç de sprites</value></data>
+  <data name="PreferencesSpriteThumbnails" xml:space="preserve"><value>Miniatures de sprites</value></data>
+  <data name="PreferencesTileCanvas" xml:space="preserve"><value>Llenç de tiles</value></data>
+  <data name="PreferencesTileThumbnails" xml:space="preserve"><value>Miniatures de tiles</value></data>
+  <data name="PreferencesBlockGrid" xml:space="preserve"><value>Graella de blocs</value></data>
+  <data name="PreferencesBlockTiles" xml:space="preserve"><value>Tiles als blocs</value></data>
+  <data name="PreferencesMapTiles" xml:space="preserve"><value>Tiles al mapa</value></data>
 </root>

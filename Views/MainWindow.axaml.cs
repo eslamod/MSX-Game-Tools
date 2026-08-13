@@ -50,6 +50,13 @@ public partial class MainWindow : Window
         if (_confirmed || e.Cancel || _watched is null)
             return;
 
+        // Sin nada que perder se cierra aquí mismo, sin dar la vuelta por el despachador.
+        // Cancelar el cierre para volver a pedirlo obliga a que alguien mueva la cola, y
+        // quien cierra una ventana no tiene por qué saber eso: los tests cerraban sus
+        // ventanas y se quedaban todas abiertas, y el proceso se iba llenando de ellas.
+        if (!_watched.HasAnythingToLose())
+            return;
+
         e.Cancel = true;
 
         // Se pregunta fuera de este manejador y no aquí dentro: cerrar de nuevo mientras

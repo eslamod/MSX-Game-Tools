@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
              xmlns:loc="clr-namespace:MSX_GameTools.Localization"
+             xmlns:l="clr-namespace:MSX_GameTools.Localization"
              mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="480"
              x:Class="MSX_GameTools.Views.EditPreferencesView"
              x:DataType="vm:EditPreferencesViewModel"
@@ -13,10 +14,10 @@
        la siguiente capa. Lo que si esta es el idioma que se elige. -->
   <Grid Margin="10" RowDefinitions="Auto,Auto,Auto,*,Auto">
 
-    <TextBlock Grid.Row="0" Text="Preferencias" FontWeight="Bold" Margin="0,0,0,12" />
+    <TextBlock Grid.Row="0" Text="{l:Localize PreferencesTitle}" FontWeight="Bold" Margin="0,0,0,12" />
 
     <Grid Grid.Row="1" ColumnDefinitions="150,*" Margin="0,0,0,14">
-      <TextBlock Grid.Column="0" Text="Idioma" VerticalAlignment="Center" />
+      <TextBlock Grid.Column="0" Text="{l:Localize PreferencesLanguage}" VerticalAlignment="Center" />
       <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                 ItemsSource="{Binding Languages}"
                 SelectedItem="{Binding Language}">
@@ -30,12 +31,12 @@
 
     <StackPanel Grid.Row="2" Spacing="6">
 
-      <TextBlock Text="Zoom de partida" FontWeight="Bold" Margin="0,0,0,2" />
+      <TextBlock Text="{l:Localize PreferencesZoom}" FontWeight="Bold" Margin="0,0,0,2" />
 
       <!-- Con que zoom se abre cada sitio. Lo que ya este abierto se queda con el suyo
            hasta que se vuelva a montar su pestaña. -->
       <Grid ColumnDefinitions="150,*">
-        <TextBlock Grid.Column="0" Text="Lienzo de sprites" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="0" Text="{l:Localize PreferencesSpriteCanvas}" VerticalAlignment="Center" />
         <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                   ItemsSource="{Binding CanvasZooms}"
                   SelectedValue="{Binding SpriteCanvasZoom}"
@@ -44,7 +45,7 @@
       </Grid>
 
       <Grid ColumnDefinitions="150,*">
-        <TextBlock Grid.Column="0" Text="Miniaturas de sprites" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="0" Text="{l:Localize PreferencesSpriteThumbnails}" VerticalAlignment="Center" />
         <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                   ItemsSource="{Binding FourZooms}"
                   SelectedValue="{Binding SpriteThumbnailZoom}"
@@ -53,7 +54,7 @@
       </Grid>
 
       <Grid ColumnDefinitions="150,*">
-        <TextBlock Grid.Column="0" Text="Lienzo de tiles" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="0" Text="{l:Localize PreferencesTileCanvas}" VerticalAlignment="Center" />
         <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                   ItemsSource="{Binding CanvasZooms}"
                   SelectedValue="{Binding TileCanvasZoom}"
@@ -62,7 +63,7 @@
       </Grid>
 
       <Grid ColumnDefinitions="150,*">
-        <TextBlock Grid.Column="0" Text="Miniaturas de tiles" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="0" Text="{l:Localize PreferencesTileThumbnails}" VerticalAlignment="Center" />
         <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                   ItemsSource="{Binding FourZooms}"
                   SelectedValue="{Binding TileThumbnailZoom}"
@@ -71,7 +72,7 @@
       </Grid>
 
       <Grid ColumnDefinitions="150,*">
-        <TextBlock Grid.Column="0" Text="Rejilla de bloques" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="0" Text="{l:Localize PreferencesBlockGrid}" VerticalAlignment="Center" />
         <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                   ItemsSource="{Binding ThreeZooms}"
                   SelectedValue="{Binding BlockGridZoom}"
@@ -80,7 +81,7 @@
       </Grid>
 
       <Grid ColumnDefinitions="150,*">
-        <TextBlock Grid.Column="0" Text="Tiles en los bloques" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="0" Text="{l:Localize PreferencesBlockTiles}" VerticalAlignment="Center" />
         <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                   ItemsSource="{Binding ThreeZooms}"
                   SelectedValue="{Binding BlockTileZoom}"
@@ -89,7 +90,7 @@
       </Grid>
 
       <Grid ColumnDefinitions="150,*">
-        <TextBlock Grid.Column="0" Text="Tiles en el mapa" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="0" Text="{l:Localize PreferencesMapTiles}" VerticalAlignment="Center" />
         <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                   ItemsSource="{Binding FourZooms}"
                   SelectedValue="{Binding MapTileZoom}"
@@ -100,8 +101,8 @@
     </StackPanel>
 
     <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
-      <Button Content="Accept" Width="75" Command="{Binding AcceptPreferencesCommand}" />
-      <Button Content="Cancel" Width="75" Command="{Binding CancelPreferencesCommand}" />
+      <Button Content="{l:Localize FormAccept}" MinWidth="85" Command="{Binding AcceptPreferencesCommand}" />
+      <Button Content="{l:Localize FormCancel}" MinWidth="85" Command="{Binding CancelPreferencesCommand}" />
     </StackPanel>
 
   </Grid>
