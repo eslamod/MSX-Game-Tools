@@ -251,6 +251,43 @@ public class PanelFitTests
     private static string Describe(Control control) =>
         $"{control.GetType().Name} «{(control as ContentControl)?.Content}»";
 
+    /// <summary>
+    /// Los botones del diálogo crecen con su texto.
+    /// </summary>
+    /// <remarks>
+    /// El texto lo pone quien abre el diálogo y cambia con el idioma: «Guardar y salir» en
+    /// español, «Desa i surt» en catalán, «Save and quit» en inglés. Con un ancho fijo se
+    /// recortaba —se leía «Guardar y sa»— y en otro idioma se habría recortado en otro
+    /// sitio. Se compara con un texto corto en vez de medir píxeles, que depende de la
+    /// fuente de cada máquina.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Los_botones_del_dialogo_crecen_con_su_texto()
+    {
+        Assert.True(
+            ConfirmWidth("Guardar y salir sin preguntar otra vez") > ConfirmWidth("Sí"),
+            "El botón no crece con el texto: un ancho fijo lo recorta en cuanto se traduce.");
+    }
+
+    /// <summary>Lo que mide el botón de confirmar con esa etiqueta.</summary>
+    private static double ConfirmWidth(string label)
+    {
+        var dialog = new ConfirmationWindow("Título", "Mensaje", label, "Otra cosa", threeWay: true);
+
+        dialog.Show();
+        Pump();
+
+        double width = dialog.GetVisualDescendants()
+            .OfType<Button>()
+            .First(button => (button.Content as string) == label)
+            .Bounds.Width;
+
+        dialog.Close();
+        Pump();
+
+        return width;
+    }
+
     /// <summary>Abre cada formulario por donde lo abre el usuario.</summary>
     private static void Open(MainWindowViewModel main, string form)
     {

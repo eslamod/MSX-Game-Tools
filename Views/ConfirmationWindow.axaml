@@ -19,10 +19,12 @@
 
     <StackPanel Grid.Row="2" Orientation="Horizontal"
                 HorizontalAlignment="Right" Spacing="8" Margin="0,20,0,0">
-      <Button x:Name="AlternativeButton" Width="120" IsVisible="False"
+      <!-- MinWidth y no Width: el texto lo pone quien abre el dialogo y cambia con el
+           idioma, asi que un ancho fijo lo recorta. «Guardar y salir» ya no cabia. -->
+      <Button x:Name="AlternativeButton" MinWidth="120" IsVisible="False"
               HorizontalContentAlignment="Center"
               Click="OnAlternative" />
-      <Button x:Name="ConfirmButton" Width="100"
+      <Button x:Name="ConfirmButton" MinWidth="100"
               HorizontalContentAlignment="Center"
               Click="OnConfirm" />
       <Button x:Name="CancelButton" Content="{l:Localize FormCancel}" MinWidth="100"
