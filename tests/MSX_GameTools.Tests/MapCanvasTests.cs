@@ -40,7 +40,7 @@ public class MapCanvasTests : IDisposable
         foreach (TileRow line in tileSet.ListOfTiles[1].ArrayTileRows)
             line.BackColor = 15;
 
-        var tiles = new TileSetEditorViewModel(tileSet, new PaletteLibrary());
+        var tiles = new TileSetEditorViewModel(tileSet, ColorPalette.CreateMsxStandard());
 
         Map = new TileMap("Mapa", 40, 30);
 

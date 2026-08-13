@@ -13,28 +13,32 @@ namespace MSX_GameTools.ViewModels;
 /// </remarks>
 public partial class TileRowColorViewModel : ObservableObject
 {
-    private readonly PaletteLibrary _palettes;
+    private readonly Func<ColorPalette> _palette;
     private readonly Action<int> _onPicked;
 
     private TileRow _row;
 
-    public TileRowColorViewModel(int rowIndex, TileRow row, PaletteLibrary palettes, Action<int> onPicked)
+    /// <param name="palette">
+    /// La paleta del juego, preguntada cada vez: es suya y puede cambiar, y entonces el
+    /// editor llama a <see cref="Refresh"/>.
+    /// </param>
+    public TileRowColorViewModel(int rowIndex, TileRow row, Func<ColorPalette> palette, Action<int> onPicked)
     {
         RowIndex = rowIndex;
         _row = row;
-        _palettes = palettes;
+        _palette = palette;
         _onPicked = onPicked;
     }
 
     /// <summary>Línea del tile, 0-7.</summary>
     public int RowIndex { get; }
 
-    /// <summary>Los 16 colores que ofrecen los desplegables, los de la paleta activa.</summary>
-    public IReadOnlyList<PaletteColor> Palette => _palettes.ActivePalette.Colors;
+    /// <summary>Los 16 colores que ofrecen los desplegables, los del juego.</summary>
+    public IReadOnlyList<PaletteColor> Palette => _palette().Colors;
 
-    public PaletteColor Foreground => _palettes.ActivePalette[_row.ForeColor];
+    public PaletteColor Foreground => _palette()[_row.ForeColor];
 
-    public PaletteColor Background => _palettes.ActivePalette[_row.BackColor];
+    public PaletteColor Background => _palette()[_row.BackColor];
 
     /// <summary>
     /// Repunta la casilla a la línea del tile que se esté editando. Las casillas se

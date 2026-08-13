@@ -118,16 +118,15 @@ public class TileSetEditorTests
     [AvaloniaFact]
     public void Cambiar_de_paleta_repinta_los_256()
     {
-        var palettes = new PaletteLibrary();
-        var editor = new TileSetEditorViewModel(new TileSet("Bosque"), palettes);
+        var editor = new TileSetEditorViewModel(new TileSet("Bosque"), ColorPalette.CreateMsxStandard());
 
         // Un pixel encendido en el último tile, para mirar lejos del actual.
         editor.TileSet.ListOfTiles[255].ArrayTileRows[0].ArrayPattern[0] = true;
         editor.TileSet.ListOfTiles[255].ArrayTileRows[0].ForeColor = 5;
 
-        ColorPalette nocturna = palettes.Add("Nocturna");
+        ColorPalette nocturna = editor.ColorPalette.Clone("Nocturna");
         nocturna[5].SetComponents(7, 0, 7);
-        palettes.ActivePalette = nocturna;
+        editor.ColorPalette = nocturna;
 
         Assert.Equal(
             ToBgra(nocturna.GetColor(5)),
@@ -318,7 +317,7 @@ public class TileSetEditorTests
         => Assert.DoesNotContain(NewEditor().BorderChoices, color => color.Index == 0);
 
     private static TileSetEditorViewModel NewEditor() =>
-        new(new TileSet("Bosque"), new PaletteLibrary());
+        new(new TileSet("Bosque"), ColorPalette.CreateMsxStandard());
 
     private static int ToBgra(Color color) => (color.A << 24) | (color.R << 16) | (color.G << 8) | color.B;
 }

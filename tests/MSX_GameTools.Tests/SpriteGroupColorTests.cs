@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.VisualTree;
 using MSX_GameTools.Entities;
@@ -39,7 +39,7 @@ public class SpriteGroupColorTests
         using var editor = NewEditorWithGroup(SpriteBank.SpriteType.MSX2);
         SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
 
-        group.MemberColors[3].PickCommand.Execute(editor.Palettes.ActivePalette[6]);
+        group.MemberColors[3].PickCommand.Execute(editor.Palette[6]);
 
         Assert.Equal(6, group.SelectedMember!.Rows[3].Color);
         Assert.Equal(15, group.SelectedMember.Rows[4].Color);
@@ -55,7 +55,7 @@ public class SpriteGroupColorTests
         SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
 
         Assert.True(group.IsMsx1);
-        group.PickMemberColorCommand.Execute(editor.Palettes.ActivePalette[10]);
+        group.PickMemberColorCommand.Execute(editor.Palette[10]);
 
         Assert.All(group.SelectedMember!.Rows, row => Assert.Equal(10, row.Color));
         Assert.Equal(10, group.MemberColor!.Index);
@@ -83,11 +83,11 @@ public class SpriteGroupColorTests
         int[] pixels = PixelReader.Read(group.Preview);
 
         Assert.Equal(
-            PixelReader.Bgra(editor.Palettes.ActivePalette.GetColor(8)),
+            PixelReader.Bgra(editor.Palette.GetColor(8)),
             pixels[(Origin * SpriteGroupRenderer.PreviewSize) + Origin]);
 
         Assert.Equal(
-            PixelReader.Bgra(editor.Palettes.ActivePalette.GetColor(2)),
+            PixelReader.Bgra(editor.Palette.GetColor(2)),
             pixels[(Origin * SpriteGroupRenderer.PreviewSize) + Origin + 1]);
     }
 
@@ -98,10 +98,10 @@ public class SpriteGroupColorTests
         editor.Bank.SpritesList[0].ArraySpriteRows[0].ArrayColumns[0] = true;
 
         SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
-        group.MemberColors[0].PickCommand.Execute(editor.Palettes.ActivePalette[6]);
+        group.MemberColors[0].PickCommand.Execute(editor.Palette[6]);
 
         Assert.Equal(
-            PixelReader.Bgra(editor.Palettes.ActivePalette.GetColor(6)),
+            PixelReader.Bgra(editor.Palette.GetColor(6)),
             PixelReader.At(group.Preview, Origin, Origin));
     }
 
@@ -119,14 +119,14 @@ public class SpriteGroupColorTests
 
         // Sin CC gana el de mayor prioridad.
         Assert.Equal(
-            PixelReader.Bgra(editor.Palettes.ActivePalette.GetColor(1)),
+            PixelReader.Bgra(editor.Palette.GetColor(1)),
             PixelReader.At(group.Preview, Origin, Origin));
 
         group.Group.Members[1].Rows[0].CombineColor = true;
 
         // 0001 OR 0100 = 0101 = 5.
         Assert.Equal(
-            PixelReader.Bgra(editor.Palettes.ActivePalette.GetColor(5)),
+            PixelReader.Bgra(editor.Palette.GetColor(5)),
             PixelReader.At(group.Preview, Origin, Origin));
     }
 
@@ -137,7 +137,7 @@ public class SpriteGroupColorTests
         editor.Bank.SpritesList[0].ArraySpriteRows[3].Color = 12;
 
         SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
-        group.MemberColors[3].PickCommand.Execute(editor.Palettes.ActivePalette[6]);
+        group.MemberColors[3].PickCommand.Execute(editor.Palette[6]);
         Assert.Equal(6, group.SelectedMember!.Rows[3].Color);
 
         group.RestoreColorsCommand.Execute(null);
@@ -147,15 +147,17 @@ public class SpriteGroupColorTests
     }
 
     [AvaloniaFact]
-    public void Cambiar_la_paleta_activa_actualiza_las_casillas_del_grupo()
+    public void Cambiar_la_paleta_del_banco_actualiza_las_casillas_del_grupo()
     {
         using var editor = NewEditorWithGroup(SpriteBank.SpriteType.MSX2);
         SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
 
-        group.MemberColors[3].PickCommand.Execute(editor.Palettes.ActivePalette[6]);
+        group.MemberColors[3].PickCommand.Execute(editor.Palette[6]);
 
-        ColorPalette other = editor.Palettes.Add();
+        ColorPalette other = editor.Palette.Clone("Otra");
         other[6].SetComponents(7, 0, 7);
+
+        editor.ViewModel.ColorPalette = other;
 
         Assert.Same(other[6], group.MemberColors[3].Color);
     }

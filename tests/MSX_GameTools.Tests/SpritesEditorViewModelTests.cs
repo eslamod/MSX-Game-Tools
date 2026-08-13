@@ -131,7 +131,7 @@ public class SpritesEditorViewModelTests
     public async Task Borrar_pide_confirmacion_diciendo_que_sprite_es()
     {
         var dialogs = new TestDialogService { ConfirmAnswer = true };
-        SpritesEditorViewModel vm = new(new SpriteBank(), new PaletteLibrary(), dialogs);
+        SpritesEditorViewModel vm = new(new SpriteBank(), ColorPalette.CreateMsxStandard(), dialogs);
         vm.AddSpriteCommand.Execute(null); // quedan 2, seleccionado el 2
 
         await vm.DeleteSpriteCommand.ExecuteAsync(null);
@@ -145,7 +145,7 @@ public class SpritesEditorViewModelTests
     public async Task Cancelar_la_confirmacion_no_borra_el_sprite()
     {
         var dialogs = new TestDialogService { ConfirmAnswer = false };
-        SpritesEditorViewModel vm = new(new SpriteBank(), new PaletteLibrary(), dialogs);
+        SpritesEditorViewModel vm = new(new SpriteBank(), ColorPalette.CreateMsxStandard(), dialogs);
         vm.AddSpriteCommand.Execute(null);
         Sprite current = vm.CurrentSprite;
 
@@ -159,5 +159,5 @@ public class SpritesEditorViewModelTests
     }
 
     private static SpritesEditorViewModel NewEditor() =>
-        new(new SpriteBank(), new PaletteLibrary());
+        new(new SpriteBank(), ColorPalette.CreateMsxStandard());
 }

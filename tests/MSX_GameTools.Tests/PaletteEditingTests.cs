@@ -143,11 +143,10 @@ public class PaletteEditingTests
     }
 
     [AvaloniaFact]
-    public void Editar_la_paleta_activa_repinta_las_miniaturas()
+    public void Editar_la_paleta_del_banco_repinta_las_miniaturas()
     {
-        var palettes = new PaletteLibrary();
-        ColorPalette editable = palettes.Add();
-        var vm = new SpritesEditorViewModel(new SpriteBank(SpriteBank.SpriteType.MSX2), palettes);
+        ColorPalette editable = new PaletteLibrary().Add();
+        var vm = new SpritesEditorViewModel(new SpriteBank(SpriteBank.SpriteType.MSX2), editable);
 
         vm.CurrentSprite.ArraySpriteRows[0].ArrayColumns[0] = true;
         vm.RowColors[0].PickCommand.Execute(editable[3]); // verde claro
@@ -158,17 +157,18 @@ public class PaletteEditingTests
     }
 
     [AvaloniaFact]
-    public void Cambiar_de_paleta_activa_repinta_las_miniaturas()
+    public void Cambiar_la_paleta_del_banco_repinta_las_miniaturas()
     {
-        var palettes = new PaletteLibrary();
-        ColorPalette standard = palettes.ActivePalette;
-        var vm = new SpritesEditorViewModel(new SpriteBank(SpriteBank.SpriteType.MSX2), palettes);
+        ColorPalette standard = ColorPalette.CreateMsxStandard();
+        var vm = new SpritesEditorViewModel(new SpriteBank(SpriteBank.SpriteType.MSX2), standard);
 
         vm.CurrentSprite.ArraySpriteRows[0].ArrayColumns[0] = true;
         vm.RowColors[0].PickCommand.Execute(standard[3]);
 
-        ColorPalette other = palettes.Add();   // copia, y pasa a ser la activa
+        ColorPalette other = standard.Clone("Otra");
         other[3].SetComponents(7, 0, 7);       // magenta chillón
+
+        vm.ColorPalette = other;
 
         Assert.Same(other, vm.ColorPalette);
         Assert.Equal(PixelReader.Bgra(other[3].Color), PixelReader.At(vm.CurrentSprite.ImageMini!, 0, 0));

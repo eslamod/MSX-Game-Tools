@@ -10,30 +10,31 @@ namespace MSX_GameTools.ViewModels;
 /// </summary>
 public partial class SpriteRowColorViewModel : ObservableObject
 {
-    private readonly PaletteLibrary _palettes;
+    private readonly Func<ColorPalette> _palette;
     private readonly Action<int, PaletteColor> _onPicked;
 
     private SpriteRow _row;
 
+    /// <inheritdoc cref="TileRowColorViewModel(int, TileRow, Func{ColorPalette}, Action{int})" path="/param[@name='palette']"/>
     public SpriteRowColorViewModel(
         int rowIndex,
         SpriteRow row,
-        PaletteLibrary palettes,
+        Func<ColorPalette> palette,
         Action<int, PaletteColor> onPicked)
     {
         RowIndex = rowIndex;
         _row = row;
-        _palettes = palettes;
+        _palette = palette;
         _onPicked = onPicked;
     }
 
     /// <summary>Línea del sprite, 0-15.</summary>
     public int RowIndex { get; }
 
-    /// <summary>Los 16 colores que ofrece el desplegable, los de la paleta activa.</summary>
-    public IReadOnlyList<PaletteColor> Palette => _palettes.ActivePalette.Colors;
+    /// <summary>Los 16 colores que ofrece el desplegable, los del banco.</summary>
+    public IReadOnlyList<PaletteColor> Palette => _palette().Colors;
 
-    public PaletteColor Color => _palettes.ActivePalette[_row.Color];
+    public PaletteColor Color => _palette()[_row.Color];
 
     /// <summary>
     /// Repunta la casilla a la línea correspondiente del sprite que se esté editando.

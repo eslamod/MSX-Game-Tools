@@ -12,10 +12,11 @@ internal sealed class TestDialogService : IDialogService
     public bool ConfirmAnswer { get; init; } = true;
 
     /// <summary>Ruta que devuelve el selector de abrir; <c>null</c> equivale a cancelar.</summary>
-    public string? OpenPath { get; init; }
+    /// <remarks>Se puede cambiar entre llamadas, para abrir dos ficheros seguidos.</remarks>
+    public string? OpenPath { get; set; }
 
-    /// <summary>Ruta que devuelve el selector de guardar; <c>null</c> equivale a cancelar.</summary>
-    public string? SavePath { get; init; }
+    /// <inheritdoc cref="OpenPath"/>
+    public string? SavePath { get; set; }
 
     /// <summary>Lo que contesta al preguntar el tamano de celda; <c>null</c> es cancelar.</summary>
     public int? CellSize { get; init; }

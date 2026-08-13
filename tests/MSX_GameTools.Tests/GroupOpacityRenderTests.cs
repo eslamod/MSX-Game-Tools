@@ -40,7 +40,7 @@ public class GroupOpacityRenderTests : IDisposable
             Array.Fill(row.ArrayColumns, true);
         }
 
-        var vm = new SpritesEditorViewModel(bank, new PaletteLibrary(), null, library);
+        var vm = new SpritesEditorViewModel(bank, ColorPalette.CreateMsxStandard(), null, library);
         var view = new SpritesEditorView { DataContext = vm };
         var window = new Window { Content = view, Width = 900, Height = 700 };
 

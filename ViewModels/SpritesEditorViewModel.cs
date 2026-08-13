@@ -6,15 +6,14 @@ using MSX_GameTools.Services;
 
 namespace MSX_GameTools.ViewModels;
 
-public partial class SpritesEditorViewModel : PanelBaseViewModel
+public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocument
 {
     private readonly SpriteBank _spriteBank;
-    private readonly PaletteLibrary _palettes;
     private readonly IDialogService _dialogs;
     private readonly ReferenceImageLibrary _backgrounds;
 
-    /// <summary>La paleta a cuyos cambios de color estamos suscritos ahora mismo.</summary>
-    private ColorPalette _watchedPalette;
+    /// <summary>La paleta del banco, a cuyos cambios de color estamos suscritos.</summary>
+    private ColorPalette _palette;
 
     /// <summary>La vista se resuscribe para repintar el lienzo al cambiar de sprite.</summary>
     public event Action<Sprite>? RefreshRequested;
@@ -74,9 +73,10 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
     /// Imágenes de referencia del espacio de trabajo. Sin ellas el editor funciona
     /// igual, simplemente no hay fondos que elegir.
     /// </param>
+    /// <inheritdoc cref="TileSetEditorViewModel(TileSet, ColorPalette, EditorPreferences)" path="/param[@name='palette']"/>
     public SpritesEditorViewModel(
         SpriteBank bank,
-        PaletteLibrary palettes,
+        ColorPalette palette,
         IDialogService? dialogs = null,
         ReferenceImageLibrary? backgrounds = null,
         EditorPreferences? preferences = null)
@@ -84,11 +84,10 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
         Preferences = preferences ?? new EditorPreferences();
 
         _spriteBank = bank;
-        _palettes = palettes;
         _dialogs = dialogs ?? new SilentDialogService();
         _backgrounds = backgrounds ?? new ReferenceImageLibrary();
-        _watchedPalette = palettes.ActivePalette;
-        _backgroundColorIndex = _watchedPalette.DefaultBackgroundIndex;
+        _palette = palette;
+        _backgroundColorIndex = palette.DefaultBackgroundIndex;
 
         // Cargar o borrar una imagen aparece y desaparece los controles de fondo.
         _backgrounds.Tiles.CollectionChanged += (_, _) =>
@@ -100,8 +99,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
                 RenderGroup(group);
         };
 
-        _palettes.PropertyChanged += OnLibraryPropertyChanged;
-        _watchedPalette.ColorsChanged += OnActivePaletteColorsChanged;
+        _palette.ColorsChanged += OnPaletteColorsChanged;
 
         _currentSprite = bank.SpritesList[0];
         _currentSpritePosition = 1;
@@ -134,7 +132,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
         for (int row = 0; row < Sprite.Rows; row++)
         {
             RowColors.Add(new SpriteRowColorViewModel(
-                row, _currentSprite.ArraySpriteRows[row], palettes, OnRowColorPicked));
+                row, _currentSprite.ArraySpriteRows[row], () => ColorPalette, OnRowColorPicked));
         }
 
         foreach (SpriteGroup group in bank.Groups)
@@ -184,10 +182,27 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
 
     public SpriteBank SpritesBank => _spriteBank;
 
-    public PaletteLibrary Palettes => _palettes;
+    /// <inheritdoc/>
+    /// <remarks>Cambiarla repinta todo el banco: patrones, grupos y lienzo.</remarks>
+    public ColorPalette ColorPalette
+    {
+        get => _palette;
+        set
+        {
+            if (ReferenceEquals(_palette, value))
+                return;
 
-    /// <summary>La paleta activa de la biblioteca. Cambiarla repinta todo el banco.</summary>
-    public ColorPalette ColorPalette => _palettes.ActivePalette;
+            _palette.ColorsChanged -= OnPaletteColorsChanged;
+            _palette = value;
+            _palette.ColorsChanged += OnPaletteColorsChanged;
+
+            OnPropertyChanged(nameof(ColorPalette));
+            OnPropertyChanged(nameof(Palette));
+            OnPropertyChanged(nameof(BackgroundChoices));
+
+            RefreshPaletteDependentState();
+        }
+    }
 
     public ObservableCollection<ImageMini> ImagesMiniList { get; } = [];
 
@@ -274,7 +289,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
     /// <summary>Engancha un grupo del banco al panel y lo deja dibujado.</summary>
     private SpriteGroupViewModel TrackGroup(SpriteGroup group)
     {
-        var viewModel = new SpriteGroupViewModel(group, _spriteBank, _palettes, _backgrounds, _dialogs);
+        var viewModel = new SpriteGroupViewModel(group, _spriteBank, () => ColorPalette, _backgrounds, _dialogs);
 
         // Cambiar de fondo cambia cómo se compone: con referencia el hueco va
         // transparente, y sin ella vuelve al color de fondo.
@@ -470,29 +485,12 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
         RepaintCurrentSprite();
     }
 
-    /// <summary>Otra paleta pasa a ser la activa: hay que repintarlo todo con ella.</summary>
-    private void OnLibraryPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName != nameof(PaletteLibrary.ActivePalette))
-            return;
-
-        _watchedPalette.ColorsChanged -= OnActivePaletteColorsChanged;
-        _watchedPalette = _palettes.ActivePalette;
-        _watchedPalette.ColorsChanged += OnActivePaletteColorsChanged;
-
-        OnPropertyChanged(nameof(ColorPalette));
-        OnPropertyChanged(nameof(Palette));
-        OnPropertyChanged(nameof(BackgroundChoices));
-
-        RefreshPaletteDependentState();
-    }
-
     /// <summary>
-    /// Han cambiado los componentes de algún color de la paleta activa. El lienzo se
+    /// Han cambiado los componentes de algún color de la paleta del banco. El lienzo se
     /// repinta solo, porque cada color reutiliza siempre el mismo brush, pero las
     /// miniaturas son pixeles y hay que rehacerlas.
     /// </summary>
-    private void OnActivePaletteColorsChanged(ColorPalette palette) => RefreshPaletteDependentState();
+    private void OnPaletteColorsChanged(ColorPalette palette) => RefreshPaletteDependentState();
 
     private void RefreshPaletteDependentState()
     {

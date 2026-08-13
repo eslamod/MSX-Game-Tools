@@ -11,7 +11,7 @@ namespace MSX_GameTools.ViewModels;
 public partial class SpriteGroupViewModel : ObservableObject
 {
     private readonly SpriteBank _bank;
-    private readonly PaletteLibrary _palettes;
+    private readonly Func<ColorPalette> _palette;
     private readonly ReferenceImageLibrary _backgrounds;
 
     [ObservableProperty]
@@ -22,16 +22,17 @@ public partial class SpriteGroupViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(MemberColor))]
     private SpriteGroupMember? _selectedMember;
 
+    /// <inheritdoc cref="TileRowColorViewModel(int, TileRow, Func{ColorPalette}, Action{int})" path="/param[@name='palette']"/>
     public SpriteGroupViewModel(
         SpriteGroup group,
         SpriteBank bank,
-        PaletteLibrary palettes,
+        Func<ColorPalette> palette,
         ReferenceImageLibrary backgrounds,
         IDialogService dialogs)
     {
         Group = group;
         _bank = bank;
-        _palettes = palettes;
+        _palette = palette;
         _backgrounds = backgrounds;
 
         Background = new BackgroundSelectionViewModel(
@@ -43,7 +44,7 @@ public partial class SpriteGroupViewModel : ObservableObject
         for (int row = 0; row < Sprite.Rows; row++)
         {
             MemberColors.Add(new SpriteMemberColorViewModel(
-                row, new SpriteAttributeRow(), palettes, OnMemberColorPicked));
+                row, new SpriteAttributeRow(), palette, OnMemberColorPicked));
         }
 
         // Por la propiedad y no por el campo, para que quede enganchado el seguimiento
@@ -111,9 +112,9 @@ public partial class SpriteGroupViewModel : ObservableObject
 
     /// <summary>El color del miembro en MSX1, donde las 16 líneas comparten el mismo.</summary>
     public PaletteColor? MemberColor =>
-        SelectedMember is null ? null : _palettes.ActivePalette[SelectedMember.Rows[0].Color];
+        SelectedMember is null ? null : _palette()[SelectedMember.Rows[0].Color];
 
-    public IReadOnlyList<PaletteColor> Palette => _palettes.ActivePalette.Colors;
+    public IReadOnlyList<PaletteColor> Palette => _palette().Colors;
 
     /// <summary>Vuelve a sembrar los colores del miembro desde su patrón.</summary>
     [RelayCommand(CanExecute = nameof(CanRestoreColors))]

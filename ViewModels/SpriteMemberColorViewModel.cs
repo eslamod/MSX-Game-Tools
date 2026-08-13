@@ -14,21 +14,22 @@ namespace MSX_GameTools.ViewModels;
 /// </remarks>
 public partial class SpriteMemberColorViewModel : ObservableObject
 {
-    private readonly PaletteLibrary _palettes;
+    private readonly Func<ColorPalette> _palette;
     private readonly Action<int, PaletteColor> _onPicked;
 
     private SpriteAttributeRow _row;
 
+    /// <inheritdoc cref="TileRowColorViewModel(int, TileRow, Func{ColorPalette}, Action{int})" path="/param[@name='palette']"/>
     public SpriteMemberColorViewModel(
         int rowIndex,
         SpriteAttributeRow row,
-        PaletteLibrary palettes,
+        Func<ColorPalette> palette,
         Action<int, PaletteColor> onPicked)
     {
         RowIndex = rowIndex;
         Hex = rowIndex.ToString("X1");
         _row = row;
-        _palettes = palettes;
+        _palette = palette;
         _onPicked = onPicked;
     }
 
@@ -41,9 +42,9 @@ public partial class SpriteMemberColorViewModel : ObservableObject
     /// <summary>La línea de atributos, para enlazar CC en los dos sentidos.</summary>
     public SpriteAttributeRow Row => _row;
 
-    public IReadOnlyList<PaletteColor> Palette => _palettes.ActivePalette.Colors;
+    public IReadOnlyList<PaletteColor> Palette => _palette().Colors;
 
-    public PaletteColor Color => _palettes.ActivePalette[_row.Color];
+    public PaletteColor Color => _palette()[_row.Color];
 
     /// <summary>Repunta la casilla a la línea del miembro que se esté editando.</summary>
     public void Attach(SpriteAttributeRow row)

@@ -33,8 +33,7 @@ internal sealed class SpriteCanvasHarness : IDisposable
         IDialogService? dialogs = null)
     {
         Bank = new SpriteBank(bankType);
-        Palettes = new PaletteLibrary();
-        ViewModel = new SpritesEditorViewModel(Bank, Palettes, dialogs);
+        ViewModel = new SpritesEditorViewModel(Bank, ColorPalette.CreateMsxStandard(), dialogs);
 
         SpritesEditorView view = new() { DataContext = ViewModel };
         _view = view;
@@ -78,8 +77,8 @@ internal sealed class SpriteCanvasHarness : IDisposable
 
     public SpritesEditorViewModel ViewModel { get; }
 
-    /// <summary>La biblioteca de paletas que usa este editor.</summary>
-    public PaletteLibrary Palettes { get; }
+    /// <summary>La paleta del banco, que es con la que dibuja este editor.</summary>
+    public ColorPalette Palette => ViewModel.ColorPalette;
 
     /// <summary>La tira de miniaturas del banco.</summary>
     public ListBox Thumbnails { get; }

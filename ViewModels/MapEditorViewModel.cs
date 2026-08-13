@@ -49,7 +49,7 @@ public readonly record struct MapRegion(int Left, int Top, int Width, int Height
 /// anota el rastro para deshacer.
 /// </para>
 /// </remarks>
-public partial class MapEditorViewModel : PanelBaseViewModel
+public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
 {
     /// <summary>
     /// Los pasos del zoom, en pixeles de pantalla por pixel de tile.
@@ -126,6 +126,7 @@ public partial class MapEditorViewModel : PanelBaseViewModel
         RefreshBlocks();
 
         map.Undo.Changed += OnUndoChanged;
+        _tiles.PaletteChanged += OnTilesPaletteChanged;
     }
 
     /// <summary>Hay que repintar el lienzo.</summary>
@@ -186,10 +187,24 @@ public partial class MapEditorViewModel : PanelBaseViewModel
 
     public bool HasSelection => Selection is not null;
 
-    /// <summary>Los colores que puede tomar el fondo. El 0 no, que es el transparente.</summary>
-    public IReadOnlyList<PaletteColor> BackgroundChoices => _tiles.ColorPalette.BackgroundChoices;
+    /// <summary>
+    /// La paleta con la que se ve el mapa, que es la de su juego de tiles.
+    /// </summary>
+    /// <remarks>
+    /// Un mapa son números de tile: no tiene colores propios ni los guarda. Se expone para
+    /// que la barra de paletas siga sirviendo con un mapa delante, pero lo que se cambia es
+    /// la paleta del juego, y es a él a quien le queda algo sin guardar.
+    /// </remarks>
+    public ColorPalette ColorPalette
+    {
+        get => _tiles.ColorPalette;
+        set => _tiles.ColorPalette = value;
+    }
 
-    public PaletteColor BackgroundColor => _tiles.ColorPalette[Map.BackgroundColorIndex];
+    /// <summary>Los colores que puede tomar el fondo. El 0 no, que es el transparente.</summary>
+    public IReadOnlyList<PaletteColor> BackgroundChoices => ColorPalette.BackgroundChoices;
+
+    public PaletteColor BackgroundColor => ColorPalette[Map.BackgroundColorIndex];
 
     /// <summary>
     /// Con qué tile salen las celdas vacías al exportar a binario.
@@ -228,7 +243,21 @@ public partial class MapEditorViewModel : PanelBaseViewModel
     /// Es el mismo R#7 que el borde del editor de tiles: en la máquina, una celda sin nada
     /// enseña el color del borde.
     /// </remarks>
-    public IBrush BackgroundBrush => _tiles.ColorPalette.GetBrush(Map.BackgroundColorIndex);
+    public IBrush BackgroundBrush => ColorPalette.GetBrush(Map.BackgroundColorIndex);
+
+    /// <summary>
+    /// El juego ha cambiado de paleta o de colores: sus miniaturas ya están rehechas, pero
+    /// el fondo del mapa es un índice de esa paleta y hay que volver a leerlo.
+    /// </summary>
+    private void OnTilesPaletteChanged()
+    {
+        OnPropertyChanged(nameof(ColorPalette));
+        OnPropertyChanged(nameof(BackgroundChoices));
+        OnPropertyChanged(nameof(BackgroundColor));
+        OnPropertyChanged(nameof(BackgroundBrush));
+
+        RefreshRequested?.Invoke();
+    }
 
     /// <summary>El zoom para leerlo: los pasos de menos de uno se escriben en quebrado.</summary>
     public string ZoomLabel => Zoom switch

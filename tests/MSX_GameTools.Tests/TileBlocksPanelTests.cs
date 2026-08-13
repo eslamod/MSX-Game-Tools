@@ -307,7 +307,7 @@ public class TileBlocksPanelTests
         var tileSet = new TileSet("Bosque");
         tileSet.Blocks.Add(new TileBlock("Arbol") { [1, 1] = 12 });
 
-        var panel = new TileBlocksViewModel(new TileSetEditorViewModel(tileSet, new PaletteLibrary()));
+        var panel = new TileBlocksViewModel(new TileSetEditorViewModel(tileSet, ColorPalette.CreateMsxStandard()));
 
         Assert.Equal("Arbol", Assert.Single(panel.Blocks).Name);
         Assert.Same(panel.Tiles[12].Image, Cell(panel, 1, 1).Image);
@@ -317,5 +317,5 @@ public class TileBlocksPanelTests
         panel.Cells.Single(cell => cell.Column == column && cell.Row == row);
 
     private static TileBlocksViewModel NewPanel() =>
-        new(new TileSetEditorViewModel(new TileSet("Bosque"), new PaletteLibrary()));
+        new(new TileSetEditorViewModel(new TileSet("Bosque"), ColorPalette.CreateMsxStandard()));
 }

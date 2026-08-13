@@ -20,7 +20,7 @@ public class GroupOpacityViewTests
     public void La_opacidad_del_grupo_llega_a_la_miniatura()
     {
         var vm = new SpritesEditorViewModel(
-            new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"), new PaletteLibrary());
+            new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"), ColorPalette.CreateMsxStandard());
 
         var view = new SpritesEditorView { DataContext = vm };
         var window = new Window { Content = view, Width = 900, Height = 700 };
@@ -50,7 +50,7 @@ public class GroupOpacityViewTests
     public void Mover_el_slider_del_panel_cambia_la_opacidad_del_grupo()
     {
         var vm = new SpritesEditorViewModel(
-            new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"), new PaletteLibrary());
+            new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"), ColorPalette.CreateMsxStandard());
 
         var view = new SpritesEditorView { DataContext = vm };
         var window = new Window { Content = view, Width = 900, Height = 700 };

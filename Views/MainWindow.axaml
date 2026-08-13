@@ -69,13 +69,14 @@
          se anclan a la izquierda y los Add a la derecha sin pelearse con el flujo. -->
     <DockPanel Grid.Row="1" Background="Gainsboro">
 
-      <!-- Paletas: recurso comun a todos los modulos, no del editor de sprites. -->
+      <!-- Las paletas del proyecto. Cual usa cada documento lo lleva el documento, que
+           la guarda dentro de su fichero: esto enseña la del que este delante. -->
       <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="4,2">
         <TextBlock Text="Palette" VerticalAlignment="Center" Margin="0,0,6,0" />
         <ComboBox Width="160"
                   ItemsSource="{Binding Palettes.Palettes}"
                   SelectedItem="{Binding Palettes.ActivePalette}"
-                  ToolTip.Tip="Paleta activa">
+                  ToolTip.Tip="Paleta del documento que está delante">
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="entities:ColorPalette">
               <TextBlock Text="{Binding Name}" />
@@ -85,15 +86,15 @@
         <Button Content="+" Width="28" Margin="6,0,0,0"
                 HorizontalContentAlignment="Center"
                 Command="{Binding AddPaletteCommand}"
-                ToolTip.Tip="Crear una paleta a partir de la activa" />
+                ToolTip.Tip="Crear una paleta a partir de ésta" />
         <Button Content="E" Width="28" Margin="2,0,0,0"
                 HorizontalContentAlignment="Center"
                 Command="{Binding EditPaletteCommand}"
-                ToolTip.Tip="Editar la paleta activa" />
+                ToolTip.Tip="Editar esta paleta" />
         <Button Content="-" Width="28" Margin="2,0,0,0"
                 HorizontalContentAlignment="Center"
                 Command="{Binding DeletePaletteCommand}"
-                ToolTip.Tip="Eliminar la paleta activa" />
+                ToolTip.Tip="Eliminar esta paleta" />
       </StackPanel>
 
       <!-- Imagenes de referencia. Aqui va la gestion (cargar y borrar el fichero), no

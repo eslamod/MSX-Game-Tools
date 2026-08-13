@@ -39,12 +39,19 @@ public partial class MainWindowViewModel : ObservableObject
     {
         Dialogs = dialogs ?? new SilentDialogService();
 
-        // Los comandos de paleta dependen de cuál esté activa (la estándar no se puede
-        // editar ni eliminar) y de cuántas queden (nunca se borra la última).
         Palettes.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(PaletteLibrary.ActivePalette))
-                RefreshPaletteCommands();
+            if (e.PropertyName != nameof(PaletteLibrary.ActivePalette))
+                return;
+
+            // Elegir en la barra le cambia la paleta al documento que está delante, y sólo
+            // a ése: la paleta va dentro de su fichero, no es un ajuste del programa.
+            if (SelectedTab is IPaletteDocument document)
+                document.ColorPalette = Palettes.ActivePalette;
+
+            // Y los comandos de paleta dependen de cuál sea (la estándar no se puede editar
+            // ni eliminar) y de cuántas queden (nunca se borra la última).
+            RefreshPaletteCommands();
         };
 
         Palettes.Palettes.CollectionChanged += (_, _) => RefreshPaletteCommands();
@@ -65,10 +72,30 @@ public partial class MainWindowViewModel : ObservableObject
         DeletePaletteCommand.NotifyCanExecuteChanged();
     }
 
+    /// <summary>La barra de paletas enseña la del documento que pasa a estar delante.</summary>
+    partial void OnSelectedTabChanged(PanelBaseViewModel? value)
+    {
+        if (value is IPaletteDocument document)
+            Palettes.ActivePalette = document.ColorPalette;
+    }
+
     /// <summary>
-    /// Recurso común a todos los módulos: los bancos de sprites, y en su día los
-    /// tilesets y los mapas, dibujan con la paleta activa de aquí.
+    /// Los paneles que dibujan con una paleta, estén en una pestaña o no.
     /// </summary>
+    /// <remarks>
+    /// Un mapa sale aquí aunque no tenga paleta propia: la suya es la de su juego, y lo
+    /// que se le asigne va a parar allí.
+    /// </remarks>
+    private IEnumerable<IPaletteDocument> PaletteDocuments => _panels.Values.OfType<IPaletteDocument>();
+
+    /// <summary>
+    /// Las paletas del proyecto, de donde eligen la suya los documentos.
+    /// </summary>
+    /// <remarks>
+    /// Es un catálogo compartido, no la paleta con la que se dibuja: eso lo lleva cada
+    /// documento, porque va dentro de su fichero. Lo que enseña la barra es la del que
+    /// esté delante.
+    /// </remarks>
     public PaletteLibrary Palettes { get; } = new();
 
     /// <summary>
@@ -230,14 +257,19 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     /// <summary>Abre un juego de tiles en una pestaña nueva y lo cuelga del árbol.</summary>
+    /// <param name="palette">
+    /// La paleta que traía el fichero. Sin ella, la que enseñe la barra, que es la del
+    /// documento que se estaba mirando: es la que se espera al crear un juego nuevo.
+    /// </param>
     /// <param name="borderColorIndex">
     /// El borde guardado en el fichero. Sin él manda el del editor, que lo busca en la
     /// paleta: fijarlo aquí en el 1 daba por negro un índice que en una paleta generada
     /// a partir de un png es el primer color de la imagen.
     /// </param>
-    public TileSetEditorViewModel OpenTileSet(TileSet tileSet, int? borderColorIndex = null)
+    public TileSetEditorViewModel OpenTileSet(
+        TileSet tileSet, ColorPalette? palette = null, int? borderColorIndex = null)
     {
-        var panel = new TileSetEditorViewModel(tileSet, Palettes, Preferences)
+        var panel = new TileSetEditorViewModel(tileSet, palette ?? Palettes.ActivePalette, Preferences)
         {
             TagId = $"tls{CurrentTileSetCounter}",
             Header = $"{tileSet.Name} (TS)",
@@ -266,10 +298,13 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     /// <summary>Abre un banco en una pestaña nueva y lo cuelga del árbol.</summary>
+    /// <inheritdoc cref="OpenTileSet" path="/param[@name='palette']"/>
     /// <inheritdoc cref="OpenTileSet" path="/param[@name='borderColorIndex']"/>
-    public SpritesEditorViewModel OpenSpriteBank(SpriteBank bank, int? backgroundColorIndex = null)
+    public SpritesEditorViewModel OpenSpriteBank(
+        SpriteBank bank, ColorPalette? palette = null, int? backgroundColorIndex = null)
     {
-        var panel = new SpritesEditorViewModel(bank, Palettes, Dialogs, Backgrounds, Preferences)
+        var panel = new SpritesEditorViewModel(
+            bank, palette ?? Palettes.ActivePalette, Dialogs, Backgrounds, Preferences)
         {
             TagId = $"spb{CurrentSpriteBankCounter}",
             Header = $"{bank.Name} (SP)",
@@ -410,9 +445,10 @@ public partial class MainWindowViewModel : ObservableObject
             string json = await File.ReadAllTextAsync(path);
             LoadedSpriteBank loaded = SpriteBankSerializer.Deserialize(json);
 
-            Palettes.Activate(loaded.Palette);
+            ColorPalette palette = Palettes.Adopt(loaded.Palette);
+
             await LoadBackgroundsAsync(loaded.Backgrounds);
-            OpenSpriteBank(loaded.Bank, loaded.BackgroundColorIndex).MarkSaved(path);
+            OpenSpriteBank(loaded.Bank, palette, loaded.BackgroundColorIndex).MarkSaved(path);
         }
         catch (FileFormatException exception)
         {
@@ -424,7 +460,14 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    /// <summary>Crea una copia editable de la paleta activa y abre su editor.</summary>
+    /// <summary>
+    /// Crea una copia editable de la que enseña la barra y abre su editor.
+    /// </summary>
+    /// <remarks>
+    /// La copia pasa a estar seleccionada, así que el documento que esté delante se queda
+    /// con ella: es lo que se quiere al duplicar una paleta para retocarla sin estropear la
+    /// original ni los demás documentos que la usen.
+    /// </remarks>
     [RelayCommand]
     private void AddPalette() => OpenPaletteEditor(Palettes.Add());
 
@@ -474,7 +517,17 @@ public partial class MainWindowViewModel : ObservableObject
         if (RightPanViewModel is EditPaletteViewModel editing && editing.Palette == palette)
             RightPanViewModel = null;
 
-        Palettes.Remove(palette);
+        if (!Palettes.Remove(palette))
+            return;
+
+        // Los documentos que dibujaban con ella se quedan con la que haya pasado a estar
+        // seleccionada: si no, seguirían con una paleta que ya no está en la biblioteca y
+        // la barra no podría enseñarla al volver a su pestaña.
+        foreach (IPaletteDocument document in PaletteDocuments)
+        {
+            if (ReferenceEquals(document.ColorPalette, palette))
+                document.ColorPalette = Palettes.ActivePalette;
+        }
     }
 
     private bool CanDeletePalette() => Palettes.CanRemove(Palettes.ActivePalette);
@@ -688,8 +741,7 @@ public partial class MainWindowViewModel : ObservableObject
             string json = await File.ReadAllTextAsync(path);
             LoadedTileSet loaded = TileSetSerializer.Deserialize(json);
 
-            Palettes.Activate(loaded.Palette);
-            OpenTileSet(loaded.TileSet, loaded.BorderColorIndex).MarkSaved(path);
+            OpenTileSet(loaded.TileSet, Palettes.Adopt(loaded.Palette), loaded.BorderColorIndex).MarkSaved(path);
         }
         catch (FileFormatException exception)
         {
@@ -1013,7 +1065,7 @@ public partial class MainWindowViewModel : ObservableObject
     private Task ExportPaletteAssemblerAsync() => ExportPaletteAsync(binary: false);
 
     /// <summary>
-    /// Escribe la paleta activa en el formato del registro de paleta del V9938.
+    /// Escribe la paleta que enseña la barra en el formato del registro del V9938.
     /// </summary>
     /// <remarks>
     /// Un solo fichero, a diferencia de los bancos y los tilesets: son 32 bytes y no hay
@@ -1115,10 +1167,7 @@ public partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        if (!ReferenceEquals(palette, Palettes.ActivePalette))
-            Palettes.Activate(palette);
-
-        OpenTileSet(result.TileSet!);
+        OpenTileSet(result.TileSet!, Palettes.Adopt(palette));
     }
 
     /// <summary>
@@ -1147,7 +1196,7 @@ public partial class MainWindowViewModel : ObservableObject
         bool? generate = await Dialogs.ChooseAsync(
             "Colores de la imagen",
             $"La imagen usa {colors.Count} colores. Puedes crear una paleta nueva con ellos, que los respeta "
-            + $"tal cual, o buscar los más parecidos en la paleta activa «{Palettes.ActivePalette.Name}», que "
+            + $"tal cual, o buscar los más parecidos en la paleta «{Palettes.ActivePalette.Name}», que "
             + "puede cambiarlos.",
             "Crear una paleta",
             "Usar la activa");

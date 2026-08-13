@@ -28,7 +28,7 @@ public class TileBlocksViewTests : IDisposable
 
     public TileBlocksViewTests()
     {
-        var editor = new TileSetEditorViewModel(new TileSet("Bosque"), new PaletteLibrary());
+        var editor = new TileSetEditorViewModel(new TileSet("Bosque"), ColorPalette.CreateMsxStandard());
 
         Panel = new TileBlocksViewModel(editor);
         _view = new TileBlocksView { DataContext = Panel };

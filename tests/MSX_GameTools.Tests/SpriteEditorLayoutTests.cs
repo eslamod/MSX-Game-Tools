@@ -74,7 +74,7 @@ public class SpriteEditorLayoutTests : IDisposable
         var backgrounds = new ReferenceImageLibrary();
 
         var editor = new SpritesEditorViewModel(
-            new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"), new PaletteLibrary(), null, backgrounds);
+            new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"), ColorPalette.CreateMsxStandard(), null, backgrounds);
 
         // Sin imagen cargada los controles del fondo ni existen.
         backgrounds.Load(path, cellSize: 16);

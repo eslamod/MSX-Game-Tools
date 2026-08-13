@@ -194,7 +194,7 @@ public class GroupBackgroundTests : IDisposable
         library = new ReferenceImageLibrary();
 
         return new SpritesEditorViewModel(
-            new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"), new PaletteLibrary(), null, library);
+            new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"), ColorPalette.CreateMsxStandard(), null, library);
     }
 
     private string WritePng(string name, int width, int height)

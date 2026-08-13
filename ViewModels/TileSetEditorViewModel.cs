@@ -10,12 +10,12 @@ namespace MSX_GameTools.ViewModels;
 /// <summary>
 /// Edición de un juego de tiles: el patrón actual en el lienzo y los 256 en la rejilla.
 /// </summary>
-public partial class TileSetEditorViewModel : PanelBaseViewModel
+public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocument
 {
     private readonly TileSet _tileSet;
-    private readonly PaletteLibrary _palettes;
 
-    private ColorPalette _watchedPalette;
+    /// <summary>La paleta del juego, a cuyos cambios de color estamos suscritos.</summary>
+    private ColorPalette _palette;
 
     [ObservableProperty]
     private Tile _currentTile;
@@ -47,13 +47,16 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
     [NotifyPropertyChangedFor(nameof(BorderColor))]
     private int _borderColorIndex;
 
-    public TileSetEditorViewModel(TileSet tileSet, PaletteLibrary palettes, EditorPreferences? preferences = null)
+    /// <param name="palette">
+    /// Con qué colores se dibuja y se guarda. Es del juego: la trae su fichero, y si es
+    /// nuevo, la que estuviera en la barra al crearlo.
+    /// </param>
+    public TileSetEditorViewModel(TileSet tileSet, ColorPalette palette, EditorPreferences? preferences = null)
     {
         Preferences = preferences ?? new EditorPreferences();
         _tileSet = tileSet;
-        _palettes = palettes;
-        _watchedPalette = palettes.ActivePalette;
-        _borderColorIndex = _watchedPalette.DefaultBackgroundIndex;
+        _palette = palette;
+        _borderColorIndex = palette.DefaultBackgroundIndex;
 
         _currentTile = tileSet.ListOfTiles[0];
 
@@ -66,18 +69,29 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
         _selectedThumbnail = _currentTile.ImageMini;
 
         for (int row = 0; row < Tile.Rows; row++)
-            RowColors.Add(new TileRowColorViewModel(row, _currentTile.ArrayTileRows[row], palettes, OnRowColorPicked));
+        {
+            RowColors.Add(new TileRowColorViewModel(
+                row, _currentTile.ArrayTileRows[row], () => ColorPalette, OnRowColorPicked));
+        }
 
         PixelSurface = new TilePixelSurface(this);
 
-        _palettes.PropertyChanged += OnLibraryPropertyChanged;
-        _watchedPalette.ColorsChanged += OnActivePaletteColorsChanged;
+        _palette.ColorsChanged += OnPaletteColorsChanged;
 
         RenderAll();
     }
 
     /// <summary>La vista se resuscribe para repintar el lienzo al cambiar de tile.</summary>
     public event Action? RefreshRequested;
+
+    /// <summary>
+    /// Ha cambiado la paleta del juego, o alguno de sus colores.
+    /// </summary>
+    /// <remarks>
+    /// Lo escuchan los mapas que se dibujan con este juego: sus tiles acaban de cambiar de
+    /// color y su fondo también, que es un índice de esta paleta.
+    /// </remarks>
+    public event Action? PaletteChanged;
 
     public override bool IsDocument => true;
 
@@ -89,8 +103,9 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
     /// El juego con su paleta y sus bloques, que es lo que va al fichero.
     /// </summary>
     /// <remarks>
-    /// La paleta es la activa y no una copia congelada, así que cambiar de paleta cambia
-    /// lo que se guardaría: por eso también cuenta como tocar el juego.
+    /// La paleta que se escribe es la del juego, no la que esté mirando la ventana: con
+    /// dos juegos abiertos con paletas distintas, guardar uno escribía los colores del
+    /// otro dentro de su fichero.
     /// </remarks>
     public override string ToFileText() =>
         TileSetSerializer.Serialize(_tileSet, ColorPalette, BorderColorIndex);
@@ -100,7 +115,22 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
     /// <summary>Zoom y demás ajustes que sobreviven al cambio de pestaña.</summary>
     public EditorPreferences Preferences { get; }
 
-    public ColorPalette ColorPalette => _palettes.ActivePalette;
+    /// <inheritdoc/>
+    public ColorPalette ColorPalette
+    {
+        get => _palette;
+        set
+        {
+            if (ReferenceEquals(_palette, value))
+                return;
+
+            _palette.ColorsChanged -= OnPaletteColorsChanged;
+            _palette = value;
+            _palette.ColorsChanged += OnPaletteColorsChanged;
+
+            RefreshPalette();
+        }
+    }
 
     /// <summary>Los colores que puede tomar el borde. El 0 no, que es el transparente.</summary>
     public IReadOnlyList<PaletteColor> BorderChoices => ColorPalette.BackgroundChoices;
@@ -192,20 +222,10 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
         RefreshRequested?.Invoke();
     }
 
-    private void OnLibraryPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName != nameof(PaletteLibrary.ActivePalette))
-            return;
-
-        _watchedPalette.ColorsChanged -= OnActivePaletteColorsChanged;
-        _watchedPalette = _palettes.ActivePalette;
-        _watchedPalette.ColorsChanged += OnActivePaletteColorsChanged;
-
-        OnActivePaletteColorsChanged(_watchedPalette);
-    }
+    private void OnPaletteColorsChanged(ColorPalette palette) => RefreshPalette();
 
     /// <summary>Cambiar de paleta o retocar un color repinta los 256.</summary>
-    private void OnActivePaletteColorsChanged(ColorPalette? palette = null)
+    private void RefreshPalette()
     {
         // Y deja el juego sin guardar: la paleta va dentro de su fichero.
         Touch();
@@ -219,6 +239,7 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
 
         RenderAll();
         RefreshRequested?.Invoke();
+        PaletteChanged?.Invoke();
     }
 
     private void RenderAll()

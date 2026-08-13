@@ -348,7 +348,7 @@ public class MapEditorTests
     {
         var editor = new MapEditorViewModel(
             new TileMap("Grande", 96, 96),
-            new TileSetEditorViewModel(new TileSet("Bosque"), new PaletteLibrary()));
+            new TileSetEditorViewModel(new TileSet("Bosque"), ColorPalette.CreateMsxStandard()));
 
         // 96 tiles son 768 pixeles a x1; en 700 de alto solo cabe a la mitad.
         editor.FitZoom(1500, 700);
@@ -429,6 +429,6 @@ public class MapEditorTests
 
         return new MapEditorViewModel(
             new TileMap("Mapa 1", 8, 6),
-            new TileSetEditorViewModel(tileSet, new PaletteLibrary()));
+            new TileSetEditorViewModel(tileSet, ColorPalette.CreateMsxStandard()));
     }
 }

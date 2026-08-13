@@ -228,11 +228,7 @@ public class TileSetPngTests
         ColorPalette generated = TileSetPngConverter.BuildPalette(
             "De la imagen", [Color.FromRgb(255, 0, 0), Color.FromRgb(0, 0, 255)]);
 
-        var palettes = new PaletteLibrary();
-        palettes.Palettes.Add(generated);
-        palettes.ActivePalette = generated;
-
-        var editor = new TileSetEditorViewModel(new TileSet("Importado"), palettes);
+        var editor = new TileSetEditorViewModel(new TileSet("Importado"), generated);
 
         Assert.NotEqual(1, editor.BorderColorIndex);
         Assert.Equal("000", editor.BorderColor.HexRgb);

@@ -33,7 +33,7 @@ public class MapEditorViewTests : IDisposable
 
         Editor = new MapEditorViewModel(
             new TileMap("Mapa", 40, 30),
-            new TileSetEditorViewModel(tileSet, new PaletteLibrary()));
+            new TileSetEditorViewModel(tileSet, ColorPalette.CreateMsxStandard()));
 
         _view = new MapEditorView { DataContext = Editor };
         _window = new Window { Content = _view, Width = 1100, Height = 800 };

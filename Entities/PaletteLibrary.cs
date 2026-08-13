@@ -4,9 +4,13 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace MSX_GameTools.Entities;
 
 /// <summary>
-/// Las paletas del proyecto y cuál está activa. Es un recurso común: los bancos de
-/// sprites, y en su día los tilesets y los mapas, dibujan todos con la paleta activa.
+/// Las paletas del proyecto y cuál se está mirando.
 /// </summary>
+/// <remarks>
+/// Es un catálogo, no un ajuste: con quién dibuja cada documento lo decide el documento,
+/// porque su paleta va dentro de su fichero. Aquí sólo están todas juntas para poder
+/// elegirlas, compartirlas entre documentos y editarlas en un sitio.
+/// </remarks>
 public sealed partial class PaletteLibrary : ObservableObject
 {
     private ColorPalette _activePalette;
@@ -20,10 +24,13 @@ public sealed partial class PaletteLibrary : ObservableObject
     }
 
     /// <summary>
-    /// La paleta con la que se dibuja. Nunca es <c>null</c>: un ComboBox enlazado a
-    /// ella escribe null en cuanto el elemento seleccionado desaparece de la
-    /// colección, y la biblioteca no puede quedarse sin paleta activa.
+    /// La paleta que enseña la barra, que es la del documento que está delante.
     /// </summary>
+    /// <remarks>
+    /// Nunca es <c>null</c>: un ComboBox enlazado a ella escribe null en cuanto el
+    /// elemento seleccionado desaparece de la colección, y la biblioteca no puede
+    /// quedarse sin paleta activa.
+    /// </remarks>
     public ColorPalette ActivePalette
     {
         get => _activePalette;
@@ -39,8 +46,8 @@ public sealed partial class PaletteLibrary : ObservableObject
     public ObservableCollection<ColorPalette> Palettes { get; }
 
     /// <summary>
-    /// Añade una copia editable de la paleta activa y la deja seleccionada. Partir de
-    /// la activa es más útil que partir de una paleta en negro.
+    /// Añade una copia editable de la seleccionada y la deja seleccionada. Partir de la
+    /// que se está mirando es más útil que partir de una paleta en negro.
     /// </summary>
     public ColorPalette Add(string? name = null)
     {
@@ -53,34 +60,35 @@ public sealed partial class PaletteLibrary : ObservableObject
     }
 
     /// <summary>
-    /// Mete en la biblioteca una paleta venida de fichero y la deja seleccionada. Si el
-    /// nombre ya está cogido se numera, para que el desplegable no muestre dos iguales.
+    /// Mete en la biblioteca una paleta venida de un fichero de paleta y la deja
+    /// seleccionada. Si el nombre ya está cogido se numera, para que el desplegable no
+    /// muestre dos iguales.
     /// </summary>
     public ColorPalette Import(ColorPalette palette)
+    {
+        ActivePalette = AddWithFreeName(palette);
+
+        return ActivePalette;
+    }
+
+    /// <summary>
+    /// Recoge la paleta que traía un documento y devuelve con cuál se queda.
+    /// </summary>
+    /// <remarks>
+    /// Si en la biblioteca ya hay una idéntica se reutiliza, para no llenarla de copias al
+    /// abrir varios documentos guardados con la misma paleta. No toca la selección: quién
+    /// dibuja con qué lo decide el documento, y la barra lo sigue.
+    /// </remarks>
+    public ColorPalette Adopt(ColorPalette palette) =>
+        Palettes.FirstOrDefault(candidate => HasSameContent(candidate, palette)) ?? AddWithFreeName(palette);
+
+    private ColorPalette AddWithFreeName(ColorPalette palette)
     {
         palette.Name = UniqueName(palette.Name);
 
         Palettes.Add(palette);
-        ActivePalette = palette;
 
         return palette;
-    }
-
-    /// <summary>
-    /// Deja activa una paleta venida de fichero. Si en la biblioteca ya hay una idéntica
-    /// la reutiliza, para no llenarla de copias al abrir varios bancos guardados con la
-    /// misma paleta.
-    /// </summary>
-    public ColorPalette Activate(ColorPalette palette)
-    {
-        ColorPalette? existing = Palettes.FirstOrDefault(candidate => HasSameContent(candidate, palette));
-
-        if (existing is null)
-            return Import(palette);
-
-        ActivePalette = existing;
-
-        return existing;
     }
 
     private static bool HasSameContent(ColorPalette one, ColorPalette other)

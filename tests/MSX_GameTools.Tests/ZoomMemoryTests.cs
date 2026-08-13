@@ -90,14 +90,18 @@ public class ZoomMemoryTests
     private static void WithSpriteView(EditorPreferences preferences, Action<SpritesEditorView> act)
     {
         var vm = new SpritesEditorViewModel(
-            new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"), new PaletteLibrary(), null, null, preferences);
+            new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"),
+            ColorPalette.CreateMsxStandard(),
+            null,
+            null,
+            preferences);
 
         Mount(new SpritesEditorView { DataContext = vm }, act);
     }
 
     private static void WithTileSetView(EditorPreferences preferences, Action<TileSetEditorView> act)
     {
-        var vm = new TileSetEditorViewModel(new TileSet("Bosque"), new PaletteLibrary(), preferences);
+        var vm = new TileSetEditorViewModel(new TileSet("Bosque"), ColorPalette.CreateMsxStandard(), preferences);
 
         Mount(new TileSetEditorView { DataContext = vm }, act);
     }

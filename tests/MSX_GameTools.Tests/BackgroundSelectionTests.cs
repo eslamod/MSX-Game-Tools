@@ -223,7 +223,7 @@ public class BackgroundSelectionTests : IDisposable
         var library = new ReferenceImageLibrary();
 
         var editor = new SpritesEditorViewModel(
-            new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"), new PaletteLibrary(), dialogs, library);
+            new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"), ColorPalette.CreateMsxStandard(), dialogs, library);
 
         editor.AddGroupCommand.Execute(null);
         SpriteGroupViewModel group = editor.SelectedGroup!;
@@ -246,7 +246,7 @@ public class BackgroundSelectionTests : IDisposable
         var library = new ReferenceImageLibrary();
 
         var editor = new SpritesEditorViewModel(
-            new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"), new PaletteLibrary(), dialogs, library);
+            new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"), ColorPalette.CreateMsxStandard(), dialogs, library);
 
         ReferenceImage sheet = library.Load(WritePng("hoja.png", 64, 48), cellSize: 16);
 
