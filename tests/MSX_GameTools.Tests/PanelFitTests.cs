@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Headless.XUnit;
+using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using MSX_GameTools.Entities;
@@ -127,6 +129,127 @@ public class PanelFitTests
         Pump();
         Pump();
     }
+
+    /// <summary>
+    /// La salida de la escala nunca se cierra: ventana pequeña y escala al doble.
+    /// </summary>
+    /// <remarks>
+    /// Es el peor caso y el único que de verdad importa: si alguien se pasa de escala y no
+    /// puede volver, se queda con el programa inservible y sin arreglo desde dentro. Se
+    /// comprueban las dos mitades del camino de vuelta —llegar al menú y poder aceptar—,
+    /// porque con que falle una ya está encerrado.
+    /// </remarks>
+    [AvaloniaTheory]
+    [InlineData(640, 480)]
+    [InlineData(800, 600)]
+    public void Con_la_escala_al_doble_siempre_se_puede_volver(int width, int height)
+    {
+        var main = new MainWindowViewModel(new TestDialogService { ChooseAnswer = false });
+
+        main.Preferences.InterfaceScale = EditorPreferences.MaxScale;
+
+        var window = new MainWindow { DataContext = main, Width = width, Height = height };
+
+        window.Show();
+        Pump();
+
+        // Preferencias está en Archivo, el primer menú, que es el que nunca se recorta.
+        MenuItem file = window.GetLogicalDescendants()
+            .OfType<MenuItem>()
+            .First(item => (item.Header as string) == Localizer.Instance["MenuFile"]);
+
+        double right = file.TranslatePoint(new Point(file.Bounds.Width, 0), window)!.Value.X;
+
+        Assert.True(right <= window.Bounds.Width, $"El menú Archivo acaba en {right} y la ventana mide {window.Bounds.Width}.");
+
+        main.ShowPreferencesCommand.Execute(null);
+        Pump();
+
+        EditPreferencesView view = window.GetVisualDescendants().OfType<EditPreferencesView>().Single();
+        Button accept = Buttons(view).First(button => IsLabelled(button, "FormAccept"));
+
+        double bottom = accept.TranslatePoint(new Point(0, accept.Bounds.Height), view)!.Value.Y;
+
+        Assert.True(bottom <= view.Bounds.Height, $"Aceptar acaba en {bottom} y el panel mide {view.Bounds.Height}.");
+
+        window.Close();
+        Pump();
+        Pump();
+    }
+
+    /// <summary>
+    /// A 4K y con la escala al doble, los editores se manejan enteros.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 1920x1080 es lo que quedan de un 4K con la escala al 200%, que es la combinación que
+    /// tiene sentido: en un 2K no, porque quedarían 1280 y las barras de herramientas no
+    /// caben a lo ancho. Esta prueba es la respuesta medida a «¿se puede trabajar a 4K al
+    /// 200%?», que a ojo no se sabe.
+    /// </para>
+    /// <para>
+    /// Lo que se comprueba es lo estrecho que se puede quedar sin dejar de funcionar. Que
+    /// una barra no quepa a lo ancho no encierra a nadie —se ensancha la ventana y ya—, a
+    /// diferencia de los botones de un formulario empujados por debajo del borde, que no se
+    /// arreglaban de ninguna manera. Por eso aquí se mide y allí se arregló.
+    /// </para>
+    /// <para>
+    /// Sólo los controles que no cuelgan de una barra de desplazamiento: lo que está dentro
+    /// de una puede quedar fuera de la vista con todo el derecho.
+    /// </para>
+    /// </remarks>
+    [AvaloniaTheory]
+    [InlineData("TileSet")]
+    [InlineData("SpriteBank")]
+    [InlineData("MapEditor")]
+    public void A_4K_con_la_escala_al_doble_los_editores_se_manejan(string editor)
+    {
+        var main = new MainWindowViewModel(new TestDialogService { ChooseAnswer = false });
+
+        main.Preferences.InterfaceScale = EditorPreferences.MaxScale;
+
+        TileSetEditorViewModel tiles = main.OpenTileSet(new TileSet("Bosque"));
+
+        if (editor == "SpriteBank")
+            main.OpenSpriteBank(new SpriteBank(SpriteBank.SpriteType.MSX2, "Bichos"));
+        else if (editor == "MapEditor")
+            main.OpenMap(new TileMap("Nivel 1", 32, 24), tiles);
+        else
+            main.SelectedTab = tiles;
+
+        var window = new MainWindow { DataContext = main, Width = 1920, Height = 1080 };
+
+        window.Show();
+        Pump();
+
+        var outside = new List<string>();
+
+        foreach (Control control in Reachable(window))
+        {
+            Point corner = control.TranslatePoint(
+                new Point(control.Bounds.Width, control.Bounds.Height), window)!.Value;
+
+            if (corner.X > window.Bounds.Width + 1 || corner.Y > window.Bounds.Height + 1)
+                outside.Add($"{Describe(control)} acaba en {corner.X:0},{corner.Y:0}");
+        }
+
+        Assert.Empty(outside);
+
+        window.Close();
+        Pump();
+        Pump();
+    }
+
+    /// <summary>Los controles que hay que poder pulsar sin desplazar nada.</summary>
+    private static IEnumerable<Control> Reachable(Visual root) =>
+        root.GetVisualDescendants()
+            .OfType<Control>()
+            .Where(control => control is Button or ToggleButton or ComboBox)
+            .Where(control => control.IsEffectivelyVisible && control.Bounds.Width > 0)
+            .Where(control => !control.GetVisualAncestors().OfType<ScrollViewer>().Any());
+
+    private static string Describe(Control control) =>
+        $"{control.GetType().Name} «{(control as ContentControl)?.Content}»";
 
     /// <summary>Abre cada formulario por donde lo abre el usuario.</summary>
     private static void Open(MainWindowViewModel main, string form)
