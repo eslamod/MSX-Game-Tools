@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="MenuFile" xml:space="preserve">
+    <value>Fitxer</value>
+  </data>
+  <data name="MenuNewProject" xml:space="preserve">
+    <value>Projecte nou</value>
+  </data>
+  <data name="MenuOpenProject" xml:space="preserve">
+    <value>Obre un projecte...</value>
+  </data>
+  <data name="MenuSaveProject" xml:space="preserve">
+    <value>Desa el projecte</value>
+  </data>
+  <data name="MenuSaveProjectAs" xml:space="preserve">
+    <value>Anomena i desa el projecte...</value>
+  </data>
+  <data name="MenuOpen" xml:space="preserve">
+    <value>Obre...</value>
+  </data>
+  <data name="MenuSave" xml:space="preserve">
+    <value>Desa</value>
+  </data>
+  <data name="MenuSaveAs" xml:space="preserve">
+    <value>Anomena i desa...</value>
+  </data>
+
+  <data name="MenuExit" xml:space="preserve">
+    <value>Surt</value>
+  </data>
+
+  <data name="MenuSprites" xml:space="preserve">
+    <value>Sprites</value>
+  </data>
+  <data name="MenuNewSpriteBank" xml:space="preserve">
+    <value>Banc de sprites nou</value>
+  </data>
+
+  <data name="MenuTiles" xml:space="preserve">
+    <value>Tiles</value>
+  </data>
+  <data name="MenuNewTileSet" xml:space="preserve">
+    <value>Joc de tiles nou</value>
+  </data>
+  <data name="MenuImportFromPng" xml:space="preserve">
+    <value>Importa des d'un png...</value>
+  </data>
+  <data name="MenuExportToPng" xml:space="preserve">
+    <value>Exporta a png...</value>
+  </data>
+
+  <data name="MenuMaps" xml:space="preserve">
+    <value>Mapes</value>
+  </data>
+  <data name="MenuNewMap" xml:space="preserve">
+    <value>Mapa nou</value>
+  </data>
+  <data name="MenuImportFromCsv" xml:space="preserve">
+    <value>Importa des d'un csv...</value>
+  </data>
+  <data name="MenuImportFromBinary" xml:space="preserve">
+    <value>Importa des d'un binari...</value>
+  </data>
+  <data name="MenuExportToCsv" xml:space="preserve">
+    <value>Exporta a csv...</value>
+  </data>
+  <data name="MenuResizeMap" xml:space="preserve">
+    <value>Redimensiona...</value>
+  </data>
+  <data name="MenuReplaceTiles" xml:space="preserve">
+    <value>Substitueix tiles...</value>
+  </data>
+
+  <data name="MenuPalette" xml:space="preserve">
+    <value>Paleta</value>
+  </data>
+  <data name="MenuNewPalette" xml:space="preserve">
+    <value>Paleta nova</value>
+  </data>
+  <data name="MenuEditPalette" xml:space="preserve">
+    <value>Edita la paleta</value>
+  </data>
+  <data name="MenuDeletePalette" xml:space="preserve">
+    <value>Elimina la paleta</value>
+  </data>
+  <data name="MenuSavePaletteAs" xml:space="preserve">
+    <value>Anomena i desa la paleta...</value>
+  </data>
+
+  <data name="MenuExportToBinary" xml:space="preserve">
+    <value>Exporta a binari...</value>
+  </data>
+  <data name="MenuExportToAssembler" xml:space="preserve">
+    <value>Exporta a assemblador...</value>
+  </data>
+
+  <data name="MenuLanguage" xml:space="preserve">
+    <value>Idioma</value>
+  </data>
+</root>

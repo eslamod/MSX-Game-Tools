@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    Los textos del programa en español, que es el idioma neutro: lo que sale si el del
+    sistema no es ninguno de los traducidos.
+
+    Las claves llevan delante dónde salen (Menu...), para poder encontrar un texto sin
+    tener que buscarlo por su contenido, que es justo lo que cambia al traducir.
+
+    Frase entera por caso, nunca montada por trozos. «No se pudo guardar el {0}» con el
+    tipo por fuera sólo funciona en español y de casualidad: en cuanto uno es femenino
+    —la paleta— o el idioma pide otro artículo, no hay forma de traducirlo.
+  -->
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="MenuFile" xml:space="preserve">
+    <value>Archivo</value>
+  </data>
+  <data name="MenuNewProject" xml:space="preserve">
+    <value>Nuevo proyecto</value>
+  </data>
+  <data name="MenuOpenProject" xml:space="preserve">
+    <value>Abrir proyecto...</value>
+  </data>
+  <data name="MenuSaveProject" xml:space="preserve">
+    <value>Guardar proyecto</value>
+  </data>
+  <data name="MenuSaveProjectAs" xml:space="preserve">
+    <value>Guardar proyecto como...</value>
+  </data>
+  <data name="MenuOpen" xml:space="preserve">
+    <value>Abrir...</value>
+  </data>
+  <data name="MenuSave" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="MenuSaveAs" xml:space="preserve">
+    <value>Guardar como...</value>
+  </data>
+  <data name="MenuExit" xml:space="preserve">
+    <value>Salir</value>
+  </data>
+
+  <data name="MenuSprites" xml:space="preserve">
+    <value>Sprites</value>
+  </data>
+  <data name="MenuNewSpriteBank" xml:space="preserve">
+    <value>Nuevo banco de sprites</value>
+  </data>
+
+  <data name="MenuTiles" xml:space="preserve">
+    <value>Tiles</value>
+  </data>
+  <data name="MenuNewTileSet" xml:space="preserve">
+    <value>Nuevo juego de tiles</value>
+  </data>
+  <data name="MenuImportFromPng" xml:space="preserve">
+    <value>Importar desde png...</value>
+  </data>
+  <data name="MenuExportToPng" xml:space="preserve">
+    <value>Exportar a png...</value>
+  </data>
+
+  <data name="MenuMaps" xml:space="preserve">
+    <value>Mapas</value>
+  </data>
+  <data name="MenuNewMap" xml:space="preserve">
+    <value>Nuevo mapa</value>
+  </data>
+  <data name="MenuImportFromCsv" xml:space="preserve">
+    <value>Importar desde csv...</value>
+  </data>
+  <data name="MenuImportFromBinary" xml:space="preserve">
+    <value>Importar desde binario...</value>
+  </data>
+  <data name="MenuExportToCsv" xml:space="preserve">
+    <value>Exportar a csv...</value>
+  </data>
+  <data name="MenuResizeMap" xml:space="preserve">
+    <value>Redimensionar...</value>
+  </data>
+  <data name="MenuReplaceTiles" xml:space="preserve">
+    <value>Sustituir tiles...</value>
+  </data>
+
+  <data name="MenuPalette" xml:space="preserve">
+    <value>Paleta</value>
+  </data>
+  <data name="MenuNewPalette" xml:space="preserve">
+    <value>Nueva paleta</value>
+  </data>
+  <data name="MenuEditPalette" xml:space="preserve">
+    <value>Editar paleta</value>
+  </data>
+  <data name="MenuDeletePalette" xml:space="preserve">
+    <value>Eliminar paleta</value>
+  </data>
+  <data name="MenuSavePaletteAs" xml:space="preserve">
+    <value>Guardar paleta como...</value>
+  </data>
+
+  <!-- Dentro de un menú que ya dice de qué es, no hace falta repetirlo. -->
+  <data name="MenuExportToBinary" xml:space="preserve">
+    <value>Exportar a binario...</value>
+  </data>
+  <data name="MenuExportToAssembler" xml:space="preserve">
+    <value>Exportar a ensamblador...</value>
+  </data>
+
+  <data name="MenuLanguage" xml:space="preserve">
+    <value>Idioma</value>
+  </data>
+</root>
