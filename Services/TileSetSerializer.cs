@@ -32,8 +32,12 @@ namespace MSX_GameTools.Services;
 /// </remarks>
 public static class TileSetSerializer
 {
-    /// <summary>La 2 añade los bloques. Un fichero de la 1 se sigue abriendo, sin ellos.</summary>
-    public const int FormatVersion = 2;
+    /// <summary>
+    /// La 2 añade los bloques y la 3 la identidad del juego. Los ficheros anteriores se
+    /// siguen abriendo: sin bloques los de la 1, y con una identidad recién hecha los de
+    /// la 2, que es lo que los mapas antiguos esperan porque ellos van por el nombre.
+    /// </summary>
+    public const int FormatVersion = 3;
 
     /// <summary>Ocho bytes por tabla y dos dígitos por byte.</summary>
     private const int Digits = Tile.Rows * 2;
@@ -69,6 +73,11 @@ public static class TileSetSerializer
 
         var tileSet = new TileSet(string.IsNullOrWhiteSpace(file.Name) ? "Tiles sin nombre" : file.Name);
 
+        // Los ficheros anteriores a la versión 3 no la traen y se quedan con la que el
+        // juego se acaba de hacer al construirse.
+        if (file.Id is Guid id && id != Guid.Empty)
+            tileSet.Id = id;
+
         foreach (TileFile tile in file.Tiles ?? [])
             ReadTile(tile, tileSet);
 
@@ -82,6 +91,7 @@ public static class TileSetSerializer
 
     private static TileSetFile ToFile(TileSet tileSet, ColorPalette palette, int borderColorIndex) => new(
         FormatVersion,
+        tileSet.Id,
         tileSet.Name,
         borderColorIndex,
         PaletteSerializer.ToFile(palette),
@@ -223,6 +233,7 @@ public static class TileSetSerializer
 
     private sealed record TileSetFile(
         int Version,
+        Guid? Id,
         string? Name,
         int BorderColor,
         PaletteSerializer.PaletteFile? Palette,

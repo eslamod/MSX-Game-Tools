@@ -219,9 +219,23 @@ public partial class MainWindowViewModel : ObservableObject
     public IReadOnlyList<TileSetEditorViewModel> TileSets =>
         [.. _panels.Values.OfType<TileSetEditorViewModel>()];
 
+    /// <summary>
+    /// El juego de tiles con el que se dibuja un mapa, si está abierto.
+    /// </summary>
+    /// <remarks>
+    /// Por identidad, que es lo que no cambia al renombrar. Los mapas guardados antes de
+    /// que la identidad existiera no la traen, y para ésos se recurre al nombre; en cuanto
+    /// se vuelven a guardar ya llevan la del juego y dejan de depender de él.
+    /// </remarks>
+    public TileSetEditorViewModel? TileSetOf(TileMap map) =>
+        map.TileSetId != Guid.Empty
+            ? TileSets.FirstOrDefault(tiles => tiles.TileSet.Id == map.TileSetId)
+            : TileSets.FirstOrDefault(tiles => tiles.TileSet.Name == map.TileSetName);
+
     /// <summary>Abre un mapa en una pestaña nueva y lo cuelga del árbol.</summary>
     public MapEditorViewModel OpenMap(TileMap map, TileSetEditorViewModel tiles)
     {
+        map.TileSetId = tiles.TileSet.Id;
         map.TileSetName = tiles.TileSet.Name;
 
         var panel = new MapEditorViewModel(map, tiles, Preferences)
@@ -578,7 +592,7 @@ public partial class MainWindowViewModel : ObservableObject
                 default:
                     TileMap map = MapSerializer.Deserialize(json);
 
-                    if (TileSets.FirstOrDefault(tiles => tiles.TileSet.Name == map.TileSetName) is not { } owner)
+                    if (TileSetOf(map) is not { } owner)
                     {
                         missing.Add($"  · {item.Path} — le falta el juego de tiles «{map.TileSetName}»");
 
@@ -1083,7 +1097,7 @@ public partial class MainWindowViewModel : ObservableObject
         {
             TileMap map = MapSerializer.Deserialize(await File.ReadAllTextAsync(path));
 
-            if (TileSets.FirstOrDefault(tiles => tiles.TileSet.Name == map.TileSetName) is not { } tileSet)
+            if (TileSetOf(map) is not { } tileSet)
             {
                 await Dialogs.ShowMessageAsync(
                     "Falta el juego de tiles",
@@ -1304,7 +1318,7 @@ public partial class MainWindowViewModel : ObservableObject
     private TileSetEditorViewModel? TileSetForImport() => SelectedTab switch
     {
         TileSetEditorViewModel tiles => tiles,
-        MapEditorViewModel map => TileSets.FirstOrDefault(tiles => tiles.TileSet.Name == map.Map.TileSetName),
+        MapEditorViewModel map => TileSetOf(map.Map),
         _ => TileSets.Count == 1 ? TileSets[0] : null,
     };
 

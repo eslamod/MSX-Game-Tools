@@ -34,6 +34,17 @@ public class TileSet
         ListOfTiles = tiles;
     }
 
+    /// <summary>
+    /// Quién es este juego, para que otros lo señalen.
+    /// </summary>
+    /// <remarks>
+    /// Un mapa tiene que decir con qué juego se dibuja, y decirlo por el nombre ataba las
+    /// dos cosas: renombrar un juego dejaba a sus mapas sin encontrarlo, y dos juegos
+    /// llamados igual hacían la búsqueda ambigua. Con esto el nombre vuelve a ser sólo una
+    /// etiqueta que se puede cambiar cuando se quiera.
+    /// </remarks>
+    public Guid Id { get; set; } = Guid.NewGuid();
+
     public string Name { get; set; }
 
     public IReadOnlyList<Tile> ListOfTiles { get; }

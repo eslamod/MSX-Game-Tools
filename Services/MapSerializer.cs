@@ -20,7 +20,8 @@ namespace MSX_GameTools.Services;
 /// </remarks>
 public static class MapSerializer
 {
-    public const int FormatVersion = 1;
+    /// <summary>La 2 señala el juego de tiles por identidad. Un fichero de la 1 se abre igual.</summary>
+    public const int FormatVersion = 2;
 
     public static string Serialize(TileMap map) =>
         JsonSerializer.Serialize(ToFile(map), PaletteSerializer.Options);
@@ -59,6 +60,9 @@ public static class MapSerializer
             file.Width,
             file.Height)
         {
+            // Vacío en los ficheros de la versión 1: entonces manda el nombre, y el mapa
+            // se queda con la identidad del juego la próxima vez que se guarde.
+            TileSetId = file.TileSetId ?? Guid.Empty,
             TileSetName = file.TileSet ?? string.Empty,
         };
 
@@ -87,6 +91,7 @@ public static class MapSerializer
         map.Height,
         map.BackgroundColorIndex,
         map.TileSetName,
+        map.TileSetId == Guid.Empty ? null : map.TileSetId,
         map.EmptyTile,
         [.. map.Layers.Select(ToFile)]);
 
@@ -148,6 +153,7 @@ public static class MapSerializer
         int Height,
         int BackgroundColor,
         string? TileSet,
+        Guid? TileSetId,
         int EmptyTile,
         IReadOnlyList<LayerFile>? Layers);
 

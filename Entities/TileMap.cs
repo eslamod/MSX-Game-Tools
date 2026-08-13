@@ -54,7 +54,23 @@ public class TileMap
     /// </remarks>
     public int BackgroundColorIndex { get; set; } = 1;
 
-    /// <summary>El juego de tiles con el que se dibuja. Sin él los números no dicen nada.</summary>
+    /// <summary>
+    /// El juego de tiles con el que se dibuja. Sin él los números no dicen nada.
+    /// </summary>
+    /// <remarks>
+    /// Por identidad y no por nombre: así renombrar el juego no deja al mapa sin saber de
+    /// dónde son sus tiles. En los ficheros de antes de que esto existiera viene vacío, y
+    /// entonces se recurre al nombre.
+    /// </remarks>
+    public Guid TileSetId { get; set; }
+
+    /// <summary>
+    /// Cómo se llamaba el juego la última vez que se guardó.
+    /// </summary>
+    /// <remarks>
+    /// No es quien manda: sirve para poder leer de qué va un fichero de mapa abriéndolo, y
+    /// para encontrar el juego en los mapas antiguos, que no traen identidad.
+    /// </remarks>
     public string TileSetName { get; set; } = string.Empty;
 
     /// <summary>
