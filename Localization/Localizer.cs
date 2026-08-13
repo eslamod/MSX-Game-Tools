@@ -53,6 +53,19 @@ public sealed partial class Localizer : ObservableObject
     public string this[string key] => Resources.GetString(key, _culture) ?? key;
 
     /// <summary>
+    /// El texto de esa clave con los huecos rellenos.
+    /// </summary>
+    /// <remarks>
+    /// Los huecos son sólo para datos —un nombre, un número, una ruta—, nunca para trozos
+    /// de frase. «No se pudo guardar el {0}» con el tipo por fuera sólo funciona en
+    /// español y de casualidad, porque los tres tipos son masculinos; en cuanto uno es
+    /// femenino o el idioma pide otro artículo, no hay forma de traducirlo. Cuando la
+    /// frase cambia según de qué hable, se escribe entera una vez por caso.
+    /// </remarks>
+    public string Format(string key, params object?[] values) =>
+        string.Format(_culture, this[key], values);
+
+    /// <summary>
     /// El texto de esa clave como algo a lo que un enlace se puede quedar escuchando.
     /// </summary>
     /// <remarks>

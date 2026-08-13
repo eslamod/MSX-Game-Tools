@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Localization;
 using MSX_GameTools.Services;
 
 namespace MSX_GameTools.ViewModels;
@@ -180,7 +181,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
     public override string HeaderTag => "SP";
 
-    public override string DocumentKind => "banco de sprites";
+    public override string KindKey => "SpriteBank";
 
     /// <inheritdoc cref="TileSetEditorViewModel.ToFileText"/>
     public override string ToFileText() => SpriteBankSerializer.Serialize(
@@ -268,9 +269,9 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
         SpriteGroupViewModel doomed = SelectedGroup;
 
         bool confirmed = await _dialogs.ConfirmAsync(
-            "Eliminar grupo",
-            $"Se va a eliminar el grupo «{doomed.Group.Name}». Esta acción no se puede deshacer.",
-            "Eliminar");
+            Localizer.Instance["DeleteGroupTitle"],
+            Localizer.Instance.Format("DeleteGroupBody", doomed.Group.Name),
+            Localizer.Instance["DeleteLabel"]);
 
         if (!confirmed)
             return;
@@ -405,9 +406,9 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
         // Borrar un sprite tampoco se puede deshacer.
         bool confirmed = await _dialogs.ConfirmAsync(
-            "Eliminar sprite",
-            $"Se va a eliminar el sprite {CurrentSpritePosition} de {NumberSprites}. Esta acción no se puede deshacer.",
-            "Eliminar");
+            Localizer.Instance["DeleteSpriteTitle"],
+            Localizer.Instance.Format("DeleteSpriteBody", CurrentSpritePosition, NumberSprites),
+            Localizer.Instance["DeleteLabel"]);
 
         if (!confirmed)
             return;

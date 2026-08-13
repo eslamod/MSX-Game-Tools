@@ -103,7 +103,7 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
     public override string HeaderTag => "TS";
 
-    public override string DocumentKind => "juego de tiles";
+    public override string KindKey => "TileSet";
 
     /// <summary>
     /// El juego con su paleta y sus bloques, que es lo que va al fichero.

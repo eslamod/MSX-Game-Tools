@@ -142,7 +142,7 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
 
     public override string HeaderTag => "MP";
 
-    public override string DocumentKind => "mapa";
+    public override string KindKey => "Map";
 
     /// <inheritdoc cref="TileSetEditorViewModel.ToFileText"/>
     public override string ToFileText() => MapSerializer.Serialize(Map);

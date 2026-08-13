@@ -300,6 +300,135 @@
   <data name="ReplaceOnlySelection" xml:space="preserve"><value>Sólo en la selección</value></data>
   <data name="ReplaceAllLayers" xml:space="preserve"><value>En todas las capas</value></data>
 
+  <!--
+    Diálogos. Cuando la frase cambia según de qué hable, se escribe entera una vez por
+    caso y la clave lleva el tipo al final (…TileSet, …SpriteBank, …Map). Los huecos son
+    sólo para datos: nombres, números y rutas.
+  -->
+  <data name="KindTileSet" xml:space="preserve"><value>juego de tiles</value></data>
+  <data name="KindSpriteBank" xml:space="preserve"><value>banco de sprites</value></data>
+  <data name="KindMap" xml:space="preserve"><value>mapa</value></data>
+  <data name="KindProject" xml:space="preserve"><value>proyecto</value></data>
+
+  <!-- Títulos del selector de fichero -->
+  <data name="PickSaveTileSet" xml:space="preserve"><value>Guardar el juego de tiles</value></data>
+  <data name="PickSaveSpriteBank" xml:space="preserve"><value>Guardar el banco de sprites</value></data>
+  <data name="PickSaveMap" xml:space="preserve"><value>Guardar el mapa</value></data>
+  <data name="PickSaveProject" xml:space="preserve"><value>Guardar el proyecto</value></data>
+  <data name="PickSavePalette" xml:space="preserve"><value>Guardar la paleta</value></data>
+  <data name="PickOpenProject" xml:space="preserve"><value>Abrir un proyecto</value></data>
+  <data name="PickOpen" xml:space="preserve"><value>Abrir</value></data>
+  <data name="PickLoadReference" xml:space="preserve"><value>Cargar una imagen de referencia</value></data>
+  <data name="PickExportBinary" xml:space="preserve"><value>Exportar a binario</value></data>
+  <data name="PickExportAssembler" xml:space="preserve"><value>Exportar a ensamblador</value></data>
+  <data name="PickExportMapCsv" xml:space="preserve"><value>Exportar el mapa a csv</value></data>
+  <data name="PickExportMapBinary" xml:space="preserve"><value>Exportar el mapa a binario</value></data>
+  <data name="PickExportMapAssembler" xml:space="preserve"><value>Exportar el mapa a ensamblador</value></data>
+  <data name="PickExportPaletteBinary" xml:space="preserve"><value>Exportar la paleta a binario</value></data>
+  <data name="PickExportPaletteAssembler" xml:space="preserve"><value>Exportar la paleta a ensamblador</value></data>
+  <data name="PickExportTileSetPng" xml:space="preserve"><value>Exportar el juego de tiles a png</value></data>
+  <data name="PickImportTileSetPng" xml:space="preserve"><value>Importar un png como juego de tiles</value></data>
+  <data name="PickImportMapCsv" xml:space="preserve"><value>Importar un csv como mapa</value></data>
+  <data name="PickImportMapBinary" xml:space="preserve"><value>Importar un binario como mapa</value></data>
+
+  <!-- No se pudo hacer algo con un fichero. El porqué lo pone el sistema. -->
+  <data name="ErrorSaveTileSet" xml:space="preserve"><value>No se pudo guardar el juego de tiles</value></data>
+  <data name="ErrorSaveSpriteBank" xml:space="preserve"><value>No se pudo guardar el banco de sprites</value></data>
+  <data name="ErrorSaveMap" xml:space="preserve"><value>No se pudo guardar el mapa</value></data>
+  <data name="ErrorSaveProject" xml:space="preserve"><value>No se pudo guardar el proyecto</value></data>
+  <data name="ErrorSavePalette" xml:space="preserve"><value>No se pudo guardar la paleta</value></data>
+  <data name="ErrorOpenFile" xml:space="preserve"><value>No se pudo abrir el fichero</value></data>
+  <data name="ErrorOpenImage" xml:space="preserve"><value>No se pudo abrir la imagen</value></data>
+  <data name="ErrorLoadImage" xml:space="preserve"><value>No se pudo cargar la imagen</value></data>
+  <data name="ErrorExportSpriteBank" xml:space="preserve"><value>No se pudo exportar el banco</value></data>
+  <data name="ErrorExportTileSet" xml:space="preserve"><value>No se pudo exportar el juego de tiles</value></data>
+  <data name="ErrorExportMap" xml:space="preserve"><value>No se pudo exportar el mapa</value></data>
+  <data name="ErrorExportPalette" xml:space="preserve"><value>No se pudo exportar la paleta</value></data>
+  <data name="ErrorExportPng" xml:space="preserve"><value>No se pudo exportar el png</value></data>
+  <data name="ErrorProjectInvalid" xml:space="preserve"><value>El proyecto no es válido</value></data>
+  <data name="ErrorFileInvalid" xml:space="preserve"><value>El fichero no es válido</value></data>
+  <data name="ErrorCsvImport" xml:space="preserve"><value>El csv no se puede importar</value></data>
+  <data name="ErrorBinaryImport" xml:space="preserve"><value>El binario no se puede importar</value></data>
+  <data name="ErrorImageImport" xml:space="preserve"><value>La imagen no se puede importar</value></data>
+
+  <!-- Cambios sin guardar -->
+  <data name="UnsavedTitle" xml:space="preserve"><value>Hay cambios sin guardar</value></data>
+  <data name="UnsavedList" xml:space="preserve"><value>{0}
+
+{1}</value></data>
+  <data name="DiscardOnExit" xml:space="preserve"><value>Esto se perderá al salir:</value></data>
+  <data name="DiscardOnExitSave" xml:space="preserve"><value>Guardar y salir</value></data>
+  <data name="DiscardOnExitDrop" xml:space="preserve"><value>Salir sin guardar</value></data>
+  <data name="DiscardOnOpen" xml:space="preserve"><value>Esto se perderá al abrir otro proyecto:</value></data>
+  <data name="DiscardOnOpenSave" xml:space="preserve"><value>Guardar y abrir</value></data>
+  <data name="DiscardOnOpenDrop" xml:space="preserve"><value>Abrir sin guardar</value></data>
+  <data name="DiscardOnNew" xml:space="preserve"><value>Esto se perderá al empezar un proyecto nuevo:</value></data>
+  <data name="DiscardOnNewSave" xml:space="preserve"><value>Guardar y empezar</value></data>
+  <data name="DiscardOnNewDrop" xml:space="preserve"><value>Empezar sin guardar</value></data>
+
+  <!-- Eliminar cosas -->
+  <data name="DeleteLabel" xml:space="preserve"><value>Eliminar</value></data>
+  <data name="DeletePaletteTitle" xml:space="preserve"><value>Eliminar la paleta</value></data>
+  <data name="DeletePaletteBody" xml:space="preserve"><value>Se va a eliminar la paleta «{0}». Esta acción no se puede deshacer.</value></data>
+  <data name="DeleteReferenceTitle" xml:space="preserve"><value>Eliminar la imagen de referencia</value></data>
+  <data name="DeleteReferenceBody" xml:space="preserve"><value>Se van a eliminar los {0} fondos de «{1}». Los grupos que los usen se quedarán sin fondo.</value></data>
+  <data name="DeleteItemTitle" xml:space="preserve"><value>Eliminar del proyecto</value></data>
+  <data name="DeleteItemBody" xml:space="preserve"><value>Se va a eliminar «{0}» y se cerrará su pestaña.</value></data>
+  <data name="DeleteItemBodyUnsaved" xml:space="preserve"><value>Se va a eliminar «{0}» y se cerrará su pestaña. Tiene cambios sin guardar y se perderán.</value></data>
+  <data name="DeleteSpriteTitle" xml:space="preserve"><value>Eliminar el sprite</value></data>
+  <data name="DeleteSpriteBody" xml:space="preserve"><value>Se va a eliminar el sprite {0} de {1}. Esta acción no se puede deshacer.</value></data>
+  <data name="DeleteGroupTitle" xml:space="preserve"><value>Eliminar el grupo</value></data>
+  <data name="DeleteGroupBody" xml:space="preserve"><value>Se va a eliminar el grupo «{0}». Esta acción no se puede deshacer.</value></data>
+
+  <!-- Abrir y guardar el proyecto -->
+  <data name="MissingItemsTitle" xml:space="preserve"><value>Faltan elementos del proyecto</value></data>
+  <data name="MissingItemsBody" xml:space="preserve"><value>No se han podido abrir:
+{0}
+
+El proyecto se abre igual, sin ellos. Ojo: si lo guardas ahora, se irán también del índice.</value></data>
+  <data name="MissingItemTileSet" xml:space="preserve"><value>  · {0} — le falta el juego de tiles «{1}»</value></data>
+  <data name="MissingItemReason" xml:space="preserve"><value>  · {0} — {1}</value></data>
+
+  <!-- Imágenes de referencia -->
+  <data name="MissingReferencesTitle" xml:space="preserve"><value>Faltan imágenes de referencia</value></data>
+  <data name="MissingReferencesBody" xml:space="preserve"><value>No se han podido cargar: {0}. El banco se abre igual, sin esos fondos.</value></data>
+  <data name="CellSizeTitle" xml:space="preserve"><value>Tamaño de celda</value></data>
+  <data name="CellSizeBody" xml:space="preserve"><value>«{0}» mide {1}x{2}, así que se carga como hoja de sprites. ¿De qué lado son las celdas? Lo que sobre en los bordes se coge recortado.</value></data>
+
+  <!-- Abrir un fichero cualquiera -->
+  <data name="UnknownFileTitle" xml:space="preserve"><value>No se reconoce el fichero</value></data>
+  <data name="UnknownFileBody" xml:space="preserve"><value>«{0}» no parece un banco de sprites, un juego de tiles, un mapa ni una paleta; si debería serlo, puede que esté estropeado. Para traer un png, un csv o un binario está Importar, en el menú de lo que sea.</value></data>
+
+  <!-- Exportar -->
+  <data name="ExportedSpriteBankTitle" xml:space="preserve"><value>Banco exportado</value></data>
+  <data name="ExportedTwoFiles" xml:space="preserve"><value>Se han escrito:
+{0}
+{1}</value></data>
+  <data name="ExportedTileSetTitle" xml:space="preserve"><value>Juego de tiles exportado</value></data>
+  <data name="ExportedTileSetBody" xml:space="preserve"><value>Se han escrito:
+{0}
+{1}
+
+Recuerda copiar cada tabla {2} veces en VRAM, una por tercio de pantalla.</value></data>
+  <data name="ExportedMapTitle" xml:space="preserve"><value>Mapa exportado</value></data>
+  <data name="ExportedMapEmptyBody" xml:space="preserve"><value>Las celdas vacías han salido con el tile {0}: la tabla de nombres del VDP siempre dibuja algo y en un byte no cabe el hueco. Se puede cambiar en «Vacío» junto al tamaño del mapa.</value></data>
+
+  <!-- Importar un mapa sin saber de qué juego es -->
+  <data name="NoTileSetTitle" xml:space="preserve"><value>No se sabe con qué tiles dibujarlo</value></data>
+  <data name="NoTileSetCsvBody" xml:space="preserve"><value>Un csv no dice de qué juego de tiles son sus números. Ponte en la pestaña del juego que le corresponde, o en la de un mapa que ya lo use, y vuelve a importar.</value></data>
+  <data name="NoTileSetBinaryBody" xml:space="preserve"><value>Un binario no dice de qué juego de tiles son sus números. Ponte en la pestaña del juego que le corresponde, o en la de un mapa que ya lo use, y vuelve a importar.</value></data>
+  <data name="MissingTileSetTitle" xml:space="preserve"><value>Falta el juego de tiles</value></data>
+  <data name="MissingTileSetBody" xml:space="preserve"><value>El mapa «{0}» se dibuja con el juego «{1}», que no está abierto. Ábrelo primero y vuelve a abrir el mapa.</value></data>
+
+  <!-- Importar un png -->
+  <data name="TooManyColorsTitle" xml:space="preserve"><value>La imagen tiene demasiados colores</value></data>
+  <data name="TooManyColorsBody" xml:space="preserve"><value>Trae {0} colores distintos y como mucho pueden ser {1}, porque el color 0 del MSX está reservado para el transparente. Reduce los colores en tu editor de imagen y vuelve a intentarlo.</value></data>
+  <data name="ImageColorsTitle" xml:space="preserve"><value>Colores de la imagen</value></data>
+  <data name="ImageColorsBody" xml:space="preserve"><value>La imagen usa {0} colores. Puedes crear una paleta nueva con ellos, que los respeta tal cual, o buscar los más parecidos en la paleta «{1}», que puede cambiarlos.</value></data>
+  <data name="ImageColorsNew" xml:space="preserve"><value>Crear una paleta</value></data>
+  <data name="ImageColorsExisting" xml:space="preserve"><value>Usar la que hay</value></data>
+  <data name="ImportedPngSuffix" xml:space="preserve"><value>{0} (png)</value></data>
+
   <!-- Ventanas de diálogo -->
   <data name="CellSizeSideTip" xml:space="preserve"><value>Lado de la celda en pixeles</value></data>
   <data name="CellSizeLoad" xml:space="preserve"><value>Cargar</value></data>

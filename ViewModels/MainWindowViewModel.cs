@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Avalonia;
 using Avalonia.Media;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Localization;
 using MSX_GameTools.Services;
 
 namespace MSX_GameTools.ViewModels;
@@ -73,6 +74,9 @@ public partial class MainWindowViewModel : ObservableObject
                 DeleteBackgroundCommand.NotifyCanExecuteChanged();
         };
     }
+
+    /// <summary>Los textos, que se escriben mucho por aquí.</summary>
+    private static Localizer Text => Localizer.Instance;
 
     private void RefreshPaletteCommands()
     {
@@ -520,7 +524,9 @@ public partial class MainWindowViewModel : ObservableObject
     {
         string? path = askForPath || ProjectPath is null
             ? await Dialogs.PickFileToSaveAsync(
-                "Guardar proyecto", $"{CleanFileName(ProjectName)}{ProjectSerializer.Extension}", PickerFileKind.Project)
+                Text["PickSaveProject"],
+                $"{CleanFileName(ProjectName)}{ProjectSerializer.Extension}",
+                PickerFileKind.Project)
             : ProjectPath;
 
         if (path is null)
@@ -552,7 +558,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            await Dialogs.ShowMessageAsync("No se pudo guardar el proyecto", exception.Message);
+            await Dialogs.ShowMessageAsync(Text["ErrorSaveProject"], exception.Message);
 
             return false;
         }
@@ -625,13 +631,10 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private async Task OpenProjectAsync()
     {
-        if (!await ConfirmDiscardAsync(
-                "Esto se perderá al abrir otro proyecto:", "Guardar y abrir", "Abrir sin guardar"))
-        {
+        if (!await ConfirmDiscardAsync("DiscardOnOpen", "DiscardOnOpenSave", "DiscardOnOpenDrop"))
             return;
-        }
 
-        string? path = await Dialogs.PickFileToOpenAsync("Abrir proyecto", PickerFileKind.Project);
+        string? path = await Dialogs.PickFileToOpenAsync(Text["PickOpenProject"], PickerFileKind.Project);
         if (path is null)
             return;
 
@@ -643,13 +646,13 @@ public partial class MainWindowViewModel : ObservableObject
         }
         catch (FileFormatException exception)
         {
-            await Dialogs.ShowMessageAsync("El proyecto no es válido", exception.Message);
+            await Dialogs.ShowMessageAsync(Text["ErrorProjectInvalid"], exception.Message);
 
             return;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            await Dialogs.ShowMessageAsync("No se pudo abrir el fichero", exception.Message);
+            await Dialogs.ShowMessageAsync(Text["ErrorOpenFile"], exception.Message);
 
             return;
         }
@@ -677,10 +680,8 @@ public partial class MainWindowViewModel : ObservableObject
         if (missing.Count > 0)
         {
             await Dialogs.ShowMessageAsync(
-                "Faltan elementos del proyecto",
-                $"No se han podido abrir:{Environment.NewLine}{string.Join(Environment.NewLine, missing)}"
-                + $"{Environment.NewLine}{Environment.NewLine}El proyecto se abre igual, sin ellos. Ojo: si lo "
-                + "guardas ahora, se irán también del índice.");
+                Text["MissingItemsTitle"],
+                Text.Format("MissingItemsBody", string.Join(Environment.NewLine, missing)));
         }
     }
 
@@ -716,7 +717,7 @@ public partial class MainWindowViewModel : ObservableObject
 
                     if (TileSetOf(map) is not { } owner)
                     {
-                        missing.Add($"  · {item.Path} — le falta el juego de tiles «{map.TileSetName}»");
+                        missing.Add(Text.Format("MissingItemTileSet", item.Path, map.TileSetName));
 
                         return;
                     }
@@ -729,7 +730,7 @@ public partial class MainWindowViewModel : ObservableObject
         catch (Exception exception)
             when (exception is FileFormatException or IOException or UnauthorizedAccessException)
         {
-            missing.Add($"  · {item.Path} — {exception.Message}");
+            missing.Add(Text.Format("MissingItemReason", item.Path, exception.Message));
         }
     }
 
@@ -742,11 +743,8 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private async Task NewProjectAsync()
     {
-        if (!await ConfirmDiscardAsync(
-                "Esto se perderá al empezar un proyecto nuevo:", "Guardar y empezar", "Empezar sin guardar"))
-        {
+        if (!await ConfirmDiscardAsync("DiscardOnNew", "DiscardOnNewSave", "DiscardOnNewDrop"))
             return;
-        }
 
         CloseEverything();
 
@@ -814,9 +812,10 @@ public partial class MainWindowViewModel : ObservableObject
         if (panel is not { IsDocument: true })
             return false;
 
+        // La clave lleva el tipo al final: la frase entera está escrita una vez por tipo.
         string? path = askForPath || panel.FilePath is null
             ? await Dialogs.PickFileToSaveAsync(
-                $"Guardar {panel.DocumentKind}", SuggestedFileName(panel.DocumentName))
+                Text[$"PickSave{panel.KindKey}"], SuggestedFileName(panel.DocumentName))
             : panel.FilePath;
 
         if (path is null)
@@ -830,7 +829,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            await Dialogs.ShowMessageAsync($"No se pudo guardar el {panel.DocumentKind}", exception.Message);
+            await Dialogs.ShowMessageAsync(Text[$"ErrorSave{panel.KindKey}"], exception.Message);
 
             return false;
         }
@@ -863,12 +862,12 @@ public partial class MainWindowViewModel : ObservableObject
     /// </remarks>
     /// <returns><c>true</c> si se puede cerrar.</returns>
     public Task<bool> ConfirmExitAsync() =>
-        ConfirmDiscardAsync("Esto se perderá al salir:", "Guardar y salir", "Salir sin guardar");
+        ConfirmDiscardAsync("DiscardOnExit", "DiscardOnExitSave", "DiscardOnExitDrop");
 
     /// <inheritdoc cref="ConfirmExitAsync"/>
-    /// <param name="headline">Qué se va a hacer, que es lo que cambia entre salir y abrir otro.</param>
-    /// <param name="saveLabel">Lo que dice el botón de guardar antes de seguir.</param>
-    /// <param name="discardLabel">Lo que dice el de seguir perdiéndolo.</param>
+    /// <param name="headline">Clave de qué se va a hacer: cambia entre salir y abrir otro.</param>
+    /// <param name="saveLabel">Clave de lo que dice el botón de guardar antes de seguir.</param>
+    /// <param name="discardLabel">Clave de lo que dice el de seguir perdiéndolo.</param>
     private async Task<bool> ConfirmDiscardAsync(string headline, string saveLabel, string discardLabel)
     {
         IReadOnlyList<PanelBaseViewModel> pending = UnsavedDocuments();
@@ -882,13 +881,13 @@ public partial class MainWindowViewModel : ObservableObject
         // El proyecto aparte de sus documentos: puede estar sin guardar sólo porque se
         // haya añadido o quitado alguno, sin que ninguno tenga cambios.
         if (projectChanged)
-            lines = lines.Append($"  · {ProjectName} (proyecto)");
+            lines = lines.Append($"  · {ProjectName} ({Text["KindProject"]})");
 
         bool? save = await Dialogs.ChooseAsync(
-            "Hay cambios sin guardar",
-            $"{headline}{Environment.NewLine}{Environment.NewLine}{string.Join(Environment.NewLine, lines)}",
-            saveLabel,
-            discardLabel);
+            Text["UnsavedTitle"],
+            Text.Format("UnsavedList", Text[headline], string.Join(Environment.NewLine, lines)),
+            Text[saveLabel],
+            Text[discardLabel]);
 
         if (save is null)
             return false;
@@ -969,9 +968,9 @@ public partial class MainWindowViewModel : ObservableObject
         // Eliminar una paleta no se puede deshacer, y el botón está pegado a los
         // otros dos: mejor un clic de más que perder el trabajo.
         bool confirmed = await Dialogs.ConfirmAsync(
-            "Eliminar paleta",
-            $"Se va a eliminar la paleta «{palette.Name}». Esta acción no se puede deshacer.",
-            "Eliminar");
+            Text["DeletePaletteTitle"],
+            Text.Format("DeletePaletteBody", palette.Name),
+            Text["DeleteLabel"]);
 
         if (!confirmed)
             return;
@@ -1001,7 +1000,7 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private async Task LoadBackgroundAsync()
     {
-        string? path = await Dialogs.PickFileToOpenAsync("Cargar imagen de referencia", PickerFileKind.Image);
+        string? path = await Dialogs.PickFileToOpenAsync(Text["PickLoadReference"], PickerFileKind.Image);
         if (path is null)
             return;
 
@@ -1014,9 +1013,8 @@ public partial class MainWindowViewModel : ObservableObject
             if (size.Width > ReferenceImageSlicer.SingleTileMax || size.Height > ReferenceImageSlicer.SingleTileMax)
             {
                 int? answer = await Dialogs.AskCellSizeAsync(
-                    "Tamaño de celda",
-                    $"«{Path.GetFileName(path)}» mide {size.Width}x{size.Height}, así que se carga como hoja de sprites. "
-                    + "¿De qué lado son las celdas? Lo que sobre en los bordes se coge recortado.",
+                    Text["CellSizeTitle"],
+                    Text.Format("CellSizeBody", Path.GetFileName(path), size.Width, size.Height),
                     suggested: 16,
                     maximum: Math.Max(size.Width, size.Height));
 
@@ -1030,7 +1028,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
         {
-            await Dialogs.ShowMessageAsync("No se pudo cargar la imagen", exception.Message);
+            await Dialogs.ShowMessageAsync(Text["ErrorLoadImage"], exception.Message);
         }
     }
 
@@ -1044,10 +1042,9 @@ public partial class MainWindowViewModel : ObservableObject
         // decenas y quitarlos de uno en uno no serviría de nada. Por eso se dice cuántos
         // se lleva por delante.
         bool confirmed = await Dialogs.ConfirmAsync(
-            "Eliminar imagen de referencia",
-            $"Se van a eliminar los {image.Tiles.Count} fondos de «{Path.GetFileName(image.Path)}». "
-            + "Los grupos que los usen se quedarán sin fondo.",
-            "Eliminar");
+            Text["DeleteReferenceTitle"],
+            Text.Format("DeleteReferenceBody", image.Tiles.Count, Path.GetFileName(image.Path)),
+            Text["DeleteLabel"]);
 
         if (!confirmed)
             return;
@@ -1086,8 +1083,8 @@ public partial class MainWindowViewModel : ObservableObject
         if (missing.Count > 0)
         {
             await Dialogs.ShowMessageAsync(
-                "Faltan imágenes de referencia",
-                $"No se han podido cargar: {string.Join(", ", missing)}. El banco se abre igual, sin esos fondos.");
+                Text["MissingReferencesTitle"],
+                Text.Format("MissingReferencesBody", string.Join(", ", missing)));
         }
     }
 
@@ -1096,7 +1093,7 @@ public partial class MainWindowViewModel : ObservableObject
     {
         ColorPalette palette = Palettes.ActivePalette;
 
-        string? path = await Dialogs.PickFileToSaveAsync("Guardar paleta", SuggestedFileName(palette.Name));
+        string? path = await Dialogs.PickFileToSaveAsync(Text["PickSavePalette"], SuggestedFileName(palette.Name));
         if (path is null)
             return;
 
@@ -1106,7 +1103,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            await Dialogs.ShowMessageAsync("No se pudo guardar la paleta", exception.Message);
+            await Dialogs.ShowMessageAsync(Text["ErrorSavePalette"], exception.Message);
         }
     }
 
@@ -1121,7 +1118,7 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private async Task OpenAsync()
     {
-        string? path = await Dialogs.PickFileToOpenAsync("Abrir");
+        string? path = await Dialogs.PickFileToOpenAsync(Text["PickOpen"]);
         if (path is null)
             return;
 
@@ -1151,21 +1148,19 @@ public partial class MainWindowViewModel : ObservableObject
                     // Vale igual para un fichero de otra cosa que para uno estropeado: en
                     // los dos casos lo que se sabe es que no se reconoce lo que hay dentro.
                     await Dialogs.ShowMessageAsync(
-                        "No se reconoce el fichero",
-                        $"«{Path.GetFileName(path)}» no parece un banco de sprites, un juego de tiles, un mapa "
-                        + "ni una paleta; si debería serlo, puede que esté estropeado. Para traer un png, un csv "
-                        + "o un binario está Importar, en el menú de lo que sea.");
+                        Text["UnknownFileTitle"],
+                        Text.Format("UnknownFileBody", Path.GetFileName(path)));
 
                     break;
             }
         }
         catch (FileFormatException exception)
         {
-            await Dialogs.ShowMessageAsync("El fichero no es válido", exception.Message);
+            await Dialogs.ShowMessageAsync(Text["ErrorFileInvalid"], exception.Message);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            await Dialogs.ShowMessageAsync("No se pudo abrir el fichero", exception.Message);
+            await Dialogs.ShowMessageAsync(Text["ErrorOpenFile"], exception.Message);
         }
     }
 
@@ -1188,7 +1183,7 @@ public partial class MainWindowViewModel : ObservableObject
         string extension = binary ? ".bin" : ".asm";
 
         string? path = await Dialogs.PickFileToSaveAsync(
-            binary ? "Exportar a binario" : "Exportar a ensamblador",
+            Text[binary ? "PickExportBinary" : "PickExportAssembler"],
             $"{SpriteBankExporter.LabelOf(bank.Name)}{extension}");
 
         if (path is null)
@@ -1215,15 +1210,15 @@ public partial class MainWindowViewModel : ObservableObject
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            await Dialogs.ShowMessageAsync("No se pudo exportar el banco", exception.Message);
+            await Dialogs.ShowMessageAsync(Text["ErrorExportSpriteBank"], exception.Message);
 
             return;
         }
 
         // El nombre elegido se reparte en dos, asi que conviene decir cuales han salido.
         await Dialogs.ShowMessageAsync(
-            "Banco exportado",
-            $"Se han escrito:{Environment.NewLine}{Path.GetFileName(patternsPath)}{Environment.NewLine}{Path.GetFileName(groupsPath)}");
+            Text["ExportedSpriteBankTitle"],
+            Text.Format("ExportedTwoFiles", Path.GetFileName(patternsPath), Path.GetFileName(groupsPath)));
     }
 
     private bool IsTileSetSelected() => SelectedTab is TileSetEditorViewModel;
@@ -1254,9 +1249,8 @@ public partial class MainWindowViewModel : ObservableObject
         if (TileSetOf(map) is not { } tileSet)
         {
             await Dialogs.ShowMessageAsync(
-                "Falta el juego de tiles",
-                $"El mapa «{map.Name}» se dibuja con el juego «{map.TileSetName}», que no está abierto. "
-                + "Ábrelo primero y vuelve a abrir el mapa.");
+                Text["MissingTileSetTitle"],
+                Text.Format("MissingTileSetBody", map.Name, map.TileSetName));
 
             return;
         }
@@ -1271,7 +1265,7 @@ public partial class MainWindowViewModel : ObservableObject
             return;
 
         string? path = await Dialogs.PickFileToSaveAsync(
-            "Exportar mapa a csv",
+            Text["PickExportMapCsv"],
             $"{CleanFileName(editor.Map.Name)}.csv",
             PickerFileKind.Any);
 
@@ -1284,7 +1278,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            await Dialogs.ShowMessageAsync("No se pudo exportar el mapa", exception.Message);
+            await Dialogs.ShowMessageAsync(Text["ErrorExportMap"], exception.Message);
         }
     }
 
@@ -1302,14 +1296,13 @@ public partial class MainWindowViewModel : ObservableObject
         if (TileSetForImport() is not { } tileSet)
         {
             await Dialogs.ShowMessageAsync(
-                "No se sabe con qué tiles dibujarlo",
-                "Un csv no dice de qué juego de tiles son sus números. Ponte en la pestaña del "
-                + "juego que le corresponde, o en la de un mapa que ya lo use, y vuelve a importar.");
+                Text["NoTileSetTitle"],
+                Text["NoTileSetCsvBody"]);
 
             return;
         }
 
-        string? path = await Dialogs.PickFileToOpenAsync("Importar un csv como mapa", PickerFileKind.Any);
+        string? path = await Dialogs.PickFileToOpenAsync(Text["PickImportMapCsv"], PickerFileKind.Any);
         if (path is null)
             return;
 
@@ -1325,11 +1318,11 @@ public partial class MainWindowViewModel : ObservableObject
         }
         catch (FileFormatException exception)
         {
-            await Dialogs.ShowMessageAsync("El csv no se puede importar", exception.Message);
+            await Dialogs.ShowMessageAsync(Text["ErrorCsvImport"], exception.Message);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            await Dialogs.ShowMessageAsync("No se pudo abrir el fichero", exception.Message);
+            await Dialogs.ShowMessageAsync(Text["ErrorOpenFile"], exception.Message);
         }
     }
 
@@ -1369,7 +1362,7 @@ public partial class MainWindowViewModel : ObservableObject
         string extension = binary ? "bin" : "asm";
 
         string? path = await Dialogs.PickFileToSaveAsync(
-            $"Exportar mapa ({extension})",
+            Text[binary ? "PickExportMapBinary" : "PickExportMapAssembler"],
             $"{CleanFileName(map.Name)}.{extension}",
             PickerFileKind.Any);
 
@@ -1386,15 +1379,13 @@ public partial class MainWindowViewModel : ObservableObject
             if (HasEmptyCells(map))
             {
                 await Dialogs.ShowMessageAsync(
-                    "Mapa exportado",
-                    $"Las celdas vacías han salido con el tile {map.EmptyTile}: la tabla de nombres "
-                    + "del VDP siempre dibuja algo y en un byte no cabe el hueco. Se puede cambiar en "
-                    + "«Vacío» junto al tamaño del mapa.");
+                    Text["ExportedMapTitle"],
+                    Text.Format("ExportedMapEmptyBody", map.EmptyTile));
             }
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            await Dialogs.ShowMessageAsync("No se pudo exportar el mapa", exception.Message);
+            await Dialogs.ShowMessageAsync(Text["ErrorExportMap"], exception.Message);
         }
     }
 
@@ -1421,14 +1412,13 @@ public partial class MainWindowViewModel : ObservableObject
         if (TileSetForImport() is not { } tileSet)
         {
             await Dialogs.ShowMessageAsync(
-                "No se sabe con qué tiles dibujarlo",
-                "Un binario no dice de qué juego de tiles son sus números. Ponte en la pestaña del "
-                + "juego que le corresponde, o en la de un mapa que ya lo use, y vuelve a importar.");
+                Text["NoTileSetTitle"],
+                Text["NoTileSetBinaryBody"]);
 
             return;
         }
 
-        string? path = await Dialogs.PickFileToOpenAsync("Importar un binario como mapa", PickerFileKind.Any);
+        string? path = await Dialogs.PickFileToOpenAsync(Text["PickImportMapBinary"], PickerFileKind.Any);
         if (path is null)
             return;
 
@@ -1444,11 +1434,11 @@ public partial class MainWindowViewModel : ObservableObject
         }
         catch (FileFormatException exception)
         {
-            await Dialogs.ShowMessageAsync("El binario no se puede importar", exception.Message);
+            await Dialogs.ShowMessageAsync(Text["ErrorBinaryImport"], exception.Message);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            await Dialogs.ShowMessageAsync("No se pudo abrir el fichero", exception.Message);
+            await Dialogs.ShowMessageAsync(Text["ErrorOpenFile"], exception.Message);
         }
     }
 
@@ -1486,7 +1476,7 @@ public partial class MainWindowViewModel : ObservableObject
         string extension = binary ? ".bin" : ".asm";
 
         string? path = await Dialogs.PickFileToSaveAsync(
-            binary ? "Exportar a binario" : "Exportar a ensamblador",
+            Text[binary ? "PickExportBinary" : "PickExportAssembler"],
             $"{SpriteBankExporter.LabelOf(tileSet.Name)}{extension}");
 
         if (path is null)
@@ -1513,16 +1503,18 @@ public partial class MainWindowViewModel : ObservableObject
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            await Dialogs.ShowMessageAsync("No se pudo exportar el juego de tiles", exception.Message);
+            await Dialogs.ShowMessageAsync(Text["ErrorExportTileSet"], exception.Message);
 
             return;
         }
 
         await Dialogs.ShowMessageAsync(
-            "Juego de tiles exportado",
-            $"Se han escrito:{Environment.NewLine}{Path.GetFileName(patternsPath)}{Environment.NewLine}{Path.GetFileName(colorsPath)}"
-            + $"{Environment.NewLine}{Environment.NewLine}Recuerda copiar cada tabla {TileSetExporter.ScreenThirds} veces en VRAM, "
-            + "una por tercio de pantalla.");
+            Text["ExportedTileSetTitle"],
+            Text.Format(
+                "ExportedTileSetBody",
+                Path.GetFileName(patternsPath),
+                Path.GetFileName(colorsPath),
+                TileSetExporter.ScreenThirds));
     }
 
     [RelayCommand]
@@ -1544,7 +1536,7 @@ public partial class MainWindowViewModel : ObservableObject
         string extension = binary ? ".bin" : ".asm";
 
         string? path = await Dialogs.PickFileToSaveAsync(
-            binary ? "Exportar paleta a binario" : "Exportar paleta a ensamblador",
+            Text[binary ? "PickExportPaletteBinary" : "PickExportPaletteAssembler"],
             $"{SpriteBankExporter.LabelOf(palette.Name)}_palette{extension}");
 
         if (path is null)
@@ -1559,7 +1551,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            await Dialogs.ShowMessageAsync("No se pudo exportar la paleta", exception.Message);
+            await Dialogs.ShowMessageAsync(Text["ErrorExportPalette"], exception.Message);
         }
     }
 
@@ -1570,7 +1562,7 @@ public partial class MainWindowViewModel : ObservableObject
             return;
 
         string? path = await Dialogs.PickFileToSaveAsync(
-            "Exportar el juego de tiles a png",
+            Text["PickExportTileSetPng"],
             $"{SpriteBankExporter.LabelOf(editor.TileSet.Name)}.png",
             PickerFileKind.Image);
 
@@ -1586,7 +1578,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            await Dialogs.ShowMessageAsync("No se pudo exportar el png", exception.Message);
+            await Dialogs.ShowMessageAsync(Text["ErrorExportPng"], exception.Message);
         }
     }
 
@@ -1601,7 +1593,7 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private async Task ImportTileSetPngAsync()
     {
-        string? path = await Dialogs.PickFileToOpenAsync("Importar un png como juego de tiles", PickerFileKind.Image);
+        string? path = await Dialogs.PickFileToOpenAsync(Text["PickImportTileSetPng"], PickerFileKind.Image);
         if (path is null)
             return;
 
@@ -1614,7 +1606,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
         {
-            await Dialogs.ShowMessageAsync("No se pudo abrir la imagen", exception.Message);
+            await Dialogs.ShowMessageAsync(Text["ErrorOpenImage"], exception.Message);
 
             return;
         }
@@ -1629,7 +1621,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         if (!result.Ok)
         {
-            await Dialogs.ShowMessageAsync("La imagen no se puede importar", Describe(result));
+            await Dialogs.ShowMessageAsync(Text["ErrorImageImport"], Describe(result));
 
             return;
         }
@@ -1652,26 +1644,22 @@ public partial class MainWindowViewModel : ObservableObject
         if (colors.Count > TileSetPngConverter.MaxGeneratedColors)
         {
             await Dialogs.ShowMessageAsync(
-                "La imagen tiene demasiados colores",
-                $"Trae {colors.Count} colores distintos y como mucho pueden ser "
-                + $"{TileSetPngConverter.MaxGeneratedColors}, porque el color 0 del MSX está reservado para el "
-                + "transparente. Reduce los colores en tu editor de imagen y vuelve a intentarlo.");
+                Text["TooManyColorsTitle"],
+                Text.Format("TooManyColorsBody", colors.Count, TileSetPngConverter.MaxGeneratedColors));
 
             return null;
         }
 
         bool? generate = await Dialogs.ChooseAsync(
-            "Colores de la imagen",
-            $"La imagen usa {colors.Count} colores. Puedes crear una paleta nueva con ellos, que los respeta "
-            + $"tal cual, o buscar los más parecidos en la paleta «{Palettes.ActivePalette.Name}», que "
-            + "puede cambiarlos.",
-            "Crear una paleta",
-            "Usar la activa");
+            Text["ImageColorsTitle"],
+            Text.Format("ImageColorsBody", colors.Count, Palettes.ActivePalette.Name),
+            Text["ImageColorsNew"],
+            Text["ImageColorsExisting"]);
 
         return generate switch
         {
             null => null,
-            true => TileSetPngConverter.BuildPalette($"{name} (png)", colors),
+            true => TileSetPngConverter.BuildPalette(Text.Format("ImportedPngSuffix", name), colors),
             false => Palettes.ActivePalette,
         };
     }
@@ -1732,10 +1720,9 @@ public partial class MainWindowViewModel : ObservableObject
         bool unsaved = GetPanelFromDic(item.Tag)?.HasUnsavedChanges() ?? false;
 
         bool confirmed = await Dialogs.ConfirmAsync(
-            "Eliminar del proyecto",
-            $"Se va a eliminar «{item.DisplayText}» y se cerrará su pestaña."
-            + (unsaved ? " Tiene cambios sin guardar y se perderán." : string.Empty),
-            "Eliminar");
+            Text["DeleteItemTitle"],
+            Text.Format(unsaved ? "DeleteItemBodyUnsaved" : "DeleteItemBody", item.DisplayText),
+            Text["DeleteLabel"]);
 
         if (!confirmed)
             return;

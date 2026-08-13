@@ -273,6 +273,120 @@
   <data name="ReplaceOnlySelection" xml:space="preserve"><value>Només a la selecció</value></data>
   <data name="ReplaceAllLayers" xml:space="preserve"><value>A totes les capes</value></data>
 
+  <data name="KindTileSet" xml:space="preserve"><value>joc de tiles</value></data>
+  <data name="KindSpriteBank" xml:space="preserve"><value>banc de sprites</value></data>
+  <data name="KindMap" xml:space="preserve"><value>mapa</value></data>
+  <data name="KindProject" xml:space="preserve"><value>projecte</value></data>
+
+  <data name="PickSaveTileSet" xml:space="preserve"><value>Desa el joc de tiles</value></data>
+  <data name="PickSaveSpriteBank" xml:space="preserve"><value>Desa el banc de sprites</value></data>
+  <data name="PickSaveMap" xml:space="preserve"><value>Desa el mapa</value></data>
+  <data name="PickSaveProject" xml:space="preserve"><value>Desa el projecte</value></data>
+  <data name="PickSavePalette" xml:space="preserve"><value>Desa la paleta</value></data>
+  <data name="PickOpenProject" xml:space="preserve"><value>Obre un projecte</value></data>
+  <data name="PickOpen" xml:space="preserve"><value>Obre</value></data>
+  <data name="PickLoadReference" xml:space="preserve"><value>Carrega una imatge de referència</value></data>
+  <data name="PickExportBinary" xml:space="preserve"><value>Exporta a binari</value></data>
+  <data name="PickExportAssembler" xml:space="preserve"><value>Exporta a assemblador</value></data>
+  <data name="PickExportMapCsv" xml:space="preserve"><value>Exporta el mapa a csv</value></data>
+  <data name="PickExportMapBinary" xml:space="preserve"><value>Exporta el mapa a binari</value></data>
+  <data name="PickExportMapAssembler" xml:space="preserve"><value>Exporta el mapa a assemblador</value></data>
+  <data name="PickExportPaletteBinary" xml:space="preserve"><value>Exporta la paleta a binari</value></data>
+  <data name="PickExportPaletteAssembler" xml:space="preserve"><value>Exporta la paleta a assemblador</value></data>
+  <data name="PickExportTileSetPng" xml:space="preserve"><value>Exporta el joc de tiles a png</value></data>
+  <data name="PickImportTileSetPng" xml:space="preserve"><value>Importa un png com a joc de tiles</value></data>
+  <data name="PickImportMapCsv" xml:space="preserve"><value>Importa un csv com a mapa</value></data>
+  <data name="PickImportMapBinary" xml:space="preserve"><value>Importa un binari com a mapa</value></data>
+
+  <data name="ErrorSaveTileSet" xml:space="preserve"><value>No s'ha pogut desar el joc de tiles</value></data>
+  <data name="ErrorSaveSpriteBank" xml:space="preserve"><value>No s'ha pogut desar el banc de sprites</value></data>
+  <data name="ErrorSaveMap" xml:space="preserve"><value>No s'ha pogut desar el mapa</value></data>
+  <data name="ErrorSaveProject" xml:space="preserve"><value>No s'ha pogut desar el projecte</value></data>
+  <data name="ErrorSavePalette" xml:space="preserve"><value>No s'ha pogut desar la paleta</value></data>
+  <data name="ErrorOpenFile" xml:space="preserve"><value>No s'ha pogut obrir el fitxer</value></data>
+  <data name="ErrorOpenImage" xml:space="preserve"><value>No s'ha pogut obrir la imatge</value></data>
+  <data name="ErrorLoadImage" xml:space="preserve"><value>No s'ha pogut carregar la imatge</value></data>
+  <data name="ErrorExportSpriteBank" xml:space="preserve"><value>No s'ha pogut exportar el banc</value></data>
+  <data name="ErrorExportTileSet" xml:space="preserve"><value>No s'ha pogut exportar el joc de tiles</value></data>
+  <data name="ErrorExportMap" xml:space="preserve"><value>No s'ha pogut exportar el mapa</value></data>
+  <data name="ErrorExportPalette" xml:space="preserve"><value>No s'ha pogut exportar la paleta</value></data>
+  <data name="ErrorExportPng" xml:space="preserve"><value>No s'ha pogut exportar el png</value></data>
+  <data name="ErrorProjectInvalid" xml:space="preserve"><value>El projecte no és vàlid</value></data>
+  <data name="ErrorFileInvalid" xml:space="preserve"><value>El fitxer no és vàlid</value></data>
+  <data name="ErrorCsvImport" xml:space="preserve"><value>El csv no es pot importar</value></data>
+  <data name="ErrorBinaryImport" xml:space="preserve"><value>El binari no es pot importar</value></data>
+  <data name="ErrorImageImport" xml:space="preserve"><value>La imatge no es pot importar</value></data>
+
+  <data name="UnsavedTitle" xml:space="preserve"><value>Hi ha canvis sense desar</value></data>
+  <data name="UnsavedList" xml:space="preserve"><value>{0}
+
+{1}</value></data>
+  <data name="DiscardOnExit" xml:space="preserve"><value>Això es perdrà en sortir:</value></data>
+  <data name="DiscardOnExitSave" xml:space="preserve"><value>Desa i surt</value></data>
+  <data name="DiscardOnExitDrop" xml:space="preserve"><value>Surt sense desar</value></data>
+  <data name="DiscardOnOpen" xml:space="preserve"><value>Això es perdrà en obrir un altre projecte:</value></data>
+  <data name="DiscardOnOpenSave" xml:space="preserve"><value>Desa i obre</value></data>
+  <data name="DiscardOnOpenDrop" xml:space="preserve"><value>Obre sense desar</value></data>
+  <data name="DiscardOnNew" xml:space="preserve"><value>Això es perdrà en començar un projecte nou:</value></data>
+  <data name="DiscardOnNewSave" xml:space="preserve"><value>Desa i comença</value></data>
+  <data name="DiscardOnNewDrop" xml:space="preserve"><value>Comença sense desar</value></data>
+
+  <data name="DeleteLabel" xml:space="preserve"><value>Elimina</value></data>
+  <data name="DeletePaletteTitle" xml:space="preserve"><value>Elimina la paleta</value></data>
+  <data name="DeletePaletteBody" xml:space="preserve"><value>S'eliminarà la paleta «{0}». Aquesta acció no es pot desfer.</value></data>
+  <data name="DeleteReferenceTitle" xml:space="preserve"><value>Elimina la imatge de referència</value></data>
+  <data name="DeleteReferenceBody" xml:space="preserve"><value>S'eliminaran els {0} fons de «{1}». Els grups que els facin servir es quedaran sense fons.</value></data>
+  <data name="DeleteItemTitle" xml:space="preserve"><value>Elimina del projecte</value></data>
+  <data name="DeleteItemBody" xml:space="preserve"><value>S'eliminarà «{0}» i es tancarà la seva pestanya.</value></data>
+  <data name="DeleteItemBodyUnsaved" xml:space="preserve"><value>S'eliminarà «{0}» i es tancarà la seva pestanya. Té canvis sense desar i es perdran.</value></data>
+  <data name="DeleteSpriteTitle" xml:space="preserve"><value>Elimina l'sprite</value></data>
+  <data name="DeleteSpriteBody" xml:space="preserve"><value>S'eliminarà l'sprite {0} de {1}. Aquesta acció no es pot desfer.</value></data>
+  <data name="DeleteGroupTitle" xml:space="preserve"><value>Elimina el grup</value></data>
+  <data name="DeleteGroupBody" xml:space="preserve"><value>S'eliminarà el grup «{0}». Aquesta acció no es pot desfer.</value></data>
+
+  <data name="MissingItemsTitle" xml:space="preserve"><value>Falten elements del projecte</value></data>
+  <data name="MissingItemsBody" xml:space="preserve"><value>No s'han pogut obrir:
+{0}
+
+El projecte s'obre igualment, sense ells. Compte: si el deses ara, també marxaran de l'índex.</value></data>
+  <data name="MissingItemTileSet" xml:space="preserve"><value>  · {0} — li falta el joc de tiles «{1}»</value></data>
+  <data name="MissingItemReason" xml:space="preserve"><value>  · {0} — {1}</value></data>
+
+  <data name="MissingReferencesTitle" xml:space="preserve"><value>Falten imatges de referència</value></data>
+  <data name="MissingReferencesBody" xml:space="preserve"><value>No s'han pogut carregar: {0}. El banc s'obre igualment, sense aquests fons.</value></data>
+  <data name="CellSizeTitle" xml:space="preserve"><value>Mida de la cel·la</value></data>
+  <data name="CellSizeBody" xml:space="preserve"><value>«{0}» fa {1}x{2}, així que es carrega com a full de sprites. De quin costat són les cel·les? El que sobri a les vores s'agafa retallat.</value></data>
+
+  <data name="UnknownFileTitle" xml:space="preserve"><value>No es reconeix el fitxer</value></data>
+  <data name="UnknownFileBody" xml:space="preserve"><value>«{0}» no sembla un banc de sprites, un joc de tiles, un mapa ni una paleta; si ho hauria de ser, potser està malmès. Per portar un png, un csv o un binari hi ha Importa, al menú del que sigui.</value></data>
+
+  <data name="ExportedSpriteBankTitle" xml:space="preserve"><value>Banc exportat</value></data>
+  <data name="ExportedTwoFiles" xml:space="preserve"><value>S'han escrit:
+{0}
+{1}</value></data>
+  <data name="ExportedTileSetTitle" xml:space="preserve"><value>Joc de tiles exportat</value></data>
+  <data name="ExportedTileSetBody" xml:space="preserve"><value>S'han escrit:
+{0}
+{1}
+
+Recorda copiar cada taula {2} vegades a la VRAM, una per terç de pantalla.</value></data>
+  <data name="ExportedMapTitle" xml:space="preserve"><value>Mapa exportat</value></data>
+  <data name="ExportedMapEmptyBody" xml:space="preserve"><value>Les cel·les buides han sortit amb el tile {0}: la taula de noms del VDP sempre dibuixa alguna cosa i en un byte no hi cap el buit. Es pot canviar a «Buit», al costat de la mida del mapa.</value></data>
+
+  <data name="NoTileSetTitle" xml:space="preserve"><value>No se sap amb quins tiles dibuixar-lo</value></data>
+  <data name="NoTileSetCsvBody" xml:space="preserve"><value>Un csv no diu de quin joc de tiles són els seus números. Ves a la pestanya del joc que li correspon, o a la d'un mapa que ja el faci servir, i torna a importar.</value></data>
+  <data name="NoTileSetBinaryBody" xml:space="preserve"><value>Un binari no diu de quin joc de tiles són els seus números. Ves a la pestanya del joc que li correspon, o a la d'un mapa que ja el faci servir, i torna a importar.</value></data>
+  <data name="MissingTileSetTitle" xml:space="preserve"><value>Falta el joc de tiles</value></data>
+  <data name="MissingTileSetBody" xml:space="preserve"><value>El mapa «{0}» es dibuixa amb el joc «{1}», que no està obert. Obre'l primer i torna a obrir el mapa.</value></data>
+
+  <data name="TooManyColorsTitle" xml:space="preserve"><value>La imatge té massa colors</value></data>
+  <data name="TooManyColorsBody" xml:space="preserve"><value>Porta {0} colors diferents i com a molt en poden ser {1}, perquè el color 0 de l'MSX està reservat per al transparent. Redueix els colors al teu editor d'imatge i torna-ho a provar.</value></data>
+  <data name="ImageColorsTitle" xml:space="preserve"><value>Colors de la imatge</value></data>
+  <data name="ImageColorsBody" xml:space="preserve"><value>La imatge fa servir {0} colors. Pots crear una paleta nova amb ells, que els respecta tal qual, o buscar els més semblants a la paleta «{1}», que pot canviar-los.</value></data>
+  <data name="ImageColorsNew" xml:space="preserve"><value>Crea una paleta</value></data>
+  <data name="ImageColorsExisting" xml:space="preserve"><value>Fes servir la que hi ha</value></data>
+  <data name="ImportedPngSuffix" xml:space="preserve"><value>{0} (png)</value></data>
+
   <data name="CellSizeSideTip" xml:space="preserve"><value>Costat de la cel·la en píxels</value></data>
   <data name="CellSizeLoad" xml:space="preserve"><value>Carrega</value></data>
   <data name="ReferenceRemoveTip" xml:space="preserve"><value>Treu la imatge de referència</value></data>

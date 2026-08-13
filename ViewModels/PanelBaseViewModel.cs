@@ -72,8 +72,19 @@ public abstract partial class PanelBaseViewModel : ObservableObject
     public void RefreshHeader() =>
         Header = HeaderTag.Length == 0 ? DocumentName : $"{DocumentName} ({HeaderTag})";
 
-    /// <summary>Qué es, para poder decirlo: «Guardar el mapa «Nivel 1»».</summary>
-    public virtual string DocumentKind => "documento";
+    /// <summary>
+    /// Qué es este documento, para las claves de las frases que lo nombran.
+    /// </summary>
+    /// <remarks>
+    /// Es un trozo de clave —«TileSet», «Map»— y no un texto. Las frases que nombran el
+    /// tipo se escriben enteras una vez por tipo («No se pudo guardar el mapa») en vez de
+    /// montarlas con el nombre por fuera: eso sólo funciona en español y de casualidad,
+    /// porque los tres son masculinos.
+    /// </remarks>
+    public virtual string KindKey => "Document";
+
+    /// <summary>Cómo se llama el tipo, para nombrarlo dentro de un paréntesis.</summary>
+    public string DocumentKind => Localization.Localizer.Instance[$"Kind{KindKey}"];
 
     /// <summary>Lo que se lee en la pestaña. El asterisco marca lo que está sin guardar.</summary>
     public string TabLabel => IsModified ? $"{Header} *" : Header;

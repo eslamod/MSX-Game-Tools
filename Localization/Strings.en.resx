@@ -272,6 +272,120 @@
   <data name="ReplaceOnlySelection" xml:space="preserve"><value>Only in the selection</value></data>
   <data name="ReplaceAllLayers" xml:space="preserve"><value>In every layer</value></data>
 
+  <data name="KindTileSet" xml:space="preserve"><value>tile set</value></data>
+  <data name="KindSpriteBank" xml:space="preserve"><value>sprite bank</value></data>
+  <data name="KindMap" xml:space="preserve"><value>map</value></data>
+  <data name="KindProject" xml:space="preserve"><value>project</value></data>
+
+  <data name="PickSaveTileSet" xml:space="preserve"><value>Save the tile set</value></data>
+  <data name="PickSaveSpriteBank" xml:space="preserve"><value>Save the sprite bank</value></data>
+  <data name="PickSaveMap" xml:space="preserve"><value>Save the map</value></data>
+  <data name="PickSaveProject" xml:space="preserve"><value>Save the project</value></data>
+  <data name="PickSavePalette" xml:space="preserve"><value>Save the palette</value></data>
+  <data name="PickOpenProject" xml:space="preserve"><value>Open a project</value></data>
+  <data name="PickOpen" xml:space="preserve"><value>Open</value></data>
+  <data name="PickLoadReference" xml:space="preserve"><value>Load a reference image</value></data>
+  <data name="PickExportBinary" xml:space="preserve"><value>Export to binary</value></data>
+  <data name="PickExportAssembler" xml:space="preserve"><value>Export to assembler</value></data>
+  <data name="PickExportMapCsv" xml:space="preserve"><value>Export the map to csv</value></data>
+  <data name="PickExportMapBinary" xml:space="preserve"><value>Export the map to binary</value></data>
+  <data name="PickExportMapAssembler" xml:space="preserve"><value>Export the map to assembler</value></data>
+  <data name="PickExportPaletteBinary" xml:space="preserve"><value>Export the palette to binary</value></data>
+  <data name="PickExportPaletteAssembler" xml:space="preserve"><value>Export the palette to assembler</value></data>
+  <data name="PickExportTileSetPng" xml:space="preserve"><value>Export the tile set to png</value></data>
+  <data name="PickImportTileSetPng" xml:space="preserve"><value>Import a png as a tile set</value></data>
+  <data name="PickImportMapCsv" xml:space="preserve"><value>Import a csv as a map</value></data>
+  <data name="PickImportMapBinary" xml:space="preserve"><value>Import a binary as a map</value></data>
+
+  <data name="ErrorSaveTileSet" xml:space="preserve"><value>The tile set could not be saved</value></data>
+  <data name="ErrorSaveSpriteBank" xml:space="preserve"><value>The sprite bank could not be saved</value></data>
+  <data name="ErrorSaveMap" xml:space="preserve"><value>The map could not be saved</value></data>
+  <data name="ErrorSaveProject" xml:space="preserve"><value>The project could not be saved</value></data>
+  <data name="ErrorSavePalette" xml:space="preserve"><value>The palette could not be saved</value></data>
+  <data name="ErrorOpenFile" xml:space="preserve"><value>The file could not be opened</value></data>
+  <data name="ErrorOpenImage" xml:space="preserve"><value>The image could not be opened</value></data>
+  <data name="ErrorLoadImage" xml:space="preserve"><value>The image could not be loaded</value></data>
+  <data name="ErrorExportSpriteBank" xml:space="preserve"><value>The bank could not be exported</value></data>
+  <data name="ErrorExportTileSet" xml:space="preserve"><value>The tile set could not be exported</value></data>
+  <data name="ErrorExportMap" xml:space="preserve"><value>The map could not be exported</value></data>
+  <data name="ErrorExportPalette" xml:space="preserve"><value>The palette could not be exported</value></data>
+  <data name="ErrorExportPng" xml:space="preserve"><value>The png could not be exported</value></data>
+  <data name="ErrorProjectInvalid" xml:space="preserve"><value>The project is not valid</value></data>
+  <data name="ErrorFileInvalid" xml:space="preserve"><value>The file is not valid</value></data>
+  <data name="ErrorCsvImport" xml:space="preserve"><value>The csv cannot be imported</value></data>
+  <data name="ErrorBinaryImport" xml:space="preserve"><value>The binary cannot be imported</value></data>
+  <data name="ErrorImageImport" xml:space="preserve"><value>The image cannot be imported</value></data>
+
+  <data name="UnsavedTitle" xml:space="preserve"><value>There are unsaved changes</value></data>
+  <data name="UnsavedList" xml:space="preserve"><value>{0}
+
+{1}</value></data>
+  <data name="DiscardOnExit" xml:space="preserve"><value>This will be lost on quitting:</value></data>
+  <data name="DiscardOnExitSave" xml:space="preserve"><value>Save and quit</value></data>
+  <data name="DiscardOnExitDrop" xml:space="preserve"><value>Quit without saving</value></data>
+  <data name="DiscardOnOpen" xml:space="preserve"><value>This will be lost on opening another project:</value></data>
+  <data name="DiscardOnOpenSave" xml:space="preserve"><value>Save and open</value></data>
+  <data name="DiscardOnOpenDrop" xml:space="preserve"><value>Open without saving</value></data>
+  <data name="DiscardOnNew" xml:space="preserve"><value>This will be lost on starting a new project:</value></data>
+  <data name="DiscardOnNewSave" xml:space="preserve"><value>Save and start</value></data>
+  <data name="DiscardOnNewDrop" xml:space="preserve"><value>Start without saving</value></data>
+
+  <data name="DeleteLabel" xml:space="preserve"><value>Delete</value></data>
+  <data name="DeletePaletteTitle" xml:space="preserve"><value>Delete the palette</value></data>
+  <data name="DeletePaletteBody" xml:space="preserve"><value>The palette «{0}» is about to be deleted. This cannot be undone.</value></data>
+  <data name="DeleteReferenceTitle" xml:space="preserve"><value>Delete the reference image</value></data>
+  <data name="DeleteReferenceBody" xml:space="preserve"><value>The {0} backgrounds of «{1}» are about to be deleted. Groups using them will be left without one.</value></data>
+  <data name="DeleteItemTitle" xml:space="preserve"><value>Delete from the project</value></data>
+  <data name="DeleteItemBody" xml:space="preserve"><value>«{0}» is about to be deleted and its tab will be closed.</value></data>
+  <data name="DeleteItemBodyUnsaved" xml:space="preserve"><value>«{0}» is about to be deleted and its tab will be closed. It has unsaved changes and they will be lost.</value></data>
+  <data name="DeleteSpriteTitle" xml:space="preserve"><value>Delete the sprite</value></data>
+  <data name="DeleteSpriteBody" xml:space="preserve"><value>Sprite {0} of {1} is about to be deleted. This cannot be undone.</value></data>
+  <data name="DeleteGroupTitle" xml:space="preserve"><value>Delete the group</value></data>
+  <data name="DeleteGroupBody" xml:space="preserve"><value>The group «{0}» is about to be deleted. This cannot be undone.</value></data>
+
+  <data name="MissingItemsTitle" xml:space="preserve"><value>Some items of the project are missing</value></data>
+  <data name="MissingItemsBody" xml:space="preserve"><value>These could not be opened:
+{0}
+
+The project opens anyway, without them. Careful: saving it now drops them from the index too.</value></data>
+  <data name="MissingItemTileSet" xml:space="preserve"><value>  · {0} — the tile set «{1}» is missing</value></data>
+  <data name="MissingItemReason" xml:space="preserve"><value>  · {0} — {1}</value></data>
+
+  <data name="MissingReferencesTitle" xml:space="preserve"><value>Some reference images are missing</value></data>
+  <data name="MissingReferencesBody" xml:space="preserve"><value>These could not be loaded: {0}. The bank opens anyway, without those backgrounds.</value></data>
+  <data name="CellSizeTitle" xml:space="preserve"><value>Cell size</value></data>
+  <data name="CellSizeBody" xml:space="preserve"><value>«{0}» is {1}x{2}, so it loads as a sprite sheet. What side are the cells? Whatever is left over at the edges is taken cropped.</value></data>
+
+  <data name="UnknownFileTitle" xml:space="preserve"><value>The file is not recognised</value></data>
+  <data name="UnknownFileBody" xml:space="preserve"><value>«{0}» does not look like a sprite bank, a tile set, a map or a palette; if it should be one, it may be damaged. To bring in a png, a csv or a binary there is Import, in the menu of whatever it is.</value></data>
+
+  <data name="ExportedSpriteBankTitle" xml:space="preserve"><value>Bank exported</value></data>
+  <data name="ExportedTwoFiles" xml:space="preserve"><value>These were written:
+{0}
+{1}</value></data>
+  <data name="ExportedTileSetTitle" xml:space="preserve"><value>Tile set exported</value></data>
+  <data name="ExportedTileSetBody" xml:space="preserve"><value>These were written:
+{0}
+{1}
+
+Remember to copy each table {2} times into VRAM, one per third of the screen.</value></data>
+  <data name="ExportedMapTitle" xml:space="preserve"><value>Map exported</value></data>
+  <data name="ExportedMapEmptyBody" xml:space="preserve"><value>Empty cells came out as tile {0}: the VDP name table always draws something and a byte has no room for the hole. It can be changed in «Empty», next to the size of the map.</value></data>
+
+  <data name="NoTileSetTitle" xml:space="preserve"><value>There is no telling which tiles to draw it with</value></data>
+  <data name="NoTileSetCsvBody" xml:space="preserve"><value>A csv does not say which tile set its numbers belong to. Go to the tab of the set it belongs to, or to that of a map already using it, and import again.</value></data>
+  <data name="NoTileSetBinaryBody" xml:space="preserve"><value>A binary does not say which tile set its numbers belong to. Go to the tab of the set it belongs to, or to that of a map already using it, and import again.</value></data>
+  <data name="MissingTileSetTitle" xml:space="preserve"><value>The tile set is missing</value></data>
+  <data name="MissingTileSetBody" xml:space="preserve"><value>The map «{0}» is drawn with the set «{1}», which is not open. Open it first and open the map again.</value></data>
+
+  <data name="TooManyColorsTitle" xml:space="preserve"><value>The image has too many colours</value></data>
+  <data name="TooManyColorsBody" xml:space="preserve"><value>It brings {0} distinct colours and there can be at most {1}, because colour 0 of the MSX is reserved for the transparent one. Reduce the colours in your image editor and try again.</value></data>
+  <data name="ImageColorsTitle" xml:space="preserve"><value>Colours of the image</value></data>
+  <data name="ImageColorsBody" xml:space="preserve"><value>The image uses {0} colours. You can create a new palette with them, which keeps them as they are, or look for the closest ones in the palette «{1}», which may change them.</value></data>
+  <data name="ImageColorsNew" xml:space="preserve"><value>Create a palette</value></data>
+  <data name="ImageColorsExisting" xml:space="preserve"><value>Use the current one</value></data>
+  <data name="ImportedPngSuffix" xml:space="preserve"><value>{0} (png)</value></data>
+
   <data name="CellSizeSideTip" xml:space="preserve"><value>Side of the cell in pixels</value></data>
   <data name="CellSizeLoad" xml:space="preserve"><value>Load</value></data>
   <data name="ReferenceRemoveTip" xml:space="preserve"><value>Remove the reference image</value></data>
