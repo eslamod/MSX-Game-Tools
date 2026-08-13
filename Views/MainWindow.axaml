@@ -53,6 +53,8 @@
         <MenuItem Header="Export map (asm)..." Command="{Binding ExportMapAssemblerCommand}" />
         <MenuItem Header="Import map from binary..." Command="{Binding ImportMapBinaryCommand}" />
         <Separator />
+        <MenuItem Header="Preferencias..." Command="{Binding ShowPreferencesCommand}" />
+        <Separator />
         <!-- Cierra la ventana, para pasar por el mismo aviso de cambios sin guardar
              que la aspa del titulo. -->
         <MenuItem Header="Exit" Click="OnExit" />

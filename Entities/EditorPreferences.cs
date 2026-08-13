@@ -40,4 +40,22 @@ public sealed class EditorPreferences
 
     /// <summary>Factor del zoom del selector de tiles y bloques del editor de mapas.</summary>
     public int MapTileZoom { get; set; } = 2;
+
+    /// <summary>
+    /// Se queda con los valores de otro.
+    /// </summary>
+    /// <remarks>
+    /// Copiar en vez de sustituir el objeto: las pestañas ya abiertas guardan una
+    /// referencia a éste, y cambiarlo por otro las dejaría mirando al de antes.
+    /// </remarks>
+    public void CopyFrom(EditorPreferences other)
+    {
+        SpriteCanvasZoom = other.SpriteCanvasZoom;
+        SpriteThumbnailZoom = other.SpriteThumbnailZoom;
+        TileCanvasZoom = other.TileCanvasZoom;
+        TileThumbnailZoom = other.TileThumbnailZoom;
+        BlockGridZoom = other.BlockGridZoom;
+        BlockTileZoom = other.BlockTileZoom;
+        MapTileZoom = other.MapTileZoom;
+    }
 }

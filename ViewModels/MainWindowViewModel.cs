@@ -12,6 +12,8 @@ public partial class MainWindowViewModel : ObservableObject
 {
     private readonly Dictionary<string, PanelBaseViewModel> _panels = [];
 
+    private readonly SettingsStore? _settings;
+
     private PanelBaseViewModel? _rightPanViewModel;
 
     private double _rightPanelWidth = MinRightPanelWidth;
@@ -35,9 +37,14 @@ public partial class MainWindowViewModel : ObservableObject
     /// La aplicación inyecta el servicio real; si no se pasa ninguno no se abre nada,
     /// que es lo que quieren los tests y cualquier uso sin ventana.
     /// </param>
-    public MainWindowViewModel(IDialogService? dialogs = null)
+    /// <param name="settings">
+    /// Dónde se guardan el idioma y los zooms. Sin él no se lee ni se escribe nada, que es
+    /// lo que quieren los tests: los ajustes de quien ejecuta las pruebas no se tocan.
+    /// </param>
+    public MainWindowViewModel(IDialogService? dialogs = null, SettingsStore? settings = null)
     {
         Dialogs = dialogs ?? new SilentDialogService();
+        _settings = settings;
 
         Palettes.PropertyChanged += (_, e) =>
         {
@@ -421,6 +428,36 @@ public partial class MainWindowViewModel : ObservableObject
 
         return panel;
     }
+
+    // ------------------------------------------------------------------ ajustes
+
+    /// <summary>
+    /// Aplica los ajustes guardados. Lo llama la aplicación antes de enseñar la ventana.
+    /// </summary>
+    /// <remarks>
+    /// El idioma vacío es «el que hable la máquina», que es con el que arranca el
+    /// <see cref="Localization.Localizer"/> mientras nadie diga otra cosa.
+    /// </remarks>
+    public void LoadSettings()
+    {
+        if (_settings is null)
+            return;
+
+        Settings settings = _settings.Load();
+
+        if (settings.Language.Length > 0)
+            Localization.Localizer.Instance.Language = settings.Language;
+
+        Preferences.CopyFrom(settings.Preferences);
+    }
+
+    /// <summary>Guarda los ajustes. Se llama al aceptar las preferencias y al salir.</summary>
+    public void SaveSettings() =>
+        _settings?.Save(new Settings(Localization.Localizer.Instance.Language, Preferences));
+
+    /// <summary>Abre las preferencias en el lateral.</summary>
+    [RelayCommand]
+    private void ShowPreferences() => OpenForm(() => new EditPreferencesViewModel(this));
 
     // ------------------------------------------------------------------ el proyecto
 

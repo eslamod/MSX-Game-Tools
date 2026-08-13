@@ -19,8 +19,13 @@ public partial class App : Application
             // La ventana primero: el servicio de diálogos la necesita como propietaria
             // de los modales.
             var window = new MainWindow();
-            window.DataContext = new MainWindowViewModel(new DialogService(window));
+            var main = new MainWindowViewModel(new DialogService(window), new SettingsStore());
 
+            // Antes de enseñarla: el idioma decide lo que dicen los menús, y cambiarlo con
+            // la ventana ya delante se ve como un parpadeo.
+            main.LoadSettings();
+
+            window.DataContext = main;
             desktop.MainWindow = window;
         }
 

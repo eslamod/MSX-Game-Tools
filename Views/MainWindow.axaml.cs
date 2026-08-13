@@ -64,6 +64,10 @@ public partial class MainWindow : Window
         if (!await main.ConfirmExitAsync())
             return;
 
+        // El zoom se toca con los botones de cada editor, no en las preferencias, asi que
+        // lo que haya quedado puesto se guarda al salir.
+        main.SaveSettings();
+
         _confirmed = true;
 
         Close();

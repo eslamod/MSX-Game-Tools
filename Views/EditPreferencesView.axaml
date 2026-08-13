@@ -1,0 +1,108 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:loc="clr-namespace:MSX_GameTools.Localization"
+             mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="480"
+             x:Class="MSX_GameTools.Views.EditPreferencesView"
+             x:DataType="vm:EditPreferencesViewModel"
+             Background="Gainsboro">
+
+  <!-- Las etiquetas de aqui todavia no estan traducidas: los textos de los paneles son
+       la siguiente capa. Lo que si esta es el idioma que se elige. -->
+  <Grid Margin="10" RowDefinitions="Auto,Auto,Auto,*,Auto">
+
+    <TextBlock Grid.Row="0" Text="Preferencias" FontWeight="Bold" Margin="0,0,0,12" />
+
+    <Grid Grid.Row="1" ColumnDefinitions="150,*" Margin="0,0,0,14">
+      <TextBlock Grid.Column="0" Text="Idioma" VerticalAlignment="Center" />
+      <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                ItemsSource="{Binding Languages}"
+                SelectedItem="{Binding Language}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="loc:LanguageChoice">
+            <TextBlock Text="{Binding Name}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+    </Grid>
+
+    <StackPanel Grid.Row="2" Spacing="6">
+
+      <TextBlock Text="Zoom de partida" FontWeight="Bold" Margin="0,0,0,2" />
+
+      <!-- Con que zoom se abre cada sitio. Lo que ya este abierto se queda con el suyo
+           hasta que se vuelva a montar su pestaña. -->
+      <Grid ColumnDefinitions="150,*">
+        <TextBlock Grid.Column="0" Text="Lienzo de sprites" VerticalAlignment="Center" />
+        <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding CanvasZooms}"
+                  SelectedValue="{Binding SpriteCanvasZoom}"
+                  SelectedValueBinding="{Binding Value}"
+                  DisplayMemberBinding="{Binding Label}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="150,*">
+        <TextBlock Grid.Column="0" Text="Miniaturas de sprites" VerticalAlignment="Center" />
+        <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding FourZooms}"
+                  SelectedValue="{Binding SpriteThumbnailZoom}"
+                  SelectedValueBinding="{Binding Value}"
+                  DisplayMemberBinding="{Binding Label}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="150,*">
+        <TextBlock Grid.Column="0" Text="Lienzo de tiles" VerticalAlignment="Center" />
+        <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding CanvasZooms}"
+                  SelectedValue="{Binding TileCanvasZoom}"
+                  SelectedValueBinding="{Binding Value}"
+                  DisplayMemberBinding="{Binding Label}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="150,*">
+        <TextBlock Grid.Column="0" Text="Miniaturas de tiles" VerticalAlignment="Center" />
+        <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding FourZooms}"
+                  SelectedValue="{Binding TileThumbnailZoom}"
+                  SelectedValueBinding="{Binding Value}"
+                  DisplayMemberBinding="{Binding Label}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="150,*">
+        <TextBlock Grid.Column="0" Text="Rejilla de bloques" VerticalAlignment="Center" />
+        <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding ThreeZooms}"
+                  SelectedValue="{Binding BlockGridZoom}"
+                  SelectedValueBinding="{Binding Value}"
+                  DisplayMemberBinding="{Binding Label}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="150,*">
+        <TextBlock Grid.Column="0" Text="Tiles en los bloques" VerticalAlignment="Center" />
+        <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding ThreeZooms}"
+                  SelectedValue="{Binding BlockTileZoom}"
+                  SelectedValueBinding="{Binding Value}"
+                  DisplayMemberBinding="{Binding Label}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="150,*">
+        <TextBlock Grid.Column="0" Text="Tiles en el mapa" VerticalAlignment="Center" />
+        <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding FourZooms}"
+                  SelectedValue="{Binding MapTileZoom}"
+                  SelectedValueBinding="{Binding Value}"
+                  DisplayMemberBinding="{Binding Label}" />
+      </Grid>
+
+    </StackPanel>
+
+    <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
+      <Button Content="Accept" Width="75" Command="{Binding AcceptPreferencesCommand}" />
+      <Button Content="Cancel" Width="75" Command="{Binding CancelPreferencesCommand}" />
+    </StackPanel>
+
+  </Grid>
+</UserControl>
