@@ -40,6 +40,13 @@ Escrito en C# sobre Avalonia 11.3 y .NET 10. Funciona en Windows, Linux y macOS.
 - **Deshacer y rehacer**, veinte pasos.
 - Entra y sale en json, csv (compatible con Tiled) y binario; y sale también en `.asm`.
 
+### Guardar
+
+- **Guardar** escribe el documento que esté delante en el fichero del que salió, sea un
+  banco, un juego de tiles o un mapa; sólo pregunta la ruta la primera vez.
+- La pestaña de lo que está sin guardar lleva un asterisco, y al salir se avisa de lo que
+  se perdería, con la opción de guardarlo antes.
+
 ### Paletas
 
 - Las quince del MSX1 más el índice transparente, y paletas propias para MSX2 con los
@@ -117,5 +124,5 @@ En desarrollo. Funcionan los bancos de sprites, los juegos de tiles con sus bloq
 paletas y el editor de mapas. Están por hacer las animaciones, los comportamientos, los
 sonidos y la música, que ya tienen su sitio en el árbol del proyecto.
 
-Falta también un aviso de cambios sin guardar: al cerrar una pestaña o eliminar un
-elemento se pierde lo que no se haya guardado en un fichero.
+Falta el fichero de proyecto que agrupe todo lo abierto —bancos, juegos de tiles, paletas
+y mapas— para no tener que ir cargándolo pieza a pieza.

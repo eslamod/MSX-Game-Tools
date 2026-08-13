@@ -19,11 +19,13 @@ public class SpriteBankFileCommandsTests : IDisposable
     {
         var main = new MainWindowViewModel();
 
-        Assert.False(main.SaveSpriteBankCommand.CanExecute(null));
+        Assert.False(main.SaveDocumentCommand.CanExecute(null));
+        Assert.False(main.ExportSpriteBankBinaryCommand.CanExecute(null));
 
         main.OpenSpriteBank(new SpriteBank(SpriteBank.SpriteType.MSX2, "Uno"));
 
-        Assert.True(main.SaveSpriteBankCommand.CanExecute(null));
+        Assert.True(main.SaveDocumentCommand.CanExecute(null));
+        Assert.True(main.ExportSpriteBankBinaryCommand.CanExecute(null));
     }
 
     [AvaloniaFact]
@@ -39,7 +41,7 @@ public class SpriteBankFileCommandsTests : IDisposable
         editor.AddGroupCommand.Execute(null);
         editor.SelectedGroup!.NudgeOffsetCommand.Execute("right");
 
-        await main.SaveSpriteBankCommand.ExecuteAsync(null);
+        await main.SaveDocumentCommand.ExecuteAsync(null);
         Assert.True(File.Exists(path));
 
         await main.LoadSpriteBankCommand.ExecuteAsync(null);
@@ -144,7 +146,7 @@ public class SpriteBankFileCommandsTests : IDisposable
         var main = new MainWindowViewModel(dialogs);
         main.OpenSpriteBank(new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"));
 
-        await main.SaveSpriteBankCommand.ExecuteAsync(null);
+        await main.SaveDocumentCommand.ExecuteAsync(null);
 
         Assert.Empty(Directory.GetFiles(_folder));
         Assert.Empty(dialogs.Messages);

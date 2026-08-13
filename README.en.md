@@ -40,6 +40,13 @@ Written in C# on Avalonia 11.3 and .NET 10. Runs on Windows, Linux and macOS.
 - **Undo and redo**, twenty steps.
 - Reads and writes json, csv (Tiled compatible) and binary; also writes `.asm`.
 
+### Saving
+
+- **Save** writes whatever document is in front — a bank, a tile set or a map — back to
+  the file it came from, and only asks for a path the first time.
+- Tabs with unsaved work carry an asterisk, and quitting warns about what would be lost,
+  offering to save it first.
+
 ### Palettes
 
 - The fifteen MSX1 colours plus the transparent index, and custom MSX2 palettes from the
@@ -116,5 +123,5 @@ Under development. Sprite banks, tile sets with their blocks, palettes and the m
 all work. Animations, behaviours, sounds and music are still to be done, though they
 already have their place in the project tree.
 
-Also missing: a warning about unsaved changes. Closing a tab or deleting an item loses
-whatever has not been written to a file.
+Still missing: a project file grouping everything that is open — banks, tile sets,
+palettes and maps — so it does not have to be loaded piece by piece.

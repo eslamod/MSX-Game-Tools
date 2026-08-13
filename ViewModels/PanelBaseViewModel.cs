@@ -5,11 +5,24 @@ namespace MSX_GameTools.ViewModels;
 /// <summary>Base de todo panel que puede vivir en una pestaña o en el panel derecho.</summary>
 public abstract partial class PanelBaseViewModel : ObservableObject
 {
+    /// <summary>El documento tal y como quedó la última vez que se guardó.</summary>
+    private string? _savedText;
+
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TabLabel))]
     private string _header = string.Empty;
 
     [ObservableProperty]
     private string _tagId = string.Empty;
+
+    /// <summary>El fichero del que salió o en el que se guardó; nulo si nunca se guardó.</summary>
+    [ObservableProperty]
+    private string? _filePath;
+
+    /// <summary>Si se ha tocado algo desde el último guardado. Es lo que marca el asterisco.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TabLabel))]
+    private bool _isModified;
 
     /// <summary>
     /// Si el panel es una herramienta y no un documento.
@@ -20,4 +33,84 @@ public abstract partial class PanelBaseViewModel : ObservableObject
     /// hay que verlos mientras se dibujan los tiles.
     /// </remarks>
     public virtual bool IsTool => false;
+
+    /// <summary>
+    /// Si lo que hay en el panel se guarda en un fichero.
+    /// </summary>
+    /// <remarks>
+    /// Los formularios del lateral no lo son: se abren, se aceptan y se van, y no hay nada
+    /// suyo que perder. Los bloques tampoco, aunque se editen: se guardan dentro del
+    /// fichero de su juego de tiles, así que el documento es el juego.
+    /// </remarks>
+    public virtual bool IsDocument => false;
+
+    /// <summary>Cómo se llama el elemento, para proponer el nombre del fichero.</summary>
+    public virtual string DocumentName => Header;
+
+    /// <summary>Qué es, para poder decirlo: «Guardar el mapa «Nivel 1»».</summary>
+    public virtual string DocumentKind => "documento";
+
+    /// <summary>Lo que se lee en la pestaña. El asterisco marca lo que está sin guardar.</summary>
+    public string TabLabel => IsModified ? $"{Header} *" : Header;
+
+    /// <summary>
+    /// El documento tal y como quedaría en su fichero ahora mismo.
+    /// </summary>
+    /// <remarks>
+    /// Es lo que escribe Guardar y es lo que se compara para saber si hay cambios. Con una
+    /// sola definición las dos cosas no pueden discrepar: si un día el formato cambia, el
+    /// aviso de cambios sin guardar cambia con él sin tocar nada más.
+    /// </remarks>
+    public virtual string ToFileText() => string.Empty;
+
+    /// <summary>
+    /// Apunta que se ha tocado algo, para que aparezca el asterisco.
+    /// </summary>
+    /// <remarks>
+    /// Es una señal barata y generosa: puede sobrar —deshacer hasta el principio deja el
+    /// asterisco puesto— y no pasa nada. Lo que decide si hay trabajo que perder es
+    /// <see cref="HasUnsavedChanges"/>, que mira el contenido de verdad; así olvidarse de
+    /// llamar aquí afea la pestaña pero no pierde nada.
+    /// </remarks>
+    public void Touch()
+    {
+        if (IsDocument)
+            IsModified = true;
+    }
+
+    /// <summary>El documento acaba de salir de un fichero o de entrar en él.</summary>
+    /// <param name="text">
+    /// Lo que hay en el fichero, si ya se tenía. Guardar lo acaba de escribir, así que
+    /// pasarlo evita serializar el documento entero dos veces seguidas.
+    /// </param>
+    public void MarkSaved(string path, string? text = null)
+    {
+        FilePath = path;
+        _savedText = text ?? ToFileText();
+        IsModified = false;
+    }
+
+    /// <summary>
+    /// Documento recién creado: existe, pero todavía no hay nada que perder.
+    /// </summary>
+    /// <remarks>
+    /// Lo que se importa de un png, un csv o un binario no pasa por aquí: eso sí trae
+    /// contenido, no tiene fichero del editor donde estar, y sale marcado desde el
+    /// principio.
+    /// </remarks>
+    public void MarkClean()
+    {
+        _savedText = ToFileText();
+        IsModified = false;
+    }
+
+    /// <summary>
+    /// Si lo que hay ahora se diferencia de lo último que se guardó.
+    /// </summary>
+    /// <remarks>
+    /// Cuesta lo que serializar el documento entero, así que se pregunta al salir y al
+    /// eliminar, no mientras se dibuja. A cambio no se puede equivocar por un
+    /// <see cref="Touch"/> que falte.
+    /// </remarks>
+    public bool HasUnsavedChanges() => IsDocument && ToFileText() != _savedText;
 }

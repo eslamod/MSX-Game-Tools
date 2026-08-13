@@ -23,6 +23,8 @@ internal sealed class SpritePixelSurface(SpritesEditorViewModel editor) : IPixel
 
         row.ArrayColumns[x] = on;
 
+        editor.Touch();
+
         editor.CurrentSprite.ImageMini?.SetPixel(x, y, on
             ? SpriteRenderer.ResolveRowColor(editor.ColorPalette, row.Color, editor.BackgroundColor.Color)
             : editor.BackgroundColor.Color);

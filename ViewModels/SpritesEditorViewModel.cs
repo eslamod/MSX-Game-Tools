@@ -124,7 +124,12 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
         PatternBackground = new BackgroundSelectionViewModel(
             _backgrounds, _dialogs, () => CurrentSprite.Background, reference => CurrentSprite.Background = reference);
 
-        PatternBackground.Changed += () => OnPropertyChanged(nameof(PatternBackgroundTile));
+        // Qué imagen de referencia lleva cada patrón se guarda en el banco.
+        PatternBackground.Changed += () =>
+        {
+            Touch();
+            OnPropertyChanged(nameof(PatternBackgroundTile));
+        };
 
         for (int row = 0; row < Sprite.Rows; row++)
         {
@@ -166,6 +171,16 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
         if (index >= 0)
             GoTo(index + 1);
     }
+
+    public override bool IsDocument => true;
+
+    public override string DocumentName => _spriteBank.Name;
+
+    public override string DocumentKind => "banco de sprites";
+
+    /// <inheritdoc cref="TileSetEditorViewModel.ToFileText"/>
+    public override string ToFileText() => SpriteBankSerializer.Serialize(
+        _spriteBank, ColorPalette, BackgroundColorIndex, [.. _backgrounds.Images]);
 
     public SpriteBank SpritesBank => _spriteBank;
 
@@ -216,6 +231,8 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
             return;
 
         SelectedGroup = TrackGroup(group);
+
+        Touch();
         AddGroupCommand.NotifyCanExecuteChanged();
     }
 
@@ -248,6 +265,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
         Groups.Remove(doomed);
         _spriteBank.Groups.Remove(doomed.Group);
 
+        Touch();
         AddGroupCommand.NotifyCanExecuteChanged();
     }
 
@@ -263,7 +281,10 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
         viewModel.PropertyChanged += (sender, e) =>
         {
             if (e.PropertyName == nameof(SpriteGroupViewModel.BackgroundTile) && sender is SpriteGroupViewModel changed)
+            {
+                Touch();
                 RenderGroup(changed);
+            }
         };
 
         group.Changed += OnGroupChanged;
@@ -295,6 +316,8 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
 
     private void OnGroupChanged(SpriteGroup group)
     {
+        Touch();
+
         SpriteGroupViewModel? viewModel = Groups.FirstOrDefault(g => ReferenceEquals(g.Group, group));
         if (viewModel is not null)
             RenderGroup(viewModel);
@@ -344,6 +367,8 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
 
         ImagesMiniList.Add(sprite.ImageMini);
         NumberSprites = _spriteBank.SpritesList.Count;
+
+        Touch();
         RenderThumbnail(sprite);
 
         // El sprite recién creado pasa a ser el que se edita.
@@ -371,6 +396,8 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
             ImagesMiniList.RemoveAt(index);
 
         NumberSprites = _spriteBank.SpritesList.Count;
+
+        Touch();
 
         // Se queda en la misma posición, que ahora ocupa el sprite siguiente,
         // salvo que se hubiera borrado el último.
@@ -401,6 +428,8 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
         foreach (SpriteRow row in CurrentSprite.ArraySpriteRows)
             row.Color = color.Index;
 
+        Touch();
+
         foreach (SpriteRowColorViewModel cell in RowColors)
             cell.Refresh();
 
@@ -422,6 +451,8 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
     /// </summary>
     partial void OnBackgroundColorIndexChanged(int value)
     {
+        Touch();
+
         RenderAllThumbnails();
         RenderAllGroups();
         RefreshRequested?.Invoke(CurrentSprite);
@@ -431,6 +462,8 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
     private void OnRowColorPicked(int rowIndex, PaletteColor color)
     {
         CurrentSprite.ArraySpriteRows[rowIndex].Color = color.Index;
+
+        Touch();
 
         RowColors[rowIndex].Refresh();
         OnPropertyChanged(nameof(SpriteColor));
@@ -463,6 +496,9 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel
 
     private void RefreshPaletteDependentState()
     {
+        // La paleta va dentro del fichero del banco, asi que tocarla lo deja sin guardar.
+        Touch();
+
         OnPropertyChanged(nameof(BackgroundColor));
         OnPropertyChanged(nameof(SpriteColor));
 

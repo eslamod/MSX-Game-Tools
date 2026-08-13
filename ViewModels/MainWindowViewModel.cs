@@ -17,14 +17,13 @@ public partial class MainWindowViewModel : ObservableObject
     private double _rightPanelWidth = MinRightPanelWidth;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SaveSpriteBankCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SaveDocumentCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SaveDocumentAsCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportSpriteBankBinaryCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportSpriteBankAssemblerCommand))]
-    [NotifyCanExecuteChangedFor(nameof(SaveTileSetCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetBinaryCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetAssemblerCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetPngCommand))]
-    [NotifyCanExecuteChangedFor(nameof(SaveMapCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportMapCsvCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportMapBinaryCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportMapAssemblerCommand))]
@@ -289,35 +288,115 @@ public partial class MainWindowViewModel : ObservableObject
         return panel;
     }
 
-    [RelayCommand(CanExecute = nameof(CanSaveSpriteBank))]
-    private async Task SaveSpriteBankAsync()
-    {
-        if (SelectedTab is not SpritesEditorViewModel editor)
-            return;
+    // ------------------------------------------------------------------ guardar
 
-        string? path = await Dialogs.PickFileToSaveAsync(
-            "Guardar banco de sprites",
-            SuggestedFileName(editor.SpritesBank.Name));
+    /// <summary>
+    /// Guarda el documento que esté delante en el fichero del que salió.
+    /// </summary>
+    /// <remarks>
+    /// Si todavía no tiene fichero se pide uno, que es lo que espera cualquiera al pulsar
+    /// Guardar en algo recién creado; a partir de ahí ya no vuelve a preguntar.
+    /// </remarks>
+    [RelayCommand(CanExecute = nameof(CanSaveDocument))]
+    private Task SaveDocumentAsync() => SaveAsync(SelectedTab, askForPath: false);
+
+    [RelayCommand(CanExecute = nameof(CanSaveDocument))]
+    private Task SaveDocumentAsAsync() => SaveAsync(SelectedTab, askForPath: true);
+
+    private bool CanSaveDocument() => SelectedTab is { IsDocument: true };
+
+    /// <summary>
+    /// Escribe un documento y apunta dónde ha quedado.
+    /// </summary>
+    /// <remarks>
+    /// Lo que se escribe es exactamente lo que el panel compara para saber si tiene
+    /// cambios sin guardar, así que después de esto no puede quedarse marcado por error.
+    /// Da igual de qué tipo sea: un banco, un juego de tiles y un mapa se guardan aquí.
+    /// </remarks>
+    /// <returns><c>false</c> si se canceló el selector o no se pudo escribir.</returns>
+    private async Task<bool> SaveAsync(PanelBaseViewModel? panel, bool askForPath)
+    {
+        if (panel is not { IsDocument: true })
+            return false;
+
+        string? path = askForPath || panel.FilePath is null
+            ? await Dialogs.PickFileToSaveAsync(
+                $"Guardar {panel.DocumentKind}", SuggestedFileName(panel.DocumentName))
+            : panel.FilePath;
 
         if (path is null)
-            return;
+            return false;
+
+        string text = panel.ToFileText();
 
         try
         {
-            // La paleta va dentro: los sprites guardan indices, y sin ella el banco se
-            // abriria con los colores que hubiera puestos en ese momento.
-            string json = SpriteBankSerializer.Serialize(
-                editor.SpritesBank, editor.ColorPalette, editor.BackgroundColorIndex, [.. Backgrounds.Images]);
-
-            await File.WriteAllTextAsync(path, json);
+            await File.WriteAllTextAsync(path, text);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            await Dialogs.ShowMessageAsync("No se pudo guardar el banco", exception.Message);
+            await Dialogs.ShowMessageAsync($"No se pudo guardar el {panel.DocumentKind}", exception.Message);
+
+            return false;
         }
+
+        panel.MarkSaved(path, text);
+
+        return true;
     }
 
-    private bool CanSaveSpriteBank() => SelectedTab is SpritesEditorViewModel;
+    /// <summary>
+    /// Los documentos que se perderían ahora mismo, comprobando su contenido de verdad.
+    /// </summary>
+    /// <remarks>
+    /// Se mira todo el proyecto y no sólo las pestañas abiertas: cerrar una pestaña no
+    /// cierra el documento, sigue vivo en el árbol y su trabajo sigue sin guardar.
+    /// </remarks>
+    public IReadOnlyList<PanelBaseViewModel> UnsavedDocuments() =>
+        [.. _panels.Values.Where(panel => panel.HasUnsavedChanges())];
+
+    /// <summary>
+    /// Pregunta qué hacer con lo que está sin guardar antes de cerrar.
+    /// </summary>
+    /// <remarks>
+    /// Las tres salidas son necesarias: guardar y salir, salir perdiéndolo, y volver atrás.
+    /// Si al guardar se cancela un selector de fichero no se sale, que sería tirar justo lo
+    /// que se acababa de pedir conservar.
+    /// </remarks>
+    /// <returns><c>true</c> si se puede cerrar.</returns>
+    public async Task<bool> ConfirmExitAsync()
+    {
+        IReadOnlyList<PanelBaseViewModel> pending = UnsavedDocuments();
+
+        if (pending.Count == 0)
+            return true;
+
+        string names = string.Join(
+            Environment.NewLine,
+            pending.Select(panel => $"  · {panel.DocumentName} ({panel.DocumentKind})"));
+
+        bool? save = await Dialogs.ChooseAsync(
+            "Hay cambios sin guardar",
+            $"Esto se perderá al salir:{Environment.NewLine}{Environment.NewLine}{names}",
+            "Guardar y salir",
+            "Salir sin guardar");
+
+        if (save is null)
+            return false;
+
+        if (save is false)
+            return true;
+
+        foreach (PanelBaseViewModel panel in pending)
+        {
+            if (!await SaveAsync(panel, askForPath: false))
+                return false;
+        }
+
+        return true;
+    }
+
+    private bool IsSpriteBankSelected() => SelectedTab is SpritesEditorViewModel;
 
     [RelayCommand]
     private async Task LoadSpriteBankAsync()
@@ -333,7 +412,7 @@ public partial class MainWindowViewModel : ObservableObject
 
             Palettes.Activate(loaded.Palette);
             await LoadBackgroundsAsync(loaded.Backgrounds);
-            OpenSpriteBank(loaded.Bank, loaded.BackgroundColorIndex);
+            OpenSpriteBank(loaded.Bank, loaded.BackgroundColorIndex).MarkSaved(path);
         }
         catch (FileFormatException exception)
         {
@@ -538,10 +617,10 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    [RelayCommand(CanExecute = nameof(CanSaveSpriteBank))]
+    [RelayCommand(CanExecute = nameof(IsSpriteBankSelected))]
     private Task ExportSpriteBankBinaryAsync() => ExportSpriteBankAsync(binary: true);
 
-    [RelayCommand(CanExecute = nameof(CanSaveSpriteBank))]
+    [RelayCommand(CanExecute = nameof(IsSpriteBankSelected))]
     private Task ExportSpriteBankAssemblerAsync() => ExportSpriteBankAsync(binary: false);
 
     /// <summary>
@@ -595,32 +674,7 @@ public partial class MainWindowViewModel : ObservableObject
             $"Se han escrito:{Environment.NewLine}{Path.GetFileName(patternsPath)}{Environment.NewLine}{Path.GetFileName(groupsPath)}");
     }
 
-    [RelayCommand(CanExecute = nameof(CanSaveTileSet))]
-    private async Task SaveTileSetAsync()
-    {
-        if (SelectedTab is not TileSetEditorViewModel editor)
-            return;
-
-        string? path = await Dialogs.PickFileToSaveAsync(
-            "Guardar juego de tiles",
-            SuggestedFileName(editor.TileSet.Name));
-
-        if (path is null)
-            return;
-
-        try
-        {
-            // La paleta va dentro por lo mismo que en un banco: los tiles guardan
-            // indices, y sin ella se abriria con los colores que hubiera puestos.
-            await File.WriteAllTextAsync(path, TileSetSerializer.Serialize(editor.TileSet, editor.ColorPalette, editor.BorderColorIndex));
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            await Dialogs.ShowMessageAsync("No se pudo guardar el juego de tiles", exception.Message);
-        }
-    }
-
-    private bool CanSaveTileSet() => SelectedTab is TileSetEditorViewModel;
+    private bool IsTileSetSelected() => SelectedTab is TileSetEditorViewModel;
 
     [RelayCommand]
     private async Task LoadTileSetAsync()
@@ -635,7 +689,7 @@ public partial class MainWindowViewModel : ObservableObject
             LoadedTileSet loaded = TileSetSerializer.Deserialize(json);
 
             Palettes.Activate(loaded.Palette);
-            OpenTileSet(loaded.TileSet, loaded.BorderColorIndex);
+            OpenTileSet(loaded.TileSet, loaded.BorderColorIndex).MarkSaved(path);
         }
         catch (FileFormatException exception)
         {
@@ -649,27 +703,7 @@ public partial class MainWindowViewModel : ObservableObject
 
     // ------------------------------------------------------------------ mapas
 
-    [RelayCommand(CanExecute = nameof(CanSaveMap))]
-    private async Task SaveMapAsync()
-    {
-        if (SelectedTab is not MapEditorViewModel editor)
-            return;
-
-        string? path = await Dialogs.PickFileToSaveAsync("Guardar mapa", SuggestedFileName(editor.Map.Name));
-        if (path is null)
-            return;
-
-        try
-        {
-            await File.WriteAllTextAsync(path, MapSerializer.Serialize(editor.Map));
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            await Dialogs.ShowMessageAsync("No se pudo guardar el mapa", exception.Message);
-        }
-    }
-
-    private bool CanSaveMap() => SelectedTab is MapEditorViewModel;
+    private bool IsMapSelected() => SelectedTab is MapEditorViewModel;
 
     /// <summary>
     /// Abre un mapa de un fichero.
@@ -699,7 +733,7 @@ public partial class MainWindowViewModel : ObservableObject
                 return;
             }
 
-            OpenMap(map, tileSet);
+            OpenMap(map, tileSet).MarkSaved(path);
         }
         catch (FileFormatException exception)
         {
@@ -711,7 +745,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    [RelayCommand(CanExecute = nameof(CanSaveMap))]
+    [RelayCommand(CanExecute = nameof(IsMapSelected))]
     private async Task ExportMapCsvAsync()
     {
         if (SelectedTab is not MapEditorViewModel editor)
@@ -780,24 +814,24 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    [RelayCommand(CanExecute = nameof(CanSaveMap))]
+    [RelayCommand(CanExecute = nameof(IsMapSelected))]
     private void ResizeMap()
     {
         if (SelectedTab is MapEditorViewModel editor)
             OpenForm(() => new ResizeMapViewModel(this, editor));
     }
 
-    [RelayCommand(CanExecute = nameof(CanSaveMap))]
+    [RelayCommand(CanExecute = nameof(IsMapSelected))]
     private void ReplaceTiles()
     {
         if (SelectedTab is MapEditorViewModel editor)
             OpenForm(() => new ReplaceTilesViewModel(this, editor));
     }
 
-    [RelayCommand(CanExecute = nameof(CanSaveMap))]
+    [RelayCommand(CanExecute = nameof(IsMapSelected))]
     private Task ExportMapBinaryAsync() => ExportMapAsync(binary: true);
 
-    [RelayCommand(CanExecute = nameof(CanSaveMap))]
+    [RelayCommand(CanExecute = nameof(IsMapSelected))]
     private Task ExportMapAssemblerAsync() => ExportMapAsync(binary: false);
 
     /// <summary>
@@ -914,10 +948,10 @@ public partial class MainWindowViewModel : ObservableObject
         _ => TileSets.Count == 1 ? TileSets[0] : null,
     };
 
-    [RelayCommand(CanExecute = nameof(CanSaveTileSet))]
+    [RelayCommand(CanExecute = nameof(IsTileSetSelected))]
     private Task ExportTileSetBinaryAsync() => ExportTileSetAsync(binary: true);
 
-    [RelayCommand(CanExecute = nameof(CanSaveTileSet))]
+    [RelayCommand(CanExecute = nameof(IsTileSetSelected))]
     private Task ExportTileSetAssemblerAsync() => ExportTileSetAsync(binary: false);
 
     /// <summary>
@@ -1010,7 +1044,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    [RelayCommand(CanExecute = nameof(CanSaveTileSet))]
+    [RelayCommand(CanExecute = nameof(IsTileSetSelected))]
     private async Task ExportTileSetPngAsync()
     {
         if (SelectedTab is not TileSetEditorViewModel editor)
@@ -1139,12 +1173,12 @@ public partial class MainWindowViewModel : ObservableObject
             : text;
     }
 
-    /// <summary>El nombre de una paleta puede llevar caracteres que no valen en un fichero.</summary>
-    private static string SuggestedFileName(string paletteName)
+    /// <summary>El nombre que le puso el usuario puede llevar caracteres que no valen en un fichero.</summary>
+    private static string SuggestedFileName(string name)
     {
-        string clean = string.Concat(paletteName.Split(Path.GetInvalidFileNameChars())).Trim();
+        string clean = string.Concat(name.Split(Path.GetInvalidFileNameChars())).Trim();
 
-        return $"{(clean.Length == 0 ? "paleta" : clean)}.json";
+        return $"{(clean.Length == 0 ? "sin nombre" : clean)}.json";
     }
 
     /// <summary>
@@ -1166,9 +1200,9 @@ public partial class MainWindowViewModel : ObservableObject
     /// olvida el panel.
     /// </summary>
     /// <remarks>
-    /// Es lo contrario de cerrar la pestaña, y por eso pregunta. Cerrar es reversible
-    /// con un doble clic; esto no, y como no llevamos control de cambios sin guardar,
-    /// el aviso lo dice explícitamente.
+    /// Es lo contrario de cerrar la pestaña, y por eso pregunta. Cerrar es reversible con
+    /// un doble clic; esto no. El aviso sólo habla de perder trabajo cuando de verdad hay
+    /// algo sin guardar: repetirlo siempre acaba en que nadie lo lee.
     /// </remarks>
     [RelayCommand]
     private async Task DeleteTreeItemAsync(ItemTree? item)
@@ -1176,10 +1210,12 @@ public partial class MainWindowViewModel : ObservableObject
         if (item is not { CanDelete: true })
             return;
 
+        bool unsaved = GetPanelFromDic(item.Tag)?.HasUnsavedChanges() ?? false;
+
         bool confirmed = await Dialogs.ConfirmAsync(
             "Eliminar del proyecto",
-            $"Se va a eliminar «{item.DisplayText}» y se cerrará su pestaña. "
-            + "Se perderá lo que no hayas guardado en un fichero.",
+            $"Se va a eliminar «{item.DisplayText}» y se cerrará su pestaña."
+            + (unsaved ? " Tiene cambios sin guardar y se perderán." : string.Empty),
             "Eliminar");
 
         if (!confirmed)

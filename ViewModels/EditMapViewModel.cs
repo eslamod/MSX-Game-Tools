@@ -85,7 +85,8 @@ public partial class EditMapViewModel : PanelBaseViewModel
             BackgroundColorIndex = tiles.ColorPalette.DefaultBackgroundIndex,
         };
 
-        _mainWindowVm.OpenMap(map, tiles);
+        // Recien creado y vacio: no hay nada que perder todavia, asi que sale sin marcar.
+        _mainWindowVm.OpenMap(map, tiles).MarkClean();
         _mainWindowVm.RightPanViewModel = null;
     }
 

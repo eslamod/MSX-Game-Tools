@@ -10,6 +10,13 @@
         x:DataType="vm:MainWindowViewModel"
         Title="MSX Game Editor" Width="900" Height="560">
 
+  <!-- El InputGesture del menu solo se dibuja; para que la tecla haga algo hace falta
+       decirlo aqui. -->
+  <Window.KeyBindings>
+    <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveDocumentCommand}" />
+    <KeyBinding Gesture="Ctrl+Shift+S" Command="{Binding SaveDocumentAsCommand}" />
+  </Window.KeyBindings>
+
   <Grid RowDefinitions="Auto,Auto,*,Auto">
 
     <Menu Grid.Row="0">
@@ -18,28 +25,32 @@
         <MenuItem Header="Add tileset" Command="{Binding AddTileSetCommand}" />
         <MenuItem Header="Add map" Command="{Binding AddMapCommand}" />
         <Separator />
+        <!-- Guardar es uno solo para los tres tipos: escribe la pestaña que este delante
+             en su fichero, y solo pregunta la ruta la primera vez. -->
+        <MenuItem Header="Save" InputGesture="Ctrl+S" Command="{Binding SaveDocumentCommand}" />
+        <MenuItem Header="Save as..." InputGesture="Ctrl+Shift+S" Command="{Binding SaveDocumentAsCommand}" />
+        <Separator />
         <MenuItem Header="Load sprite bank..." Command="{Binding LoadSpriteBankCommand}" />
-        <MenuItem Header="Save sprite bank as..." Command="{Binding SaveSpriteBankCommand}" />
         <Separator />
         <MenuItem Header="Export sprite bank (binary)..." Command="{Binding ExportSpriteBankBinaryCommand}" />
         <MenuItem Header="Export sprite bank (asm)..." Command="{Binding ExportSpriteBankAssemblerCommand}" />
         <Separator />
         <MenuItem Header="Load tileset..." Command="{Binding LoadTileSetCommand}" />
-        <MenuItem Header="Save tileset as..." Command="{Binding SaveTileSetCommand}" />
         <MenuItem Header="Export tileset (binary)..." Command="{Binding ExportTileSetBinaryCommand}" />
         <MenuItem Header="Export tileset (asm)..." Command="{Binding ExportTileSetAssemblerCommand}" />
         <MenuItem Header="Export tileset to png..." Command="{Binding ExportTileSetPngCommand}" />
         <MenuItem Header="Import tileset from png..." Command="{Binding ImportTileSetPngCommand}" />
         <Separator />
         <MenuItem Header="Load map..." Command="{Binding LoadMapCommand}" />
-        <MenuItem Header="Save map as..." Command="{Binding SaveMapCommand}" />
         <MenuItem Header="Export map to csv..." Command="{Binding ExportMapCsvCommand}" />
         <MenuItem Header="Import map from csv..." Command="{Binding ImportMapCsvCommand}" />
         <MenuItem Header="Export map (binary)..." Command="{Binding ExportMapBinaryCommand}" />
         <MenuItem Header="Export map (asm)..." Command="{Binding ExportMapAssemblerCommand}" />
         <MenuItem Header="Import map from binary..." Command="{Binding ImportMapBinaryCommand}" />
         <Separator />
-        <MenuItem Header="Exit" />
+        <!-- Cierra la ventana, para pasar por el mismo aviso de cambios sin guardar
+             que la aspa del titulo. -->
+        <MenuItem Header="Exit" Click="OnExit" />
       </MenuItem>
       <MenuItem Header="Palette">
         <MenuItem Header="New palette" Command="{Binding AddPaletteCommand}" />
@@ -145,7 +156,8 @@
                  fondo de este bloque, no al de la pestaña, asi que sin aire se le queda
                  rozando el texto. -->
             <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-              <TextBlock Text="{Binding Header}" VerticalAlignment="Center" />
+              <!-- TabLabel y no Header: lleva el asterisco de lo que esta sin guardar. -->
+              <TextBlock Text="{Binding TabLabel}" VerticalAlignment="Center" />
 
               <!-- Cerrar no es eliminar: la pestaña se va de la vista pero el elemento
                    sigue en el arbol, y un doble clic alli la trae de vuelta con el
@@ -176,7 +188,8 @@
                  fondo de este bloque, no al de la pestaña, asi que sin aire se le queda
                  rozando el texto. -->
             <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-              <TextBlock Text="{Binding Header}" VerticalAlignment="Center" />
+              <!-- TabLabel y no Header: lleva el asterisco de lo que esta sin guardar. -->
+              <TextBlock Text="{Binding TabLabel}" VerticalAlignment="Center" />
               <Button Content="✕" FontSize="10" Padding="4,0" Margin="8,0,0,0"
                       VerticalAlignment="Center"
                       Background="Transparent" BorderThickness="0"

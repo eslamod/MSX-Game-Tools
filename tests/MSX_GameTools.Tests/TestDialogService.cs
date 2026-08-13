@@ -52,6 +52,9 @@ internal sealed class TestDialogService : IDialogService
 
     public string? LastSuggestedFileName { get; private set; }
 
+    /// <summary>Veces que se ha abierto el selector de guardar, para ver si vuelve a preguntar.</summary>
+    public int SaveCalls { get; private set; }
+
     /// <summary>Los avisos mostrados, en orden.</summary>
     public List<string> Messages { get; } = [];
 
@@ -99,6 +102,7 @@ internal sealed class TestDialogService : IDialogService
     public Task<string?> PickFileToSaveAsync(
         string title, string suggestedFileName, PickerFileKind kind = PickerFileKind.Json)
     {
+        SaveCalls++;
         LastSuggestedFileName = suggestedFileName;
 
         return Task.FromResult(SavePath);

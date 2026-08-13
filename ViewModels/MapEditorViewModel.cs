@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Avalonia.Media;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Services;
 
 namespace MSX_GameTools.ViewModels;
 
@@ -130,6 +131,15 @@ public partial class MapEditorViewModel : PanelBaseViewModel
     /// <summary>Hay que repintar el lienzo.</summary>
     public event Action? RefreshRequested;
 
+    public override bool IsDocument => true;
+
+    public override string DocumentName => Map.Name;
+
+    public override string DocumentKind => "mapa";
+
+    /// <inheritdoc cref="TileSetEditorViewModel.ToFileText"/>
+    public override string ToFileText() => MapSerializer.Serialize(Map);
+
     public TileMap Map { get; }
 
     public EditorPreferences Preferences { get; }
@@ -199,6 +209,8 @@ public partial class MapEditorViewModel : PanelBaseViewModel
                 return;
 
             Map.EmptyTile = tile;
+
+            Touch();
 
             OnPropertyChanged();
             OnPropertyChanged(nameof(EmptyTileImage));
@@ -332,6 +344,8 @@ public partial class MapEditorViewModel : PanelBaseViewModel
             return;
 
         Map.BackgroundColorIndex = color.Index;
+
+        Touch();
 
         OnPropertyChanged(nameof(BackgroundColor));
         OnPropertyChanged(nameof(BackgroundBrush));
@@ -480,8 +494,15 @@ public partial class MapEditorViewModel : PanelBaseViewModel
 
     private bool CanRedo() => Map.Undo.CanRedo;
 
+    /// <summary>
+    /// Todo lo que toca la rejilla pasa por la pila de deshacer, así que aquí se entera el
+    /// mapa entero de que hay algo sin guardar: estampar, rellenar, redimensionar,
+    /// sustituir tiles, y también deshacer y rehacer.
+    /// </summary>
     private void OnUndoChanged()
     {
+        Touch();
+
         UndoCommand.NotifyCanExecuteChanged();
         RedoCommand.NotifyCanExecuteChanged();
     }
@@ -495,6 +516,7 @@ public partial class MapEditorViewModel : PanelBaseViewModel
 
         ActiveLayer = panel;
 
+        Touch();
         RefreshRequested?.Invoke();
     }
 
@@ -516,6 +538,7 @@ public partial class MapEditorViewModel : PanelBaseViewModel
 
         Layers.RemoveAt(index);
 
+        Touch();
         RefreshRequested?.Invoke();
     }
 
@@ -527,6 +550,14 @@ public partial class MapEditorViewModel : PanelBaseViewModel
     {
         layer.PropertyChanged += (_, e) =>
         {
+            // El nombre, si se ve y si esta bloqueada van al fichero del mapa.
+            if (e.PropertyName is nameof(MapLayerViewModel.Name)
+                or nameof(MapLayerViewModel.IsVisible)
+                or nameof(MapLayerViewModel.IsLocked))
+            {
+                Touch();
+            }
+
             if (e.PropertyName == nameof(MapLayerViewModel.IsVisible))
                 RefreshRequested?.Invoke();
 

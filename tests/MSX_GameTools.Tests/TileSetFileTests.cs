@@ -158,12 +158,12 @@ public class TileSetFileTests : IDisposable
     {
         var main = new MainWindowViewModel(new TestDialogService { SavePath = Path.Combine(_folder, "b.json") });
 
-        Assert.False(main.SaveTileSetCommand.CanExecute(null));
+        Assert.False(main.SaveDocumentCommand.CanExecute(null));
         Assert.False(main.ExportTileSetBinaryCommand.CanExecute(null));
 
         main.OpenTileSet(new TileSet("Bosque"));
 
-        Assert.True(main.SaveTileSetCommand.CanExecute(null));
+        Assert.True(main.SaveDocumentCommand.CanExecute(null));
         Assert.True(main.ExportTileSetBinaryCommand.CanExecute(null));
 
         await Task.CompletedTask;
@@ -179,7 +179,7 @@ public class TileSetFileTests : IDisposable
         TileSetEditorViewModel editor = main.OpenTileSet(new TileSet("Bosque"));
         editor.PixelSurface.Set(3, 4, true);
 
-        await main.SaveTileSetCommand.ExecuteAsync(null);
+        await main.SaveDocumentCommand.ExecuteAsync(null);
         Assert.True(File.Exists(path));
 
         await main.LoadTileSetCommand.ExecuteAsync(null);

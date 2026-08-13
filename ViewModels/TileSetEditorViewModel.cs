@@ -3,6 +3,7 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Services;
 
 namespace MSX_GameTools.ViewModels;
 
@@ -78,6 +79,22 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
     /// <summary>La vista se resuscribe para repintar el lienzo al cambiar de tile.</summary>
     public event Action? RefreshRequested;
 
+    public override bool IsDocument => true;
+
+    public override string DocumentName => _tileSet.Name;
+
+    public override string DocumentKind => "juego de tiles";
+
+    /// <summary>
+    /// El juego con su paleta y sus bloques, que es lo que va al fichero.
+    /// </summary>
+    /// <remarks>
+    /// La paleta es la activa y no una copia congelada, así que cambiar de paleta cambia
+    /// lo que se guardaría: por eso también cuenta como tocar el juego.
+    /// </remarks>
+    public override string ToFileText() =>
+        TileSetSerializer.Serialize(_tileSet, ColorPalette, BorderColorIndex);
+
     public TileSet TileSet => _tileSet;
 
     /// <summary>Zoom y demás ajustes que sobreviven al cambio de pestaña.</summary>
@@ -152,6 +169,8 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
     /// <summary>El borde se ve en todos los tiles que usen el 0, no sólo en el actual.</summary>
     partial void OnBorderColorIndexChanged(int value)
     {
+        Touch();
+
         RenderAll();
         RefreshRequested?.Invoke();
     }
@@ -165,6 +184,8 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
 
     private void OnRowColorPicked(int rowIndex)
     {
+        Touch();
+
         if (CurrentTile.ImageMini is not null)
             TileRenderer.RenderRow(CurrentTile, rowIndex, ColorPalette, BorderColor.Color, CurrentTile.ImageMini);
 
@@ -186,6 +207,9 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
     /// <summary>Cambiar de paleta o retocar un color repinta los 256.</summary>
     private void OnActivePaletteColorsChanged(ColorPalette? palette = null)
     {
+        // Y deja el juego sin guardar: la paleta va dentro de su fichero.
+        Touch();
+
         OnPropertyChanged(nameof(ColorPalette));
         OnPropertyChanged(nameof(BorderChoices));
         OnPropertyChanged(nameof(BorderColor));
@@ -225,6 +249,8 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel
             TileRow row = editor.CurrentTile.ArrayTileRows[y];
 
             row.ArrayPattern[x] = on;
+
+            editor.Touch();
 
             editor.CurrentTile.ImageMini?.SetPixel(
                 x, y, editor.ColorPalette.Resolve(on ? row.ForeColor : row.BackColor, editor.BorderColor.Color));

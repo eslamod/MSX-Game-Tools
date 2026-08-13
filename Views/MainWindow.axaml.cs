@@ -1,5 +1,7 @@
 using System.ComponentModel;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Threading;
 using MSX_GameTools.ViewModels;
 
 namespace MSX_GameTools.Views;
@@ -7,6 +9,9 @@ namespace MSX_GameTools.Views;
 public partial class MainWindow : Window
 {
     private MainWindowViewModel? _watched;
+
+    /// <summary>Ya se ha preguntado por los cambios sin guardar y toca cerrar de verdad.</summary>
+    private bool _confirmed;
 
     /// <summary>La columna del lateral. Una definicion de columna no genera campo.</summary>
     private ColumnDefinition RightColumn => MainArea.ColumnDefinitions[4];
@@ -26,6 +31,42 @@ public partial class MainWindow : Window
             _watched.PropertyChanged += OnMainChanged;
 
         ApplyRightColumn();
+    }
+
+    private void OnExit(object? sender, RoutedEventArgs e) => Close();
+
+    /// <summary>
+    /// Cerrar avisa de lo que está sin guardar.
+    /// </summary>
+    /// <remarks>
+    /// Preguntar es asíncrono y esto no lo es: se para el cierre, se pregunta, y si se
+    /// puede seguir se vuelve a cerrar, ya sin preguntar. Vale igual para el aspa del
+    /// título que para el menú, que también cierra la ventana.
+    /// </remarks>
+    protected override void OnClosing(WindowClosingEventArgs e)
+    {
+        base.OnClosing(e);
+
+        if (_confirmed || e.Cancel || _watched is null)
+            return;
+
+        e.Cancel = true;
+
+        // Se pregunta fuera de este manejador y no aquí dentro: cerrar de nuevo mientras
+        // se está atendiendo un cierre es volver a entrar por donde se ha salido.
+        MainWindowViewModel main = _watched;
+
+        Dispatcher.UIThread.Post(() => _ = CloseWhenConfirmedAsync(main));
+    }
+
+    private async Task CloseWhenConfirmedAsync(MainWindowViewModel main)
+    {
+        if (!await main.ConfirmExitAsync())
+            return;
+
+        _confirmed = true;
+
+        Close();
     }
 
     private void OnMainChanged(object? sender, PropertyChangedEventArgs e)

@@ -44,7 +44,8 @@ public partial class EditSpriteBankViewModel : PanelBaseViewModel
 
         ErrorMessage = null;
 
-        _mainWindowVm.OpenSpriteBank(new SpriteBank(Type, Name));
+        // Recien creado y vacio: no hay nada que perder todavia, asi que sale sin marcar.
+        _mainWindowVm.OpenSpriteBank(new SpriteBank(Type, Name)).MarkClean();
         _mainWindowVm.RightPanViewModel = null;
     }
 

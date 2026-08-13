@@ -191,7 +191,7 @@ public class BackgroundLibraryCommandsTests : IDisposable
         editor.SelectedGroup!.Group.Background = new BackgroundRef(sheet, 5);
         editor.SpritesBank.SpritesList[0].Background = new BackgroundRef(sheet, 7);
 
-        await main.SaveSpriteBankCommand.ExecuteAsync(null);
+        await main.SaveDocumentCommand.ExecuteAsync(null);
 
         // Una sesión nueva: la biblioteca empieza vacía y se repuebla al abrir el banco.
         var reopened = new MainWindowViewModel(new TestDialogService { OpenPath = bankPath });
@@ -221,7 +221,7 @@ public class BackgroundLibraryCommandsTests : IDisposable
         main.Backgrounds.Load(sheet, cellSize: 16);
         main.OpenSpriteBank(new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"));
 
-        await main.SaveSpriteBankCommand.ExecuteAsync(null);
+        await main.SaveDocumentCommand.ExecuteAsync(null);
 
         File.Delete(sheet);
 
@@ -246,7 +246,7 @@ public class BackgroundLibraryCommandsTests : IDisposable
 
         main.OpenSpriteBank(new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"));
 
-        await main.SaveSpriteBankCommand.ExecuteAsync(null);
+        await main.SaveDocumentCommand.ExecuteAsync(null);
 
         string json = await File.ReadAllTextAsync(bankPath);
 

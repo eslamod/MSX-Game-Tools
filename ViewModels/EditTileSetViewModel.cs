@@ -43,7 +43,8 @@ public partial class EditTileSetViewModel : PanelBaseViewModel
 
         ErrorMessage = null;
 
-        _mainWindowVm.OpenTileSet(new TileSet(Name));
+        // Recien creado y vacio: no hay nada que perder todavia, asi que sale sin marcar.
+        _mainWindowVm.OpenTileSet(new TileSet(Name)).MarkClean();
         _mainWindowVm.RightPanViewModel = null;
     }
 

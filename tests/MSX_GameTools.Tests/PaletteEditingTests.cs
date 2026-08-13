@@ -335,7 +335,8 @@ public class PaletteEditingTests
     [InlineData("Load palette...")]
     [InlineData("Save palette as...")]
     [InlineData("Load sprite bank...")]
-    [InlineData("Save sprite bank as...")]
+    [InlineData("Save")]
+    [InlineData("Save as...")]
     [InlineData("Export sprite bank (binary)...")]
     [InlineData("Export sprite bank (asm)...")]
     public void El_menu_de_paletas_tiene_sus_comandos_enlazados(string header)

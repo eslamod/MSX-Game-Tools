@@ -20,16 +20,20 @@ public class MapFileCommandsTests : IDisposable
     {
         var main = new MainWindowViewModel();
 
-        Assert.False(main.SaveMapCommand.CanExecute(null));
+        Assert.False(main.SaveDocumentCommand.CanExecute(null));
+        Assert.False(main.ExportMapCsvCommand.CanExecute(null));
 
         main.OpenTileSet(new TileSet("Bosque"));
 
-        // Con un tileset delante tampoco: es otra cosa.
-        Assert.False(main.SaveMapCommand.CanExecute(null));
+        // Guardar vale para cualquier documento, asi que con el tileset delante guarda
+        // el tileset; lo que es del mapa y solo del mapa es exportarlo.
+        Assert.True(main.SaveDocumentCommand.CanExecute(null));
+        Assert.False(main.ExportMapCsvCommand.CanExecute(null));
 
         NewMap(main, "Nivel 1");
 
-        Assert.True(main.SaveMapCommand.CanExecute(null));
+        Assert.True(main.SaveDocumentCommand.CanExecute(null));
+        Assert.True(main.ExportMapCsvCommand.CanExecute(null));
     }
 
     [AvaloniaFact]
@@ -46,7 +50,7 @@ public class MapFileCommandsTests : IDisposable
         editor.PickTile(TilePatch.Single(9), "Tile 9");
         editor.Paint(3, 4);
 
-        await main.SaveMapCommand.ExecuteAsync(null);
+        await main.SaveDocumentCommand.ExecuteAsync(null);
 
         Assert.True(File.Exists(path));
 
@@ -135,7 +139,7 @@ public class MapFileCommandsTests : IDisposable
         main.OpenTileSet(new TileSet("Bosque"));
         NewMap(main, "Nivel 1");
 
-        await main.SaveMapCommand.ExecuteAsync(null);
+        await main.SaveDocumentCommand.ExecuteAsync(null);
 
         Assert.Empty(Directory.GetFiles(_folder));
         Assert.Empty(dialogs.Messages);

@@ -64,6 +64,12 @@ public partial class TileBlocksViewModel : PanelBaseViewModel
     /// <summary>Se ve a la vez que el editor de tiles, así que va en el panel lateral.</summary>
     public override bool IsTool => true;
 
+    /// <summary>
+    /// Los bloques se guardan dentro del fichero del juego de tiles, así que tocarlos deja
+    /// sin guardar el juego, no este panel: el documento es el juego.
+    /// </summary>
+    private void TouchTileSet() => _editor.Touch();
+
     public TileSet TileSet => _editor.TileSet;
 
     /// <summary>Zoom y demás ajustes que sobreviven al cambio de pestaña.</summary>
@@ -99,6 +105,8 @@ public partial class TileBlocksViewModel : PanelBaseViewModel
 
         Blocks.Add(panel);
         SelectedBlock = panel;
+
+        TouchTileSet();
     }
 
     [RelayCommand(CanExecute = nameof(HasBlock))]
@@ -116,6 +124,8 @@ public partial class TileBlocksViewModel : PanelBaseViewModel
         SelectedBlock = Blocks.Count > 1 ? Blocks[index == 0 ? 1 : index - 1] : null;
 
         Blocks.RemoveAt(index);
+
+        TouchTileSet();
     }
 
     /// <summary>
@@ -187,6 +197,7 @@ public partial class TileBlocksViewModel : PanelBaseViewModel
         SelectedBlock.Block.Stamp(column, row, Selection);
         SelectedBlock.RefreshSize();
 
+        TouchTileSet();
         RefreshCells();
     }
 
@@ -198,6 +209,7 @@ public partial class TileBlocksViewModel : PanelBaseViewModel
 
         SelectedBlock.Block.Set(column, row, null);
 
+        TouchTileSet();
         RefreshCells();
     }
 
@@ -240,6 +252,14 @@ public partial class TileBlocksViewModel : PanelBaseViewModel
 
     private void OnBlockChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
+        // El nombre tambien va al fichero, aunque no cambie lo que se ve en la rejilla.
+        if (e.PropertyName is nameof(TileBlockViewModel.Name)
+            or nameof(TileBlockViewModel.Width)
+            or nameof(TileBlockViewModel.Height))
+        {
+            TouchTileSet();
+        }
+
         if (e.PropertyName is not (nameof(TileBlockViewModel.Width) or nameof(TileBlockViewModel.Height)))
             return;
 
