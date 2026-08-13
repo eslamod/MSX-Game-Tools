@@ -185,6 +185,126 @@
   <data name="PreferencesBlockGrid" xml:space="preserve"><value>Rejilla de bloques</value></data>
   <data name="PreferencesBlockTiles" xml:space="preserve"><value>Tiles en los bloques</value></data>
   <data name="PreferencesMapTiles" xml:space="preserve"><value>Tiles en el mapa</value></data>
+  <!-- Comunes a varios editores -->
+  <data name="PaintDot" xml:space="preserve"><value>Punto</value></data>
+  <data name="PaintDotTip" xml:space="preserve"><value>Cada clic pinta un solo pixel</value></data>
+  <data name="PaintStroke" xml:space="preserve"><value>Trazo</value></data>
+  <data name="PaintStrokeTip" xml:space="preserve"><value>Mantén pulsado y arrastra para pintar todo el recorrido</value></data>
+  <data name="FormClose" xml:space="preserve"><value>Cerrar</value></data>
+
+  <!-- Editor de sprites -->
+  <data name="SpritesPatterns" xml:space="preserve"><value>Patrones</value></data>
+  <data name="SpritesPatternsTip" xml:space="preserve"><value>La tabla de patrones del banco</value></data>
+  <data name="SpritesGroups" xml:space="preserve"><value>Grupos</value></data>
+  <data name="SpritesGroupsTip" xml:space="preserve"><value>Personajes compuestos con varios sprites superpuestos</value></data>
+  <data name="SpritesPattern" xml:space="preserve"><value>Patrón</value></data>
+  <data name="SpritesColor" xml:space="preserve"><value>Color</value></data>
+  <data name="SpritesColors" xml:space="preserve"><value>Colores</value></data>
+  <data name="SpritesGroup" xml:space="preserve"><value>Grupo</value></data>
+  <data name="SpritesOffsetX" xml:space="preserve"><value>Desplazamiento X</value></data>
+  <data name="SpritesOffsetY" xml:space="preserve"><value>Desplazamiento Y</value></data>
+  <data name="SpritesFromPattern" xml:space="preserve"><value>Del patrón</value></data>
+  <data name="SpritesFromPatternTip" xml:space="preserve"><value>Volver a sembrar los colores desde el patrón del miembro</value></data>
+  <data name="SpritesAddTip" xml:space="preserve"><value>Añadir un sprite con el mismo patrón</value></data>
+  <data name="SpritesRemoveTip" xml:space="preserve"><value>Quitar el sprite seleccionado</value></data>
+  <data name="SpritesNewGroupTip" xml:space="preserve"><value>Crear un grupo con el sprite actual</value></data>
+  <data name="SpritesDeleteGroupTip" xml:space="preserve"><value>Eliminar el grupo seleccionado</value></data>
+  <data name="SpritesUpTip" xml:space="preserve"><value>Subir en prioridad</value></data>
+  <data name="SpritesDownTip" xml:space="preserve"><value>Bajar en prioridad</value></data>
+  <data name="SpritesCombineTip" xml:space="preserve"><value>CC: combinar con OR el color de esta línea con el del sprite de mayor prioridad</value></data>
+  <data name="SpritesMemberVisibleTip" xml:space="preserve"><value>Enseñar u ocultar este plano en la composición</value></data>
+
+  <!-- Imagen de referencia, en el lienzo y en la composición -->
+  <data name="ReferenceBackground" xml:space="preserve"><value>Fondo</value></data>
+  <data name="ReferenceNone" xml:space="preserve"><value>Sin fondo</value></data>
+  <data name="ReferenceShow" xml:space="preserve"><value>Ver</value></data>
+  <data name="ReferenceOpacity" xml:space="preserve"><value>Opacidad</value></data>
+  <data name="ReferenceCanvasTip" xml:space="preserve"><value>Imagen de referencia detrás del lienzo</value></data>
+  <data name="ReferenceGroupTip" xml:space="preserve"><value>Imagen de referencia detrás de la composición</value></data>
+  <data name="ReferenceShowTip" xml:space="preserve"><value>Enseñar u ocultar la referencia</value></data>
+  <data name="ReferenceCellTip" xml:space="preserve"><value>Elegir la celda de la hoja</value></data>
+  <data name="ReferenceOpacityTip" xml:space="preserve"><value>Opacidad del sprite sobre la referencia</value></data>
+  <data name="ReferenceOpacityGroupTip" xml:space="preserve"><value>Opacidad de los sprites sobre la referencia</value></data>
+
+  <!-- Editor de tiles -->
+  <data name="TilesBorder" xml:space="preserve"><value>Borde</value></data>
+  <data name="TilesGrid" xml:space="preserve"><value>Rejilla</value></data>
+  <data name="TilesGridTip" xml:space="preserve"><value>Marcar el borde de cada tile</value></data>
+
+  <!-- Panel de bloques -->
+  <data name="BlocksTitle" xml:space="preserve"><value>Bloques de tiles</value></data>
+  <data name="BlocksComposition" xml:space="preserve"><value>Composición</value></data>
+  <data name="BlocksTiles" xml:space="preserve"><value>Tiles</value></data>
+  <data name="BlocksAddTip" xml:space="preserve"><value>Agregar un bloque</value></data>
+  <data name="BlocksDeleteTip" xml:space="preserve"><value>Eliminar el bloque seleccionado</value></data>
+  <data name="BlocksFit" xml:space="preserve"><value>Ajustar</value></data>
+  <data name="BlocksFitTip" xml:space="preserve"><value>Encoger el bloque hasta lo que ocupan los tiles puestos</value></data>
+  <data name="BlocksSizeTip" xml:space="preserve"><value>Lo que mide el bloque</value></data>
+  <data name="BlocksNoName" xml:space="preserve"><value>Sin nombre</value></data>
+
+  <!-- Editor de mapas -->
+  <data name="MapStamp" xml:space="preserve"><value>Estampar</value></data>
+  <data name="MapStampTip" xml:space="preserve"><value>Colocar lo que haya cogido abajo</value></data>
+  <data name="MapSelect" xml:space="preserve"><value>Seleccionar</value></data>
+  <data name="MapSelectTip" xml:space="preserve"><value>Marcar un rectángulo del mapa</value></data>
+  <data name="MapPan" xml:space="preserve"><value>Mover</value></data>
+  <data name="MapPanTip" xml:space="preserve"><value>Desplazar el mapa (o la rueda pulsada en cualquier modo)</value></data>
+  <data name="MapFill" xml:space="preserve"><value>Rellenar</value></data>
+  <data name="MapFillTip" xml:space="preserve"><value>Llenar la selección con lo que haya cogido</value></data>
+  <data name="MapClear" xml:space="preserve"><value>Vaciar</value></data>
+  <data name="MapClearTip" xml:space="preserve"><value>Dejar la selección sin tiles</value></data>
+  <data name="MapCopy" xml:space="preserve"><value>Copiar</value></data>
+  <data name="MapCopyTip" xml:space="preserve"><value>Coger lo que hay en la selección</value></data>
+  <data name="MapResize" xml:space="preserve"><value>Redimensionar</value></data>
+  <data name="MapResizeTip" xml:space="preserve"><value>Cambiar el tamaño del mapa</value></data>
+  <data name="MapReplace" xml:space="preserve"><value>Sustituir</value></data>
+  <data name="MapReplaceTip" xml:space="preserve"><value>Cambiar unos tiles por otros</value></data>
+  <data name="MapUndoTip" xml:space="preserve"><value>Deshacer</value></data>
+  <data name="MapRedoTip" xml:space="preserve"><value>Rehacer</value></data>
+  <data name="MapZoomInTip" xml:space="preserve"><value>Acercar</value></data>
+  <data name="MapZoomOutTip" xml:space="preserve"><value>Alejar</value></data>
+  <data name="MapFit" xml:space="preserve"><value>Ajustar</value></data>
+  <data name="MapFitTip" xml:space="preserve"><value>Que quepa el mapa entero</value></data>
+  <data name="MapLayers" xml:space="preserve"><value>Capas</value></data>
+  <data name="MapAddLayerTip" xml:space="preserve"><value>Agregar una capa</value></data>
+  <data name="MapDeleteLayerTip" xml:space="preserve"><value>Eliminar la capa activa</value></data>
+  <data name="MapLayerVisibleTip" xml:space="preserve"><value>Ver u ocultar la capa</value></data>
+  <data name="MapLayerLockedTip" xml:space="preserve"><value>Bloquear la capa para no tocarla</value></data>
+  <data name="MapTitle" xml:space="preserve"><value>Mapa</value></data>
+  <data name="MapSize" xml:space="preserve"><value>Tamaño</value></data>
+  <data name="MapBackground" xml:space="preserve"><value>Fondo</value></data>
+  <data name="MapEmpty" xml:space="preserve"><value>Vacío</value></data>
+  <data name="MapEmptyTip" xml:space="preserve"><value>Tile con el que salen las celdas vacías al exportar a binario</value></data>
+  <data name="MapTilesTab" xml:space="preserve"><value>Tiles</value></data>
+  <data name="MapBlocksTab" xml:space="preserve"><value>Bloques</value></data>
+
+  <!-- Editor de paleta -->
+  <data name="PaletteTitle" xml:space="preserve"><value>Editar la paleta</value></data>
+  <data name="PaletteTransparent" xml:space="preserve"><value>El color 0 es transparente y no se puede editar</value></data>
+  <data name="PaletteComponentsTip" xml:space="preserve"><value>Componentes en 9 bits: un dígito hexadecimal por canal</value></data>
+  <data name="PaletteColorNameTip" xml:space="preserve"><value>Nombre del color</value></data>
+
+  <!-- Redimensionar el mapa -->
+  <data name="ResizeTitle" xml:space="preserve"><value>Redimensionar</value></data>
+  <data name="ResizeAnchor" xml:space="preserve"><value>Anclar</value></data>
+  <data name="ResizeAnchorTip" xml:space="preserve"><value>Dónde queda lo que ya había</value></data>
+  <data name="ResizeNote" xml:space="preserve"><value>Al encoger se pierde lo que quede fuera. Se puede deshacer.</value></data>
+
+  <!-- Sustituir tiles -->
+  <data name="ReplaceTitle" xml:space="preserve"><value>Sustituir tiles</value></data>
+  <data name="ReplaceFrom" xml:space="preserve"><value>Del tile</value></data>
+  <data name="ReplaceTo" xml:space="preserve"><value>Al tile</value></data>
+  <data name="ReplaceToTip" xml:space="preserve"><value>El mismo que el anterior para cambiar sólo uno</value></data>
+  <data name="ReplaceNew" xml:space="preserve"><value>Por el</value></data>
+  <data name="ReplaceNewTip" xml:space="preserve"><value>Por dónde empieza la serie nueva</value></data>
+  <data name="ReplaceOnlySelection" xml:space="preserve"><value>Sólo en la selección</value></data>
+  <data name="ReplaceAllLayers" xml:space="preserve"><value>En todas las capas</value></data>
+
+  <!-- Ventanas de diálogo -->
+  <data name="CellSizeSideTip" xml:space="preserve"><value>Lado de la celda en pixeles</value></data>
+  <data name="CellSizeLoad" xml:space="preserve"><value>Cargar</value></data>
+  <data name="ReferenceRemoveTip" xml:space="preserve"><value>Quitar la imagen de referencia</value></data>
+
   <data name="LanguageChangedTitle" xml:space="preserve"><value>Se ha cambiado el idioma</value></data>
   <data name="LanguageChangedMessage" xml:space="preserve"><value>Algunos textos, como los del árbol del proyecto, no cambian hasta que se vuelve a abrir el programa.</value></data>
 </root>

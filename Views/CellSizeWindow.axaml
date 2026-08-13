@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:l="clr-namespace:MSX_GameTools.Localization"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="220"
         x:Class="MSX_GameTools.Views.CellSizeWindow"
         Title="Tamaño de celda"
@@ -20,7 +21,7 @@
       <NumericUpDown x:Name="SizeBox" Width="120"
                      Minimum="1" Increment="1"
                      FormatString="0"
-                     ToolTip.Tip="Lado de la celda en pixeles" />
+                     ToolTip.Tip="{l:Localize CellSizeSideTip}" />
 
       <!-- Los de siempre a un clic; el resto se teclea. -->
       <Button Content="8" Width="36" HorizontalContentAlignment="Center" Click="OnPreset" Tag="8" />
@@ -31,10 +32,10 @@
 
     <StackPanel Grid.Row="3" Orientation="Horizontal"
                 HorizontalAlignment="Right" Spacing="8" Margin="0,20,0,0">
-      <Button x:Name="ConfirmButton" Content="Cargar" Width="100"
+      <Button x:Name="ConfirmButton" Content="{l:Localize CellSizeLoad}" MinWidth="100"
               HorizontalContentAlignment="Center"
               Click="OnConfirm" />
-      <Button Content="Cancelar" Width="100"
+      <Button Content="{l:Localize FormCancel}" MinWidth="100"
               HorizontalContentAlignment="Center"
               IsCancel="True" IsDefault="True"
               Click="OnCancel" />

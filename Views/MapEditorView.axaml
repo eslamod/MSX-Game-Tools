@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:entities="clr-namespace:MSX_GameTools.Entities"
              xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:l="clr-namespace:MSX_GameTools.Localization"
              xmlns:views="clr-namespace:MSX_GameTools.Views"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
              x:Class="MSX_GameTools.Views.MapEditorView"
@@ -39,48 +40,48 @@
 
       <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="4,3">
         <RadioButton GroupName="MapTool" Theme="{StaticResource ToggleRadioButton}"
-                     Content="Estampar" Tag="Stamp" Margin="1" IsChecked="True"
+                     Content="{l:Localize MapStamp}" Tag="Stamp" Margin="1" IsChecked="True"
                      IsCheckedChanged="OnToolChanged"
-                     ToolTip.Tip="Colocar lo que haya cogido abajo" />
+                     ToolTip.Tip="{l:Localize MapStampTip}" />
         <RadioButton GroupName="MapTool" Theme="{StaticResource ToggleRadioButton}"
-                     Content="Seleccionar" Tag="Select" Margin="1"
+                     Content="{l:Localize MapSelect}" Tag="Select" Margin="1"
                      IsCheckedChanged="OnToolChanged"
-                     ToolTip.Tip="Marcar un rectángulo del mapa" />
+                     ToolTip.Tip="{l:Localize MapSelectTip}" />
         <RadioButton GroupName="MapTool" Theme="{StaticResource ToggleRadioButton}"
-                     Content="Mover" Tag="Pan" Margin="1"
+                     Content="{l:Localize MapPan}" Tag="Pan" Margin="1"
                      IsCheckedChanged="OnToolChanged"
-                     ToolTip.Tip="Desplazar el mapa (o la rueda pulsada en cualquier modo)" />
+                     ToolTip.Tip="{l:Localize MapPanTip}" />
 
         <Border Width="1" Background="DarkGray" Margin="6,2" />
 
-        <Button Content="Rellenar" Margin="1" Padding="8,2"
+        <Button Content="{l:Localize MapFill}" Margin="1" Padding="8,2"
                 Command="{Binding FillSelectionCommand}"
-                ToolTip.Tip="Llenar la selección con lo que haya cogido" />
-        <Button Content="Copiar" Margin="1" Padding="8,2"
+                ToolTip.Tip="{l:Localize MapFillTip}" />
+        <Button Content="{l:Localize MapCopy}" Margin="1" Padding="8,2"
                 Command="{Binding CopySelectionCommand}"
-                ToolTip.Tip="Coger lo que hay en la selección" />
-        <Button Content="Vaciar" Margin="1" Padding="8,2"
+                ToolTip.Tip="{l:Localize MapCopyTip}" />
+        <Button Content="{l:Localize MapClear}" Margin="1" Padding="8,2"
                 Command="{Binding EraseSelectionCommand}"
-                ToolTip.Tip="Dejar la selección sin tiles" />
-        <Button Content="Sustituir" Margin="1" Padding="8,2"
+                ToolTip.Tip="{l:Localize MapClearTip}" />
+        <Button Content="{l:Localize MapReplace}" Margin="1" Padding="8,2"
                 Click="OnReplaceTiles"
-                ToolTip.Tip="Cambiar unos tiles por otros" />
+                ToolTip.Tip="{l:Localize MapReplaceTip}" />
 
         <Border Width="1" Background="DarkGray" Margin="6,2" />
 
         <Button Content="↶" Margin="1" Padding="8,2" FontSize="14"
-                Command="{Binding UndoCommand}" ToolTip.Tip="Deshacer" />
+                Command="{Binding UndoCommand}" ToolTip.Tip="{l:Localize MapUndoTip}" />
         <Button Content="↷" Margin="1" Padding="8,2" FontSize="14"
-                Command="{Binding RedoCommand}" ToolTip.Tip="Rehacer" />
+                Command="{Binding RedoCommand}" ToolTip.Tip="{l:Localize MapRedoTip}" />
 
         <Border Width="1" Background="DarkGray" Margin="6,2" />
 
         <Button Content="−" Margin="1" Padding="10,2" FontSize="14"
-                Command="{Binding ZoomOutCommand}" ToolTip.Tip="Alejar" />
+                Command="{Binding ZoomOutCommand}" ToolTip.Tip="{l:Localize MapZoomOutTip}" />
         <Button Content="+" Margin="1" Padding="10,2" FontSize="14"
-                Command="{Binding ZoomInCommand}" ToolTip.Tip="Acercar" />
-        <Button Content="Ajustar" Margin="1" Padding="8,2"
-                Click="OnFitZoom" ToolTip.Tip="Que quepa el mapa entero" />
+                Command="{Binding ZoomInCommand}" ToolTip.Tip="{l:Localize MapZoomInTip}" />
+        <Button Content="{l:Localize MapFit}" Margin="1" Padding="8,2"
+                Click="OnFitZoom" ToolTip.Tip="{l:Localize MapFitTip}" />
       </StackPanel>
 
       <!-- Lo que se lee mientras se trabaja: dónde está el ratón, el zoom y lo cogido. -->
@@ -118,11 +119,11 @@
         <DockPanel Grid.Row="0" Margin="0,0,0,4">
           <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
             <Button Content="+" Width="26" HorizontalContentAlignment="Center"
-                    Command="{Binding AddLayerCommand}" ToolTip.Tip="Agregar una capa" />
+                    Command="{Binding AddLayerCommand}" ToolTip.Tip="{l:Localize MapAddLayerTip}" />
             <Button Content="-" Width="26" Margin="3,0,0,0" HorizontalContentAlignment="Center"
-                    Command="{Binding DeleteLayerCommand}" ToolTip.Tip="Eliminar la capa activa" />
+                    Command="{Binding DeleteLayerCommand}" ToolTip.Tip="{l:Localize MapDeleteLayerTip}" />
           </StackPanel>
-          <TextBlock Text="Capas" FontWeight="Bold" VerticalAlignment="Center" />
+          <TextBlock Text="{l:Localize MapLayers}" FontWeight="Bold" VerticalAlignment="Center" />
         </DockPanel>
 
         <ListBox Grid.Row="1" Background="White"
@@ -135,37 +136,37 @@
                          Background="Transparent" VerticalAlignment="Center" />
                 <ToggleButton Grid.Column="1" Content="👁" Padding="4,0" FontSize="11"
                               IsChecked="{Binding IsVisible}"
-                              ToolTip.Tip="Ver u ocultar la capa" />
+                              ToolTip.Tip="{l:Localize MapLayerVisibleTip}" />
                 <ToggleButton Grid.Column="2" Content="🔒" Padding="4,0" FontSize="11" Margin="2,0,0,0"
                               IsChecked="{Binding IsLocked}"
-                              ToolTip.Tip="Bloquear la capa para no tocarla" />
+                              ToolTip.Tip="{l:Localize MapLayerLockedTip}" />
               </Grid>
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
 
         <!-- Atributos del mapa -->
-        <TextBlock Grid.Row="2" Text="Mapa" FontWeight="Bold" Margin="0,8,0,4" />
+        <TextBlock Grid.Row="2" Text="{l:Localize MapTitle}" FontWeight="Bold" Margin="0,8,0,4" />
 
         <Grid Grid.Row="3" ColumnDefinitions="60,*" RowDefinitions="Auto,Auto,Auto,Auto">
-          <TextBlock Grid.Row="0" Grid.Column="0" Text="Nombre" VerticalAlignment="Center" />
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="{l:Localize FormName}" VerticalAlignment="Center" />
           <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Map.Name}" Margin="0,0,0,4" />
 
-          <TextBlock Grid.Row="1" Grid.Column="0" Text="Tamaño" VerticalAlignment="Center" />
+          <TextBlock Grid.Row="1" Grid.Column="0" Text="{l:Localize MapSize}" VerticalAlignment="Center" />
           <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,4">
             <TextBlock Text="{Binding Map.Width}" VerticalAlignment="Center" />
             <TextBlock Text=" x " VerticalAlignment="Center" />
             <TextBlock Text="{Binding Map.Height}" VerticalAlignment="Center" />
             <!-- Redimensionar es un botón y no editar el número: la operación descoloca
                  el mapa entero y no puede dispararse al teclear un dígito. -->
-            <Button Content="Redimensionar" Margin="8,0,0,0" Padding="6,1" FontSize="11"
+            <Button Content="{l:Localize MapResize}" Margin="8,0,0,0" Padding="6,1" FontSize="11"
                     Click="OnResize"
-                    ToolTip.Tip="Cambiar el tamaño del mapa" />
+                    ToolTip.Tip="{l:Localize MapResizeTip}" />
           </StackPanel>
 
           <!-- El fondo se puede cambiar, no solo mirar: es el mismo R#7 del borde del
                editor de tiles y aqui tambien hay que poder tocarlo. -->
-          <TextBlock Grid.Row="2" Grid.Column="0" Text="Fondo" VerticalAlignment="Center" />
+          <TextBlock Grid.Row="2" Grid.Column="0" Text="{l:Localize MapBackground}" VerticalAlignment="Center" />
           <Button Grid.Row="2" Grid.Column="1"
                   Theme="{StaticResource TileColorSwatch}"
                   Width="60" Height="22" HorizontalAlignment="Left" Margin="0,0,0,4"
@@ -204,8 +205,8 @@
 
           <!-- El tile de relleno con su dibujo al lado: un numero suelto no dice nada, y
                asi se ve lo que va a salir donde el mapa esta vacio. -->
-          <TextBlock Grid.Row="3" Grid.Column="0" Text="Vacío" VerticalAlignment="Center"
-                     ToolTip.Tip="Tile con el que salen las celdas vacías al exportar a binario" />
+          <TextBlock Grid.Row="3" Grid.Column="0" Text="{l:Localize MapEmpty}" VerticalAlignment="Center"
+                     ToolTip.Tip="{l:Localize MapEmptyTip}" />
           <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal">
             <NumericUpDown Width="100" ShowButtonSpinner="True" FormatString="0"
                            Minimum="0" Maximum="255" Increment="1"
@@ -227,7 +228,7 @@
 
     <TabControl Background="Gainsboro">
 
-      <TabItem Header="Tiles">
+      <TabItem Header="{l:Localize MapTilesTab}">
         <Border Background="Gray" Padding="4">
           <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                         AllowAutoHide="False">
@@ -263,7 +264,7 @@
         </Border>
       </TabItem>
 
-      <TabItem Header="Bloques">
+      <TabItem Header="{l:Localize MapBlocksTab}">
         <Border Background="Gray" Padding="4">
           <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                         AllowAutoHide="False">

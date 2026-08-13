@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:entities="clr-namespace:MSX_GameTools.Entities"
              xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:l="clr-namespace:MSX_GameTools.Localization"
              mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="600"
              x:Class="MSX_GameTools.Views.EditPaletteView"
              x:DataType="vm:EditPaletteViewModel"
@@ -11,10 +12,10 @@
 
   <Grid Margin="10" RowDefinitions="Auto,Auto,*,Auto,Auto">
 
-    <TextBlock Grid.Row="0" Text="Edit palette" FontWeight="Bold" Margin="0,0,0,10" />
+    <TextBlock Grid.Row="0" Text="{l:Localize PaletteTitle}" FontWeight="Bold" Margin="0,0,0,10" />
 
-    <Grid Grid.Row="1" ColumnDefinitions="46,*" Margin="0,0,0,10">
-      <TextBlock Grid.Column="0" Text="Name" VerticalAlignment="Center" />
+    <Grid Grid.Row="1" ColumnDefinitions="60,*" Margin="0,0,0,10">
+      <TextBlock Grid.Column="0" Text="{l:Localize FormName}" VerticalAlignment="Center" />
       <TextBox Grid.Column="1" Text="{Binding Palette.Name}" />
     </Grid>
 
@@ -43,7 +44,7 @@
             <TextBlock Grid.Column="3" Text="{Binding HexRgb}"
                        FontFamily="Consolas" Foreground="#606060"
                        VerticalAlignment="Center" Margin="6,0,0,0"
-                       ToolTip.Tip="Componentes en 9 bits: un dígito hexadecimal por canal" />
+                       ToolTip.Tip="{l:Localize PaletteComponentsTip}" />
           </Grid>
         </DataTemplate>
       </ListBox.ItemTemplate>
@@ -53,15 +54,15 @@
     <StackPanel Grid.Row="3" Margin="0,10,0,0"
                 IsEnabled="{Binding SelectedColor.IsEditable}">
 
-      <TextBlock Text="El color 0 es transparente y no se puede editar"
+      <TextBlock Text="{l:Localize PaletteTransparent}"
                  IsVisible="{Binding SelectedColor.IsTransparent}"
                  Foreground="Firebrick" TextWrapping="Wrap" Margin="0,0,0,6" />
 
       <Grid ColumnDefinitions="20,*" Margin="0,2,0,6">
         <TextBlock Grid.Column="0" Text="N" VerticalAlignment="Center"
-                   ToolTip.Tip="Nombre del color" />
+                   ToolTip.Tip="{l:Localize PaletteColorNameTip}" />
         <TextBox Grid.Column="1" Text="{Binding SelectedColor.Name}"
-                 Watermark="Sin nombre" />
+                 Watermark="{l:Localize BlocksNoName}" />
       </Grid>
 
       <Grid ColumnDefinitions="20,*,24" Margin="0,2">
@@ -100,7 +101,7 @@
       </Grid>
     </StackPanel>
 
-    <Button Grid.Row="4" Content="Close" Width="75"
+    <Button Grid.Row="4" Content="{l:Localize FormClose}" MinWidth="85"
             HorizontalAlignment="Right" Margin="0,12,0,0"
             Command="{Binding CloseCommand}" />
   </Grid>

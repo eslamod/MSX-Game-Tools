@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:entities="clr-namespace:MSX_GameTools.Entities"
              xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:l="clr-namespace:MSX_GameTools.Localization"
              xmlns:views="clr-namespace:MSX_GameTools.Views"
              xmlns:converters="clr-namespace:MSX_GameTools.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
@@ -133,12 +134,12 @@
       <Border Width="1" Background="DarkGray" Margin="6,4" />
 
       <RadioButton GroupName="PaintMode" Theme="{StaticResource ToggleRadioButton}"
-                   Content="Punto" Tag="Click" Margin="2"
-                   ToolTip.Tip="Cada clic pinta un solo pixel"
+                   Content="{l:Localize PaintDot}" Tag="Click" Margin="2"
+                   ToolTip.Tip="{l:Localize PaintDotTip}"
                    IsCheckedChanged="OnPaintModeChanged" />
       <RadioButton GroupName="PaintMode" Theme="{StaticResource ToggleRadioButton}"
-                   Content="Trazo" Tag="Drag" Margin="2" IsChecked="True"
-                   ToolTip.Tip="Mantén pulsado y arrastra para pintar todo el recorrido"
+                   Content="{l:Localize PaintStroke}" Tag="Drag" Margin="2" IsChecked="True"
+                   ToolTip.Tip="{l:Localize PaintStrokeTip}"
                    IsCheckedChanged="OnPaintModeChanged" />
     </StackPanel>
 
@@ -196,13 +197,13 @@
       <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
         <RadioButton x:Name="PatternsModeButton"
                      GroupName="ThumbnailMode" Theme="{StaticResource ToggleRadioButton}"
-                     Content="Patrones" Tag="Patterns" Margin="2" IsChecked="True"
-                     ToolTip.Tip="La tabla de patrones del banco"
+                     Content="{l:Localize SpritesPatterns}" Tag="Patterns" Margin="2" IsChecked="True"
+                     ToolTip.Tip="{l:Localize SpritesPatternsTip}"
                      IsCheckedChanged="OnThumbnailModeChanged" />
         <RadioButton x:Name="GroupsModeButton"
                      GroupName="ThumbnailMode" Theme="{StaticResource ToggleRadioButton}"
-                     Content="Grupos" Tag="Groups" Margin="2"
-                     ToolTip.Tip="Personajes compuestos con varios sprites superpuestos"
+                     Content="{l:Localize SpritesGroups}" Tag="Groups" Margin="2"
+                     ToolTip.Tip="{l:Localize SpritesGroupsTip}"
                      IsCheckedChanged="OnThumbnailModeChanged" />
 
         <Border Width="1" Background="DarkGray" Margin="6,4" IsVisible="{Binding ShowsGroups}" />
@@ -212,12 +213,12 @@
                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                 IsVisible="{Binding ShowsGroups}"
                 Command="{Binding AddGroupCommand}"
-                ToolTip.Tip="Crear un grupo con el sprite actual" />
+                ToolTip.Tip="{l:Localize SpritesNewGroupTip}" />
         <Button Content="-" Width="28" Height="26" Padding="0" Margin="2"
                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                 IsVisible="{Binding ShowsGroups}"
                 Command="{Binding DeleteGroupCommand}"
-                ToolTip.Tip="Eliminar el grupo seleccionado" />
+                ToolTip.Tip="{l:Localize SpritesDeleteGroupTip}" />
       </StackPanel>
 
       <!-- Zoom de las miniaturas. El Tag es el multiplicador sobre el tamaño base. -->
@@ -357,7 +358,7 @@
                 IsVisible="{Binding ShowsSpriteColor}"
                 VerticalAlignment="Top"
                 Margin="4,0">
-      <TextBlock Text="Color" FontSize="10" Margin="0,0,0,2" HorizontalAlignment="Center" />
+      <TextBlock Text="{l:Localize SpritesColor}" FontSize="10" Margin="0,0,0,2" HorizontalAlignment="Center" />
       <Button Theme="{StaticResource ColorSwatchButton}"
               Width="52" Height="40"
               ToolTip.Tip="{Binding SpriteColor.DisplayName}">
@@ -420,7 +421,7 @@
       <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*"
             IsEnabled="{Binding SelectedGroup, Converter={x:Static ObjectConverters.IsNotNull}}">
 
-        <TextBlock Grid.Row="0" Text="Grupo" FontWeight="Bold" Margin="0,0,0,6" />
+        <TextBlock Grid.Row="0" Text="{l:Localize SpritesGroup}" FontWeight="Bold" Margin="0,0,0,6" />
 
         <TextBox Grid.Row="1" Text="{Binding SelectedGroup.Group.Name}" Margin="0,0,0,8" />
 
@@ -447,7 +448,7 @@
                 <ToggleButton Grid.Column="1"
                               Theme="{StaticResource EyeToggle}"
                               IsChecked="{Binding IsVisible}"
-                              ToolTip.Tip="Enseñar u ocultar este plano en la composición" />
+                              ToolTip.Tip="{l:Localize SpritesMemberVisibleTip}" />
               </Grid>
             </DataTemplate>
           </ListBox.ItemTemplate>
@@ -457,23 +458,23 @@
         <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="4" Margin="0,6,0,0">
           <Button Content="+" Width="30" HorizontalContentAlignment="Center"
                   Command="{Binding SelectedGroup.AddMemberCommand}"
-                  ToolTip.Tip="Añadir un sprite con el mismo patrón" />
+                  ToolTip.Tip="{l:Localize SpritesAddTip}" />
           <Button Content="-" Width="30" HorizontalContentAlignment="Center"
                   Command="{Binding SelectedGroup.RemoveMemberCommand}"
-                  ToolTip.Tip="Quitar el sprite seleccionado" />
+                  ToolTip.Tip="{l:Localize SpritesRemoveTip}" />
           <Button Content="▲" Width="30" HorizontalContentAlignment="Center"
                   Command="{Binding SelectedGroup.MoveMemberUpCommand}"
-                  ToolTip.Tip="Subir en prioridad" />
+                  ToolTip.Tip="{l:Localize SpritesUpTip}" />
           <Button Content="▼" Width="30" HorizontalContentAlignment="Center"
                   Command="{Binding SelectedGroup.MoveMemberDownCommand}"
-                  ToolTip.Tip="Bajar en prioridad" />
+                  ToolTip.Tip="{l:Localize SpritesDownTip}" />
         </StackPanel>
 
         <StackPanel Grid.Row="4" Margin="0,10,0,0" Spacing="4"
                     IsEnabled="{Binding SelectedGroup.SelectedMember, Converter={x:Static ObjectConverters.IsNotNull}}">
 
           <Grid ColumnDefinitions="56,28,*,28">
-            <TextBlock Grid.Column="0" Text="Patrón" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="0" Text="{l:Localize SpritesPattern}" VerticalAlignment="Center" />
             <Button Grid.Column="1" Content="◄" HorizontalContentAlignment="Center"
                     Command="{Binding SelectedGroup.StepPatternCommand}" CommandParameter="-1" />
             <TextBlock Grid.Column="2" Text="{Binding SelectedGroup.SelectedMember.PatternIndex}"
@@ -483,7 +484,7 @@
           </Grid>
 
           <Grid ColumnDefinitions="56,28,*,28">
-            <TextBlock Grid.Column="0" Text="Offset X" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="0" Text="{l:Localize SpritesOffsetX}" VerticalAlignment="Center" />
             <Button Grid.Column="1" Content="◄" HorizontalContentAlignment="Center"
                     Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="left" />
             <TextBlock Grid.Column="2" Text="{Binding SelectedGroup.SelectedMember.OffsetX}"
@@ -493,7 +494,7 @@
           </Grid>
 
           <Grid ColumnDefinitions="56,28,*,28">
-            <TextBlock Grid.Column="0" Text="Offset Y" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="0" Text="{l:Localize SpritesOffsetY}" VerticalAlignment="Center" />
             <Button Grid.Column="1" Content="▲" HorizontalContentAlignment="Center"
                     Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="up" />
             <TextBlock Grid.Column="2" Text="{Binding SelectedGroup.SelectedMember.OffsetY}"
@@ -506,14 +507,14 @@
                es la escena contra la que se coloca la composicion entera. Sin ninguna
                imagen cargada no se enseña nada. -->
           <StackPanel IsVisible="{Binding HasBackgrounds}" Margin="0,10,0,0">
-            <TextBlock Text="Fondo" FontWeight="Bold" Margin="0,0,0,4" />
+            <TextBlock Text="{l:Localize ReferenceBackground}" FontWeight="Bold" Margin="0,0,0,4" />
 
             <Grid ColumnDefinitions="*,Auto,Auto">
               <ComboBox Grid.Column="0" HorizontalAlignment="Stretch"
                         ItemsSource="{Binding Backgrounds.Images}"
                         SelectedItem="{Binding SelectedGroup.Background.Image}"
-                        PlaceholderText="Sin fondo"
-                        ToolTip.Tip="Imagen de referencia detrás de la composición">
+                        PlaceholderText="{l:Localize ReferenceNone}"
+                        ToolTip.Tip="{l:Localize ReferenceGroupTip}">
                 <ComboBox.ItemTemplate>
                   <DataTemplate x:DataType="entities:ReferenceImage">
                     <TextBlock Text="{Binding DisplayName}" />
@@ -527,32 +528,32 @@
                       HorizontalContentAlignment="Center"
                       IsVisible="{Binding SelectedGroup.Background.CanPickCell}"
                       Command="{Binding SelectedGroup.Background.PickCellCommand}"
-                      ToolTip.Tip="Elegir la celda de la hoja" />
+                      ToolTip.Tip="{l:Localize ReferenceCellTip}" />
 
-              <ToggleButton Grid.Column="2" Content="Ver"
+              <ToggleButton Grid.Column="2" Content="{l:Localize ReferenceShow}"
                             MinWidth="40" Margin="4,0,0,0"
                             HorizontalContentAlignment="Center"
                             IsVisible="{Binding SelectedGroup.Background.HasTile}"
                             IsChecked="{Binding SelectedGroup.Background.IsVisible}"
-                            ToolTip.Tip="Enseñar u ocultar la referencia" />
+                            ToolTip.Tip="{l:Localize ReferenceShowTip}" />
             </Grid>
 
             <Grid ColumnDefinitions="56,*" Margin="0,4,0,0">
-              <TextBlock Grid.Column="0" Text="Opacidad" VerticalAlignment="Center" FontSize="11" />
+              <TextBlock Grid.Column="0" Text="{l:Localize ReferenceOpacity}" VerticalAlignment="Center" FontSize="11" />
               <Slider Grid.Column="1"
                       Minimum="0.15" Maximum="1"
                       Value="{Binding SelectedGroup.SpriteOpacity}"
                       VerticalAlignment="Center"
-                      ToolTip.Tip="Opacidad de los sprites sobre la referencia" />
+                      ToolTip.Tip="{l:Localize ReferenceOpacityGroupTip}" />
             </Grid>
           </StackPanel>
         </StackPanel>
 
         <Grid Grid.Row="5" ColumnDefinitions="*,Auto" Margin="0,12,0,4">
-          <TextBlock Grid.Column="0" Text="Colores" FontWeight="Bold" VerticalAlignment="Center" />
-          <Button Grid.Column="1" Content="Del patrón" FontSize="10" Padding="6,2"
+          <TextBlock Grid.Column="0" Text="{l:Localize SpritesColors}" FontWeight="Bold" VerticalAlignment="Center" />
+          <Button Grid.Column="1" Content="{l:Localize SpritesFromPattern}" FontSize="10" Padding="6,2"
                   Command="{Binding SelectedGroup.RestoreColorsCommand}"
-                  ToolTip.Tip="Volver a sembrar los colores desde el patrón del miembro" />
+                  ToolTip.Tip="{l:Localize SpritesFromPatternTip}" />
         </Grid>
 
         <!-- MSX2: un color y un CC por linea del miembro. Son los colores del miembro,
@@ -613,7 +614,7 @@
                   <ToggleButton Grid.Column="2" Content="OR" Width="34" FontSize="10"
                                 Padding="0" HorizontalContentAlignment="Center"
                                 IsChecked="{Binding Row.CombineColor, Mode=TwoWay}"
-                                ToolTip.Tip="CC: combinar con OR el color de esta línea con el del sprite de mayor prioridad" />
+                                ToolTip.Tip="{l:Localize SpritesCombineTip}" />
                 </Grid>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -801,14 +802,14 @@
               VerticalAlignment="Top" Margin="6,54,6,0"
               IsVisible="{Binding HasBackgrounds}">
 
-    <TextBlock Text="Fondo" FontWeight="Bold" Margin="0,0,0,4" />
+    <TextBlock Text="{l:Localize ReferenceBackground}" FontWeight="Bold" Margin="0,0,0,4" />
 
     <Grid ColumnDefinitions="*,Auto,Auto">
       <ComboBox Grid.Column="0" HorizontalAlignment="Stretch" FontSize="11"
                 ItemsSource="{Binding Backgrounds.Images}"
                 SelectedItem="{Binding PatternBackground.Image}"
-                PlaceholderText="Sin fondo"
-                ToolTip.Tip="Imagen de referencia detrás del lienzo">
+                PlaceholderText="{l:Localize ReferenceNone}"
+                ToolTip.Tip="{l:Localize ReferenceCanvasTip}">
         <ComboBox.ItemTemplate>
           <DataTemplate x:DataType="entities:ReferenceImage">
             <TextBlock Text="{Binding DisplayName}" />
@@ -825,25 +826,25 @@
               HorizontalContentAlignment="Center"
               IsVisible="{Binding PatternBackground.CanPickCell}"
               Command="{Binding PatternBackground.PickCellCommand}"
-              ToolTip.Tip="Elegir la celda de la hoja" />
+              ToolTip.Tip="{l:Localize ReferenceCellTip}" />
 
       <!-- Ocultar sin olvidar: "Sin fondo" borra la celda elegida, y para volver a
            ponerla habria que acordarse de cual era. -->
-      <ToggleButton Grid.Column="2" Content="Ver"
+      <ToggleButton Grid.Column="2" Content="{l:Localize ReferenceShow}"
                     MinWidth="40" Margin="4,0,0,0" FontSize="11"
                     HorizontalContentAlignment="Center"
                     IsVisible="{Binding PatternBackground.HasTile}"
                     IsChecked="{Binding PatternBackground.IsVisible}"
-                    ToolTip.Tip="Enseñar u ocultar la referencia" />
+                    ToolTip.Tip="{l:Localize ReferenceShowTip}" />
     </Grid>
 
     <Grid ColumnDefinitions="56,*" Margin="0,4,0,0">
-      <TextBlock Grid.Column="0" Text="Opacidad" VerticalAlignment="Center" FontSize="11" />
+      <TextBlock Grid.Column="0" Text="{l:Localize ReferenceOpacity}" VerticalAlignment="Center" FontSize="11" />
       <Slider Grid.Column="1"
               Minimum="0.15" Maximum="1"
               Value="{Binding PatternOpacity}"
               VerticalAlignment="Center"
-              ToolTip.Tip="Opacidad del sprite sobre la referencia" />
+              ToolTip.Tip="{l:Localize ReferenceOpacityTip}" />
     </Grid>
     </StackPanel>
 

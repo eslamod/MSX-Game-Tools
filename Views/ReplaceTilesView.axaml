@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:l="clr-namespace:MSX_GameTools.Localization"
              mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="340"
              x:Class="MSX_GameTools.Views.ReplaceTilesView"
              x:DataType="vm:ReplaceTilesViewModel"
@@ -10,38 +11,38 @@
 
   <Grid Margin="10" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto">
 
-    <TextBlock Grid.Row="0" Text="Sustituir tiles" FontWeight="Bold" Margin="0,0,0,10" />
+    <TextBlock Grid.Row="0" Text="{l:Localize ReplaceTitle}" FontWeight="Bold" Margin="0,0,0,10" />
 
     <!-- Por rango y no de uno en uno: el caso real es mover un grupo entero. -->
     <Grid Grid.Row="1" ColumnDefinitions="70,*" Margin="0,0,0,6">
-      <TextBlock Grid.Column="0" Text="Del tile" VerticalAlignment="Center" />
+      <TextBlock Grid.Column="0" Text="{l:Localize ReplaceFrom}" VerticalAlignment="Center" />
       <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
                      Minimum="0" Maximum="{Binding MaxTile}" Increment="1"
                      Value="{Binding FromFirst}" />
     </Grid>
 
     <Grid Grid.Row="2" ColumnDefinitions="70,*" Margin="0,0,0,6">
-      <TextBlock Grid.Column="0" Text="Al tile" VerticalAlignment="Center" />
+      <TextBlock Grid.Column="0" Text="{l:Localize ReplaceTo}" VerticalAlignment="Center" />
       <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
                      Minimum="0" Maximum="{Binding MaxTile}" Increment="1"
                      Value="{Binding FromLast}"
-                     ToolTip.Tip="El mismo que el anterior para cambiar sólo uno" />
+                     ToolTip.Tip="{l:Localize ReplaceToTip}" />
     </Grid>
 
     <Grid Grid.Row="3" ColumnDefinitions="70,*" Margin="0,0,0,6">
-      <TextBlock Grid.Column="0" Text="Por el" VerticalAlignment="Center" />
+      <TextBlock Grid.Column="0" Text="{l:Localize ReplaceNew}" VerticalAlignment="Center" />
       <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
                      Minimum="0" Maximum="{Binding MaxTile}" Increment="1"
                      Value="{Binding ToFirst}"
-                     ToolTip.Tip="Por dónde empieza la serie nueva" />
+                     ToolTip.Tip="{l:Localize ReplaceNewTip}" />
     </Grid>
 
     <TextBlock Grid.Row="4" Text="{Binding RangeLabel}" TextWrapping="Wrap"
                Foreground="#404040" Margin="0,4,0,8" />
 
-    <CheckBox Grid.Row="5" Content="En todas las capas" IsChecked="{Binding AllLayers}" />
+    <CheckBox Grid.Row="5" Content="{l:Localize ReplaceAllLayers}" IsChecked="{Binding AllLayers}" />
 
-    <CheckBox Grid.Row="6" Content="Sólo en la selección"
+    <CheckBox Grid.Row="6" Content="{l:Localize ReplaceOnlySelection}"
               IsChecked="{Binding OnlySelection}"
               IsEnabled="{Binding HasSelection}" />
 
@@ -49,8 +50,8 @@
                VerticalAlignment="Top" Margin="0,10,0,0" FontWeight="Bold" />
 
     <StackPanel Grid.Row="8" Orientation="Horizontal" HorizontalAlignment="Right">
-      <Button Content="Sustituir" Width="90" Command="{Binding AcceptReplaceCommand}" />
-      <Button Content="Cerrar" Width="90" Margin="8,0,0,0" Command="{Binding CloseReplaceCommand}" />
+      <Button Content="{l:Localize MapReplace}" MinWidth="90" Command="{Binding AcceptReplaceCommand}" />
+      <Button Content="{l:Localize FormClose}" MinWidth="90" Margin="8,0,0,0" Command="{Binding CloseReplaceCommand}" />
     </StackPanel>
   </Grid>
 </UserControl>

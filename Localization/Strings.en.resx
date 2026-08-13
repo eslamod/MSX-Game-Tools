@@ -166,6 +166,116 @@
   <data name="PreferencesBlockGrid" xml:space="preserve"><value>Block grid</value></data>
   <data name="PreferencesBlockTiles" xml:space="preserve"><value>Tiles in blocks</value></data>
   <data name="PreferencesMapTiles" xml:space="preserve"><value>Tiles in the map</value></data>
+  <data name="PaintDot" xml:space="preserve"><value>Dot</value></data>
+  <data name="PaintDotTip" xml:space="preserve"><value>Each click paints a single pixel</value></data>
+  <data name="PaintStroke" xml:space="preserve"><value>Stroke</value></data>
+  <data name="PaintStrokeTip" xml:space="preserve"><value>Hold and drag to paint the whole path</value></data>
+  <data name="FormClose" xml:space="preserve"><value>Close</value></data>
+
+  <data name="SpritesPatterns" xml:space="preserve"><value>Patterns</value></data>
+  <data name="SpritesPatternsTip" xml:space="preserve"><value>The pattern table of the bank</value></data>
+  <data name="SpritesGroups" xml:space="preserve"><value>Groups</value></data>
+  <data name="SpritesGroupsTip" xml:space="preserve"><value>Characters built from several overlapping sprites</value></data>
+  <data name="SpritesPattern" xml:space="preserve"><value>Pattern</value></data>
+  <data name="SpritesColor" xml:space="preserve"><value>Colour</value></data>
+  <data name="SpritesColors" xml:space="preserve"><value>Colours</value></data>
+  <data name="SpritesGroup" xml:space="preserve"><value>Group</value></data>
+  <data name="SpritesOffsetX" xml:space="preserve"><value>Offset X</value></data>
+  <data name="SpritesOffsetY" xml:space="preserve"><value>Offset Y</value></data>
+  <data name="SpritesFromPattern" xml:space="preserve"><value>From pattern</value></data>
+  <data name="SpritesFromPatternTip" xml:space="preserve"><value>Seed the colours again from the member's pattern</value></data>
+  <data name="SpritesAddTip" xml:space="preserve"><value>Add a sprite with the same pattern</value></data>
+  <data name="SpritesRemoveTip" xml:space="preserve"><value>Remove the selected sprite</value></data>
+  <data name="SpritesNewGroupTip" xml:space="preserve"><value>Create a group with the current sprite</value></data>
+  <data name="SpritesDeleteGroupTip" xml:space="preserve"><value>Delete the selected group</value></data>
+  <data name="SpritesUpTip" xml:space="preserve"><value>Raise its priority</value></data>
+  <data name="SpritesDownTip" xml:space="preserve"><value>Lower its priority</value></data>
+  <data name="SpritesCombineTip" xml:space="preserve"><value>CC: OR this line's colour with that of the higher priority sprite</value></data>
+  <data name="SpritesMemberVisibleTip" xml:space="preserve"><value>Show or hide this plane in the composition</value></data>
+
+  <data name="ReferenceBackground" xml:space="preserve"><value>Background</value></data>
+  <data name="ReferenceNone" xml:space="preserve"><value>No background</value></data>
+  <data name="ReferenceShow" xml:space="preserve"><value>Show</value></data>
+  <data name="ReferenceOpacity" xml:space="preserve"><value>Opacity</value></data>
+  <data name="ReferenceCanvasTip" xml:space="preserve"><value>Reference image behind the canvas</value></data>
+  <data name="ReferenceGroupTip" xml:space="preserve"><value>Reference image behind the composition</value></data>
+  <data name="ReferenceShowTip" xml:space="preserve"><value>Show or hide the reference</value></data>
+  <data name="ReferenceCellTip" xml:space="preserve"><value>Pick the cell of the sheet</value></data>
+  <data name="ReferenceOpacityTip" xml:space="preserve"><value>Opacity of the sprite over the reference</value></data>
+  <data name="ReferenceOpacityGroupTip" xml:space="preserve"><value>Opacity of the sprites over the reference</value></data>
+
+  <data name="TilesBorder" xml:space="preserve"><value>Border</value></data>
+  <data name="TilesGrid" xml:space="preserve"><value>Grid</value></data>
+  <data name="TilesGridTip" xml:space="preserve"><value>Outline each tile</value></data>
+
+  <data name="BlocksTitle" xml:space="preserve"><value>Tile blocks</value></data>
+  <data name="BlocksComposition" xml:space="preserve"><value>Composition</value></data>
+  <data name="BlocksTiles" xml:space="preserve"><value>Tiles</value></data>
+  <data name="BlocksAddTip" xml:space="preserve"><value>Add a block</value></data>
+  <data name="BlocksDeleteTip" xml:space="preserve"><value>Delete the selected block</value></data>
+  <data name="BlocksFit" xml:space="preserve"><value>Fit</value></data>
+  <data name="BlocksFitTip" xml:space="preserve"><value>Shrink the block to what the tiles take up</value></data>
+  <data name="BlocksSizeTip" xml:space="preserve"><value>The size of the block</value></data>
+  <data name="BlocksNoName" xml:space="preserve"><value>No name</value></data>
+
+  <data name="MapStamp" xml:space="preserve"><value>Stamp</value></data>
+  <data name="MapStampTip" xml:space="preserve"><value>Place whatever is picked below</value></data>
+  <data name="MapSelect" xml:space="preserve"><value>Select</value></data>
+  <data name="MapSelectTip" xml:space="preserve"><value>Mark a rectangle of the map</value></data>
+  <data name="MapPan" xml:space="preserve"><value>Pan</value></data>
+  <data name="MapPanTip" xml:space="preserve"><value>Move the map (or the wheel pressed, in any mode)</value></data>
+  <data name="MapFill" xml:space="preserve"><value>Fill</value></data>
+  <data name="MapFillTip" xml:space="preserve"><value>Fill the selection with whatever is picked</value></data>
+  <data name="MapClear" xml:space="preserve"><value>Clear</value></data>
+  <data name="MapClearTip" xml:space="preserve"><value>Leave the selection without tiles</value></data>
+  <data name="MapCopy" xml:space="preserve"><value>Copy</value></data>
+  <data name="MapCopyTip" xml:space="preserve"><value>Pick up what is in the selection</value></data>
+  <data name="MapResize" xml:space="preserve"><value>Resize</value></data>
+  <data name="MapResizeTip" xml:space="preserve"><value>Change the size of the map</value></data>
+  <data name="MapReplace" xml:space="preserve"><value>Replace</value></data>
+  <data name="MapReplaceTip" xml:space="preserve"><value>Change some tiles for others</value></data>
+  <data name="MapUndoTip" xml:space="preserve"><value>Undo</value></data>
+  <data name="MapRedoTip" xml:space="preserve"><value>Redo</value></data>
+  <data name="MapZoomInTip" xml:space="preserve"><value>Zoom in</value></data>
+  <data name="MapZoomOutTip" xml:space="preserve"><value>Zoom out</value></data>
+  <data name="MapFit" xml:space="preserve"><value>Fit</value></data>
+  <data name="MapFitTip" xml:space="preserve"><value>Make the whole map fit</value></data>
+  <data name="MapLayers" xml:space="preserve"><value>Layers</value></data>
+  <data name="MapAddLayerTip" xml:space="preserve"><value>Add a layer</value></data>
+  <data name="MapDeleteLayerTip" xml:space="preserve"><value>Delete the active layer</value></data>
+  <data name="MapLayerVisibleTip" xml:space="preserve"><value>Show or hide the layer</value></data>
+  <data name="MapLayerLockedTip" xml:space="preserve"><value>Lock the layer so it is not touched</value></data>
+  <data name="MapTitle" xml:space="preserve"><value>Map</value></data>
+  <data name="MapSize" xml:space="preserve"><value>Size</value></data>
+  <data name="MapBackground" xml:space="preserve"><value>Background</value></data>
+  <data name="MapEmpty" xml:space="preserve"><value>Empty</value></data>
+  <data name="MapEmptyTip" xml:space="preserve"><value>Tile that empty cells come out as when exporting to binary</value></data>
+  <data name="MapTilesTab" xml:space="preserve"><value>Tiles</value></data>
+  <data name="MapBlocksTab" xml:space="preserve"><value>Blocks</value></data>
+
+  <data name="PaletteTitle" xml:space="preserve"><value>Edit the palette</value></data>
+  <data name="PaletteTransparent" xml:space="preserve"><value>Colour 0 is transparent and cannot be edited</value></data>
+  <data name="PaletteComponentsTip" xml:space="preserve"><value>Components in 9 bits: one hexadecimal digit per channel</value></data>
+  <data name="PaletteColorNameTip" xml:space="preserve"><value>Name of the colour</value></data>
+
+  <data name="ResizeTitle" xml:space="preserve"><value>Resize</value></data>
+  <data name="ResizeAnchor" xml:space="preserve"><value>Anchor</value></data>
+  <data name="ResizeAnchorTip" xml:space="preserve"><value>Where what was already there ends up</value></data>
+  <data name="ResizeNote" xml:space="preserve"><value>Shrinking loses whatever falls outside. It can be undone.</value></data>
+
+  <data name="ReplaceTitle" xml:space="preserve"><value>Replace tiles</value></data>
+  <data name="ReplaceFrom" xml:space="preserve"><value>From tile</value></data>
+  <data name="ReplaceTo" xml:space="preserve"><value>To tile</value></data>
+  <data name="ReplaceToTip" xml:space="preserve"><value>The same as the previous one to change just one</value></data>
+  <data name="ReplaceNew" xml:space="preserve"><value>Into</value></data>
+  <data name="ReplaceNewTip" xml:space="preserve"><value>Where the new series starts</value></data>
+  <data name="ReplaceOnlySelection" xml:space="preserve"><value>Only in the selection</value></data>
+  <data name="ReplaceAllLayers" xml:space="preserve"><value>In every layer</value></data>
+
+  <data name="CellSizeSideTip" xml:space="preserve"><value>Side of the cell in pixels</value></data>
+  <data name="CellSizeLoad" xml:space="preserve"><value>Load</value></data>
+  <data name="ReferenceRemoveTip" xml:space="preserve"><value>Remove the reference image</value></data>
+
   <data name="LanguageChangedTitle" xml:space="preserve"><value>The language has changed</value></data>
   <data name="LanguageChangedMessage" xml:space="preserve"><value>Some text, such as the project tree, does not change until the application is opened again.</value></data>
 </root>

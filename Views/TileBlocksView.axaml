@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:l="clr-namespace:MSX_GameTools.Localization"
              xmlns:views="clr-namespace:MSX_GameTools.Views"
              mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="700"
              x:Class="MSX_GameTools.Views.TileBlocksView"
@@ -42,7 +43,7 @@
        depende de lo que se este haciendo, y el panel comparte ancho con lo demas. -->
   <Grid Margin="6" RowDefinitions="Auto,120,4,*,4,*">
 
-    <TextBlock Grid.Row="0" Text="Bloques de tiles" FontWeight="Bold" Margin="0,0,0,6" />
+    <TextBlock Grid.Row="0" Text="{l:Localize BlocksTitle}" FontWeight="Bold" Margin="0,0,0,6" />
 
     <!-- 1. Los bloques definidos -->
     <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
@@ -60,10 +61,10 @@
       <StackPanel Grid.Column="1" Margin="4,0,0,0">
         <Button Content="+" Width="28" HorizontalContentAlignment="Center"
                 Command="{Binding AddBlockCommand}"
-                ToolTip.Tip="Agregar un bloque" />
+                ToolTip.Tip="{l:Localize BlocksAddTip}" />
         <Button Content="-" Width="28" Margin="0,4,0,0" HorizontalContentAlignment="Center"
                 Command="{Binding DeleteBlockCommand}"
-                ToolTip.Tip="Eliminar el bloque seleccionado" />
+                ToolTip.Tip="{l:Localize BlocksDeleteTip}" />
       </StackPanel>
     </Grid>
 
@@ -85,17 +86,17 @@
                        IsCheckedChanged="OnGridZoomChanged" />
         </StackPanel>
         <StackPanel Orientation="Horizontal">
-          <TextBlock Text="Composición" VerticalAlignment="Center" />
+          <TextBlock Text="{l:Localize BlocksComposition}" VerticalAlignment="Center" />
           <TextBlock Text="{Binding SizeLabel}" VerticalAlignment="Center"
                      Margin="8,0,0,0" FontWeight="Bold"
-                     ToolTip.Tip="Lo que mide el bloque" />
+                     ToolTip.Tip="{l:Localize BlocksSizeTip}" />
         </StackPanel>
       </DockPanel>
 
       <!-- Nombre y tamaño del bloque. El tamaño crece solo al pintar mas alla, pero se
            puede fijar: un supertile de 2x2 con la esquina vacia sigue siendo de 2x2. -->
       <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" Margin="0,0,0,4">
-        <TextBox Grid.Column="0" Watermark="Sin nombre"
+        <TextBox Grid.Column="0" Watermark="{l:Localize BlocksNoName}"
                  Text="{Binding SelectedBlock.Name}" />
         <TextBlock Grid.Column="1" Text="W" VerticalAlignment="Center" Margin="6,0,2,0" />
         <NumericUpDown Grid.Column="2" Width="70" ShowButtonSpinner="True"
@@ -105,9 +106,9 @@
         <NumericUpDown Grid.Column="4" Width="70" ShowButtonSpinner="True"
                        Minimum="1" Maximum="16" Increment="1" FormatString="0"
                        Value="{Binding SelectedBlock.Height}" />
-        <Button Grid.Column="5" Content="Ajustar" Margin="6,0,0,0" Padding="8,2"
+        <Button Grid.Column="5" Content="{l:Localize BlocksFit}" Margin="6,0,0,0" Padding="8,2"
                 Command="{Binding FitToContentCommand}"
-                ToolTip.Tip="Encoger el bloque hasta lo que ocupan los tiles puestos" />
+                ToolTip.Tip="{l:Localize BlocksFitTip}" />
       </Grid>
 
       <Border Grid.Row="2" Background="Gray" Padding="4">
@@ -164,7 +165,7 @@
                        Content="X3" Tag="3" Width="30" Margin="1"
                        IsCheckedChanged="OnTileZoomChanged" />
         </StackPanel>
-        <TextBlock Text="Tiles" VerticalAlignment="Center" />
+        <TextBlock Text="{l:Localize BlocksTiles}" VerticalAlignment="Center" />
       </DockPanel>
 
       <Border Grid.Row="1" Background="Gray" Padding="4">

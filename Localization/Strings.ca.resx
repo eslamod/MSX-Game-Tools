@@ -167,6 +167,116 @@
   <data name="PreferencesBlockGrid" xml:space="preserve"><value>Graella de blocs</value></data>
   <data name="PreferencesBlockTiles" xml:space="preserve"><value>Tiles als blocs</value></data>
   <data name="PreferencesMapTiles" xml:space="preserve"><value>Tiles al mapa</value></data>
+  <data name="PaintDot" xml:space="preserve"><value>Punt</value></data>
+  <data name="PaintDotTip" xml:space="preserve"><value>Cada clic pinta un sol píxel</value></data>
+  <data name="PaintStroke" xml:space="preserve"><value>Traç</value></data>
+  <data name="PaintStrokeTip" xml:space="preserve"><value>Mantén premut i arrossega per pintar tot el recorregut</value></data>
+  <data name="FormClose" xml:space="preserve"><value>Tanca</value></data>
+
+  <data name="SpritesPatterns" xml:space="preserve"><value>Patrons</value></data>
+  <data name="SpritesPatternsTip" xml:space="preserve"><value>La taula de patrons del banc</value></data>
+  <data name="SpritesGroups" xml:space="preserve"><value>Grups</value></data>
+  <data name="SpritesGroupsTip" xml:space="preserve"><value>Personatges compostos amb diversos sprites superposats</value></data>
+  <data name="SpritesPattern" xml:space="preserve"><value>Patró</value></data>
+  <data name="SpritesColor" xml:space="preserve"><value>Color</value></data>
+  <data name="SpritesColors" xml:space="preserve"><value>Colors</value></data>
+  <data name="SpritesGroup" xml:space="preserve"><value>Grup</value></data>
+  <data name="SpritesOffsetX" xml:space="preserve"><value>Desplaçament X</value></data>
+  <data name="SpritesOffsetY" xml:space="preserve"><value>Desplaçament Y</value></data>
+  <data name="SpritesFromPattern" xml:space="preserve"><value>Del patró</value></data>
+  <data name="SpritesFromPatternTip" xml:space="preserve"><value>Tornar a sembrar els colors des del patró del membre</value></data>
+  <data name="SpritesAddTip" xml:space="preserve"><value>Afegeix un sprite amb el mateix patró</value></data>
+  <data name="SpritesRemoveTip" xml:space="preserve"><value>Treu l'sprite seleccionat</value></data>
+  <data name="SpritesNewGroupTip" xml:space="preserve"><value>Crea un grup amb l'sprite actual</value></data>
+  <data name="SpritesDeleteGroupTip" xml:space="preserve"><value>Elimina el grup seleccionat</value></data>
+  <data name="SpritesUpTip" xml:space="preserve"><value>Puja en prioritat</value></data>
+  <data name="SpritesDownTip" xml:space="preserve"><value>Baixa en prioritat</value></data>
+  <data name="SpritesCombineTip" xml:space="preserve"><value>CC: combina amb OR el color d'aquesta línia amb el de l'sprite de més prioritat</value></data>
+  <data name="SpritesMemberVisibleTip" xml:space="preserve"><value>Mostra o amaga aquest pla a la composició</value></data>
+
+  <data name="ReferenceBackground" xml:space="preserve"><value>Fons</value></data>
+  <data name="ReferenceNone" xml:space="preserve"><value>Sense fons</value></data>
+  <data name="ReferenceShow" xml:space="preserve"><value>Mostra</value></data>
+  <data name="ReferenceOpacity" xml:space="preserve"><value>Opacitat</value></data>
+  <data name="ReferenceCanvasTip" xml:space="preserve"><value>Imatge de referència darrere del llenç</value></data>
+  <data name="ReferenceGroupTip" xml:space="preserve"><value>Imatge de referència darrere de la composició</value></data>
+  <data name="ReferenceShowTip" xml:space="preserve"><value>Mostra o amaga la referència</value></data>
+  <data name="ReferenceCellTip" xml:space="preserve"><value>Tria la cel·la del full</value></data>
+  <data name="ReferenceOpacityTip" xml:space="preserve"><value>Opacitat de l'sprite sobre la referència</value></data>
+  <data name="ReferenceOpacityGroupTip" xml:space="preserve"><value>Opacitat dels sprites sobre la referència</value></data>
+
+  <data name="TilesBorder" xml:space="preserve"><value>Vora</value></data>
+  <data name="TilesGrid" xml:space="preserve"><value>Graella</value></data>
+  <data name="TilesGridTip" xml:space="preserve"><value>Marca la vora de cada tile</value></data>
+
+  <data name="BlocksTitle" xml:space="preserve"><value>Blocs de tiles</value></data>
+  <data name="BlocksComposition" xml:space="preserve"><value>Composició</value></data>
+  <data name="BlocksTiles" xml:space="preserve"><value>Tiles</value></data>
+  <data name="BlocksAddTip" xml:space="preserve"><value>Afegeix un bloc</value></data>
+  <data name="BlocksDeleteTip" xml:space="preserve"><value>Elimina el bloc seleccionat</value></data>
+  <data name="BlocksFit" xml:space="preserve"><value>Ajusta</value></data>
+  <data name="BlocksFitTip" xml:space="preserve"><value>Encongeix el bloc fins al que ocupen els tiles posats</value></data>
+  <data name="BlocksSizeTip" xml:space="preserve"><value>El que fa el bloc</value></data>
+  <data name="BlocksNoName" xml:space="preserve"><value>Sense nom</value></data>
+
+  <data name="MapStamp" xml:space="preserve"><value>Estampa</value></data>
+  <data name="MapStampTip" xml:space="preserve"><value>Col·loca el que hagis agafat a baix</value></data>
+  <data name="MapSelect" xml:space="preserve"><value>Selecciona</value></data>
+  <data name="MapSelectTip" xml:space="preserve"><value>Marca un rectangle del mapa</value></data>
+  <data name="MapPan" xml:space="preserve"><value>Mou</value></data>
+  <data name="MapPanTip" xml:space="preserve"><value>Desplaça el mapa (o la roda premuda en qualsevol mode)</value></data>
+  <data name="MapFill" xml:space="preserve"><value>Omple</value></data>
+  <data name="MapFillTip" xml:space="preserve"><value>Omple la selecció amb el que hagis agafat</value></data>
+  <data name="MapClear" xml:space="preserve"><value>Buida</value></data>
+  <data name="MapClearTip" xml:space="preserve"><value>Deixa la selecció sense tiles</value></data>
+  <data name="MapCopy" xml:space="preserve"><value>Copia</value></data>
+  <data name="MapCopyTip" xml:space="preserve"><value>Agafa el que hi ha a la selecció</value></data>
+  <data name="MapResize" xml:space="preserve"><value>Redimensiona</value></data>
+  <data name="MapResizeTip" xml:space="preserve"><value>Canvia la mida del mapa</value></data>
+  <data name="MapReplace" xml:space="preserve"><value>Substitueix</value></data>
+  <data name="MapReplaceTip" xml:space="preserve"><value>Canvia uns tiles per uns altres</value></data>
+  <data name="MapUndoTip" xml:space="preserve"><value>Desfés</value></data>
+  <data name="MapRedoTip" xml:space="preserve"><value>Refés</value></data>
+  <data name="MapZoomInTip" xml:space="preserve"><value>Apropa</value></data>
+  <data name="MapZoomOutTip" xml:space="preserve"><value>Allunya</value></data>
+  <data name="MapFit" xml:space="preserve"><value>Ajusta</value></data>
+  <data name="MapFitTip" xml:space="preserve"><value>Que hi càpiga el mapa sencer</value></data>
+  <data name="MapLayers" xml:space="preserve"><value>Capes</value></data>
+  <data name="MapAddLayerTip" xml:space="preserve"><value>Afegeix una capa</value></data>
+  <data name="MapDeleteLayerTip" xml:space="preserve"><value>Elimina la capa activa</value></data>
+  <data name="MapLayerVisibleTip" xml:space="preserve"><value>Mostra o amaga la capa</value></data>
+  <data name="MapLayerLockedTip" xml:space="preserve"><value>Bloqueja la capa per no tocar-la</value></data>
+  <data name="MapTitle" xml:space="preserve"><value>Mapa</value></data>
+  <data name="MapSize" xml:space="preserve"><value>Mida</value></data>
+  <data name="MapBackground" xml:space="preserve"><value>Fons</value></data>
+  <data name="MapEmpty" xml:space="preserve"><value>Buit</value></data>
+  <data name="MapEmptyTip" xml:space="preserve"><value>Tile amb què surten les cel·les buides en exportar a binari</value></data>
+  <data name="MapTilesTab" xml:space="preserve"><value>Tiles</value></data>
+  <data name="MapBlocksTab" xml:space="preserve"><value>Blocs</value></data>
+
+  <data name="PaletteTitle" xml:space="preserve"><value>Edita la paleta</value></data>
+  <data name="PaletteTransparent" xml:space="preserve"><value>El color 0 és transparent i no es pot editar</value></data>
+  <data name="PaletteComponentsTip" xml:space="preserve"><value>Components en 9 bits: un dígit hexadecimal per canal</value></data>
+  <data name="PaletteColorNameTip" xml:space="preserve"><value>Nom del color</value></data>
+
+  <data name="ResizeTitle" xml:space="preserve"><value>Redimensiona</value></data>
+  <data name="ResizeAnchor" xml:space="preserve"><value>Ancora</value></data>
+  <data name="ResizeAnchorTip" xml:space="preserve"><value>On queda el que ja hi havia</value></data>
+  <data name="ResizeNote" xml:space="preserve"><value>En encongir es perd el que quedi fora. Es pot desfer.</value></data>
+
+  <data name="ReplaceTitle" xml:space="preserve"><value>Substitueix tiles</value></data>
+  <data name="ReplaceFrom" xml:space="preserve"><value>Del tile</value></data>
+  <data name="ReplaceTo" xml:space="preserve"><value>Al tile</value></data>
+  <data name="ReplaceToTip" xml:space="preserve"><value>El mateix que l'anterior per canviar-ne només un</value></data>
+  <data name="ReplaceNew" xml:space="preserve"><value>Pel</value></data>
+  <data name="ReplaceNewTip" xml:space="preserve"><value>Per on comença la sèrie nova</value></data>
+  <data name="ReplaceOnlySelection" xml:space="preserve"><value>Només a la selecció</value></data>
+  <data name="ReplaceAllLayers" xml:space="preserve"><value>A totes les capes</value></data>
+
+  <data name="CellSizeSideTip" xml:space="preserve"><value>Costat de la cel·la en píxels</value></data>
+  <data name="CellSizeLoad" xml:space="preserve"><value>Carrega</value></data>
+  <data name="ReferenceRemoveTip" xml:space="preserve"><value>Treu la imatge de referència</value></data>
+
   <data name="LanguageChangedTitle" xml:space="preserve"><value>S'ha canviat l'idioma</value></data>
   <data name="LanguageChangedMessage" xml:space="preserve"><value>Alguns textos, com els de l'arbre del projecte, no canvien fins que es torna a obrir el programa.</value></data>
 </root>

@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:entities="clr-namespace:MSX_GameTools.Entities"
              xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:l="clr-namespace:MSX_GameTools.Localization"
              xmlns:views="clr-namespace:MSX_GameTools.Views"
              mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="500"
              x:Class="MSX_GameTools.Views.TileSetEditorView"
@@ -66,12 +67,12 @@
       <Border Width="1" Background="DarkGray" Margin="6,4" />
 
       <RadioButton GroupName="TilePaintMode" Theme="{StaticResource ToggleRadioButton}"
-                   Content="Punto" Tag="Click" Margin="2"
-                   ToolTip.Tip="Cada clic pinta un solo pixel"
+                   Content="{l:Localize PaintDot}" Tag="Click" Margin="2"
+                   ToolTip.Tip="{l:Localize PaintDotTip}"
                    IsCheckedChanged="OnPaintModeChanged" />
       <RadioButton GroupName="TilePaintMode" Theme="{StaticResource ToggleRadioButton}"
-                   Content="Trazo" Tag="Drag" Margin="2" IsChecked="True"
-                   ToolTip.Tip="Mantén pulsado y arrastra para pintar todo el recorrido"
+                   Content="{l:Localize PaintStroke}" Tag="Drag" Margin="2" IsChecked="True"
+                   ToolTip.Tip="{l:Localize PaintStrokeTip}"
                    IsCheckedChanged="OnPaintModeChanged" />
     </StackPanel>
 
@@ -177,7 +178,7 @@
         <!-- Color del borde: es lo que se ve donde un tile usa el codigo 0, que en
              GRAPHIC 2 es transparente. Sin esto el editor enseñaba el 0 como un color
              mas y la maquina mostraba otra cosa. -->
-        <TextBlock Text="Borde" VerticalAlignment="Center" Margin="4,0,4,0" />
+        <TextBlock Text="{l:Localize TilesBorder}" VerticalAlignment="Center" Margin="4,0,4,0" />
         <Button x:Name="BorderSwatch"
                 Theme="{StaticResource TileColorSwatch}"
                 Width="52" Height="22" Margin="0,2,8,2"
@@ -215,9 +216,9 @@
           </Button.Flyout>
         </Button>
 
-        <ToggleButton Content="Rejilla" Margin="2" Padding="8,2"
+        <ToggleButton Content="{l:Localize TilesGrid}" Margin="2" Padding="8,2"
                       IsChecked="{Binding $parent[views:TileSetEditorView].ShowGrid}"
-                      ToolTip.Tip="Marcar el borde de cada tile" />
+                      ToolTip.Tip="{l:Localize TilesGridTip}" />
       </StackPanel>
 
       <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
