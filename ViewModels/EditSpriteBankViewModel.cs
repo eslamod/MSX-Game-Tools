@@ -20,9 +20,14 @@ public partial class EditSpriteBankViewModel : PanelBaseViewModel
     [NotifyPropertyChangedFor(nameof(HasError))]
     private string? _errorMessage;
 
+    /// <inheritdoc cref="EditTileSetViewModel.Palette"/>
+    [ObservableProperty]
+    private ColorPalette _palette;
+
     public EditSpriteBankViewModel(MainWindowViewModel mainWindowVm)
     {
         _mainWindowVm = mainWindowVm;
+        _palette = mainWindowVm.Palettes.ActivePalette;
 
         // Con la cabecera vacia la pestaña parecia rota.
         Header = "Agregar banco de sprites";
@@ -30,6 +35,9 @@ public partial class EditSpriteBankViewModel : PanelBaseViewModel
     }
 
     public IReadOnlyList<SpriteBank.SpriteType> SpriteTypes { get; } = Enum.GetValues<SpriteBank.SpriteType>();
+
+    /// <inheritdoc cref="EditTileSetViewModel.Palettes"/>
+    public IReadOnlyList<ColorPalette> Palettes => _mainWindowVm.Palettes.Palettes;
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
@@ -45,7 +53,7 @@ public partial class EditSpriteBankViewModel : PanelBaseViewModel
         ErrorMessage = null;
 
         // Recien creado y vacio: no hay nada que perder todavia, asi que sale sin marcar.
-        _mainWindowVm.OpenSpriteBank(new SpriteBank(Type, Name)).MarkClean();
+        _mainWindowVm.OpenSpriteBank(new SpriteBank(Type, Name), Palette).MarkClean();
         _mainWindowVm.RightPanViewModel = null;
     }
 

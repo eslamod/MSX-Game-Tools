@@ -57,8 +57,9 @@ Escrito en C# sobre Avalonia 11.3 y .NET 10. Funciona en Windows, Linux y macOS.
 - Las quince del MSX1 más el índice transparente, y paletas propias para MSX2 con los
   512 colores del V9938.
 - Cada juego de tiles y cada banco lleva la suya, y la guarda dentro de su fichero: los
-  patrones son índices, no colores. La barra de arriba enseña la del documento que esté
-  delante, y elegir otra ahí se la cambia sólo a ése.
+  patrones son índices, no colores. Se elige al crearlo, en el mismo formulario que el
+  nombre. Después, la barra de arriba enseña la del documento que esté delante, y elegir
+  otra ahí se la cambia sólo a ése.
 - Se exportan en el formato de dos bytes por color que espera el registro 16.
 
 ## Cómo se ejecuta

@@ -232,6 +232,108 @@ public class DocumentPaletteTests : IDisposable
         Close(window);
     }
 
+    // ------------------------------------------------------- al crear el documento
+
+    /// <summary>
+    /// Los formularios proponen la que enseña la barra, que es de donde salía antes sin
+    /// decirlo.
+    /// </summary>
+    [AvaloniaFact]
+    public void Los_formularios_proponen_la_paleta_que_enseña_la_barra()
+    {
+        var main = new MainWindowViewModel();
+
+        main.Palettes.Import(Palette("Nocturna", red: 1));
+
+        main.AddTileSetCommand.Execute(null);
+
+        Assert.Equal("Nocturna", ((EditTileSetViewModel)main.RightPanViewModel!).Palette.Name);
+
+        main.CloseRightPanel(main.RightPanViewModel);
+        main.AddSpriteBankCommand.Execute(null);
+
+        Assert.Equal("Nocturna", ((EditSpriteBankViewModel)main.RightPanViewModel!).Palette.Name);
+    }
+
+    [AvaloniaFact]
+    public void El_juego_nace_con_la_paleta_elegida_en_el_formulario()
+    {
+        var main = new MainWindowViewModel();
+
+        ColorPalette chosen = main.Palettes.Import(Palette("Nocturna", red: 1));
+        ColorPalette other = main.Palettes.Import(Palette("Diurna", red: 7));
+
+        main.AddTileSetCommand.Execute(null);
+
+        var form = (EditTileSetViewModel)main.RightPanViewModel!;
+
+        // La barra se quedó en la última importada; se elige otra a mano.
+        Assert.Same(other, form.Palette);
+
+        form.Name = "Bosque";
+        form.Palette = chosen;
+        form.AcceptTileSetCommand.Execute(null);
+
+        var tiles = (TileSetEditorViewModel)main.Tabs[0];
+
+        Assert.Same(chosen, tiles.ColorPalette);
+
+        // Y la barra pasa a enseñar la suya, que es la pestaña que queda delante.
+        Assert.Same(chosen, main.Palettes.ActivePalette);
+    }
+
+    [AvaloniaFact]
+    public void El_banco_nace_con_la_paleta_elegida_en_el_formulario()
+    {
+        var main = new MainWindowViewModel();
+
+        ColorPalette chosen = main.Palettes.Import(Palette("Nocturna", red: 1));
+        main.Palettes.Import(Palette("Diurna", red: 7));
+
+        main.AddSpriteBankCommand.Execute(null);
+
+        var form = (EditSpriteBankViewModel)main.RightPanViewModel!;
+        form.Name = "Bichos";
+        form.Palette = chosen;
+        form.AcceptSpriteBankCommand.Execute(null);
+
+        Assert.Same(chosen, ((SpritesEditorViewModel)main.Tabs[0]).ColorPalette);
+    }
+
+    /// <summary>
+    /// El desplegable del formulario, montado de verdad: un nombre mal escrito en el XAML
+    /// dejaría el enlace muerto y el juego seguiría naciendo con la de la barra.
+    /// </summary>
+    [AvaloniaFact]
+    public void El_formulario_de_tileset_tiene_su_desplegable_de_paletas()
+    {
+        var main = new MainWindowViewModel();
+
+        main.Palettes.Import(Palette("Nocturna", red: 1));
+        main.AddTileSetCommand.Execute(null);
+
+        var form = (EditTileSetViewModel)main.RightPanViewModel!;
+        var view = new EditTileSetView { DataContext = form };
+        var window = new Window { Content = view, Width = 400, Height = 400 };
+
+        window.Show();
+        Pump();
+
+        ComboBox combo = view.GetVisualDescendants()
+            .OfType<ComboBox>()
+            .Single(box => ReferenceEquals(box.ItemsSource, main.Palettes.Palettes));
+
+        Assert.Same(form.Palette, combo.SelectedItem);
+
+        combo.SelectedItem = main.Palettes.Palettes.Single(palette => palette.Name == "Nocturna");
+        Pump();
+
+        Assert.Equal("Nocturna", form.Palette.Name);
+
+        window.Close();
+        Pump();
+    }
+
     // ------------------------------------------------------------------ utilidades
 
     private static void Pump() => Dispatcher.UIThread.RunJobs();

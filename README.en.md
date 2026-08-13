@@ -57,8 +57,9 @@ Written in C# on Avalonia 11.3 and .NET 10. Runs on Windows, Linux and macOS.
 - The fifteen MSX1 colours plus the transparent index, and custom MSX2 palettes from the
   512 colours of the V9938.
 - Every tile set and every sprite bank carries its own, stored inside its file: patterns
-  are indices, not colours. The bar at the top shows the palette of whichever document is
-  in front, and picking another there changes that one only.
+  are indices, not colours. It is chosen when you create it, in the same form as the name.
+  After that, the bar at the top shows the palette of whichever document is in front, and
+  picking another there changes that one only.
 - Exported in the two-bytes-per-colour format that register 16 expects.
 
 ## Running it

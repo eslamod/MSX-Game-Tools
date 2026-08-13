@@ -21,14 +21,29 @@ public partial class EditTileSetViewModel : PanelBaseViewModel
     [NotifyPropertyChangedFor(nameof(HasError))]
     private string? _errorMessage;
 
+    /// <summary>Con qué colores se dibuja, que el juego guarda dentro de su fichero.</summary>
+    [ObservableProperty]
+    private ColorPalette _palette;
+
     public EditTileSetViewModel(MainWindowViewModel mainWindowVm)
     {
         _mainWindowVm = mainWindowVm;
+        _palette = mainWindowVm.Palettes.ActivePalette;
 
         // Con la cabecera vacia la pestaña parecia rota.
         Header = "Agregar tileset";
         TagId = "new:tileset";
     }
+
+    /// <summary>
+    /// Las paletas del proyecto, para elegir con cuál nace el juego.
+    /// </summary>
+    /// <remarks>
+    /// Se pregunta aquí en vez de darle la que enseñe la barra y ya está: la paleta va
+    /// dentro del fichero del juego, así que es una decisión suya, y hacerla a escondidas
+    /// dejaba al usuario sin saber de dónde le había salido.
+    /// </remarks>
+    public IReadOnlyList<ColorPalette> Palettes => _mainWindowVm.Palettes.Palettes;
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
@@ -44,7 +59,7 @@ public partial class EditTileSetViewModel : PanelBaseViewModel
         ErrorMessage = null;
 
         // Recien creado y vacio: no hay nada que perder todavia, asi que sale sin marcar.
-        _mainWindowVm.OpenTileSet(new TileSet(Name)).MarkClean();
+        _mainWindowVm.OpenTileSet(new TileSet(Name), Palette).MarkClean();
         _mainWindowVm.RightPanViewModel = null;
     }
 
