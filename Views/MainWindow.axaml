@@ -5,6 +5,7 @@
         xmlns:entities="clr-namespace:MSX_GameTools.Entities"
         xmlns:views="clr-namespace:MSX_GameTools.Views"
         xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+        xmlns:l="clr-namespace:MSX_GameTools.Localization"
         mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="560"
         x:Class="MSX_GameTools.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -13,6 +14,7 @@
   <!-- El InputGesture del menu solo se dibuja; para que la tecla haga algo hace falta
        decirlo aqui. -->
   <Window.KeyBindings>
+    <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenProjectCommand}" />
     <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveDocumentCommand}" />
     <KeyBinding Gesture="Ctrl+Shift+S" Command="{Binding SaveDocumentAsCommand}" />
   </Window.KeyBindings>
@@ -20,55 +22,71 @@
   <Grid RowDefinitions="Auto,Auto,*,Auto">
 
     <Menu Grid.Row="0">
-      <MenuItem Header="File">
+      <!-- Los menus van por cosa (sprites, tiles, mapas) y no por verbo, que es como esta
+           organizado el arbol del proyecto y por tanto como se busca. Asi lo que se
+           exporta de tiles queda al lado de lo que se importa de tiles. -->
+      <MenuItem Header="{l:Localize MenuFile}">
         <!-- El proyecto es un indice de lo demas: guardarlo guarda todo lo que agrupa. -->
-        <MenuItem Header="Open project..." Command="{Binding OpenProjectCommand}" />
-        <MenuItem Header="Save project" Command="{Binding SaveProjectCommand}" />
-        <MenuItem Header="Save project as..." Command="{Binding SaveProjectAsCommand}" />
+        <MenuItem Header="{l:Localize MenuNewProject}" Command="{Binding NewProjectCommand}" />
+        <MenuItem Header="{l:Localize MenuOpenProject}" InputGesture="Ctrl+O"
+                  Command="{Binding OpenProjectCommand}" />
+        <MenuItem Header="{l:Localize MenuSaveProject}" Command="{Binding SaveProjectCommand}" />
+        <MenuItem Header="{l:Localize MenuSaveProjectAs}" Command="{Binding SaveProjectAsCommand}" />
         <Separator />
-        <MenuItem Header="Add sprite bank" Command="{Binding AddSpriteBankCommand}" />
-        <MenuItem Header="Add tileset" Command="{Binding AddTileSetCommand}" />
-        <MenuItem Header="Add map" Command="{Binding AddMapCommand}" />
+        <!-- Abrir es uno solo: mira el fichero y sabe de que es. -->
+        <MenuItem Header="{l:Localize MenuOpen}" Command="{Binding OpenCommand}" />
+        <MenuItem Header="{l:Localize MenuSave}" InputGesture="Ctrl+S"
+                  Command="{Binding SaveDocumentCommand}" />
+        <MenuItem Header="{l:Localize MenuSaveAs}" InputGesture="Ctrl+Shift+S"
+                  Command="{Binding SaveDocumentAsCommand}" />
         <Separator />
-        <!-- Guardar es uno solo para los tres tipos: escribe la pestaña que este delante
-             en su fichero, y solo pregunta la ruta la primera vez. -->
-        <MenuItem Header="Save" InputGesture="Ctrl+S" Command="{Binding SaveDocumentCommand}" />
-        <MenuItem Header="Save as..." InputGesture="Ctrl+Shift+S" Command="{Binding SaveDocumentAsCommand}" />
-        <Separator />
-        <MenuItem Header="Load sprite bank..." Command="{Binding LoadSpriteBankCommand}" />
-        <Separator />
-        <MenuItem Header="Export sprite bank (binary)..." Command="{Binding ExportSpriteBankBinaryCommand}" />
-        <MenuItem Header="Export sprite bank (asm)..." Command="{Binding ExportSpriteBankAssemblerCommand}" />
-        <Separator />
-        <MenuItem Header="Load tileset..." Command="{Binding LoadTileSetCommand}" />
-        <MenuItem Header="Export tileset (binary)..." Command="{Binding ExportTileSetBinaryCommand}" />
-        <MenuItem Header="Export tileset (asm)..." Command="{Binding ExportTileSetAssemblerCommand}" />
-        <MenuItem Header="Export tileset to png..." Command="{Binding ExportTileSetPngCommand}" />
-        <MenuItem Header="Import tileset from png..." Command="{Binding ImportTileSetPngCommand}" />
-        <Separator />
-        <MenuItem Header="Load map..." Command="{Binding LoadMapCommand}" />
-        <MenuItem Header="Export map to csv..." Command="{Binding ExportMapCsvCommand}" />
-        <MenuItem Header="Import map from csv..." Command="{Binding ImportMapCsvCommand}" />
-        <MenuItem Header="Export map (binary)..." Command="{Binding ExportMapBinaryCommand}" />
-        <MenuItem Header="Export map (asm)..." Command="{Binding ExportMapAssemblerCommand}" />
-        <MenuItem Header="Import map from binary..." Command="{Binding ImportMapBinaryCommand}" />
-        <Separator />
-        <MenuItem Header="Preferencias..." Command="{Binding ShowPreferencesCommand}" />
+        <MenuItem Header="{l:Localize MenuPreferences}" Command="{Binding ShowPreferencesCommand}" />
         <Separator />
         <!-- Cierra la ventana, para pasar por el mismo aviso de cambios sin guardar
              que la aspa del titulo. -->
-        <MenuItem Header="Exit" Click="OnExit" />
+        <MenuItem Header="{l:Localize MenuExit}" Click="OnExit" />
       </MenuItem>
-      <MenuItem Header="Palette">
-        <MenuItem Header="New palette" Command="{Binding AddPaletteCommand}" />
-        <MenuItem Header="Edit palette" Command="{Binding EditPaletteCommand}" />
-        <MenuItem Header="Delete palette" Command="{Binding DeletePaletteCommand}" />
+
+      <MenuItem Header="{l:Localize MenuSprites}">
+        <MenuItem Header="{l:Localize MenuNewSpriteBank}" Command="{Binding AddSpriteBankCommand}" />
         <Separator />
-        <MenuItem Header="Load palette..." Command="{Binding LoadPaletteCommand}" />
-        <MenuItem Header="Save palette as..." Command="{Binding SavePaletteCommand}" />
+        <MenuItem Header="{l:Localize MenuExportToBinary}" Command="{Binding ExportSpriteBankBinaryCommand}" />
+        <MenuItem Header="{l:Localize MenuExportToAssembler}" Command="{Binding ExportSpriteBankAssemblerCommand}" />
+      </MenuItem>
+
+      <MenuItem Header="{l:Localize MenuTiles}">
+        <MenuItem Header="{l:Localize MenuNewTileSet}" Command="{Binding AddTileSetCommand}" />
         <Separator />
-        <MenuItem Header="Export palette (binary)..." Command="{Binding ExportPaletteBinaryCommand}" />
-        <MenuItem Header="Export palette (asm)..." Command="{Binding ExportPaletteAssemblerCommand}" />
+        <MenuItem Header="{l:Localize MenuImportFromPng}" Command="{Binding ImportTileSetPngCommand}" />
+        <MenuItem Header="{l:Localize MenuExportToPng}" Command="{Binding ExportTileSetPngCommand}" />
+        <Separator />
+        <MenuItem Header="{l:Localize MenuExportToBinary}" Command="{Binding ExportTileSetBinaryCommand}" />
+        <MenuItem Header="{l:Localize MenuExportToAssembler}" Command="{Binding ExportTileSetAssemblerCommand}" />
+      </MenuItem>
+
+      <MenuItem Header="{l:Localize MenuMaps}">
+        <MenuItem Header="{l:Localize MenuNewMap}" Command="{Binding AddMapCommand}" />
+        <Separator />
+        <MenuItem Header="{l:Localize MenuResizeMap}" Command="{Binding ResizeMapCommand}" />
+        <MenuItem Header="{l:Localize MenuReplaceTiles}" Command="{Binding ReplaceTilesCommand}" />
+        <Separator />
+        <MenuItem Header="{l:Localize MenuImportFromCsv}" Command="{Binding ImportMapCsvCommand}" />
+        <MenuItem Header="{l:Localize MenuImportFromBinary}" Command="{Binding ImportMapBinaryCommand}" />
+        <Separator />
+        <MenuItem Header="{l:Localize MenuExportToCsv}" Command="{Binding ExportMapCsvCommand}" />
+        <MenuItem Header="{l:Localize MenuExportToBinary}" Command="{Binding ExportMapBinaryCommand}" />
+        <MenuItem Header="{l:Localize MenuExportToAssembler}" Command="{Binding ExportMapAssemblerCommand}" />
+      </MenuItem>
+      <!-- Cargar una paleta no esta aqui: la trae Abrir, como todo lo demas. -->
+      <MenuItem Header="{l:Localize MenuPalette}">
+        <MenuItem Header="{l:Localize MenuNewPalette}" Command="{Binding AddPaletteCommand}" />
+        <MenuItem Header="{l:Localize MenuEditPalette}" Command="{Binding EditPaletteCommand}" />
+        <MenuItem Header="{l:Localize MenuDeletePalette}" Command="{Binding DeletePaletteCommand}" />
+        <Separator />
+        <MenuItem Header="{l:Localize MenuSavePaletteAs}" Command="{Binding SavePaletteCommand}" />
+        <Separator />
+        <MenuItem Header="{l:Localize MenuExportToBinary}" Command="{Binding ExportPaletteBinaryCommand}" />
+        <MenuItem Header="{l:Localize MenuExportToAssembler}" Command="{Binding ExportPaletteAssemblerCommand}" />
       </MenuItem>
     </Menu>
 

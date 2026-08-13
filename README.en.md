@@ -40,6 +40,16 @@ Written in C# on Avalonia 11.3 and .NET 10. Runs on Windows, Linux and macOS.
 - **Undo and redo**, twenty steps.
 - Reads and writes json, csv (Tiled compatible) and binary; also writes `.asm`.
 
+### The application
+
+- In **Spanish, English and Catalan**, switched live from Preferences, which also stores
+  the zoom each area starts at. Settings live in the user's folder, not in the project:
+  sharing a project does not change anybody's language.
+- Menus are grouped **by thing** — Sprites, Tiles, Maps, Palette — like the tree, so what
+  you export from tiles sits next to what you import into tiles.
+- **Open** is a single entry: it looks at the file and knows whether it is a bank, a set, a
+  map or a palette.
+
 ### The project and its files
 
 - **Properties** on the tree node, or F2, to rename anything. The file is left alone: what

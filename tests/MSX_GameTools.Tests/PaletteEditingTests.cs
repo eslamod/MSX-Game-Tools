@@ -5,6 +5,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using MSX_GameTools;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Localization;
 using MSX_GameTools.Services;
 using MSX_GameTools.ViewModels;
 using MSX_GameTools.Views;
@@ -328,26 +329,43 @@ public class PaletteEditingTests
         Assert.Same(app.ViewModel.Palettes.ActivePalette, app.PaletteCombo.SelectedItem);
     }
 
-    [AvaloniaTheory]
-    [InlineData("New palette")]
-    [InlineData("Edit palette")]
-    [InlineData("Delete palette")]
-    [InlineData("Load palette...")]
-    [InlineData("Save palette as...")]
-    [InlineData("Load sprite bank...")]
-    [InlineData("Save")]
-    [InlineData("Save as...")]
-    [InlineData("Export sprite bank (binary)...")]
-    [InlineData("Export sprite bank (asm)...")]
-    public void El_menu_de_paletas_tiene_sus_comandos_enlazados(string header)
+    /// <summary>
+    /// Ninguna entrada de menú puede no hacer nada.
+    /// </summary>
+    /// <remarks>
+    /// Un nombre de comando mal escrito en el XAML deja <c>Command</c> en null y la opción
+    /// no hace nada, sin ningún aviso. Antes esto iba con una lista de textos escrita a
+    /// mano, que había que mantener y que sólo cubría los que alguien se acordó de poner;
+    /// así se comprueban todas, y sin depender de lo que digan, que ahora además cambia
+    /// con el idioma.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Ninguna_opcion_de_menu_se_queda_sin_hacer_nada()
     {
         using MainWindowHost app = MainWindowHost.Show();
 
-        MenuItem item = app.MenuItems.Single(m => (m.Header as string) == header);
+        // Las de primer nivel sólo despliegan, y Salir cierra la ventana desde el
+        // code-behind, que no es un comando.
+        List<MenuItem> dead =
+        [
+            .. app.MenuItems.Where(item =>
+                item.ItemCount == 0
+                && item.Command is null
+                && (item.Header as string) != Localizer.Instance["MenuExit"]),
+        ];
 
-        // Un nombre de comando mal escrito en el XAML dejaria Command en null y la
-        // opcion no haria nada, sin ningun aviso.
-        Assert.NotNull(item.Command);
+        Assert.Empty(dead.Select(item => item.Header as string));
+    }
+
+    /// <summary>Y ninguna se queda sin texto, que es lo que pasa si falta la traducción.</summary>
+    [AvaloniaFact]
+    public void Ninguna_opcion_de_menu_se_queda_sin_texto()
+    {
+        using MainWindowHost app = MainWindowHost.Show();
+
+        Assert.All(
+            app.MenuItems,
+            item => Assert.False(string.IsNullOrWhiteSpace(item.Header as string)));
     }
 
     /// <summary>La ventana principal montada de verdad, con sus enlaces vivos.</summary>

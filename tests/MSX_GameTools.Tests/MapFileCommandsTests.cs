@@ -54,7 +54,7 @@ public class MapFileCommandsTests : IDisposable
 
         Assert.True(File.Exists(path));
 
-        await main.LoadMapCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         MapEditorViewModel loaded = main.Tabs.OfType<MapEditorViewModel>().Last();
 
@@ -87,7 +87,7 @@ public class MapFileCommandsTests : IDisposable
         // Con otro juego abierto tampoco vale: tiene que ser el suyo, no uno cualquiera.
         main.OpenTileSet(new TileSet("Ciudad"));
 
-        await main.LoadMapCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         Assert.Empty(main.Tabs.OfType<MapEditorViewModel>());
         Assert.Single(dialogs.Messages);
@@ -106,7 +106,7 @@ public class MapFileCommandsTests : IDisposable
         main.OpenTileSet(new TileSet("Ciudad"));
         TileSetEditorViewModel bosque = main.OpenTileSet(new TileSet("Bosque"));
 
-        await main.LoadMapCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         MapEditorViewModel loaded = Assert.Single(main.Tabs.OfType<MapEditorViewModel>());
 
@@ -124,7 +124,7 @@ public class MapFileCommandsTests : IDisposable
         var dialogs = new TestDialogService { OpenPath = path };
         var main = new MainWindowViewModel(dialogs);
 
-        await main.LoadMapCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         Assert.Empty(main.Tabs);
         Assert.Single(dialogs.Messages);

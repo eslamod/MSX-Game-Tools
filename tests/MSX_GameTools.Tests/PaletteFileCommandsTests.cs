@@ -72,7 +72,7 @@ public class PaletteFileCommandsTests : IDisposable
         var dialogs = new TestDialogService { OpenPath = path };
         var main = new MainWindowViewModel(dialogs);
 
-        await main.LoadPaletteCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         Assert.Equal(2, main.Palettes.Palettes.Count);
         Assert.Equal("Nocturna", main.Palettes.ActivePalette.Name);
@@ -89,8 +89,8 @@ public class PaletteFileCommandsTests : IDisposable
         var dialogs = new TestDialogService { OpenPath = path };
         var main = new MainWindowViewModel(dialogs);
 
-        await main.LoadPaletteCommand.ExecuteAsync(null);
-        await main.LoadPaletteCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         Assert.Equal(["MSX", "Nocturna", "Nocturna (2)"], main.Palettes.Palettes.Select(p => p.Name));
     }
@@ -104,11 +104,12 @@ public class PaletteFileCommandsTests : IDisposable
         var dialogs = new TestDialogService { OpenPath = path };
         var main = new MainWindowViewModel(dialogs);
 
-        await main.LoadPaletteCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         Assert.Single(main.Palettes.Palettes);
         Assert.Single(dialogs.Messages);
-        Assert.Contains("JSON válido", dialogs.Messages[0]);
+        Assert.Contains("no parece", dialogs.Messages[0]);
+        Assert.Contains("roto.json", dialogs.Messages[0]);
     }
 
     [AvaloniaFact]
@@ -117,7 +118,7 @@ public class PaletteFileCommandsTests : IDisposable
         var dialogs = new TestDialogService { OpenPath = Path.Combine(_folder, "no-existe.json") };
         var main = new MainWindowViewModel(dialogs);
 
-        await main.LoadPaletteCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         Assert.Single(main.Palettes.Palettes);
         Assert.Single(dialogs.Messages);

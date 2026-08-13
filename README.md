@@ -40,6 +40,16 @@ Escrito en C# sobre Avalonia 11.3 y .NET 10. Funciona en Windows, Linux y macOS.
 - **Deshacer y rehacer**, veinte pasos.
 - Entra y sale en json, csv (compatible con Tiled) y binario; y sale también en `.asm`.
 
+### El programa
+
+- En **español, inglés y catalán**, con cambio en caliente desde Preferencias, que también
+  guarda con qué zoom arranca cada sitio. Los ajustes viven en la carpeta del usuario, no
+  en el proyecto: compartir un proyecto no le cambia el idioma a nadie.
+- Los menús van **por cosa** —Sprites, Tiles, Mapas, Paleta— igual que el árbol, así que lo
+  que se exporta de tiles está al lado de lo que se importa de tiles.
+- **Abrir** es uno solo: mira el fichero y sabe si es un banco, un juego, un mapa o una
+  paleta.
+
 ### El proyecto y sus ficheros
 
 - **Propiedades** en el nodo del árbol, o F2, para cambiarle el nombre a lo que sea. El

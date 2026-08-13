@@ -44,10 +44,10 @@ public class DocumentPaletteTests : IDisposable
         var main = new MainWindowViewModel(dialogs);
 
         dialogs.OpenPath = bosque;
-        await main.LoadTileSetCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         dialogs.OpenPath = cueva;
-        await main.LoadTileSetCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         // El usuario vuelve a la pestaña del primero y guarda. Ya tiene fichero, así que
         // no se pregunta nada y se escribe encima del suyo.
@@ -71,10 +71,10 @@ public class DocumentPaletteTests : IDisposable
         var main = new MainWindowViewModel(dialogs);
 
         dialogs.OpenPath = heroe;
-        await main.LoadSpriteBankCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         dialogs.OpenPath = bicho;
-        await main.LoadSpriteBankCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         main.SelectedTab = main.Tabs[0];
         await main.SaveDocumentCommand.ExecuteAsync(null);
@@ -96,12 +96,12 @@ public class DocumentPaletteTests : IDisposable
         var main = new MainWindowViewModel(dialogs);
 
         dialogs.OpenPath = WriteTileSet("Bosque", "Diurna", red: 7);
-        await main.LoadTileSetCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         var primero = (TileSetEditorViewModel)main.Tabs[0];
 
         dialogs.OpenPath = WriteTileSet("Cueva", "Nocturna", red: 1);
-        await main.LoadTileSetCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         Assert.False(primero.IsModified);
         Assert.False(primero.HasUnsavedChanges());
@@ -117,10 +117,10 @@ public class DocumentPaletteTests : IDisposable
         var main = new MainWindowViewModel(dialogs);
 
         dialogs.OpenPath = WriteTileSet("Bosque", "Diurna", red: 7);
-        await main.LoadTileSetCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         dialogs.OpenPath = WriteTileSet("Cueva", "Nocturna", red: 1);
-        await main.LoadTileSetCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         var primero = (TileSetEditorViewModel)main.Tabs[0];
         var segundo = (TileSetEditorViewModel)main.Tabs[1];
@@ -140,10 +140,10 @@ public class DocumentPaletteTests : IDisposable
         var main = new MainWindowViewModel(dialogs);
 
         dialogs.OpenPath = WriteTileSet("Bosque", "Diurna", red: 7);
-        await main.LoadTileSetCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         dialogs.OpenPath = WriteTileSet("Cueva", "Nocturna", red: 1);
-        await main.LoadTileSetCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         Assert.Equal("Nocturna", main.Palettes.ActivePalette.Name);
 
@@ -163,10 +163,10 @@ public class DocumentPaletteTests : IDisposable
         var main = new MainWindowViewModel(dialogs);
 
         dialogs.OpenPath = WriteTileSet("Bosque", "Diurna", red: 7);
-        await main.LoadTileSetCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         dialogs.OpenPath = WriteTileSet("Cueva", "Nocturna", red: 1);
-        await main.LoadTileSetCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         var primero = (TileSetEditorViewModel)main.Tabs[0];
         var segundo = (TileSetEditorViewModel)main.Tabs[1];
@@ -196,10 +196,10 @@ public class DocumentPaletteTests : IDisposable
         var main = new MainWindowViewModel(dialogs);
 
         dialogs.OpenPath = WriteTileSet("Bosque", "Diurna", red: 7);
-        await main.LoadTileSetCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         dialogs.OpenPath = WriteTileSet("Cueva", "Nocturna", red: 1);
-        await main.LoadTileSetCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         var window = new MainWindow { DataContext = main, Width = 1200, Height = 800 };
 

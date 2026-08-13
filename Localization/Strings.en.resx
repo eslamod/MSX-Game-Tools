@@ -106,7 +106,7 @@
     <value>Export to assembler...</value>
   </data>
 
-  <data name="MenuLanguage" xml:space="preserve">
-    <value>Language</value>
+  <data name="MenuPreferences" xml:space="preserve">
+    <value>Preferences...</value>
   </data>
 </root>

@@ -63,7 +63,7 @@ public class TileSetIdentityTests : IDisposable
         // renombrar pasará por él; lo que se comprueba aquí es que el enlace aguanta.
         tiles.TileSet.Name = "Bosque de noche";
 
-        await main.LoadMapCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         MapEditorViewModel reopened = main.Tabs.OfType<MapEditorViewModel>().Last();
 
@@ -115,7 +115,7 @@ public class TileSetIdentityTests : IDisposable
 
         TileSetEditorViewModel tiles = main.OpenTileSet(new TileSet("Bosque"));
 
-        await main.LoadMapCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         MapEditorViewModel loaded = main.Tabs.OfType<MapEditorViewModel>().Single();
 

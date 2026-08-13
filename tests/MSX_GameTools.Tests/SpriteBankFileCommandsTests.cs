@@ -44,7 +44,7 @@ public class SpriteBankFileCommandsTests : IDisposable
         await main.SaveDocumentCommand.ExecuteAsync(null);
         Assert.True(File.Exists(path));
 
-        await main.LoadSpriteBankCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         Assert.Equal(2, main.Tabs.Count);
         var loaded = (SpritesEditorViewModel)main.Tabs[1];
@@ -64,7 +64,7 @@ public class SpriteBankFileCommandsTests : IDisposable
         var dialogs = new TestDialogService { OpenPath = path };
         var main = new MainWindowViewModel(dialogs);
 
-        await main.LoadSpriteBankCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         Assert.Single(main.Tabs);
         Assert.Same(main.Tabs[0], main.SelectedTab);
@@ -82,8 +82,8 @@ public class SpriteBankFileCommandsTests : IDisposable
         var main = new MainWindowViewModel(dialogs);
 
         // El banco se guardo con la paleta MSX estandar, que ya esta.
-        await main.LoadSpriteBankCommand.ExecuteAsync(null);
-        await main.LoadSpriteBankCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         Assert.Single(main.Palettes.Palettes);
         Assert.Equal(ColorPalette.StandardName, main.Palettes.ActivePalette.Name);
@@ -102,7 +102,7 @@ public class SpriteBankFileCommandsTests : IDisposable
 
         var main = new MainWindowViewModel(new TestDialogService { OpenPath = path });
 
-        await main.LoadSpriteBankCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         Assert.Equal(2, main.Palettes.Palettes.Count);
         Assert.Equal("Nocturna", main.Palettes.ActivePalette.Name);
@@ -118,7 +118,7 @@ public class SpriteBankFileCommandsTests : IDisposable
 
         var main = new MainWindowViewModel(new TestDialogService { OpenPath = path });
 
-        await main.LoadSpriteBankCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         Assert.Equal(7, ((SpritesEditorViewModel)main.Tabs[0]).BackgroundColorIndex);
     }
@@ -132,11 +132,11 @@ public class SpriteBankFileCommandsTests : IDisposable
         var dialogs = new TestDialogService { OpenPath = path };
         var main = new MainWindowViewModel(dialogs);
 
-        await main.LoadSpriteBankCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         Assert.Empty(main.Tabs);
         Assert.Single(dialogs.Messages);
-        Assert.Contains("JSON válido", dialogs.Messages[0]);
+        Assert.Contains("no parece", dialogs.Messages[0]);
     }
 
     [AvaloniaFact]

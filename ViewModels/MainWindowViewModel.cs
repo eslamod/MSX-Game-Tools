@@ -733,7 +733,32 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Empieza un proyecto de cero.
+    /// </summary>
+    /// <remarks>
+    /// Hasta ahora la única forma de empezar uno era reiniciar el programa.
+    /// </remarks>
+    [RelayCommand]
+    private async Task NewProjectAsync()
+    {
+        if (!await ConfirmDiscardAsync(
+                "Esto se perderá al empezar un proyecto nuevo:", "Guardar y empezar", "Empezar sin guardar"))
+        {
+            return;
+        }
+
+        CloseEverything();
+
+        ProjectPath = null;
+        _savedProjectText = null;
+    }
+
     /// <summary>Deja el editor como recién arrancado, sin documentos ni árbol.</summary>
+    /// <remarks>
+    /// Las paletas y las imágenes de referencia también se van: son del proyecto que se
+    /// está cerrando, y dejarlas puestas metería las de uno dentro del siguiente.
+    /// </remarks>
     private void CloseEverything()
     {
         while (RightPanels.Count > 0)
@@ -743,6 +768,13 @@ public partial class MainWindowViewModel : ObservableObject
         Tabs.Clear();
         _panels.Clear();
         TreeGeneralVm.Clear();
+
+        // La estándar no se puede quitar y no hace falta: existe siempre y no es de nadie.
+        foreach (ColorPalette palette in Palettes.Palettes.Where(palette => !palette.IsReadOnly).ToList())
+            Palettes.Remove(palette);
+
+        foreach (ReferenceImage image in Backgrounds.Images.ToList())
+            Backgrounds.Remove(image);
 
         // Los identificadores se reparten por contador y el diccionario está vacío: si no
         // volvieran a empezar, el árbol del proyecto nuevo heredaría los números del viejo.
@@ -877,31 +909,14 @@ public partial class MainWindowViewModel : ObservableObject
 
     private bool IsSpriteBankSelected() => SelectedTab is SpritesEditorViewModel;
 
-    [RelayCommand]
-    private async Task LoadSpriteBankAsync()
+    /// <summary>Abre un banco que ya se ha leído del disco.</summary>
+    private async Task ReadSpriteBankAsync(string json, string path)
     {
-        string? path = await Dialogs.PickFileToOpenAsync("Cargar banco de sprites");
-        if (path is null)
-            return;
+        LoadedSpriteBank loaded = SpriteBankSerializer.Deserialize(json);
+        ColorPalette palette = Palettes.Adopt(loaded.Palette);
 
-        try
-        {
-            string json = await File.ReadAllTextAsync(path);
-            LoadedSpriteBank loaded = SpriteBankSerializer.Deserialize(json);
-
-            ColorPalette palette = Palettes.Adopt(loaded.Palette);
-
-            await LoadBackgroundsAsync(loaded.Backgrounds);
-            OpenSpriteBank(loaded.Bank, palette, loaded.BackgroundColorIndex).MarkSaved(path);
-        }
-        catch (FileFormatException exception)
-        {
-            await Dialogs.ShowMessageAsync("El banco no es válido", exception.Message);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            await Dialogs.ShowMessageAsync("No se pudo abrir el fichero", exception.Message);
-        }
+        await LoadBackgroundsAsync(loaded.Backgrounds);
+        OpenSpriteBank(loaded.Bank, palette, loaded.BackgroundColorIndex).MarkSaved(path);
     }
 
     /// <summary>
@@ -1092,21 +1107,58 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Abre un fichero del editor, sea de lo que sea.
+    /// </summary>
+    /// <remarks>
+    /// Uno solo en vez de cuatro. Antes había que acertar con la entrada de menú que
+    /// correspondía a tu fichero, y equivocarse decía que no era válido aunque estuviera
+    /// perfecto; eso no es una pregunta que haya que hacerle a nadie, se mira el fichero.
+    /// </remarks>
     [RelayCommand]
-    private async Task LoadPaletteAsync()
+    private async Task OpenAsync()
     {
-        string? path = await Dialogs.PickFileToOpenAsync("Cargar paleta");
+        string? path = await Dialogs.PickFileToOpenAsync("Abrir");
         if (path is null)
             return;
 
         try
         {
             string json = await File.ReadAllTextAsync(path);
-            Palettes.Import(PaletteSerializer.Deserialize(json));
+
+            switch (EditorFile.KindOf(json))
+            {
+                case EditorFileKind.SpriteBank:
+                    await ReadSpriteBankAsync(json, path);
+                    break;
+
+                case EditorFileKind.TileSet:
+                    ReadTileSet(json, path);
+                    break;
+
+                case EditorFileKind.Map:
+                    await ReadMapAsync(json, path);
+                    break;
+
+                case EditorFileKind.Palette:
+                    Palettes.Import(PaletteSerializer.Deserialize(json));
+                    break;
+
+                default:
+                    // Vale igual para un fichero de otra cosa que para uno estropeado: en
+                    // los dos casos lo que se sabe es que no se reconoce lo que hay dentro.
+                    await Dialogs.ShowMessageAsync(
+                        "No se reconoce el fichero",
+                        $"«{Path.GetFileName(path)}» no parece un banco de sprites, un juego de tiles, un mapa "
+                        + "ni una paleta; si debería serlo, puede que esté estropeado. Para traer un png, un csv "
+                        + "o un binario está Importar, en el menú de lo que sea.");
+
+                    break;
+            }
         }
         catch (FileFormatException exception)
         {
-            await Dialogs.ShowMessageAsync("La paleta no es válida", exception.Message);
+            await Dialogs.ShowMessageAsync("El fichero no es válido", exception.Message);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
@@ -1173,28 +1225,12 @@ public partial class MainWindowViewModel : ObservableObject
 
     private bool IsTileSetSelected() => SelectedTab is TileSetEditorViewModel;
 
-    [RelayCommand]
-    private async Task LoadTileSetAsync()
+    /// <inheritdoc cref="ReadSpriteBankAsync"/>
+    private void ReadTileSet(string json, string path)
     {
-        string? path = await Dialogs.PickFileToOpenAsync("Cargar juego de tiles");
-        if (path is null)
-            return;
+        LoadedTileSet loaded = TileSetSerializer.Deserialize(json);
 
-        try
-        {
-            string json = await File.ReadAllTextAsync(path);
-            LoadedTileSet loaded = TileSetSerializer.Deserialize(json);
-
-            OpenTileSet(loaded.TileSet, Palettes.Adopt(loaded.Palette), loaded.BorderColorIndex).MarkSaved(path);
-        }
-        catch (FileFormatException exception)
-        {
-            await Dialogs.ShowMessageAsync("El juego de tiles no es válido", exception.Message);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            await Dialogs.ShowMessageAsync("No se pudo abrir el fichero", exception.Message);
-        }
+        OpenTileSet(loaded.TileSet, Palettes.Adopt(loaded.Palette), loaded.BorderColorIndex).MarkSaved(path);
     }
 
     // ------------------------------------------------------------------ mapas
@@ -1202,43 +1238,27 @@ public partial class MainWindowViewModel : ObservableObject
     private bool IsMapSelected() => SelectedTab is MapEditorViewModel;
 
     /// <summary>
-    /// Abre un mapa de un fichero.
+    /// Abre un mapa que ya se ha leído del disco.
     /// </summary>
     /// <remarks>
-    /// El juego de tiles no viene dentro, sólo su nombre: hace falta tenerlo abierto en el
-    /// proyecto. Se dice cuál falta en vez de abrir un mapa que no se podría ni dibujar.
+    /// El juego de tiles no viene dentro: hace falta tenerlo abierto en el proyecto. Se
+    /// dice cuál falta en vez de abrir un mapa que no se podría ni dibujar.
     /// </remarks>
-    [RelayCommand]
-    private async Task LoadMapAsync()
+    private async Task ReadMapAsync(string json, string path)
     {
-        string? path = await Dialogs.PickFileToOpenAsync("Cargar mapa");
-        if (path is null)
+        TileMap map = MapSerializer.Deserialize(json);
+
+        if (TileSetOf(map) is not { } tileSet)
+        {
+            await Dialogs.ShowMessageAsync(
+                "Falta el juego de tiles",
+                $"El mapa «{map.Name}» se dibuja con el juego «{map.TileSetName}», que no está abierto. "
+                + "Ábrelo primero y vuelve a abrir el mapa.");
+
             return;
-
-        try
-        {
-            TileMap map = MapSerializer.Deserialize(await File.ReadAllTextAsync(path));
-
-            if (TileSetOf(map) is not { } tileSet)
-            {
-                await Dialogs.ShowMessageAsync(
-                    "Falta el juego de tiles",
-                    $"El mapa «{map.Name}» se dibuja con el juego «{map.TileSetName}», que no está abierto. "
-                    + "Ábrelo primero y vuelve a cargar el mapa.");
-
-                return;
-            }
-
-            OpenMap(map, tileSet).MarkSaved(path);
         }
-        catch (FileFormatException exception)
-        {
-            await Dialogs.ShowMessageAsync("El mapa no es válido", exception.Message);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            await Dialogs.ShowMessageAsync("No se pudo abrir el fichero", exception.Message);
-        }
+
+        OpenMap(map, tileSet).MarkSaved(path);
     }
 
     [RelayCommand(CanExecute = nameof(IsMapSelected))]

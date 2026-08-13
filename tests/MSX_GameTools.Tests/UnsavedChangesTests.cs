@@ -186,7 +186,7 @@ public class UnsavedChangesTests : IDisposable
         MapWithSomethingPainted(main);
 
         await main.SaveDocumentCommand.ExecuteAsync(null);
-        await main.LoadMapCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         MapEditorViewModel loaded = main.Tabs.OfType<MapEditorViewModel>().Last();
 

@@ -182,7 +182,7 @@ public class TileSetFileTests : IDisposable
         await main.SaveDocumentCommand.ExecuteAsync(null);
         Assert.True(File.Exists(path));
 
-        await main.LoadTileSetCommand.ExecuteAsync(null);
+        await main.OpenCommand.ExecuteAsync(null);
 
         Assert.Equal(2, main.Tabs.Count);
 

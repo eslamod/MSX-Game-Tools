@@ -107,7 +107,7 @@
     <value>Exporta a assemblador...</value>
   </data>
 
-  <data name="MenuLanguage" xml:space="preserve">
-    <value>Idioma</value>
+  <data name="MenuPreferences" xml:space="preserve">
+    <value>Preferències...</value>
   </data>
 </root>

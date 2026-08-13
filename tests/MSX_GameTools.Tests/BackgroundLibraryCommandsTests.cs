@@ -195,7 +195,7 @@ public class BackgroundLibraryCommandsTests : IDisposable
 
         // Una sesión nueva: la biblioteca empieza vacía y se repuebla al abrir el banco.
         var reopened = new MainWindowViewModel(new TestDialogService { OpenPath = bankPath });
-        await reopened.LoadSpriteBankCommand.ExecuteAsync(null);
+        await reopened.OpenCommand.ExecuteAsync(null);
 
         Assert.Single(reopened.Backgrounds.Images);
         Assert.Equal(12, reopened.Backgrounds.Tiles.Count);
@@ -226,7 +226,7 @@ public class BackgroundLibraryCommandsTests : IDisposable
         File.Delete(sheet);
 
         var reopened = new MainWindowViewModel(new TestDialogService { OpenPath = bankPath });
-        await reopened.LoadSpriteBankCommand.ExecuteAsync(null);
+        await reopened.OpenCommand.ExecuteAsync(null);
 
         // Perder una imagen de referencia no puede costarte el banco entero.
         Assert.Single(reopened.Tabs);
