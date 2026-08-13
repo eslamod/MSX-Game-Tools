@@ -177,6 +177,8 @@
   <!-- Preferencias -->
   <data name="PreferencesTitle" xml:space="preserve"><value>Preferencias</value></data>
   <data name="PreferencesLanguage" xml:space="preserve"><value>Idioma</value></data>
+  <data name="PreferencesScale" xml:space="preserve"><value>Escala</value></data>
+  <data name="PreferencesScaleTip" xml:space="preserve"><value>Agranda todo el programa, por encima de lo que ya haga el sistema</value></data>
   <data name="PreferencesZoom" xml:space="preserve"><value>Zoom de partida</value></data>
   <data name="PreferencesSpriteCanvas" xml:space="preserve"><value>Lienzo de sprites</value></data>
   <data name="PreferencesSpriteThumbnails" xml:space="preserve"><value>Miniaturas de sprites</value></data>

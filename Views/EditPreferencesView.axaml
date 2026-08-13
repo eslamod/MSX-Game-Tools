@@ -31,6 +31,22 @@
 
     <StackPanel Grid.Row="2" Spacing="6">
 
+      <!-- Agranda todo el programa, no solo los lienzos: en una pantalla densa al 100%
+           tambien se quedan pequeños los menus, el arbol y las etiquetas. -->
+      <Grid ColumnDefinitions="150,*" Margin="0,0,0,10">
+        <TextBlock Grid.Column="0" Text="{l:Localize PreferencesScale}" VerticalAlignment="Center" />
+        <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding Scales}"
+                  SelectedItem="{Binding Scale}"
+                  ToolTip.Tip="{l:Localize PreferencesScaleTip}">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:ScaleChoice">
+              <TextBlock Text="{Binding Label}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+      </Grid>
+
       <TextBlock Text="{l:Localize PreferencesZoom}" FontWeight="Bold" Margin="0,0,0,2" />
 
       <!-- Con que zoom se abre cada sitio. Lo que ya este abierto se queda con el suyo

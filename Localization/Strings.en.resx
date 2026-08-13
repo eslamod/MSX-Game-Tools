@@ -158,6 +158,8 @@
 
   <data name="PreferencesTitle" xml:space="preserve"><value>Preferences</value></data>
   <data name="PreferencesLanguage" xml:space="preserve"><value>Language</value></data>
+  <data name="PreferencesScale" xml:space="preserve"><value>Scale</value></data>
+  <data name="PreferencesScaleTip" xml:space="preserve"><value>Makes the whole application bigger, on top of what the system already does</value></data>
   <data name="PreferencesZoom" xml:space="preserve"><value>Starting zoom</value></data>
   <data name="PreferencesSpriteCanvas" xml:space="preserve"><value>Sprite canvas</value></data>
   <data name="PreferencesSpriteThumbnails" xml:space="preserve"><value>Sprite thumbnails</value></data>

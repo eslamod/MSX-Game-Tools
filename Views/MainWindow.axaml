@@ -19,6 +19,15 @@
     <KeyBinding Gesture="Ctrl+Shift+S" Command="{Binding SaveDocumentAsCommand}" />
   </Window.KeyBindings>
 
+  <!-- La escala de la interfaz, envolviendo todo. De layout y no de render: una de render
+       estiraria los pixeles ya dibujados y el texto saldria borroso; con esta se rehace la
+       disposicion y las letras se dibujan al tamaño nuevo. -->
+  <LayoutTransformControl x:Name="ScaledRoot">
+    <LayoutTransformControl.LayoutTransform>
+      <ScaleTransform ScaleX="{Binding Preferences.InterfaceScale}"
+                      ScaleY="{Binding Preferences.InterfaceScale}" />
+    </LayoutTransformControl.LayoutTransform>
+
   <Grid RowDefinitions="Auto,Auto,*,Auto">
 
     <Menu Grid.Row="0">
@@ -236,4 +245,5 @@
     </Border>
 
   </Grid>
+  </LayoutTransformControl>
 </Window>

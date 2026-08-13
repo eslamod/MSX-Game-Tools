@@ -47,6 +47,11 @@ Escrito en C# sobre Avalonia 11.3 y .NET 10. Funciona en Windows, Linux y macOS.
   en el proyecto: compartir un proyecto no le cambia el idioma a nadie. Se quedan en
   español los mensajes de fichero mal formado, que son diagnóstico y sólo salen cuando
   algo está roto.
+- **Escala de la interfaz** en Preferencias, del 100 al 200%, que agranda todo el programa
+  por encima de lo que ya haga el sistema. El escalado por DPI funciona solo en Windows y
+  macOS; esto es para trabajar al 100% en una pantalla densa, y en Linux con X11 —donde
+  Avalonia se queda en factor 1 si el escritorio no pone `Xft.dpi`— puede ser la única
+  salida sin tocar variables de entorno.
 - Los menús van **por cosa** —Sprites, Tiles, Mapas, Paleta— igual que el árbol, así que lo
   que se exporta de tiles está al lado de lo que se importa de tiles.
 - **Abrir** es uno solo: mira el fichero y sabe si es un banco, un juego, un mapa o una

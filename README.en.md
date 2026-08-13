@@ -46,6 +46,11 @@ Written in C# on Avalonia 11.3 and .NET 10. Runs on Windows, Linux and macOS.
   the zoom each area starts at. Settings live in the user's folder, not in the project:
   sharing a project does not change anybody's language. Malformed-file messages stay in
   Spanish: they are diagnostics and only show up when something is broken.
+- **Interface scale** in Preferences, from 100 to 200%, making the whole application bigger
+  on top of whatever the system already does. DPI scaling works on its own on Windows and
+  macOS; this is for working at 100% on a dense screen, and on Linux with X11 — where
+  Avalonia stays at factor 1 unless the desktop sets `Xft.dpi` — it may be the only way out
+  short of environment variables.
 - Menus are grouped **by thing** — Sprites, Tiles, Maps, Palette — like the tree, so what
   you export from tiles sits next to what you import into tiles.
 - **Open** is a single entry: it looks at the file and knows whether it is a bank, a set, a

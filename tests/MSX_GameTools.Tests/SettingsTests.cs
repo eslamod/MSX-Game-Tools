@@ -1,8 +1,13 @@
+using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
 using MSX_GameTools.Entities;
 using MSX_GameTools.Localization;
 using MSX_GameTools.Services;
 using MSX_GameTools.ViewModels;
+using MSX_GameTools.Views;
 using Xunit;
 
 namespace MSX_GameTools.Tests;
@@ -30,6 +35,8 @@ public class SettingsTests : IDisposable
     }
 
     private SettingsStore Store => new(_folder);
+
+    private static void Pump() => Dispatcher.UIThread.RunJobs();
 
     [AvaloniaFact]
     public void Los_ajustes_van_y_vuelven()
@@ -88,11 +95,23 @@ public class SettingsTests : IDisposable
     [AvaloniaFact]
     public void Al_arrancar_se_aplican_todos_los_ajustes_guardados()
     {
+        var fresh = new EditorPreferences();
         var saved = new EditorPreferences();
 
-        // Un valor distinto en cada uno, para que ninguno acierte por casualidad.
-        foreach ((System.Reflection.PropertyInfo property, int index) in ZoomProperties.Select((p, i) => (p, i)))
-            property.SetValue(saved, index + 2);
+        // Cada uno distinto de SU valor por omisión, no de un número cualquiera. Dándoles
+        // el índice, a la escala le tocaba justo su defecto, y entonces la prueba no
+        // distinguía «se ha copiado» de «no se ha tocado nunca»: quitando la escala de
+        // CopyFrom seguía en verde.
+        foreach (System.Reflection.PropertyInfo property in Adjustable)
+        {
+            object value = property.PropertyType == typeof(double)
+                ? (object)Math.Min(EditorPreferences.MaxScale, (double)property.GetValue(fresh)! + 0.5)
+                : (int)property.GetValue(fresh)! + 7;
+
+            Assert.NotEqual(property.GetValue(fresh), value);
+
+            property.SetValue(saved, value);
+        }
 
         Store.Save(new Settings("en", saved));
 
@@ -101,13 +120,26 @@ public class SettingsTests : IDisposable
         main.LoadSettings();
 
         Assert.Equal("en", Localizer.Instance.Language);
+        Assert.NotEmpty(Adjustable);
 
-        foreach (System.Reflection.PropertyInfo property in ZoomProperties)
+        foreach (System.Reflection.PropertyInfo property in Adjustable)
             Assert.Equal(property.GetValue(saved), property.GetValue(main.Preferences));
     }
 
-    private static IEnumerable<System.Reflection.PropertyInfo> ZoomProperties =>
-        typeof(EditorPreferences).GetProperties().Where(property => property.PropertyType == typeof(int));
+    /// <summary>
+    /// Todo lo que se ajusta y se guarda: los zooms y la escala de la interfaz.
+    /// </summary>
+    /// <remarks>
+    /// Por tipo y no por una lista escrita a mano, para que una preferencia nueva entre
+    /// sola. Cuando la escala llegó, era un <c>double</c> entre siete <c>int</c> y una
+    /// lista de enteros la habría dejado fuera sin decir nada.
+    /// </remarks>
+    private static IReadOnlyList<System.Reflection.PropertyInfo> Adjustable =>
+    [
+        .. typeof(EditorPreferences).GetProperties()
+            .Where(property => property.CanWrite)
+            .Where(property => property.PropertyType == typeof(int) || property.PropertyType == typeof(double)),
+    ];
 
     /// <summary>
     /// Las pestañas abiertas guardan una referencia a los ajustes, así que al cargarlos hay
@@ -277,6 +309,73 @@ public class SettingsTests : IDisposable
 
         Assert.Equal("en", form.Language.Code);
         Assert.Equal(3, form.MapTileZoom);
+    }
+
+    // ------------------------------------------------------------------ la escala
+
+    /// <summary>
+    /// La escala llega al layout de la ventana, no sólo a los ajustes.
+    /// </summary>
+    /// <remarks>
+    /// Con la ventana montada y midiendo lo que ocupa el menú: de layout y no de render,
+    /// que es lo que hace que el texto se dibuje al tamaño nuevo en vez de estirarse.
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_escala_agranda_la_ventana_de_verdad()
+    {
+        var main = new MainWindowViewModel(new TestDialogService { ChooseAnswer = false }, Store);
+        var window = new MainWindow { DataContext = main, Width = 1200, Height = 800 };
+
+        window.Show();
+        Pump();
+
+        Menu bar = window.GetVisualDescendants().OfType<Menu>().First();
+        double before = bar.Bounds.Height;
+
+        Assert.True(before > 0);
+
+        main.Preferences.InterfaceScale = 2;
+        Pump();
+
+        // El menú no ha cambiado: lo que ha cambiado es el sitio que ocupa en la ventana.
+        Assert.Equal(before, bar.Bounds.Height);
+        Assert.Equal(before * 2, bar.TranslatePoint(new Point(0, bar.Bounds.Height), window)!.Value.Y, 1);
+
+        window.Close();
+        Pump();
+        Pump();
+    }
+
+    [AvaloniaFact]
+    public async Task La_escala_se_guarda_y_vuelve()
+    {
+        var main = new MainWindowViewModel(new TestDialogService(), Store);
+
+        main.ShowPreferencesCommand.Execute(null);
+
+        var form = (EditPreferencesViewModel)main.RightPanViewModel!;
+
+        form.Scale = EditPreferencesViewModel.Scales.Single(choice => choice.Value == 1.5);
+
+        await form.AcceptPreferencesCommand.ExecuteAsync(null);
+
+        Assert.Equal(1.5, main.Preferences.InterfaceScale);
+        Assert.Equal(1.5, Store.Load().Preferences.InterfaceScale);
+    }
+
+    /// <summary>Esto es para agrandar; encoger la interfaz no le hace falta a nadie.</summary>
+    [AvaloniaFact]
+    public void La_escala_no_baja_de_uno_ni_sube_de_dos()
+    {
+        var preferences = new EditorPreferences();
+
+        preferences.InterfaceScale = 0.5;
+
+        Assert.Equal(EditorPreferences.MinScale, preferences.InterfaceScale);
+
+        preferences.InterfaceScale = 10;
+
+        Assert.Equal(EditorPreferences.MaxScale, preferences.InterfaceScale);
     }
 
     /// <summary>Pedirlas dos veces trae el panel que ya estaba, no otro encima.</summary>

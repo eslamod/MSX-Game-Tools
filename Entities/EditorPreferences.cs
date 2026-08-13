@@ -1,3 +1,5 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+
 namespace MSX_GameTools.Entities;
 
 /// <summary>
@@ -18,8 +20,42 @@ namespace MSX_GameTools.Entities;
 /// trabajando con el zoom que estabas usando, no que cada elemento recuerde el suyo.
 /// </para>
 /// </remarks>
-public sealed class EditorPreferences
+public sealed class EditorPreferences : ObservableObject
 {
+    private double _interfaceScale = 1;
+
+    /// <summary>
+    /// Cuánto se agranda toda la interfaz, sobre lo que ya diga el sistema.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// No sustituye al escalado del sistema, se suma a él: en Windows al 150% con esto al
+    /// 125% se ve al 187%. Es para decir «más grande de lo que el sistema cree», que es lo
+    /// que hace falta en una pantalla densa configurada al 100%, donde no sólo los píxeles
+    /// del MSX se quedan pequeños: también los menús, el árbol y las etiquetas.
+    /// </para>
+    /// <para>
+    /// En Linux además puede ser la única salida. En X11 no hay DPI por monitor fiable y
+    /// Avalonia se queda en factor 1 si el escritorio no pone <c>Xft.dpi</c>, así que sin
+    /// esto habría que exportar una variable de entorno antes de arrancar.
+    /// </para>
+    /// <para>
+    /// Es lo único de aquí que avisa cuando cambia: la ventana está enlazada a ello. Los
+    /// zooms los lee cada vista al montarse y no hace falta.
+    /// </para>
+    /// </remarks>
+    public double InterfaceScale
+    {
+        get => _interfaceScale;
+        set => SetProperty(ref _interfaceScale, Math.Clamp(value, MinScale, MaxScale));
+    }
+
+    /// <summary>Por debajo de uno no tiene sentido: es para agrandar, no para encoger.</summary>
+    public const double MinScale = 1;
+
+    /// <summary>Más de esto no cabe la ventana en una pantalla normal.</summary>
+    public const double MaxScale = 2;
+
     /// <summary>Índice del zoom del lienzo de sprites, 0-2.</summary>
     public int SpriteCanvasZoom { get; set; }
 
@@ -50,6 +86,7 @@ public sealed class EditorPreferences
     /// </remarks>
     public void CopyFrom(EditorPreferences other)
     {
+        InterfaceScale = other.InterfaceScale;
         SpriteCanvasZoom = other.SpriteCanvasZoom;
         SpriteThumbnailZoom = other.SpriteThumbnailZoom;
         TileCanvasZoom = other.TileCanvasZoom;

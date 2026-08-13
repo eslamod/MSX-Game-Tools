@@ -4,6 +4,9 @@ using MSX_GameTools.Localization;
 
 namespace MSX_GameTools.ViewModels;
 
+/// <summary>Una escala de la interfaz, con lo que se lee y el factor que aplica.</summary>
+public sealed record ScaleChoice(string Label, double Value);
+
 /// <summary>Un nivel de zoom, con lo que se lee y lo que vale por dentro.</summary>
 /// <remarks>
 /// Hacen falta las dos cosas porque no coinciden: el zoom de los lienzos se guarda como
@@ -26,6 +29,9 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
 
     [ObservableProperty]
     private LanguageChoice _language;
+
+    [ObservableProperty]
+    private ScaleChoice _scale;
 
     [ObservableProperty]
     private int _spriteCanvasZoom;
@@ -56,6 +62,7 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
 
         Entities.EditorPreferences zoom = mainWindowVm.Preferences;
 
+        _scale = Scales.FirstOrDefault(choice => choice.Value == zoom.InterfaceScale) ?? Scales[0];
         _spriteCanvasZoom = zoom.SpriteCanvasZoom;
         _spriteThumbnailZoom = zoom.SpriteThumbnailZoom;
         _tileCanvasZoom = zoom.TileCanvasZoom;
@@ -69,6 +76,16 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
     }
 
     public IReadOnlyList<LanguageChoice> Languages => Localizer.Languages;
+
+    /// <summary>
+    /// Cuánto agrandar la interfaz por encima de lo que ya haga el sistema.
+    /// </summary>
+    /// <remarks>
+    /// Sólo hacia arriba: esto existe para las pantallas densas donde todo sale pequeño,
+    /// y encoger la interfaz no le hace falta a nadie.
+    /// </remarks>
+    public static IReadOnlyList<ScaleChoice> Scales { get; } =
+        [new("100 %", 1), new("125 %", 1.25), new("150 %", 1.5), new("175 %", 1.75), new("200 %", 2)];
 
     /// <summary>Los lienzos de dibujo, que guardan la posición del botón y no el factor.</summary>
     public static IReadOnlyList<ZoomChoice> CanvasZooms { get; } =
@@ -91,6 +108,8 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
     {
         Entities.EditorPreferences zoom = _mainWindowVm.Preferences;
 
+        // La escala se aplica sola: la ventana está enlazada a ella.
+        zoom.InterfaceScale = Scale.Value;
         zoom.SpriteCanvasZoom = SpriteCanvasZoom;
         zoom.SpriteThumbnailZoom = SpriteThumbnailZoom;
         zoom.TileCanvasZoom = TileCanvasZoom;
