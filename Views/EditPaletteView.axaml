@@ -10,21 +10,28 @@
              x:DataType="vm:EditPaletteViewModel"
              Background="Gainsboro">
 
-  <Grid Margin="10" RowDefinitions="Auto,Auto,*,Auto,Auto">
+  <!-- Una sola barra para todo el contenido, con el boton de cerrar anclado abajo. La
+       lista de colores no lleva la suya: dentro de la barra de fuera crece hasta los 16 y
+       dos barras anidadas son peores que una. Con la escala al 200% el boton se iba por
+       debajo del borde y no habia forma de cerrar el panel. -->
+  <Grid Margin="10" RowDefinitions="Auto,*,Auto">
 
     <TextBlock Grid.Row="0" Text="{l:Localize PaletteTitle}" FontWeight="Bold" Margin="0,0,0,10" />
 
-    <Grid Grid.Row="1" ColumnDefinitions="60,*" Margin="0,0,0,10">
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel>
+
+    <Grid ColumnDefinitions="60,*" Margin="0,0,0,10">
       <TextBlock Grid.Column="0" Text="{l:Localize FormName}" VerticalAlignment="Center" />
       <TextBox Grid.Column="1" Text="{Binding Palette.Name}" />
     </Grid>
 
     <!-- Los 16 colores. El seleccionado es el que editan los sliders. -->
-    <ListBox Grid.Row="2"
-             x:Name="ColorList"
+    <ListBox x:Name="ColorList"
              ItemsSource="{Binding Palette.Colors}"
              SelectedItem="{Binding SelectedColor, Mode=TwoWay}"
-             SelectionMode="Single">
+             SelectionMode="Single"
+             ScrollViewer.VerticalScrollBarVisibility="Disabled">
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="entities:PaletteColor">
           <Grid ColumnDefinitions="Auto,28,*,Auto" Height="24">
@@ -51,7 +58,7 @@
     </ListBox>
 
     <!-- Componentes del color seleccionado, en el formato nativo del MSX: 0-7. -->
-    <StackPanel Grid.Row="3" Margin="0,10,0,0"
+    <StackPanel Margin="0,10,0,0"
                 IsEnabled="{Binding SelectedColor.IsEditable}">
 
       <TextBlock Text="{l:Localize PaletteTransparent}"
@@ -101,7 +108,10 @@
       </Grid>
     </StackPanel>
 
-    <Button Grid.Row="4" Content="{l:Localize FormClose}" MinWidth="85"
+      </StackPanel>
+    </ScrollViewer>
+
+    <Button Grid.Row="2" Content="{l:Localize FormClose}" MinWidth="85"
             HorizontalAlignment="Right" Margin="0,12,0,0"
             Command="{Binding CloseCommand}" />
   </Grid>

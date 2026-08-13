@@ -9,19 +9,25 @@
              x:DataType="vm:ResizeMapViewModel"
              Background="Gainsboro">
 
-  <Grid Margin="10" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*,Auto">
+  <!-- Los botones anclados abajo y el resto con barra: con la escala de la interfaz al
+       200% el contenido mide el doble y los empujaba fuera del panel. -->
+  <Grid Margin="10" RowDefinitions="Auto,*,Auto">
 
     <TextBlock Grid.Row="0" Text="{l:Localize ResizeTitle}" FontWeight="Bold" Margin="0,0,0,4" />
-    <TextBlock Grid.Row="1" Text="{Binding CurrentLabel}" Margin="0,0,0,10" />
 
-    <Grid Grid.Row="2" ColumnDefinitions="70,*" Margin="0,0,0,6">
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel>
+
+    <TextBlock Text="{Binding CurrentLabel}" Margin="0,0,0,10" />
+
+    <Grid ColumnDefinitions="70,*" Margin="0,0,0,6">
       <TextBlock Grid.Column="0" Text="{l:Localize NewMapColumns}" VerticalAlignment="Center" />
       <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
                      Minimum="1" Maximum="{Binding MaxSide}" Increment="1"
                      Value="{Binding Columns}" />
     </Grid>
 
-    <Grid Grid.Row="3" ColumnDefinitions="70,*" Margin="0,0,0,6">
+    <Grid ColumnDefinitions="70,*" Margin="0,0,0,6">
       <TextBlock Grid.Column="0" Text="{l:Localize NewMapRows}" VerticalAlignment="Center" />
       <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
                      Minimum="1" Maximum="{Binding MaxSide}" Increment="1"
@@ -30,7 +36,7 @@
 
     <!-- Sin ancla solo se podria crecer por abajo y por la derecha, y alargar un nivel
          por el principio obligaria a repintarlo entero. -->
-    <Grid Grid.Row="4" ColumnDefinitions="70,*" Margin="0,0,0,6">
+    <Grid ColumnDefinitions="70,*" Margin="0,0,0,6">
       <TextBlock Grid.Column="0" Text="{l:Localize ResizeAnchor}" VerticalAlignment="Center" />
       <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                 ItemsSource="{Binding Anchors}"
@@ -38,14 +44,17 @@
                 ToolTip.Tip="{l:Localize ResizeAnchorTip}" />
     </Grid>
 
-    <TextBlock Grid.Row="5" Margin="0,4,0,0" TextWrapping="Wrap" Foreground="#505050"
+    <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Foreground="#505050"
                Text="{l:Localize ResizeNote}" />
 
-    <TextBlock Grid.Row="6" Text="{Binding ErrorMessage}" Foreground="Firebrick"
-               TextWrapping="Wrap" VerticalAlignment="Top" Margin="0,8,0,0"
+    <TextBlock Text="{Binding ErrorMessage}" Foreground="Firebrick"
+               TextWrapping="Wrap" Margin="0,8,0,0"
                IsVisible="{Binding HasError}" />
 
-    <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Right">
+      </StackPanel>
+    </ScrollViewer>
+
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
       <Button Content="{l:Localize FormAccept}" MinWidth="90" Command="{Binding AcceptResizeCommand}" />
       <Button Content="{l:Localize FormCancel}" MinWidth="90" Margin="8,0,0,0" Command="{Binding CancelResizeCommand}" />
     </StackPanel>

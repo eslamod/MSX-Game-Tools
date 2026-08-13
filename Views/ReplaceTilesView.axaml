@@ -9,19 +9,24 @@
              x:DataType="vm:ReplaceTilesViewModel"
              Background="Gainsboro">
 
-  <Grid Margin="10" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto">
+  <!-- Los botones anclados abajo y el resto con barra: con la escala de la interfaz al
+       200% el contenido mide el doble y los empujaba fuera del panel. -->
+  <Grid Margin="10" RowDefinitions="Auto,*,Auto">
 
     <TextBlock Grid.Row="0" Text="{l:Localize ReplaceTitle}" FontWeight="Bold" Margin="0,0,0,10" />
 
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel>
+
     <!-- Por rango y no de uno en uno: el caso real es mover un grupo entero. -->
-    <Grid Grid.Row="1" ColumnDefinitions="70,*" Margin="0,0,0,6">
+    <Grid ColumnDefinitions="70,*" Margin="0,0,0,6">
       <TextBlock Grid.Column="0" Text="{l:Localize ReplaceFrom}" VerticalAlignment="Center" />
       <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
                      Minimum="0" Maximum="{Binding MaxTile}" Increment="1"
                      Value="{Binding FromFirst}" />
     </Grid>
 
-    <Grid Grid.Row="2" ColumnDefinitions="70,*" Margin="0,0,0,6">
+    <Grid ColumnDefinitions="70,*" Margin="0,0,0,6">
       <TextBlock Grid.Column="0" Text="{l:Localize ReplaceTo}" VerticalAlignment="Center" />
       <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
                      Minimum="0" Maximum="{Binding MaxTile}" Increment="1"
@@ -29,7 +34,7 @@
                      ToolTip.Tip="{l:Localize ReplaceToTip}" />
     </Grid>
 
-    <Grid Grid.Row="3" ColumnDefinitions="70,*" Margin="0,0,0,6">
+    <Grid ColumnDefinitions="70,*" Margin="0,0,0,6">
       <TextBlock Grid.Column="0" Text="{l:Localize ReplaceNew}" VerticalAlignment="Center" />
       <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
                      Minimum="0" Maximum="{Binding MaxTile}" Increment="1"
@@ -37,19 +42,22 @@
                      ToolTip.Tip="{l:Localize ReplaceNewTip}" />
     </Grid>
 
-    <TextBlock Grid.Row="4" Text="{Binding RangeLabel}" TextWrapping="Wrap"
+    <TextBlock Text="{Binding RangeLabel}" TextWrapping="Wrap"
                Foreground="#404040" Margin="0,4,0,8" />
 
-    <CheckBox Grid.Row="5" Content="{l:Localize ReplaceAllLayers}" IsChecked="{Binding AllLayers}" />
+    <CheckBox Content="{l:Localize ReplaceAllLayers}" IsChecked="{Binding AllLayers}" />
 
-    <CheckBox Grid.Row="6" Content="{l:Localize ReplaceOnlySelection}"
+    <CheckBox Content="{l:Localize ReplaceOnlySelection}"
               IsChecked="{Binding OnlySelection}"
               IsEnabled="{Binding HasSelection}" />
 
-    <TextBlock Grid.Row="7" Text="{Binding ResultMessage}" TextWrapping="Wrap"
-               VerticalAlignment="Top" Margin="0,10,0,0" FontWeight="Bold" />
+    <TextBlock Text="{Binding ResultMessage}" TextWrapping="Wrap"
+               Margin="0,10,0,0" FontWeight="Bold" />
 
-    <StackPanel Grid.Row="8" Orientation="Horizontal" HorizontalAlignment="Right">
+      </StackPanel>
+    </ScrollViewer>
+
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
       <Button Content="{l:Localize MapReplace}" MinWidth="90" Command="{Binding AcceptReplaceCommand}" />
       <Button Content="{l:Localize FormClose}" MinWidth="90" Margin="8,0,0,0" Command="{Binding CloseReplaceCommand}" />
     </StackPanel>
