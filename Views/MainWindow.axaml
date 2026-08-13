@@ -8,7 +8,7 @@
         mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="560"
         x:Class="MSX_GameTools.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="MSX Game Editor" Width="900" Height="560">
+        Title="{Binding WindowTitle}" Width="900" Height="560">
 
   <!-- El InputGesture del menu solo se dibuja; para que la tecla haga algo hace falta
        decirlo aqui. -->
@@ -21,6 +21,11 @@
 
     <Menu Grid.Row="0">
       <MenuItem Header="File">
+        <!-- El proyecto es un indice de lo demas: guardarlo guarda todo lo que agrupa. -->
+        <MenuItem Header="Open project..." Command="{Binding OpenProjectCommand}" />
+        <MenuItem Header="Save project" Command="{Binding SaveProjectCommand}" />
+        <MenuItem Header="Save project as..." Command="{Binding SaveProjectAsCommand}" />
+        <Separator />
         <MenuItem Header="Add sprite bank" Command="{Binding AddSpriteBankCommand}" />
         <MenuItem Header="Add tileset" Command="{Binding AddTileSetCommand}" />
         <MenuItem Header="Add map" Command="{Binding AddMapCommand}" />

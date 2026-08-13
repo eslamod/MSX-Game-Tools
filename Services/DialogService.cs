@@ -20,6 +20,11 @@ public sealed class DialogService(Window owner) : IDialogService
         MimeTypes = ["application/json"],
     };
 
+    private static FilePickerFileType ProjectFileType => new("Proyecto MSX Game Tools")
+    {
+        Patterns = [$"*{ProjectSerializer.Extension}"],
+    };
+
     private static FilePickerFileType ImageFileType => new("Imagen")
     {
         Patterns = ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif"],
@@ -100,6 +105,7 @@ public sealed class DialogService(Window owner) : IDialogService
     {
         PickerFileKind.Any => null,
         PickerFileKind.Image => [ImageFileType],
+        PickerFileKind.Project => [ProjectFileType],
         _ => [EditorFileType],
     };
 }

@@ -40,12 +40,17 @@ Written in C# on Avalonia 11.3 and .NET 10. Runs on Windows, Linux and macOS.
 - **Undo and redo**, twenty steps.
 - Reads and writes json, csv (Tiled compatible) and binary; also writes `.asm`.
 
-### Saving
+### The project and its files
 
 - **Save** writes whatever document is in front — a bank, a tile set or a map — back to
   the file it came from, and only asks for a path the first time.
 - Tabs with unsaved work carry an asterisk, and quitting warns about what would be lost,
   offering to save it first.
+- The **project** (`.msxproj`) groups everything that is open. It is an index of paths,
+  not a file with everything inside: each set, bank and map stays in its own `.json`, and
+  anything without a file yet gets one named after it, next to the project. Saving it
+  writes whatever has been touched in one go, and opening it brings it all back, each map
+  attached to its tile set.
 
 ### Palettes
 
@@ -122,9 +127,6 @@ embedded data and your own files.
 
 ## Status
 
-Under development. Sprite banks, tile sets with their blocks, palettes and the map editor
-all work. Animations, behaviours, sounds and music are still to be done, though they
-already have their place in the project tree.
-
-Still missing: a project file grouping everything that is open — banks, tile sets,
-palettes and maps — so it does not have to be loaded piece by piece.
+Under development. Sprite banks, tile sets with their blocks, palettes, the map editor and
+the project that groups them all work. Animations, behaviours, sounds and music are still
+to be done, though they already have their place in the tree.

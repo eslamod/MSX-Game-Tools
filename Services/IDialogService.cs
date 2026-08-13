@@ -11,6 +11,9 @@ public enum PickerFileKind
     Json,
     Image,
 
+    /// <summary>El índice del proyecto, que tiene su propia extensión.</summary>
+    Project,
+
     /// <summary>Sin filtro. Para las exportaciones, que salen en varios formatos.</summary>
     Any,
 }

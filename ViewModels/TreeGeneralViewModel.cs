@@ -53,6 +53,13 @@ public class TreeGeneralViewModel : PanelBaseViewModel
     /// <inheritdoc cref="OpenItemCommand"/>
     public ICommand? DeleteItemCommand { get; set; }
 
+    /// <summary>Vacía el árbol. Los nodos de primer nivel se quedan, que son fijos.</summary>
+    public void Clear()
+    {
+        foreach (ItemTree parent in PrimaryNodes)
+            parent.Childs.Clear();
+    }
+
     /// <summary>Quita un nodo de donde esté colgado. Devuelve si lo encontró.</summary>
     public bool Remove(ItemTree item)
     {

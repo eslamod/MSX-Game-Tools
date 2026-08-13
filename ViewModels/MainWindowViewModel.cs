@@ -323,6 +323,298 @@ public partial class MainWindowViewModel : ObservableObject
         return panel;
     }
 
+    // ------------------------------------------------------------------ el proyecto
+
+    /// <summary>El fichero del proyecto, o nulo mientras no se haya guardado ninguno.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ProjectName))]
+    [NotifyPropertyChangedFor(nameof(WindowTitle))]
+    private string? _projectPath;
+
+    /// <summary>El índice tal y como quedó la última vez que se escribió.</summary>
+    private string? _savedProjectText;
+
+    public string ProjectName =>
+        ProjectPath is null ? "Sin proyecto" : Path.GetFileNameWithoutExtension(ProjectPath);
+
+    public string WindowTitle => $"MSX Game Tools — {ProjectName}";
+
+    /// <summary>Los documentos del proyecto, estén su pestaña abierta o no.</summary>
+    private IEnumerable<PanelBaseViewModel> Documents => _panels.Values.Where(panel => panel.IsDocument);
+
+    /// <summary>
+    /// Si el índice del proyecto se diferencia del que hay escrito.
+    /// </summary>
+    /// <remarks>
+    /// Es lo mismo que hace un documento con su fichero: se construye lo que se
+    /// escribiría y se compara. Cambia al añadir o quitar un documento, al guardar uno en
+    /// otro sitio, y al crear o eliminar una paleta.
+    /// </remarks>
+    private bool HasProjectChanges()
+    {
+        if (ProjectPath is null)
+            return false;
+
+        // Lo que todavía no tiene fichero no sale en el índice, pero guardar el proyecto le
+        // pondría uno y lo metería dentro: para el proyecto eso es un cambio, aunque el
+        // documento esté recién creado y vacío.
+        if (Documents.Any(document => document.FilePath is null))
+            return true;
+
+        return ProjectSerializer.Serialize(BuildProject(ProjectPath)) != _savedProjectText;
+    }
+
+    [RelayCommand]
+    private Task SaveProject() => WriteProjectAsync(askForPath: false);
+
+    [RelayCommand]
+    private Task SaveProjectAs() => WriteProjectAsync(askForPath: true);
+
+    /// <summary>
+    /// Escribe el proyecto: primero sus documentos y después el índice.
+    /// </summary>
+    /// <remarks>
+    /// A los documentos que todavía no tienen fichero se les pone uno con su nombre junto
+    /// al proyecto, en vez de encadenar un selector por cada uno: guardar el proyecto es
+    /// un gesto, no una ronda de preguntas. Quien quiera otro sitio para uno concreto
+    /// tiene Guardar como en su pestaña.
+    /// </remarks>
+    /// <returns><c>false</c> si se canceló o algo no se pudo escribir.</returns>
+    private async Task<bool> WriteProjectAsync(bool askForPath)
+    {
+        string? path = askForPath || ProjectPath is null
+            ? await Dialogs.PickFileToSaveAsync(
+                "Guardar proyecto", $"{CleanFileName(ProjectName)}{ProjectSerializer.Extension}", PickerFileKind.Project)
+            : ProjectPath;
+
+        if (path is null)
+            return false;
+
+        string folder = Path.GetDirectoryName(path) ?? string.Empty;
+        var taken = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (PanelBaseViewModel document in Documents)
+        {
+            bool isNew = document.FilePath is null;
+
+            if (isNew)
+                document.FilePath = FreeFileName(folder, document.DocumentName, taken);
+            else
+                taken.Add(document.FilePath!);
+
+            // Los que ya estaban guardados y no se han tocado no se reescriben: el
+            // proyecto no tiene por qué cambiarle la fecha a todo lo que agrupa.
+            if ((isNew || document.HasUnsavedChanges()) && !await SaveAsync(document, askForPath: false))
+                return false;
+        }
+
+        string text = ProjectSerializer.Serialize(BuildProject(path));
+
+        try
+        {
+            await File.WriteAllTextAsync(path, text);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo guardar el proyecto", exception.Message);
+
+            return false;
+        }
+
+        ProjectPath = path;
+        _savedProjectText = text;
+
+        return true;
+    }
+
+    /// <summary>
+    /// El índice de lo que hay abierto, con las rutas relativas a ese fichero de proyecto.
+    /// </summary>
+    /// <remarks>
+    /// En un orden fijo y no en el que se abrieron: así el índice sólo cambia cuando
+    /// cambia lo que dice, y compararlo para saber si hay que guardarlo significa algo.
+    /// </remarks>
+    private Project BuildProject(string projectPath)
+    {
+        string folder = Path.GetDirectoryName(projectPath) ?? string.Empty;
+
+        IEnumerable<ProjectItem> items = Documents
+            .Where(document => document.FilePath is not null)
+            .Select(document => new ProjectItem(
+                KindOf(document), Path.GetRelativePath(folder, document.FilePath!)))
+            .OrderBy(item => item.Kind)
+            .ThenBy(item => item.Path, StringComparer.OrdinalIgnoreCase);
+
+        return new Project(
+            Path.GetFileNameWithoutExtension(projectPath),
+            [.. items],
+
+            // La estándar no: existe siempre y no es de nadie.
+            [.. Palettes.Palettes.Where(palette => !palette.IsReadOnly)],
+            [.. Backgrounds.Images.Select(image => new BackgroundImageRef(image.Path, image.CellSize))]);
+    }
+
+    private static ProjectItemKind KindOf(PanelBaseViewModel document) => document switch
+    {
+        TileSetEditorViewModel => ProjectItemKind.TileSet,
+        SpritesEditorViewModel => ProjectItemKind.SpriteBank,
+        _ => ProjectItemKind.Map,
+    };
+
+    /// <summary>Un nombre de fichero libre en esa carpeta, a partir del del documento.</summary>
+    private static string FreeFileName(string folder, string documentName, HashSet<string> taken)
+    {
+        string stem = CleanFileName(documentName);
+
+        for (int number = 1; ; number++)
+        {
+            string candidate = Path.Combine(folder, number == 1 ? $"{stem}.json" : $"{stem} {number}.json");
+
+            // Los ya cogidos por otro documento además de los que haya en disco. Con lo de
+            // disco solo bastaría casi siempre, porque cada uno se escribe antes de que el
+            // siguiente pida nombre; pero si alguien ha borrado un fichero por fuera, su
+            // documento sigue apuntando ahí y otro se lo quedaría.
+            if (taken.Add(candidate) && !File.Exists(candidate))
+                return candidate;
+        }
+    }
+
+    /// <summary>
+    /// Abre un proyecto, cerrando lo que hubiera.
+    /// </summary>
+    /// <remarks>
+    /// Sustituye en vez de añadir: un proyecto es todo lo que se está haciendo, y mezclar
+    /// dos dejaría un árbol que no es ninguno de los dos y no se sabría guardar.
+    /// </remarks>
+    [RelayCommand]
+    private async Task OpenProjectAsync()
+    {
+        if (!await ConfirmDiscardAsync(
+                "Esto se perderá al abrir otro proyecto:", "Guardar y abrir", "Abrir sin guardar"))
+        {
+            return;
+        }
+
+        string? path = await Dialogs.PickFileToOpenAsync("Abrir proyecto", PickerFileKind.Project);
+        if (path is null)
+            return;
+
+        Project project;
+
+        try
+        {
+            project = ProjectSerializer.Deserialize(await File.ReadAllTextAsync(path));
+        }
+        catch (FileFormatException exception)
+        {
+            await Dialogs.ShowMessageAsync("El proyecto no es válido", exception.Message);
+
+            return;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync("No se pudo abrir el fichero", exception.Message);
+
+            return;
+        }
+
+        CloseEverything();
+
+        foreach (ColorPalette palette in project.Palettes)
+            Palettes.Adopt(palette);
+
+        await LoadBackgroundsAsync(project.Backgrounds);
+
+        string folder = Path.GetDirectoryName(path) ?? string.Empty;
+        var missing = new List<string>();
+
+        // Por tipo y no en el orden del fichero: un mapa necesita su juego de tiles ya
+        // abierto para saber con qué se dibuja.
+        foreach (ProjectItem item in project.Items.OrderBy(item => item.Kind))
+            await OpenProjectItemAsync(item, folder, missing);
+
+        ProjectPath = path;
+        _savedProjectText = ProjectSerializer.Serialize(BuildProject(path));
+
+        // Se abre lo que se pueda y se dice qué ha faltado: que un fichero se haya movido
+        // no es razón para quedarse sin el resto del proyecto.
+        if (missing.Count > 0)
+        {
+            await Dialogs.ShowMessageAsync(
+                "Faltan elementos del proyecto",
+                $"No se han podido abrir:{Environment.NewLine}{string.Join(Environment.NewLine, missing)}"
+                + $"{Environment.NewLine}{Environment.NewLine}El proyecto se abre igual, sin ellos. Ojo: si lo "
+                + "guardas ahora, se irán también del índice.");
+        }
+    }
+
+    private async Task OpenProjectItemAsync(ProjectItem item, string folder, List<string> missing)
+    {
+        string path = Path.GetFullPath(Path.Combine(folder, item.Path));
+
+        try
+        {
+            string json = await File.ReadAllTextAsync(path);
+
+            switch (item.Kind)
+            {
+                case ProjectItemKind.TileSet:
+                    LoadedTileSet tiles = TileSetSerializer.Deserialize(json);
+
+                    OpenTileSet(tiles.TileSet, Palettes.Adopt(tiles.Palette), tiles.BorderColorIndex)
+                        .MarkSaved(path);
+
+                    break;
+
+                case ProjectItemKind.SpriteBank:
+                    LoadedSpriteBank bank = SpriteBankSerializer.Deserialize(json);
+
+                    await LoadBackgroundsAsync(bank.Backgrounds);
+                    OpenSpriteBank(bank.Bank, Palettes.Adopt(bank.Palette), bank.BackgroundColorIndex)
+                        .MarkSaved(path);
+
+                    break;
+
+                default:
+                    TileMap map = MapSerializer.Deserialize(json);
+
+                    if (TileSets.FirstOrDefault(tiles => tiles.TileSet.Name == map.TileSetName) is not { } owner)
+                    {
+                        missing.Add($"  · {item.Path} — le falta el juego de tiles «{map.TileSetName}»");
+
+                        return;
+                    }
+
+                    OpenMap(map, owner).MarkSaved(path);
+
+                    break;
+            }
+        }
+        catch (Exception exception)
+            when (exception is FileFormatException or IOException or UnauthorizedAccessException)
+        {
+            missing.Add($"  · {item.Path} — {exception.Message}");
+        }
+    }
+
+    /// <summary>Deja el editor como recién arrancado, sin documentos ni árbol.</summary>
+    private void CloseEverything()
+    {
+        while (RightPanels.Count > 0)
+            CloseRightPanel(RightPanels[^1]);
+
+        SelectedTab = null;
+        Tabs.Clear();
+        _panels.Clear();
+        TreeGeneralVm.Clear();
+
+        // Los identificadores se reparten por contador y el diccionario está vacío: si no
+        // volvieran a empezar, el árbol del proyecto nuevo heredaría los números del viejo.
+        CurrentSpriteBankCounter = 0;
+        CurrentTileSetCounter = 0;
+        CurrentMapCounter = 0;
+    }
+
     // ------------------------------------------------------------------ guardar
 
     /// <summary>
@@ -399,28 +691,44 @@ public partial class MainWindowViewModel : ObservableObject
     /// que se acababa de pedir conservar.
     /// </remarks>
     /// <returns><c>true</c> si se puede cerrar.</returns>
-    public async Task<bool> ConfirmExitAsync()
+    public Task<bool> ConfirmExitAsync() =>
+        ConfirmDiscardAsync("Esto se perderá al salir:", "Guardar y salir", "Salir sin guardar");
+
+    /// <inheritdoc cref="ConfirmExitAsync"/>
+    /// <param name="headline">Qué se va a hacer, que es lo que cambia entre salir y abrir otro.</param>
+    /// <param name="saveLabel">Lo que dice el botón de guardar antes de seguir.</param>
+    /// <param name="discardLabel">Lo que dice el de seguir perdiéndolo.</param>
+    private async Task<bool> ConfirmDiscardAsync(string headline, string saveLabel, string discardLabel)
     {
         IReadOnlyList<PanelBaseViewModel> pending = UnsavedDocuments();
+        bool projectChanged = HasProjectChanges();
 
-        if (pending.Count == 0)
+        if (pending.Count == 0 && !projectChanged)
             return true;
 
-        string names = string.Join(
-            Environment.NewLine,
-            pending.Select(panel => $"  · {panel.DocumentName} ({panel.DocumentKind})"));
+        IEnumerable<string> lines = pending.Select(panel => $"  · {panel.DocumentName} ({panel.DocumentKind})");
+
+        // El proyecto aparte de sus documentos: puede estar sin guardar sólo porque se
+        // haya añadido o quitado alguno, sin que ninguno tenga cambios.
+        if (projectChanged)
+            lines = lines.Append($"  · {ProjectName} (proyecto)");
 
         bool? save = await Dialogs.ChooseAsync(
             "Hay cambios sin guardar",
-            $"Esto se perderá al salir:{Environment.NewLine}{Environment.NewLine}{names}",
-            "Guardar y salir",
-            "Salir sin guardar");
+            $"{headline}{Environment.NewLine}{Environment.NewLine}{string.Join(Environment.NewLine, lines)}",
+            saveLabel,
+            discardLabel);
 
         if (save is null)
             return false;
 
         if (save is false)
             return true;
+
+        // Con un proyecto abierto, guardarlo guarda además todos sus documentos y les
+        // pone fichero a los que no tengan: es un solo paso en vez de uno por pestaña.
+        if (ProjectPath is not null)
+            return await WriteProjectAsync(askForPath: false);
 
         foreach (PanelBaseViewModel panel in pending)
         {
@@ -805,7 +1113,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         string? path = await Dialogs.PickFileToSaveAsync(
             "Exportar mapa a csv",
-            $"{SuggestedFileName(editor.Map.Name)}.csv",
+            $"{CleanFileName(editor.Map.Name)}.csv",
             PickerFileKind.Any);
 
         if (path is null)
@@ -903,7 +1211,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         string? path = await Dialogs.PickFileToSaveAsync(
             $"Exportar mapa ({extension})",
-            $"{SuggestedFileName(map.Name)}.{extension}",
+            $"{CleanFileName(map.Name)}.{extension}",
             PickerFileKind.Any);
 
         if (path is null)
@@ -1223,12 +1531,15 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     /// <summary>El nombre que le puso el usuario puede llevar caracteres que no valen en un fichero.</summary>
-    private static string SuggestedFileName(string name)
+    private static string CleanFileName(string name)
     {
         string clean = string.Concat(name.Split(Path.GetInvalidFileNameChars())).Trim();
 
-        return $"{(clean.Length == 0 ? "sin nombre" : clean)}.json";
+        return clean.Length == 0 ? "sin nombre" : clean;
     }
+
+    /// <summary>Lo que se propone al guardar un documento, que siempre va en json.</summary>
+    private static string SuggestedFileName(string name) => $"{CleanFileName(name)}.json";
 
     /// <summary>
     /// Vuelve a enseñar el elemento del árbol. Es el doble clic.
