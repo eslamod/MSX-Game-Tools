@@ -61,9 +61,15 @@ public class MapCanvas : Control
     /// <summary>La celda bajo el ratón, para pintar ahí lo que se va a estampar.</summary>
     private (int Column, int Row)? _hover;
 
-    /// <summary>Dónde empezó el arrastre, para desplazar o para marcar.</summary>
+    /// <summary>
+    /// Dónde empezó el arrastre para desplazar.
+    /// </summary>
+    /// <remarks>
+    /// Sólo el del desplazamiento. Por dónde se empezó a marcar lo recuerda la vista, que
+    /// es quien sabe si se está seleccionando o estampando; aquí sólo se dice por qué
+    /// celda se va pasando.
+    /// </remarks>
     private Point _panFrom;
-    private (int Column, int Row)? _dragFrom;
     private bool _panning;
     private bool _painting;
 
@@ -312,7 +318,6 @@ public class MapCanvas : Control
         (int column, int row) = CellAt(e.GetPosition(this));
 
         _painting = true;
-        _dragFrom = (column, row);
 
         e.Pointer.Capture(this);
 
@@ -355,7 +360,6 @@ public class MapCanvas : Control
 
         _panning = false;
         _painting = false;
-        _dragFrom = null;
 
         e.Pointer.Capture(null);
     }
