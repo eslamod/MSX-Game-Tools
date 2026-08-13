@@ -222,6 +222,19 @@ public partial class TileSetEditorView : UserControl
     /// Avalonia no cierra el flyout al pulsar algo de su interior, así que el
     /// desplegable de la paleta se quedaría abierto tras elegir un color.
     /// </summary>
+    /// <summary>
+    /// El botón de bloques abre su panel en el lateral.
+    /// </summary>
+    /// <remarks>
+    /// Lo pide la ventana principal y no este panel, igual que Redimensionar en el editor
+    /// de mapas: los paneles del lateral los reparte ella, que es quien sabe cuáles hay.
+    /// </remarks>
+    private void OnShowBlocks(object? sender, RoutedEventArgs e)
+    {
+        if (this.FindAncestorOfType<MainWindow>()?.DataContext is MainWindowViewModel main)
+            main.ShowBlocksCommand.Execute(null);
+    }
+
     private void OnPaletteColorClick(object? sender, RoutedEventArgs e)
     {
         if (sender is not Control control || control.FindLogicalAncestorOfType<Popup>() is not { } popup)

@@ -241,6 +241,7 @@
   <data name="BlocksFitTip" xml:space="preserve"><value>Encoger el bloque hasta lo que ocupan los tiles puestos</value></data>
   <data name="BlocksSizeTip" xml:space="preserve"><value>Lo que mide el bloque</value></data>
   <data name="BlocksNoName" xml:space="preserve"><value>Sin nombre</value></data>
+  <data name="BlocksOpenTip" xml:space="preserve"><value>Abrir el panel de bloques de este juego</value></data>
 
   <!-- Editor de mapas -->
   <data name="MapStamp" xml:space="preserve"><value>Estampar</value></data>

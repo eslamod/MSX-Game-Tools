@@ -57,6 +57,8 @@
       <MenuItem Header="{l:Localize MenuTiles}">
         <MenuItem Header="{l:Localize MenuNewTileSet}" Command="{Binding AddTileSetCommand}" />
         <Separator />
+        <MenuItem Header="{l:Localize TreeBlocks}" Command="{Binding ShowBlocksCommand}" />
+        <Separator />
         <MenuItem Header="{l:Localize MenuImportFromPng}" Command="{Binding ImportTileSetPngCommand}" />
         <MenuItem Header="{l:Localize MenuExportToPng}" Command="{Binding ExportTileSetPngCommand}" />
         <Separator />

@@ -30,6 +30,61 @@ public class TileBlocksTreeTests
         Assert.False(node.CanDelete);
     }
 
+    /// <summary>
+    /// El botón del editor trae el mismo panel que el nodo del árbol.
+    /// </summary>
+    /// <remarks>
+    /// Está porque un doble clic en un nodo no lo descubre nadie. Y tiene que traer el
+    /// mismo, no uno nuevo: los bloques son del juego y sólo hay unos.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_boton_de_bloques_trae_el_mismo_panel_que_el_arbol()
+    {
+        var main = new MainWindowViewModel();
+        main.OpenTileSet(new TileSet("Bosque"));
+
+        main.OpenTreeItemCommand.Execute(BlocksNode(main));
+
+        var fromTree = (TileBlocksViewModel)main.RightPanViewModel!;
+
+        main.CloseRightPanel(fromTree);
+
+        Assert.Null(main.RightPanViewModel);
+
+        main.ShowBlocksCommand.Execute(null);
+
+        Assert.Same(fromTree, main.RightPanViewModel);
+    }
+
+    /// <summary>Con dos juegos abiertos, trae los del que esté delante.</summary>
+    [AvaloniaFact]
+    public void El_boton_trae_los_bloques_del_juego_que_esta_delante()
+    {
+        var main = new MainWindowViewModel();
+
+        main.OpenTileSet(new TileSet("Bosque"));
+
+        TileSetEditorViewModel second = main.OpenTileSet(new TileSet("Cueva"));
+
+        main.ShowBlocksCommand.Execute(null);
+
+        var panel = (TileBlocksViewModel)main.RightPanViewModel!;
+
+        Assert.Same(second.TileSet, panel.TileSet);
+    }
+
+    [AvaloniaFact]
+    public void Sin_un_juego_delante_el_boton_esta_apagado()
+    {
+        var main = new MainWindowViewModel();
+
+        Assert.False(main.ShowBlocksCommand.CanExecute(null));
+
+        main.OpenTileSet(new TileSet("Bosque"));
+
+        Assert.True(main.ShowBlocksCommand.CanExecute(null));
+    }
+
     [AvaloniaFact]
     public void Abrir_el_nodo_lo_pone_en_el_lateral_y_no_en_una_pestana()
     {

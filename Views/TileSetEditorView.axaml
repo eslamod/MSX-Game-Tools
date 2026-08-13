@@ -299,6 +299,13 @@
         <Button Content="&gt;" Width="36" Margin="4,0,0,0"
                 HorizontalContentAlignment="Center"
                 Command="{Binding NextTileCommand}" />
+
+        <!-- Los bloques tambien se abren con doble clic en su nodo del arbol, pero eso
+             no lo descubre nadie: aqui estan a la vista mientras se dibujan los tiles,
+             que es cuando hacen falta. -->
+        <Button Content="{l:Localize TreeBlocks}" Margin="16,0,0,0" Padding="10,2"
+                Click="OnShowBlocks"
+                ToolTip.Tip="{l:Localize BlocksOpenTip}" />
       </StackPanel>
     </StackPanel>
   </Grid>

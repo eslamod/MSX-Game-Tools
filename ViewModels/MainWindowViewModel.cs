@@ -27,6 +27,7 @@ public partial class MainWindowViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetBinaryCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetAssemblerCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetPngCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ShowBlocksCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportMapCsvCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportMapBinaryCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportMapAssemblerCommand))]
@@ -1222,6 +1223,27 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     private bool IsTileSetSelected() => SelectedTab is TileSetEditorViewModel;
+
+    /// <summary>
+    /// Abre el panel de bloques del juego de tiles que esté delante.
+    /// </summary>
+    /// <remarks>
+    /// Es el mismo panel que trae el doble clic en su nodo del árbol, no uno nuevo: los
+    /// bloques son del juego y sólo hay unos. Existe porque el doble clic en un nodo no
+    /// lo descubre nadie, y los bloques hacen falta mientras se dibujan los tiles.
+    /// </remarks>
+    [RelayCommand(CanExecute = nameof(IsTileSetSelected))]
+    private void ShowBlocks()
+    {
+        if (SelectedTab is TileSetEditorViewModel tiles && BlocksOf(tiles) is { } blocks)
+            RightPanViewModel = blocks;
+    }
+
+    /// <summary>El panel de bloques de ese juego, que nació con él.</summary>
+    private TileBlocksViewModel? BlocksOf(TileSetEditorViewModel tiles) =>
+        _panels.Values
+            .OfType<TileBlocksViewModel>()
+            .FirstOrDefault(blocks => ReferenceEquals(blocks.TileSet, tiles.TileSet));
 
     /// <inheritdoc cref="ReadSpriteBankAsync"/>
     private void ReadTileSet(string json, string path)

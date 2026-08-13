@@ -217,6 +217,7 @@
   <data name="BlocksFitTip" xml:space="preserve"><value>Shrink the block to what the tiles take up</value></data>
   <data name="BlocksSizeTip" xml:space="preserve"><value>The size of the block</value></data>
   <data name="BlocksNoName" xml:space="preserve"><value>No name</value></data>
+  <data name="BlocksOpenTip" xml:space="preserve"><value>Open the blocks panel of this set</value></data>
 
   <data name="MapStamp" xml:space="preserve"><value>Stamp</value></data>
   <data name="MapStampTip" xml:space="preserve"><value>Place whatever is picked below</value></data>
