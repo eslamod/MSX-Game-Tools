@@ -172,7 +172,13 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
     public override bool IsDocument => true;
 
-    public override string DocumentName => _spriteBank.Name;
+    public override string DocumentName
+    {
+        get => _spriteBank.Name;
+        set => _spriteBank.Name = value;
+    }
+
+    public override string HeaderTag => "SP";
 
     public override string DocumentKind => "banco de sprites";
 

@@ -42,6 +42,10 @@ Escrito en C# sobre Avalonia 11.3 y .NET 10. Funciona en Windows, Linux y macOS.
 
 ### El proyecto y sus ficheros
 
+- **Propiedades** en el nodo del árbol, o F2, para cambiarle el nombre a lo que sea. El
+  fichero no se toca: cómo se llama un mapa es del mapa, y dónde vive lo decide quien lo
+  guarda.
+
 - **Guardar** escribe el documento que esté delante en el fichero del que salió, sea un
   banco, un juego de tiles o un mapa; sólo pregunta la ruta la primera vez.
 - La pestaña de lo que está sin guardar lleva un asterisco, y al salir se avisa de lo que

@@ -42,6 +42,9 @@ Written in C# on Avalonia 11.3 and .NET 10. Runs on Windows, Linux and macOS.
 
 ### The project and its files
 
+- **Properties** on the tree node, or F2, to rename anything. The file is left alone: what
+  a map is called belongs to the map, and where it lives is decided by whoever saves it.
+
 - **Save** writes whatever document is in front — a bank, a tile set or a map — back to
   the file it came from, and only asks for a path the first time.
 - Tabs with unsaved work carry an asterisk, and quitting warns about what would be lost,

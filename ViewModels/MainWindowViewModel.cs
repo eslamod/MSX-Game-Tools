@@ -58,6 +58,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         TreeGeneralVm.OpenItemCommand = OpenTreeItemCommand;
         TreeGeneralVm.DeleteItemCommand = DeleteTreeItemCommand;
+        TreeGeneralVm.ShowPropertiesCommand = ShowPropertiesCommand;
 
         Backgrounds.PropertyChanged += (_, e) =>
         {
@@ -232,6 +233,87 @@ public partial class MainWindowViewModel : ObservableObject
             ? TileSets.FirstOrDefault(tiles => tiles.TileSet.Id == map.TileSetId)
             : TileSets.FirstOrDefault(tiles => tiles.TileSet.Name == map.TileSetName);
 
+    /// <summary>
+    /// Le cambia el nombre a un documento, con todo lo que eso arrastra.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// El nombre sale en la pestaña, en el árbol y, en un juego de tiles, también en el
+    /// panel de sus bloques y en el nombre que cada uno de sus mapas lleva apuntado. Va
+    /// aquí porque es lo único que ve todas esas piezas a la vez.
+    /// </para>
+    /// <para>
+    /// El fichero no se renombra. El documento y su fichero son cosas distintas: cómo se
+    /// llama un mapa es del mapa, y dónde vive lo decide quien lo guarda.
+    /// </para>
+    /// </remarks>
+    /// <returns><c>false</c> si el nombre no vale o es el que ya tenía.</returns>
+    public bool Rename(PanelBaseViewModel? panel, string? name)
+    {
+        string clean = name?.Trim() ?? string.Empty;
+
+        if (panel is not { IsDocument: true } || clean.Length == 0 || clean == panel.DocumentName)
+            return false;
+
+        panel.DocumentName = clean;
+        panel.RefreshHeader();
+
+        TreeGeneralVm.Rename(panel.TagId, panel.Header);
+        panel.Touch();
+
+        if (panel is TileSetEditorViewModel tiles)
+            RenameFollowers(tiles);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Lo que cuelga de un juego de tiles y lleva su nombre escrito.
+    /// </summary>
+    /// <remarks>
+    /// Los mapas guardan cómo se llamaba su juego, y aunque ya no es lo que los une —van
+    /// por identidad— sí es lo que se lee en su fichero, así que se pone al día y quedan
+    /// sin guardar. Antes de la identidad esto no era cosmético: era perderlos.
+    /// </remarks>
+    private void RenameFollowers(TileSetEditorViewModel tiles)
+    {
+        foreach (TileBlocksViewModel blocks in _panels.Values.OfType<TileBlocksViewModel>())
+        {
+            if (ReferenceEquals(blocks.TileSet, tiles.TileSet))
+                blocks.Header = $"Bloques de {tiles.TileSet.Name}";
+        }
+
+        foreach (MapEditorViewModel map in MapsOf(tiles))
+        {
+            if (map.Map.TileSetName == tiles.TileSet.Name)
+                continue;
+
+            map.Map.TileSetName = tiles.TileSet.Name;
+            map.Touch();
+        }
+    }
+
+    /// <summary>Los mapas que se dibujan con ese juego de tiles, tengan pestaña o no.</summary>
+    public IReadOnlyList<MapEditorViewModel> MapsOf(TileSetEditorViewModel tiles) =>
+        [.. _panels.Values.OfType<MapEditorViewModel>().Where(map => map.Map.TileSetId == tiles.TileSet.Id)];
+
+    /// <summary>Abre las propiedades de un elemento del árbol en el lateral.</summary>
+    /// <remarks>
+    /// Se cambia el que hubiera abierto en vez de apilar otro, igual que con el editor de
+    /// paletas: dos paneles de propiedades de cosas distintas sólo confunden.
+    /// </remarks>
+    [RelayCommand]
+    private void ShowProperties(ItemTree? item)
+    {
+        if (item is not { IsPanelNode: true } || GetPanelFromDic(item.Tag) is not { IsDocument: true } panel)
+            return;
+
+        if (RightPanels.OfType<EditPropertiesViewModel>().FirstOrDefault() is { } open)
+            CloseRightPanel(open);
+
+        RightPanViewModel = new EditPropertiesViewModel(this, panel);
+    }
+
     /// <summary>Abre un mapa en una pestaña nueva y lo cuelga del árbol.</summary>
     public MapEditorViewModel OpenMap(TileMap map, TileSetEditorViewModel tiles)
     {
@@ -241,8 +323,9 @@ public partial class MainWindowViewModel : ObservableObject
         var panel = new MapEditorViewModel(map, tiles, Preferences)
         {
             TagId = $"map{CurrentMapCounter}",
-            Header = $"{map.Name} (MP)",
         };
+
+        panel.RefreshHeader();
 
         CurrentMapCounter++;
 
@@ -286,8 +369,9 @@ public partial class MainWindowViewModel : ObservableObject
         var panel = new TileSetEditorViewModel(tileSet, palette ?? Palettes.ActivePalette, Preferences)
         {
             TagId = $"tls{CurrentTileSetCounter}",
-            Header = $"{tileSet.Name} (TS)",
         };
+
+        panel.RefreshHeader();
 
         if (borderColorIndex is int border)
             panel.BorderColorIndex = border;
@@ -321,8 +405,9 @@ public partial class MainWindowViewModel : ObservableObject
             bank, palette ?? Palettes.ActivePalette, Dialogs, Backgrounds, Preferences)
         {
             TagId = $"spb{CurrentSpriteBankCounter}",
-            Header = $"{bank.Name} (SP)",
         };
+
+        panel.RefreshHeader();
 
         if (backgroundColorIndex is int background)
             panel.BackgroundColorIndex = background;

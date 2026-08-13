@@ -37,6 +37,28 @@ public partial class TreeGeneralView : UserControl
             ViewModel?.DeleteItemCommand?.Execute(item);
     }
 
+    private void OnShowProperties(object? sender, RoutedEventArgs e)
+    {
+        if (ItemOf(sender) is { } item)
+            ViewModel?.ShowPropertiesCommand?.Execute(item);
+    }
+
+    /// <summary>
+    /// F2 sobre el nodo seleccionado abre sus propiedades, con el nombre ya marcado.
+    /// </summary>
+    /// <remarks>
+    /// El nodo sale de la selección del árbol y no del origen del evento: con el teclado
+    /// no hay nada bajo el ratón de donde sacarlo.
+    /// </remarks>
+    private void OnTreeKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.F2 || ProjectTree.SelectedItem is not ItemTree item)
+            return;
+
+        ViewModel?.ShowPropertiesCommand?.Execute(item);
+        e.Handled = true;
+    }
+
     /// <summary>
     /// El nodo sobre el que se ha hecho el gesto. Sale del DataContext del control que
     /// lo recibió, que en un TreeView es el que lleva el elemento de esa fila.

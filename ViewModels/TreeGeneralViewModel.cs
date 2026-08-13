@@ -53,6 +53,26 @@ public class TreeGeneralViewModel : PanelBaseViewModel
     /// <inheritdoc cref="OpenItemCommand"/>
     public ICommand? DeleteItemCommand { get; set; }
 
+    /// <inheritdoc cref="OpenItemCommand"/>
+    public ICommand? ShowPropertiesCommand { get; set; }
+
+    /// <summary>Cambia lo que se lee en el nodo de ese panel.</summary>
+    public void Rename(string tagId, string displayText)
+    {
+        foreach (ItemTree parent in PrimaryNodes)
+        {
+            foreach (ItemTree child in parent.Childs)
+            {
+                if (child.Tag == tagId)
+                {
+                    child.DisplayText = displayText;
+
+                    return;
+                }
+            }
+        }
+    }
+
     /// <summary>Vacía el árbol. Los nodos de primer nivel se quedan, que son fijos.</summary>
     public void Clear()
     {

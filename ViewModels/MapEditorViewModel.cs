@@ -134,7 +134,13 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
 
     public override bool IsDocument => true;
 
-    public override string DocumentName => Map.Name;
+    public override string DocumentName
+    {
+        get => Map.Name;
+        set => Map.Name = value;
+    }
+
+    public override string HeaderTag => "MP";
 
     public override string DocumentKind => "mapa";
 

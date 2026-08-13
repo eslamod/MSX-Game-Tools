@@ -44,8 +44,33 @@ public abstract partial class PanelBaseViewModel : ObservableObject
     /// </remarks>
     public virtual bool IsDocument => false;
 
-    /// <summary>Cómo se llama el elemento, para proponer el nombre del fichero.</summary>
-    public virtual string DocumentName => Header;
+    /// <summary>
+    /// Cómo se llama el elemento: lo que se lee en la pestaña y en el árbol, y lo que se
+    /// propone como nombre de fichero.
+    /// </summary>
+    /// <remarks>
+    /// Se cambia por <see cref="MainWindowViewModel.Rename"/> y no aquí: renombrar arrastra
+    /// la cabecera, el árbol y, en un juego de tiles, el nombre que sus mapas llevan
+    /// apuntado, y eso sólo lo sabe la ventana.
+    /// </remarks>
+    public virtual string DocumentName
+    {
+        get => Header;
+        set { }
+    }
+
+    /// <summary>Las letras entre paréntesis de la pestaña: «TS», «SP», «MP».</summary>
+    public virtual string HeaderTag => string.Empty;
+
+    /// <summary>
+    /// Rehace la cabecera a partir del nombre.
+    /// </summary>
+    /// <remarks>
+    /// Aquí y no en cada sitio que abre un panel: así lo que sale al renombrar tiene la
+    /// misma forma que lo que salió al crearlo, sin tener que acordarse.
+    /// </remarks>
+    public void RefreshHeader() =>
+        Header = HeaderTag.Length == 0 ? DocumentName : $"{DocumentName} ({HeaderTag})";
 
     /// <summary>Qué es, para poder decirlo: «Guardar el mapa «Nivel 1»».</summary>
     public virtual string DocumentKind => "documento";

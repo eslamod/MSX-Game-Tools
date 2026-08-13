@@ -16,7 +16,8 @@
   <TreeView x:Name="ProjectTree"
             ItemsSource="{Binding PrimaryNodes}"
             Background="Gainsboro"
-            DoubleTapped="OnItemDoubleTapped">
+            DoubleTapped="OnItemDoubleTapped"
+            KeyDown="OnTreeKeyDown">
     <TreeView.ItemTemplate>
       <!-- El HierarchicalDataTemplate de WPF es TreeDataTemplate en Avalonia. -->
       <TreeDataTemplate DataType="entities:ItemTree" x:DataType="entities:ItemTree"
@@ -27,6 +28,10 @@
               <MenuItem Header="Abrir"
                         IsEnabled="{Binding IsPanelNode}"
                         Click="OnOpenItem" />
+              <MenuItem Header="Propiedades"
+                        InputGesture="F2"
+                        IsEnabled="{Binding IsPanelNode}"
+                        Click="OnShowProperties" />
               <Separator />
               <MenuItem Header="Eliminar del proyecto"
                         IsEnabled="{Binding CanDelete}"

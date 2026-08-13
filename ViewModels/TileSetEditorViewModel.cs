@@ -95,7 +95,13 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
     public override bool IsDocument => true;
 
-    public override string DocumentName => _tileSet.Name;
+    public override string DocumentName
+    {
+        get => _tileSet.Name;
+        set => _tileSet.Name = value;
+    }
+
+    public override string HeaderTag => "TS";
 
     public override string DocumentKind => "juego de tiles";
 
