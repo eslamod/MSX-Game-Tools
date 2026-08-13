@@ -185,4 +185,6 @@
   <data name="PreferencesBlockGrid" xml:space="preserve"><value>Rejilla de bloques</value></data>
   <data name="PreferencesBlockTiles" xml:space="preserve"><value>Tiles en los bloques</value></data>
   <data name="PreferencesMapTiles" xml:space="preserve"><value>Tiles en el mapa</value></data>
+  <data name="LanguageChangedTitle" xml:space="preserve"><value>Se ha cambiado el idioma</value></data>
+  <data name="LanguageChangedMessage" xml:space="preserve"><value>Algunos textos, como los del árbol del proyecto, no cambian hasta que se vuelve a abrir el programa.</value></data>
 </root>

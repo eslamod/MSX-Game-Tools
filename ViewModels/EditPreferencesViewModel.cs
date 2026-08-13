@@ -87,7 +87,7 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
     /// abierto: una pestaña montada se queda con el suyo hasta que se vuelve a montar.
     /// </summary>
     [RelayCommand]
-    private void AcceptPreferences()
+    private async Task AcceptPreferencesAsync()
     {
         Entities.EditorPreferences zoom = _mainWindowVm.Preferences;
 
@@ -99,10 +99,21 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
         zoom.BlockTileZoom = BlockTileZoom;
         zoom.MapTileZoom = MapTileZoom;
 
+        bool languageChanged = Localizer.Instance.Language != Language.Code;
+
         Localizer.Instance.Language = Language.Code;
 
         _mainWindowVm.SaveSettings();
         _mainWindowVm.RightPanViewModel = null;
+
+        // Después de aplicarlo, así que el aviso sale ya en el idioma nuevo. Y sólo si de
+        // verdad ha cambiado: avisar de algo que no ha pasado enseña a no leer los avisos.
+        if (languageChanged)
+        {
+            await _mainWindowVm.Dialogs.ShowMessageAsync(
+                Localizer.Instance["LanguageChangedTitle"],
+                Localizer.Instance["LanguageChangedMessage"]);
+        }
     }
 
     [RelayCommand]

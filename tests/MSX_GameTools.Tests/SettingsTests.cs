@@ -169,11 +169,12 @@ public class SettingsTests : IDisposable
     // ------------------------------------------------------------------ el panel
 
     [AvaloniaFact]
-    public void Aceptar_aplica_el_idioma_y_el_zoom_y_los_guarda()
+    public async Task Aceptar_aplica_el_idioma_y_el_zoom_y_los_guarda()
     {
         Localizer.Instance.Language = "es";
 
-        var main = new MainWindowViewModel(settings: Store);
+        var dialogs = new TestDialogService();
+        var main = new MainWindowViewModel(dialogs, Store);
 
         main.ShowPreferencesCommand.Execute(null);
 
@@ -181,7 +182,8 @@ public class SettingsTests : IDisposable
 
         form.Language = Localizer.Languages.Single(choice => choice.Code == "ca");
         form.MapTileZoom = 4;
-        form.AcceptPreferencesCommand.Execute(null);
+
+        await form.AcceptPreferencesCommand.ExecuteAsync(null);
 
         Assert.Equal("ca", Localizer.Instance.Language);
         Assert.Equal(4, main.Preferences.MapTileZoom);
@@ -192,6 +194,52 @@ public class SettingsTests : IDisposable
 
         Assert.Equal("ca", saved.Language);
         Assert.Equal(4, saved.Preferences.MapTileZoom);
+    }
+
+    /// <summary>
+    /// Cambiar de idioma avisa de que no todo cambia hasta reiniciar, y avisa en el idioma
+    /// nuevo, que es el que se acaba de elegir.
+    /// </summary>
+    [AvaloniaFact]
+    public async Task Cambiar_de_idioma_avisa_de_que_hay_que_reiniciar()
+    {
+        Localizer.Instance.Language = "es";
+
+        var dialogs = new TestDialogService();
+        var main = new MainWindowViewModel(dialogs, Store);
+
+        main.ShowPreferencesCommand.Execute(null);
+
+        var form = (EditPreferencesViewModel)main.RightPanViewModel!;
+
+        form.Language = Localizer.Languages.Single(choice => choice.Code == "ca");
+
+        await form.AcceptPreferencesCommand.ExecuteAsync(null);
+
+        Assert.Single(dialogs.Messages);
+        Assert.Equal(Localizer.Instance["LanguageChangedMessage"], dialogs.Messages[0]);
+        Assert.Contains("l'arbre del projecte", dialogs.Messages[0], StringComparison.Ordinal);
+    }
+
+    /// <summary>Avisar de algo que no ha pasado enseña a no leer los avisos.</summary>
+    [AvaloniaFact]
+    public async Task Tocar_solo_el_zoom_no_avisa_de_nada()
+    {
+        Localizer.Instance.Language = "es";
+
+        var dialogs = new TestDialogService();
+        var main = new MainWindowViewModel(dialogs, Store);
+
+        main.ShowPreferencesCommand.Execute(null);
+
+        var form = (EditPreferencesViewModel)main.RightPanViewModel!;
+
+        form.MapTileZoom = 4;
+
+        await form.AcceptPreferencesCommand.ExecuteAsync(null);
+
+        Assert.Empty(dialogs.Messages);
+        Assert.Equal(4, main.Preferences.MapTileZoom);
     }
 
     [AvaloniaFact]

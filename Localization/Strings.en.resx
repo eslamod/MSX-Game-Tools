@@ -166,4 +166,6 @@
   <data name="PreferencesBlockGrid" xml:space="preserve"><value>Block grid</value></data>
   <data name="PreferencesBlockTiles" xml:space="preserve"><value>Tiles in blocks</value></data>
   <data name="PreferencesMapTiles" xml:space="preserve"><value>Tiles in the map</value></data>
+  <data name="LanguageChangedTitle" xml:space="preserve"><value>The language has changed</value></data>
+  <data name="LanguageChangedMessage" xml:space="preserve"><value>Some text, such as the project tree, does not change until the application is opened again.</value></data>
 </root>

@@ -167,4 +167,6 @@
   <data name="PreferencesBlockGrid" xml:space="preserve"><value>Graella de blocs</value></data>
   <data name="PreferencesBlockTiles" xml:space="preserve"><value>Tiles als blocs</value></data>
   <data name="PreferencesMapTiles" xml:space="preserve"><value>Tiles al mapa</value></data>
+  <data name="LanguageChangedTitle" xml:space="preserve"><value>S'ha canviat l'idioma</value></data>
+  <data name="LanguageChangedMessage" xml:space="preserve"><value>Alguns textos, com els de l'arbre del projecte, no canvien fins que es torna a obrir el programa.</value></data>
 </root>
