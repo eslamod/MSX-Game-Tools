@@ -1,5 +1,6 @@
 using System.Text.Json;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Localization;
 
 namespace MSX_GameTools.Services;
 
@@ -41,6 +42,17 @@ public sealed class SettingsStore
 
     public static string DefaultFolder() => System.IO.Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), FolderName);
+
+    /// <summary>
+    /// Deja puesto el idioma guardado.
+    /// </summary>
+    /// <remarks>
+    /// Se llama antes de construir nada. Hay textos que se resuelven una sola vez, al
+    /// crearse el objeto que los lleva —los cajones del árbol del proyecto—, así que con el
+    /// idioma puesto más tarde salen en el del arranque anterior mientras los menús, que
+    /// son enlaces, sí cambian. Media ventana en cada idioma.
+    /// </remarks>
+    public void ApplyLanguage() => Localizer.Instance.Language = Load().Language;
 
     /// <summary>Lee los ajustes, o los de partida si no hay ninguno que valga.</summary>
     public Settings Load()

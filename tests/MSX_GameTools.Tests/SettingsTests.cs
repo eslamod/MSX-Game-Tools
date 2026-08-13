@@ -127,6 +127,34 @@ public class SettingsTests : IDisposable
         Assert.Equal(4, before.MapTileZoom);
     }
 
+    /// <summary>
+    /// El idioma guardado tiene que estar puesto antes de construir nada.
+    /// </summary>
+    /// <remarks>
+    /// Los cajones del árbol resuelven su texto una sola vez, al crearse. Aplicando el
+    /// idioma después de construir el ViewModel salían en el idioma del arranque anterior:
+    /// los menús sí cambiaban, porque son enlaces que se resuelven al enseñar la ventana,
+    /// y el árbol no, que es justo la mezcla más confusa.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_arbol_arranca_en_el_idioma_guardado()
+    {
+        Store.Save(new Settings("ca", new EditorPreferences()));
+
+        Store.ApplyLanguage();
+
+        var main = new MainWindowViewModel(settings: Store);
+
+        main.LoadSettings();
+
+        Assert.Equal(
+            Localizer.Instance["TreeMaps"],
+            main.TreeGeneralVm.PrimaryNodes.Single(node => node.Tag == Constants.TAG_ID_NODE_MAPS).DisplayText);
+
+        Assert.Equal("Mapes", main.TreeGeneralVm.PrimaryNodes
+            .Single(node => node.Tag == Constants.TAG_ID_NODE_MAPS).DisplayText);
+    }
+
     [AvaloniaFact]
     public void Sin_almacen_no_se_toca_el_disco()
     {
