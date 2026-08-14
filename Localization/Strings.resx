@@ -232,6 +232,7 @@
   <data name="TilesBorder" xml:space="preserve"><value>Borde</value></data>
   <data name="TilesGrid" xml:space="preserve"><value>Rejilla</value></data>
   <data name="TilesGridTip" xml:space="preserve"><value>Marcar el borde de cada tile</value></data>
+  <data name="TileSwapRowColors" xml:space="preserve"><value>Intercambiar frente y fondo</value></data>
 
   <!-- Panel de bloques -->
   <data name="BlocksTitle" xml:space="preserve"><value>Bloques de tiles</value></data>

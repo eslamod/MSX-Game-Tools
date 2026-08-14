@@ -68,6 +68,22 @@ public partial class TileRowColorViewModel : ObservableObject
         _onPicked(RowIndex);
     }
 
+    /// <summary>
+    /// La otra forma de escribir la misma línea, desde el menú del botón derecho.
+    /// </summary>
+    /// <remarks>
+    /// Pasa por el mismo aviso que elegir un color, aunque el dibujo no cambie: el fichero
+    /// sí cambia, y hay que repintar la miniatura porque el color 0 es transparente y
+    /// mover un color al otro lado puede cambiar qué pixeles dejan ver el borde.
+    /// </remarks>
+    [RelayCommand]
+    private void SwapColors()
+    {
+        _row.SwapColors();
+        Refresh();
+        _onPicked(RowIndex);
+    }
+
     [RelayCommand]
     private void PickBackground(PaletteColor? color)
     {

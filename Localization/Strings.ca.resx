@@ -210,6 +210,7 @@
   <data name="TilesBorder" xml:space="preserve"><value>Vora</value></data>
   <data name="TilesGrid" xml:space="preserve"><value>Graella</value></data>
   <data name="TilesGridTip" xml:space="preserve"><value>Marca la vora de cada tile</value></data>
+  <data name="TileSwapRowColors" xml:space="preserve"><value>Intercanvia primer pla i fons</value></data>
 
   <data name="BlocksTitle" xml:space="preserve"><value>Blocs de tiles</value></data>
   <data name="BlocksComposition" xml:space="preserve"><value>Composició</value></data>

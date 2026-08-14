@@ -47,4 +47,29 @@ public partial class TileRow : ObservableObject
 
     /// <summary>El byte de la tabla de colores: el de frente arriba y el de fondo abajo.</summary>
     public byte ColorByte => (byte)(((ForeColor & 0x0F) << 4) | (BackColor & 0x0F));
+
+    /// <summary>
+    /// Cambia la línea a la otra forma de escribir exactamente lo mismo: intercambia los
+    /// dos colores e invierte los bits.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Con dos colores por línea, cada dibujo se puede escribir de dos maneras: frente
+    /// negro sobre fondo verde con unos bits, o frente verde sobre fondo negro con esos
+    /// mismos bits al revés. En pantalla no se distinguen.
+    /// </para>
+    /// <para>
+    /// Importar un png elige una de las dos por su cuenta en cada línea, así que un mismo
+    /// tile acaba con unas líneas de una forma y otras de la otra. Eso no se ve, pero se
+    /// nota al retocarlo: el mismo color está en un desplegable o en el otro según la
+    /// línea, y pintar con un color deja de ser predecible.
+    /// </para>
+    /// </remarks>
+    public void SwapColors()
+    {
+        (ForeColor, BackColor) = (BackColor, ForeColor);
+
+        for (int column = 0; column < Columns; column++)
+            ArrayPattern[column] = !ArrayPattern[column];
+    }
 }

@@ -100,6 +100,16 @@
                 Height="{Binding $parent[views:TileSetEditorView].CellSize}">
             <Button Grid.Column="0" Theme="{StaticResource TileColorSwatch}" Width="44"
                     ToolTip.Tip="{Binding Foreground.DisplayName, StringFormat='Frente: {0}'}">
+              <!-- En el menu del boton derecho y no en un boton de la barra: no cambia
+                   nada de lo que se ve, asi que quien no lo necesite no tiene por que
+                   tropezarse con el. Esta en los dos colores porque la operacion es de
+                   la linea y da igual por cual se entre. -->
+              <Button.ContextMenu>
+                <ContextMenu>
+                  <MenuItem Header="{l:Localize TileSwapRowColors}"
+                            Command="{Binding SwapColorsCommand}" />
+                </ContextMenu>
+              </Button.ContextMenu>
               <Grid ColumnDefinitions="*,Auto">
                 <Border Grid.Column="0" Background="{Binding Foreground.Brush}" />
                 <TextBlock Grid.Column="1" Text="{Binding Foreground.Hex}"
@@ -133,6 +143,12 @@
 
             <Button Grid.Column="1" Theme="{StaticResource TileColorSwatch}" Width="44" Margin="2,0,0,0"
                     ToolTip.Tip="{Binding Background.DisplayName, StringFormat='Fondo: {0}'}">
+              <Button.ContextMenu>
+                <ContextMenu>
+                  <MenuItem Header="{l:Localize TileSwapRowColors}"
+                            Command="{Binding SwapColorsCommand}" />
+                </ContextMenu>
+              </Button.ContextMenu>
               <Grid ColumnDefinitions="*,Auto">
                 <Border Grid.Column="0" Background="{Binding Background.Brush}" />
                 <TextBlock Grid.Column="1" Text="{Binding Background.Hex}"

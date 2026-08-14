@@ -209,6 +209,7 @@
   <data name="TilesBorder" xml:space="preserve"><value>Border</value></data>
   <data name="TilesGrid" xml:space="preserve"><value>Grid</value></data>
   <data name="TilesGridTip" xml:space="preserve"><value>Outline each tile</value></data>
+  <data name="TileSwapRowColors" xml:space="preserve"><value>Swap foreground and background</value></data>
 
   <data name="BlocksTitle" xml:space="preserve"><value>Tile blocks</value></data>
   <data name="BlocksComposition" xml:space="preserve"><value>Composition</value></data>
