@@ -276,6 +276,19 @@
   <data name="ReplaceNewTip" xml:space="preserve"><value>Per on comença la sèrie nova</value></data>
   <data name="ReplaceOnlySelection" xml:space="preserve"><value>Només a la selecció</value></data>
   <data name="ReplaceAllLayers" xml:space="preserve"><value>A totes les capes</value></data>
+  <data name="ReplaceHeader" xml:space="preserve"><value>Substitueix tiles a {0}</value></data>
+  <data name="ReplaceModeRange" xml:space="preserve"><value>Per interval</value></data>
+  <data name="ReplaceModeList" xml:space="preserve"><value>Per llista</value></data>
+  <data name="ReplaceListAddFrom" xml:space="preserve"><value>Canvia el</value></data>
+  <data name="ReplaceListAddTo" xml:space="preserve"><value>pel</value></data>
+  <data name="ReplaceAdd" xml:space="preserve"><value>Afegeix</value></data>
+  <data name="ReplaceRemove" xml:space="preserve"><value>Treu</value></data>
+  <data name="ReplaceAlreadyListed" xml:space="preserve"><value>Aquest tile ja és a la llista.</value></data>
+  <data name="ReplaceListEmpty" xml:space="preserve"><value>La llista és buida: afegeix alguna substitució.</value></data>
+  <data name="ReplaceOneLabel" xml:space="preserve"><value>El tile {0} passa a ser el {1}.</value></data>
+  <data name="ReplaceRangeLabel" xml:space="preserve"><value>Els {0} tiles del {1} al {2} passen a ser del {3} al {4}.</value></data>
+  <data name="ReplaceNothing" xml:space="preserve"><value>No hi havia cap cel·la amb aquests tiles.</value></data>
+  <data name="ReplaceDone" xml:space="preserve"><value>Canviades {0} cel·les.</value></data>
 
   <data name="KindTileSet" xml:space="preserve"><value>joc de tiles</value></data>
   <data name="KindSpriteBank" xml:space="preserve"><value>banc de sprites</value></data>

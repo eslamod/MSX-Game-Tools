@@ -9,6 +9,15 @@
              x:DataType="vm:ReplaceTilesViewModel"
              Background="Gainsboro">
 
+  <UserControl.Styles>
+    <!-- El marco del dibujo, para que un tile todo negro no se confunda con el fondo. -->
+    <Style Selector="Border.tile">
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="#808080" />
+      <Setter Property="Background" Value="#404040" />
+    </Style>
+  </UserControl.Styles>
+
   <!-- Los botones anclados abajo y el resto con barra: con la escala de la interfaz al
        200% el contenido mide el doble y los empujaba fuera del panel. -->
   <Grid Margin="10" RowDefinitions="Auto,*,Auto">
@@ -18,7 +27,17 @@
     <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
       <StackPanel>
 
-    <!-- Por rango y no de uno en uno: el caso real es mover un grupo entero. -->
+    <!-- Los dos modos. El rango mueve un grupo entero de una vez; la lista es para
+         cuando los tiles no van seguidos, que es lo normal en un dibujo. -->
+    <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Spacing="12">
+      <RadioButton GroupName="ReplaceMode" Content="{l:Localize ReplaceModeRange}"
+                   IsChecked="{Binding IsRangeMode}" />
+      <RadioButton GroupName="ReplaceMode" Content="{l:Localize ReplaceModeList}"
+                   IsChecked="{Binding IsListMode}" />
+    </StackPanel>
+
+    <StackPanel IsVisible="{Binding IsRangeMode}">
+
     <Grid ColumnDefinitions="70,*" Margin="0,0,0,6">
       <TextBlock Grid.Column="0" Text="{l:Localize ReplaceFrom}" VerticalAlignment="Center" />
       <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
@@ -44,6 +63,73 @@
 
     <TextBlock Text="{Binding RangeLabel}" TextWrapping="Wrap"
                Foreground="#404040" Margin="0,4,0,8" />
+
+    </StackPanel>
+
+    <StackPanel IsVisible="{Binding IsListMode}">
+
+      <!-- El dibujo al lado del numero: con 256 tiles nadie se acuerda de que es el 231,
+           y aqui es donde se ve que te has equivocado, antes de tocar el mapa. -->
+      <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,4">
+        <TextBlock Grid.Column="0" Text="{l:Localize ReplaceListAddFrom}"
+                   VerticalAlignment="Center" Margin="0,0,6,0" />
+        <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
+                       Minimum="0" Maximum="{Binding MaxTile}" Increment="1"
+                       Value="{Binding NewFrom}" />
+        <Border Grid.Column="2" Classes="tile" Margin="6,0,0,0">
+          <Image Source="{Binding NewFromTile.SpritePreview}" Width="32" Height="32"
+                 Stretch="Fill" RenderOptions.BitmapInterpolationMode="None" />
+        </Border>
+      </Grid>
+
+      <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,6">
+        <TextBlock Grid.Column="0" Text="{l:Localize ReplaceListAddTo}"
+                   VerticalAlignment="Center" Margin="0,0,6,0" />
+        <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
+                       Minimum="0" Maximum="{Binding MaxTile}" Increment="1"
+                       Value="{Binding NewTo}" />
+        <Border Grid.Column="2" Classes="tile" Margin="6,0,0,0">
+          <Image Source="{Binding NewToTile.SpritePreview}" Width="32" Height="32"
+                 Stretch="Fill" RenderOptions.BitmapInterpolationMode="None" />
+        </Border>
+      </Grid>
+
+      <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,4">
+        <Button Content="{l:Localize ReplaceAdd}" MinWidth="80"
+                Command="{Binding AddSubstitutionCommand}" />
+        <Button Content="{l:Localize ReplaceRemove}" MinWidth="80"
+                Command="{Binding RemoveSubstitutionCommand}" />
+      </StackPanel>
+
+      <TextBlock Text="{l:Localize ReplaceAlreadyListed}" TextWrapping="Wrap"
+                 Foreground="#903030" Margin="0,0,0,4"
+                 IsVisible="{Binding AlreadyListed}" />
+
+      <ListBox ItemsSource="{Binding Substitutions}"
+               SelectedItem="{Binding SelectedSubstitution}"
+               Height="200" Margin="0,0,0,8">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:TileSubstitution">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <Border Classes="tile">
+                <Image Source="{Binding FromTile.SpritePreview}" Width="24" Height="24"
+                       Stretch="Fill" RenderOptions.BitmapInterpolationMode="None" />
+              </Border>
+              <TextBlock Text="{Binding From}" VerticalAlignment="Center" MinWidth="28"
+                         TextAlignment="Right" />
+              <TextBlock Text="→" VerticalAlignment="Center" />
+              <Border Classes="tile">
+                <Image Source="{Binding ToTile.SpritePreview}" Width="24" Height="24"
+                       Stretch="Fill" RenderOptions.BitmapInterpolationMode="None" />
+              </Border>
+              <TextBlock Text="{Binding To}" VerticalAlignment="Center" MinWidth="28"
+                         TextAlignment="Right" />
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+    </StackPanel>
 
     <CheckBox Content="{l:Localize ReplaceAllLayers}" IsChecked="{Binding AllLayers}" />
 

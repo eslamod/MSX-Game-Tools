@@ -275,6 +275,19 @@
   <data name="ReplaceNewTip" xml:space="preserve"><value>Where the new series starts</value></data>
   <data name="ReplaceOnlySelection" xml:space="preserve"><value>Only in the selection</value></data>
   <data name="ReplaceAllLayers" xml:space="preserve"><value>In every layer</value></data>
+  <data name="ReplaceHeader" xml:space="preserve"><value>Replace tiles in {0}</value></data>
+  <data name="ReplaceModeRange" xml:space="preserve"><value>By range</value></data>
+  <data name="ReplaceModeList" xml:space="preserve"><value>By list</value></data>
+  <data name="ReplaceListAddFrom" xml:space="preserve"><value>Change</value></data>
+  <data name="ReplaceListAddTo" xml:space="preserve"><value>into</value></data>
+  <data name="ReplaceAdd" xml:space="preserve"><value>Add</value></data>
+  <data name="ReplaceRemove" xml:space="preserve"><value>Remove</value></data>
+  <data name="ReplaceAlreadyListed" xml:space="preserve"><value>That tile is already in the list.</value></data>
+  <data name="ReplaceListEmpty" xml:space="preserve"><value>The list is empty: add a substitution.</value></data>
+  <data name="ReplaceOneLabel" xml:space="preserve"><value>Tile {0} becomes tile {1}.</value></data>
+  <data name="ReplaceRangeLabel" xml:space="preserve"><value>The {0} tiles from {1} to {2} become {3} to {4}.</value></data>
+  <data name="ReplaceNothing" xml:space="preserve"><value>No cell had those tiles.</value></data>
+  <data name="ReplaceDone" xml:space="preserve"><value>{0} cells changed.</value></data>
 
   <data name="KindTileSet" xml:space="preserve"><value>tile set</value></data>
   <data name="KindSpriteBank" xml:space="preserve"><value>sprite bank</value></data>

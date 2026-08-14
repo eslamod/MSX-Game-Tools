@@ -181,6 +181,40 @@ public class TileMap
             (fromFirst, fromLast) = (fromLast, fromFirst);
 
         int shift = toFirst - fromFirst;
+        var table = new Dictionary<int, int>();
+
+        for (int tile = fromFirst; tile <= fromLast; tile++)
+            table[tile] = tile + shift;
+
+        return Replace(table, left, top, width, height, layers);
+    }
+
+    /// <summary>
+    /// Cambia unos tiles por otros dentro de un rectángulo, cada uno por el suyo.
+    /// </summary>
+    /// <param name="table">
+    /// De qué tile a qué tile. Los que no estén se quedan como están.
+    /// </param>
+    /// <remarks>
+    /// <para>
+    /// Las sustituciones se aplican <b>todas a la vez</b> y no en cadena: cada celda se
+    /// mira una sola vez y se escribe una sola vez. Con una tabla que lleve 35→77 y 77→88,
+    /// un 35 acaba en 77 y ahí se queda, y sólo los 77 que ya hubiera en el mapa pasan a
+    /// 88. Si se aplicaran una detrás de otra, el resultado dependería del orden de la
+    /// tabla, que es de las cosas que no se entienden viendo el mapa.
+    /// </para>
+    /// <para>
+    /// Es también el motor del rango, que no es más que una tabla con un desplazamiento
+    /// constante. Así los dos modos tratan igual los destinos que se salen del juego, la
+    /// cuenta de celdas y el paso de deshacer.
+    /// </para>
+    /// </remarks>
+    /// <inheritdoc cref="Replace(int, int, int, int, int, int, int, IEnumerable{int})"/>
+    public int Replace(
+        IReadOnlyDictionary<int, int> table,
+        int left, int top, int width, int height,
+        IEnumerable<int> layers)
+    {
         int changed = 0;
         var edits = new List<IMapEdit>();
 
@@ -200,10 +234,8 @@ public class TileMap
                     if (grid[left + column, top + row] is not int tile)
                         continue;
 
-                    if (tile < fromFirst || tile > fromLast)
+                    if (!table.TryGetValue(tile, out int replacement))
                         continue;
-
-                    int replacement = tile + shift;
 
                     // Lo que se saldría del juego de tiles se deja como está: mejor no
                     // tocarlo que dejar un número que no existe.
@@ -222,6 +254,7 @@ public class TileMap
             edits.Add(new LayerRectEdit(layer, left, top, before, grid.ToPatch(left, top, width, height)));
         }
 
+        // Un solo paso para toda la operación: se pidió una vez y se deshace una vez.
         if (edits.Count > 0)
             Undo.Push(new MapEditGroup(edits));
 

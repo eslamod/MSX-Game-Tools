@@ -303,6 +303,19 @@
   <data name="ReplaceNewTip" xml:space="preserve"><value>Por dónde empieza la serie nueva</value></data>
   <data name="ReplaceOnlySelection" xml:space="preserve"><value>Sólo en la selección</value></data>
   <data name="ReplaceAllLayers" xml:space="preserve"><value>En todas las capas</value></data>
+  <data name="ReplaceHeader" xml:space="preserve"><value>Sustituir tiles en {0}</value></data>
+  <data name="ReplaceModeRange" xml:space="preserve"><value>Por rango</value></data>
+  <data name="ReplaceModeList" xml:space="preserve"><value>Por lista</value></data>
+  <data name="ReplaceListAddFrom" xml:space="preserve"><value>Cambiar el</value></data>
+  <data name="ReplaceListAddTo" xml:space="preserve"><value>por el</value></data>
+  <data name="ReplaceAdd" xml:space="preserve"><value>Añadir</value></data>
+  <data name="ReplaceRemove" xml:space="preserve"><value>Quitar</value></data>
+  <data name="ReplaceAlreadyListed" xml:space="preserve"><value>Ese tile ya está en la lista.</value></data>
+  <data name="ReplaceListEmpty" xml:space="preserve"><value>La lista está vacía: añade alguna sustitución.</value></data>
+  <data name="ReplaceOneLabel" xml:space="preserve"><value>El tile {0} pasa a ser el {1}.</value></data>
+  <data name="ReplaceRangeLabel" xml:space="preserve"><value>Los {0} tiles del {1} al {2} pasan a ser del {3} al {4}.</value></data>
+  <data name="ReplaceNothing" xml:space="preserve"><value>No había ninguna celda con esos tiles.</value></data>
+  <data name="ReplaceDone" xml:space="preserve"><value>Cambiadas {0} celdas.</value></data>
 
   <!--
     Diálogos. Cuando la frase cambia según de qué hable, se escribe entera una vez por
