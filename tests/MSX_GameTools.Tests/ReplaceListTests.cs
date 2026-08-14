@@ -159,6 +159,8 @@ public class ReplaceListTests
         form.NewTo = 77;
         form.AddSubstitutionCommand.Execute(null);
 
+        // Volviendo a ponerlo a mano, que es como se llega a repetirlo.
+        form.NewFrom = 35;
         form.NewTo = 88;
 
         Assert.True(form.AlreadyListed);
@@ -169,6 +171,42 @@ public class ReplaceListTests
 
         Assert.False(form.AlreadyListed);
         Assert.True(form.AddSubstitutionCommand.CanExecute(null));
+    }
+
+    /// <summary>
+    /// Después de añadir, el origen pasa al siguiente que quede libre.
+    /// </summary>
+    /// <remarks>
+    /// Si se quedara donde estaba, el panel saldría con el aviso de repetido y los botones
+    /// apagados justo después de un añadido correcto, y parece que ha fallado cuando ha
+    /// ido bien. Pasó tal cual al probarlo.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Despues_de_añadir_el_origen_pasa_al_siguiente_libre()
+    {
+        ReplaceTilesViewModel form = NewForm(out _);
+
+        form.NewFrom = 35;
+        form.NewTo = 77;
+        form.AddSubstitutionCommand.Execute(null);
+
+        Assert.Equal(36, form.NewFrom);
+        Assert.False(form.AlreadyListed);
+        Assert.True(form.AddSubstitutionCommand.CanExecute(null));
+
+        // Y se salta los que ya estén puestos.
+        form.NewFrom = 40;
+        form.AddSubstitutionCommand.Execute(null);
+        form.NewFrom = 36;
+        form.AddSubstitutionCommand.Execute(null);
+
+        Assert.Equal(37, form.NewFrom);
+
+        form.NewFrom = 39;
+        form.AddSubstitutionCommand.Execute(null);
+
+        // El 40 ya está cogido, así que se va al 41.
+        Assert.Equal(41, form.NewFrom);
     }
 
     /// <summary>Cada fila se queda con el dibujo de sus dos tiles.</summary>

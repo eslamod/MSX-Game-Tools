@@ -145,11 +145,41 @@ public partial class ReplaceTilesViewModel : PanelBaseViewModel
     {
         Substitutions.Add(new TileSubstitution(NewFrom, NewTo, NewFromTile, NewToTile));
 
+        // Y el origen pasa al siguiente que quede libre. Si se quedara donde está, el
+        // panel se planta con el aviso de repetido justo después de un añadido que ha
+        // ido bien, y parece que ha fallado. Además, encadenar tiles suele ir seguido:
+        // el 35, el 36, el 37.
+        NewFrom = NextFreeFrom();
+
         OnPropertyChanged(nameof(AlreadyListed));
         AddSubstitutionCommand.NotifyCanExecuteChanged();
     }
 
     private bool CanAddSubstitution() => !AlreadyListed;
+
+    /// <summary>
+    /// El primer tile a partir del que hay puesto que no tenga ya su fila.
+    /// </summary>
+    /// <remarks>
+    /// Da la vuelta al llegar al final, y si no queda ninguno libre se queda donde estaba:
+    /// entonces el aviso ya dice lo que pasa.
+    /// </remarks>
+    private int NextFreeFrom()
+    {
+        for (int tile = NewFrom + 1; tile <= MaxTile; tile++)
+        {
+            if (!Substitutions.Any(row => row.From == tile))
+                return tile;
+        }
+
+        for (int tile = 0; tile < NewFrom; tile++)
+        {
+            if (!Substitutions.Any(row => row.From == tile))
+                return tile;
+        }
+
+        return NewFrom;
+    }
 
     [RelayCommand(CanExecute = nameof(HasSelectedSubstitution))]
     private void RemoveSubstitution()
