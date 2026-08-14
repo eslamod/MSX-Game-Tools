@@ -207,6 +207,19 @@ public partial class TileSetEditorView : UserControl
             preferences.TileThumbnailZoom = factor;
 
         ThumbnailSize = TileRow.Columns * ThumbnailBaseScale * factor;
+
+        // El rectangulo marcado esta dibujado en pixeles sobre la rejilla, asi que al
+        // cambiar el tamaño de las celdas hay que volver a colocarlo o se queda con la
+        // geometria del zoom anterior. Despues del layout: se mide preguntandole a la
+        // primera casilla, y hasta que no se recoloque sigue diciendo lo de antes.
+        Dispatcher.UIThread.Post(RedrawSelection, DispatcherPriority.Loaded);
+    }
+
+    /// <summary>Vuelve a colocar el rectángulo marcado, si es que hay y se está viendo.</summary>
+    private void RedrawSelection()
+    {
+        if (Editor is { Tool: not TileTool.Edit, Selection: not null })
+            ShowSelection();
     }
 
     private void OnPaintModeChanged(object? sender, RoutedEventArgs e)

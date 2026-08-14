@@ -103,6 +103,67 @@ public class TileCopyViewTests : IDisposable
         Assert.Null(Editor.Selection);
     }
 
+    /// <summary>
+    /// Al cambiar el zoom, el rectángulo marcado se recoloca.
+    /// </summary>
+    /// <remarks>
+    /// Está dibujado en pixeles sobre la rejilla, así que al cambiar el tamaño de las
+    /// celdas se quedaba con la geometría del zoom anterior: un rectángulo enorme y
+    /// descolocado sobre una rejilla pequeña.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_rectangulo_marcado_sigue_al_zoom()
+    {
+        Choose("Select");
+        Drag(From(2, 1), To(4, 3));
+
+        Border mark = Mark();
+
+        Assert.Equal(3 * CellSize(), mark.Width, 1);
+
+        Zoom("4");
+
+        Assert.Equal(3 * CellSize(), mark.Width, 1);
+        Assert.Equal(3 * CellSize(), mark.Height, 1);
+
+        // Y en su sitio: la esquina cae donde empieza la celda (2,1).
+        Assert.Equal(Corner(2, 1).X, Canvas.GetLeft(mark), 1);
+        Assert.Equal(Corner(2, 1).Y, Canvas.GetTop(mark), 1);
+    }
+
+    /// <summary>El rectángulo de la selección, que la vista dibuja sobre la rejilla.</summary>
+    private Border Mark() =>
+        _view.GetVisualDescendants().OfType<Border>().Single(border => border.Name == "SelectionMark");
+
+    /// <summary>Lo que mide una celda ahora mismo.</summary>
+    private double CellSize() => Container(0).Bounds.Width;
+
+    /// <summary>La esquina de una celda, en coordenadas de la capa del ratón.</summary>
+    private Point Corner(int column, int row)
+    {
+        Canvas layer = _view.GetVisualDescendants().OfType<Canvas>().Single(c => c.Name == "ToolLayer");
+
+        return Container((row * TileSet.Columns) + column).TranslatePoint(new Point(0, 0), layer)!.Value;
+    }
+
+    private Control Container(int index)
+    {
+        ListBox grid = _view.GetVisualDescendants().OfType<ListBox>().First(list => list.Name == "TileGrid");
+
+        return (Control)grid.ContainerFromIndex(index)!;
+    }
+
+    private void Zoom(string factor)
+    {
+        RadioButton button = _view.GetVisualDescendants()
+            .OfType<RadioButton>()
+            .Single(radio => radio.GroupName == "TilePreviewZoom" && (string?)radio.Tag == factor);
+
+        button.IsChecked = true;
+        Pump();
+        Pump();
+    }
+
     /// <summary>Elige un modo por su botón, como haría quien lo usa.</summary>
     private void Choose(string tool)
     {
