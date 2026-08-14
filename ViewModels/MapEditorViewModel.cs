@@ -127,6 +127,7 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
 
         map.Undo.Changed += OnUndoChanged;
         _tiles.PaletteChanged += OnTilesPaletteChanged;
+        _tiles.BlocksChanged += RefreshBlocks;
     }
 
     /// <summary>Hay que repintar el lienzo.</summary>

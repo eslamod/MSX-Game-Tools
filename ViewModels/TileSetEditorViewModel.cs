@@ -93,6 +93,19 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
     /// </remarks>
     public event Action? PaletteChanged;
 
+    /// <summary>
+    /// Los bloques del juego han cambiado: se ha creado, borrado o retocado alguno.
+    /// </summary>
+    /// <remarks>
+    /// Lo escuchan los mapas que se dibujan con este juego, que enseñan los bloques en su
+    /// selector de abajo. Los bloques se editan en su propio panel, que puede estar abierto
+    /// a la vez que el mapa, así que sin avisar el selector se queda con los de antes.
+    /// </remarks>
+    public event Action? BlocksChanged;
+
+    /// <summary>Lo llama el panel de bloques cuando toca alguno.</summary>
+    public void NotifyBlocksChanged() => BlocksChanged?.Invoke();
+
     public override bool IsDocument => true;
 
     public override string DocumentName

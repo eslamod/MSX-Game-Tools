@@ -68,7 +68,15 @@ public partial class TileBlocksViewModel : PanelBaseViewModel
     /// Los bloques se guardan dentro del fichero del juego de tiles, así que tocarlos deja
     /// sin guardar el juego, no este panel: el documento es el juego.
     /// </summary>
-    private void TouchTileSet() => _editor.Touch();
+    /// <remarks>
+    /// Y avisa de que los bloques han cambiado: puede haber un mapa abierto a la vez que
+    /// los enseña en su selector, y por aquí pasan todos los cambios.
+    /// </remarks>
+    private void TouchTileSet()
+    {
+        _editor.Touch();
+        _editor.NotifyBlocksChanged();
+    }
 
     public TileSet TileSet => _editor.TileSet;
 
