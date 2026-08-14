@@ -4,8 +4,8 @@ Comprueban en una máquina real (o en un emulador) que lo que exporta el editor 
 lo que espera el VDP. No son parte de la herramienta: son el banco de pruebas de
 los exportadores.
 
-Hay dos: `sprites_test.asm` para los grupos de sprites y `tileset_test.asm` para
-los juegos de tiles.
+Hay tres: `sprites_test.asm` para los grupos de sprites, `tileset_test.asm` para
+los juegos de tiles y `map_test.asm` para los mapas.
 
 ## La paleta
 
@@ -32,7 +32,17 @@ sasSX.exe sprites_test.asm --output sprites_test.rom
 sasSX.exe tileset_test.asm --output tileset_test.rom
 ```
 
-Salen 16384 bytes exactos, que es lo que espera un cartucho en la página 1.
+```bash
+sasSX.exe map_test.asm --output map_test.rom
+```
+
+Las tres salen de 16384 bytes exactos, que es lo que espera un cartucho en la
+página 1.
+
+Ninguna es de 32K a propósito. Ocupar además la página 2 obligaría al cartucho a
+engancharse ahí él mismo con `ENASLT` al arrancar, porque **la BIOS deja esa
+página en RAM**: sin ese código la ROM no vería su propia mitad de arriba. Para
+probar un exportador no compensa.
 
 ---
 
@@ -182,3 +192,79 @@ El de siempre en SCREEN 2.
 | Patrones de sprite   | `3800H`   | 2048   |
 
 Los 6144 de patrones y de colores son los 2048 de una tabla por los tres tercios.
+
+---
+
+# La ROM del mapa
+
+Carga un juego de tiles y pinta un mapa encima, con los cursores para moverse si
+el mapa es más grande que la pantalla.
+
+## Lo que de verdad comprueba
+
+**La cabecera.** El exportador de mapas escribe cuatro bytes delante de las
+celdas: dos de ancho y dos de alto, byte bajo primero. Hasta ahora eso no lo
+había leído ninguna máquina, sólo el propio editor al reimportar, que es un
+lector poniéndose de acuerdo consigo mismo. Esta ROM lo lee como lo leería un
+juego —`ld hl,(mapa)` y a correr— y lo usa para todo: cuánto se ve, hasta dónde
+llega la cámara y cuántos bytes hay que saltar para bajar una fila.
+
+Si el ancho estuviera mal, cada fila empezaría desplazada respecto a la anterior
+y el mapa saldría **inclinado**. Por eso el mapa de ejemplo lleva un marco de
+tile 255 alrededor: un borde que se tuerce se ve al instante, y un borde recto
+sólo puede salir si el ancho es el que dice la cabecera.
+
+## El mapa de ejemplo
+
+`map.bin` y `map.asm` son 64x48, o sea el doble de ancho y el doble de alto que
+la pantalla, para que haya sitio por donde moverse en las cuatro direcciones.
+Están generados con el exportador de verdad, no escritos a mano.
+
+Dentro del marco, cada celda lleva el tile `(x mod 16) + 16 * (y mod 16)`: un
+bloque de 16x16 celdas que recorre los 256 tiles y se repite. Como los tiles de
+ejemplo llevan su número y cada uno tiene su color, se sabe en todo momento en
+qué parte del bloque estás.
+
+## Con tus propios datos
+
+1. En el editor, **Tiles → Exportar**, y **Mapas → Exportar**, los dos en el
+   mismo formato.
+2. Copia los tres ficheros aquí como `tiles_patterns`, `tiles_colors` y `map`,
+   con la extensión que toque.
+3. Vuelve a ensamblar.
+
+El mapa tiene que caber en lo que sobra del cartucho: 16K menos el código, menos
+los 4096 de las dos tablas y los 32 de la paleta dejan sitio para unas 11600
+celdas, o sea 128x90, 108x108 o cualquier otra combinación que no pase de ahí.
+Son tres o cuatro pantallas en cada dirección, de sobra para ver si el
+desplazamiento y la cabecera están bien. Si algún día hace falta más, la salida
+es una ROM de 32K con el `ENASLT` de la página 2 al arrancar.
+
+Si te pasas, sasSX lo dice pero no se planta:
+
+```
+.fill or .ds too big:18446744073709543301 at line:595, param:0x8000 - RomEnd, 0xFF
+```
+
+Ese número enorme es el relleno hasta 16K puesto en negativo. **Y escribe el
+`.rom` igualmente**, con el tamaño que salga en vez de 16384, así que la
+comprobación de verdad es el tamaño del fichero: si no son 16384 bytes exactos,
+no lo cargues.
+
+Igual que las otras dos, el `.incbin` está activo y el `.include` comentado al
+lado; las dos rutas dan la misma ROM byte a byte.
+
+## En marcha
+
+Los **cursores** mueven la cámara, una celda cada cuatro fotogramas. Se para
+sola en los bordes del mapa.
+
+Si el mapa cabe entero en la pantalla no se mueve nada, y lo que sobra se
+rellena con el tile 0. Ese relleno es de la ROM y no del mapa: el exportador no
+deja celdas vacías, escribe el tile de relleno que tenga puesto el mapa.
+
+## Mapa de VRAM
+
+El mismo que la ROM del tileset, que es el de siempre en SCREEN 2. La única
+diferencia entre las dos es lo que se escribe en la tabla de nombres: allí
+`0..255` repetido, y aquí la ventana del mapa que toque.
