@@ -221,9 +221,23 @@ sólo puede salir si el ancho es el que dice la cabecera.
 
 ## El mapa de ejemplo
 
-`map.bin` y `map.asm` son 64x48, o sea el doble de ancho y el doble de alto que
-la pantalla, para que haya sitio por donde moverse en las cuatro direcciones.
+`map.bin` y `map.asm` son 96x160: tres pantallas de ancho y casi siete de alto.
 Están generados con el exportador de verdad, no escritos a mano.
+
+Ese tamaño **no es por enseñar más mapa**, es para que la prueba pruebe algo.
+Ensamblada, la tabla del mapa va de `527BH` a `8E7FH`, o sea que **cruza
+`8000H` por la fila 121**: las 39 últimas filas están en la página 2 y no se
+pueden leer si el `ENASLT` del arranque no ha funcionado. Con un mapa que
+cupiera por debajo de `8000H` —el de ejemplo anterior, de 64x48, o uno de
+96x96— la conmutación de página no se ejercita nunca y podría estar rota sin
+que se notara.
+
+O sea que **la prueba del cambio de página es bajar del todo**. Si fallara, de
+la fila 121 en adelante se vería basura en vez del patrón regular, y el marco
+de abajo no aparecería: ahí habría RAM sin inicializar en lugar de la ROM.
+
+Las direcciones de arriba se mueven si cambia el tamaño del código, así que la
+fila 121 es de referencia, no un número al que agarrarse.
 
 Dentro del marco, cada celda lleva el tile `(x mod 16) + 16 * (y mod 16)`: un
 bloque de 16x16 celdas que recorre los 256 tiles y se repite. Como los tiles de
