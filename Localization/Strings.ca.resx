@@ -301,6 +301,12 @@
   <data name="PickImportMapCsv" xml:space="preserve"><value>Importa un csv com a mapa</value></data>
   <data name="PickImportMapBinary" xml:space="preserve"><value>Importa un binari com a mapa</value></data>
 
+  <data name="FilterAssembler" xml:space="preserve"><value>Assemblador</value></data>
+  <data name="FilterBinary" xml:space="preserve"><value>Binari</value></data>
+  <data name="FilterEditorFiles" xml:space="preserve"><value>Fitxers de l'editor</value></data>
+  <data name="FilterProject" xml:space="preserve"><value>Projecte MSX Game Tools</value></data>
+  <data name="FilterImage" xml:space="preserve"><value>Imatge</value></data>
+
   <data name="ErrorSaveTileSet" xml:space="preserve"><value>No s'ha pogut desar el joc de tiles</value></data>
   <data name="ErrorSaveSpriteBank" xml:space="preserve"><value>No s'ha pogut desar el banc de sprites</value></data>
   <data name="ErrorSaveMap" xml:space="preserve"><value>No s'ha pogut desar el mapa</value></data>

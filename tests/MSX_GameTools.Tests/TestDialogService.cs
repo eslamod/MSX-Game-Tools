@@ -47,6 +47,10 @@ internal sealed class TestDialogService : IDialogService
 
     public PickerFileKind LastPickerKind { get; private set; }
 
+    /// <inheritdoc cref="LastPickerKind"/>
+    /// <remarks>Aparte del de abrir: hay comandos que usan los dos selectores.</remarks>
+    public PickerFileKind LastSavePickerKind { get; private set; }
+
     public string LastConfirmMessage { get; private set; } = string.Empty;
 
     public string LastConfirmLabel { get; private set; } = string.Empty;
@@ -105,6 +109,7 @@ internal sealed class TestDialogService : IDialogService
     {
         SaveCalls++;
         LastSuggestedFileName = suggestedFileName;
+        LastSavePickerKind = kind;
 
         return Task.FromResult(SavePath);
     }

@@ -334,6 +334,13 @@
   <data name="PickImportMapCsv" xml:space="preserve"><value>Importar un csv como mapa</value></data>
   <data name="PickImportMapBinary" xml:space="preserve"><value>Importar un binario como mapa</value></data>
 
+  <!-- Cómo llama el selector a cada formato, al lado de su extensión -->
+  <data name="FilterAssembler" xml:space="preserve"><value>Ensamblador</value></data>
+  <data name="FilterBinary" xml:space="preserve"><value>Binario</value></data>
+  <data name="FilterEditorFiles" xml:space="preserve"><value>Ficheros del editor</value></data>
+  <data name="FilterProject" xml:space="preserve"><value>Proyecto MSX Game Tools</value></data>
+  <data name="FilterImage" xml:space="preserve"><value>Imagen</value></data>
+
   <!-- No se pudo hacer algo con un fichero. El porqué lo pone el sistema. -->
   <data name="ErrorSaveTileSet" xml:space="preserve"><value>No se pudo guardar el juego de tiles</value></data>
   <data name="ErrorSaveSpriteBank" xml:space="preserve"><value>No se pudo guardar el banco de sprites</value></data>

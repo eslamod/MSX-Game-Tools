@@ -300,6 +300,12 @@
   <data name="PickImportMapCsv" xml:space="preserve"><value>Import a csv as a map</value></data>
   <data name="PickImportMapBinary" xml:space="preserve"><value>Import a binary as a map</value></data>
 
+  <data name="FilterAssembler" xml:space="preserve"><value>Assembler</value></data>
+  <data name="FilterBinary" xml:space="preserve"><value>Binary</value></data>
+  <data name="FilterEditorFiles" xml:space="preserve"><value>Editor files</value></data>
+  <data name="FilterProject" xml:space="preserve"><value>MSX Game Tools project</value></data>
+  <data name="FilterImage" xml:space="preserve"><value>Image</value></data>
+
   <data name="ErrorSaveTileSet" xml:space="preserve"><value>The tile set could not be saved</value></data>
   <data name="ErrorSaveSpriteBank" xml:space="preserve"><value>The sprite bank could not be saved</value></data>
   <data name="ErrorSaveMap" xml:space="preserve"><value>The map could not be saved</value></data>

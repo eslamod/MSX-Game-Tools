@@ -14,8 +14,20 @@ public enum PickerFileKind
     /// <summary>El índice del proyecto, que tiene su propia extensión.</summary>
     Project,
 
-    /// <summary>Sin filtro. Para las exportaciones, que salen en varios formatos.</summary>
+    /// <summary>
+    /// Sin filtro. Para importar, que el fichero puede venir de cualquier herramienta y
+    /// llamarse como quiera.
+    /// </summary>
     Any,
+
+    /// <summary>Lo que escribe una exportación en texto.</summary>
+    Assembler,
+
+    /// <summary>Lo que escribe una exportación en bytes.</summary>
+    Binary,
+
+    /// <summary>La tabla de nombres del mapa, en texto separado por comas.</summary>
+    Csv,
 }
 
 public interface IDialogService

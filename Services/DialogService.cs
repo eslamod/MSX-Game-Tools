@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using MSX_GameTools.Localization;
 using MSX_GameTools.Views;
 
 namespace MSX_GameTools.Services;
@@ -14,21 +15,46 @@ public sealed class DialogService(Window owner) : IDialogService
     /// Se llamaba «Paleta MSX» porque fue lo primero que se guardó, y desde entonces salía
     /// eso mismo al abrir un mapa o un tileset.
     /// </remarks>
-    private static FilePickerFileType EditorFileType => new("Ficheros del editor")
+    private static FilePickerFileType EditorFileType => new(Localizer.Instance["FilterEditorFiles"])
     {
         Patterns = ["*.json"],
         MimeTypes = ["application/json"],
     };
 
-    private static FilePickerFileType ProjectFileType => new("Proyecto MSX Game Tools")
+    private static FilePickerFileType ProjectFileType => new(Localizer.Instance["FilterProject"])
     {
         Patterns = [$"*{ProjectSerializer.Extension}"],
     };
 
-    private static FilePickerFileType ImageFileType => new("Imagen")
+    private static FilePickerFileType ImageFileType => new(Localizer.Instance["FilterImage"])
     {
         Patterns = ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif"],
         MimeTypes = ["image/*"],
+    };
+
+    /// <summary>
+    /// Lo que sale de exportar, cada formato con su filtro.
+    /// </summary>
+    /// <remarks>
+    /// Se abrían con el de los ficheros del editor, así que al exportar a ensamblador el
+    /// selector proponía un nombre acabado en <c>.asm</c> y a la vez enseñaba sólo los
+    /// json, sin un solo <c>.asm</c> a la vista.
+    /// </remarks>
+    private static FilePickerFileType AssemblerFileType => new(Localizer.Instance["FilterAssembler"])
+    {
+        Patterns = ["*.asm"],
+    };
+
+    private static FilePickerFileType BinaryFileType => new(Localizer.Instance["FilterBinary"])
+    {
+        Patterns = ["*.bin"],
+    };
+
+    /// <summary>Se escribe igual en los tres idiomas, así que no pasa por el diccionario.</summary>
+    private static FilePickerFileType CsvFileType => new("CSV")
+    {
+        Patterns = ["*.csv"],
+        MimeTypes = ["text/csv"],
     };
 
     public async Task<bool> ConfirmAsync(string title, string message, string confirmLabel)
@@ -40,7 +66,7 @@ public sealed class DialogService(Window owner) : IDialogService
 
     public async Task ShowMessageAsync(string title, string message)
     {
-        var dialog = new ConfirmationWindow(title, message, "Aceptar", showCancel: false);
+        var dialog = new ConfirmationWindow(title, message, Localizer.Instance["FormAccept"], showCancel: false);
 
         await dialog.ShowDialog(owner);
     }
@@ -106,6 +132,9 @@ public sealed class DialogService(Window owner) : IDialogService
         PickerFileKind.Any => null,
         PickerFileKind.Image => [ImageFileType],
         PickerFileKind.Project => [ProjectFileType],
+        PickerFileKind.Assembler => [AssemblerFileType],
+        PickerFileKind.Binary => [BinaryFileType],
+        PickerFileKind.Csv => [CsvFileType],
         _ => [EditorFileType],
     };
 }

@@ -1165,6 +1165,13 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Con qué filtro se abre el selector al exportar, que es el formato que se va a
+    /// escribir. La misma decisión que la extensión, y va junto a ella en cada llamada.
+    /// </summary>
+    private static PickerFileKind FormatOf(bool binary) =>
+        binary ? PickerFileKind.Binary : PickerFileKind.Assembler;
+
     [RelayCommand(CanExecute = nameof(IsSpriteBankSelected))]
     private Task ExportSpriteBankBinaryAsync() => ExportSpriteBankAsync(binary: true);
 
@@ -1185,7 +1192,8 @@ public partial class MainWindowViewModel : ObservableObject
 
         string? path = await Dialogs.PickFileToSaveAsync(
             Text[binary ? "PickExportBinary" : "PickExportAssembler"],
-            $"{SpriteBankExporter.LabelOf(bank.Name)}{extension}");
+            $"{SpriteBankExporter.LabelOf(bank.Name)}{extension}",
+            FormatOf(binary));
 
         if (path is null)
             return;
@@ -1289,7 +1297,7 @@ public partial class MainWindowViewModel : ObservableObject
         string? path = await Dialogs.PickFileToSaveAsync(
             Text["PickExportMapCsv"],
             $"{CleanFileName(editor.Map.Name)}.csv",
-            PickerFileKind.Any);
+            PickerFileKind.Csv);
 
         if (path is null)
             return;
@@ -1386,7 +1394,7 @@ public partial class MainWindowViewModel : ObservableObject
         string? path = await Dialogs.PickFileToSaveAsync(
             Text[binary ? "PickExportMapBinary" : "PickExportMapAssembler"],
             $"{CleanFileName(map.Name)}.{extension}",
-            PickerFileKind.Any);
+            FormatOf(binary));
 
         if (path is null)
             return;
@@ -1499,7 +1507,8 @@ public partial class MainWindowViewModel : ObservableObject
 
         string? path = await Dialogs.PickFileToSaveAsync(
             Text[binary ? "PickExportBinary" : "PickExportAssembler"],
-            $"{SpriteBankExporter.LabelOf(tileSet.Name)}{extension}");
+            $"{SpriteBankExporter.LabelOf(tileSet.Name)}{extension}",
+            FormatOf(binary));
 
         if (path is null)
             return;
@@ -1559,7 +1568,8 @@ public partial class MainWindowViewModel : ObservableObject
 
         string? path = await Dialogs.PickFileToSaveAsync(
             Text[binary ? "PickExportPaletteBinary" : "PickExportPaletteAssembler"],
-            $"{SpriteBankExporter.LabelOf(palette.Name)}_palette{extension}");
+            $"{SpriteBankExporter.LabelOf(palette.Name)}_palette{extension}",
+            FormatOf(binary));
 
         if (path is null)
             return;
