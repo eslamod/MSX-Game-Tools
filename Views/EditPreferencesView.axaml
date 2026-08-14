@@ -112,7 +112,7 @@
       <Grid ColumnDefinitions="150,*">
         <TextBlock Grid.Column="0" Text="{l:Localize PreferencesMapTiles}" VerticalAlignment="Center" />
         <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
-                  ItemsSource="{Binding FourZooms}"
+                  ItemsSource="{Binding MapZooms}"
                   SelectedValue="{Binding MapTileZoom}"
                   SelectedValueBinding="{Binding Value}"
                   DisplayMemberBinding="{Binding Label}" />

@@ -176,9 +176,46 @@ public class MapEditorViewTests : IDisposable
         Assert.Equal(32, _view.TileSize);
         Assert.Equal(4, Editor.Preferences.MapTileZoom);
 
-        Check("MapTileZoom", 1);
+        Check("MapTileZoom", 8);
 
-        Assert.Equal(8, _view.TileSize);
+        Assert.Equal(64, _view.TileSize);
+    }
+
+    /// <summary>
+    /// Un zoom guardado que ya no está entre los pasos cae en el más cercano.
+    /// </summary>
+    /// <remarks>
+    /// El selector tenía un X1 de ocho pixeles y se quitó por ilegible. Un ajuste escrito
+    /// por la versión anterior trae ese 1, y sin buscar el más cercano no se encontraba
+    /// ningún botón: la tira se quedaba al mínimo y sin ninguno marcado, así que tampoco
+    /// se veía en cuál estaba.
+    /// </remarks>
+    [AvaloniaTheory]
+    [InlineData(1, 2, 16)]
+    [InlineData(100, 8, 64)]
+    public void Un_zoom_guardado_que_ya_no_existe_cae_en_el_mas_cercano(int saved, int step, int size)
+    {
+        Editor.Preferences.MapTileZoom = saved;
+
+        var other = new MapEditorView { DataContext = Editor };
+        var window = new Window { Content = other, Width = 1100, Height = 800 };
+
+        window.Show();
+        Pump();
+
+        Assert.Equal(size, other.TileSize);
+
+        // Y se deja escrito, que si no se arrastra de una sesión a otra.
+        Assert.Equal(step, Editor.Preferences.MapTileZoom);
+
+        RadioButton marked = other.GetVisualDescendants()
+            .OfType<RadioButton>()
+            .Single(zoom => zoom.GroupName == "MapTileZoom" && zoom.IsChecked == true);
+
+        Assert.Equal(step.ToString(), (string?)marked.Tag);
+
+        window.Close();
+        Pump();
     }
 
     /// <summary>

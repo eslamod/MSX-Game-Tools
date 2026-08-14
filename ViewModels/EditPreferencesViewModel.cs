@@ -100,6 +100,17 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
         [new("x1", 1), new("x2", 2), new("x3", 3), new("x4", 4)];
 
     /// <summary>
+    /// Los del selector del editor de mapas, que no empieza en x1 y llega mas arriba.
+    /// </summary>
+    /// <remarks>
+    /// Ahí un tile a x1 son ocho pixeles y no se reconoce; y para ver mucho mapa de golpe
+    /// está el zoom del lienzo, que baja hasta un cuarto. Tienen que ser los mismos pasos
+    /// que ofrecen sus botones: lo que se elija aquí se guarda tal cual.
+    /// </remarks>
+    public static IReadOnlyList<ZoomChoice> MapZooms { get; } =
+        [new("x2", 2), new("x3", 3), new("x4", 4), new("x6", 6), new("x8", 8)];
+
+    /// <summary>
     /// Lo que se elige aquí es con qué zoom se abre cada sitio, no el de lo que ya está
     /// abierto: una pestaña montada se queda con el suyo hasta que se vuelve a montar.
     /// </summary>

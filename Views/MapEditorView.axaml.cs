@@ -16,6 +16,9 @@ public partial class MapEditorView : UserControl
     /// <summary>Pixeles de pantalla por pixel de tile en el selector con el zoom a 1.</summary>
     private const int TileBaseScale = 8;
 
+    /// <summary>Con el que se abre si no hay ajuste guardado. El mismo que marca el XAML.</summary>
+    private const int DefaultTileZoom = 2;
+
     /// <summary>Lado de un tile en el selector de abajo.</summary>
     public static readonly StyledProperty<double> TileSizeProperty =
         AvaloniaProperty.Register<MapEditorView, double>(
@@ -65,19 +68,38 @@ public partial class MapEditorView : UserControl
     /// </remarks>
     private void RestoreTileZoom()
     {
-        int factor = Editor?.Preferences.MapTileZoom ?? 2;
+        int saved = Editor?.Preferences.MapTileZoom ?? DefaultTileZoom;
 
-        RadioButton? button = this.GetVisualDescendants()
-            .OfType<RadioButton>()
-            .FirstOrDefault(r => r.GroupName == "MapTileZoom" && (string?)r.Tag == factor.ToString());
+        // El paso mas cercano al guardado, no el que coincida: los pasos cambian -el X1 de
+        // ocho pixeles se quito- y un ajuste escrito por una version anterior no encontraba
+        // ninguno, con lo que la tira se quedaba al minimo y sin ningun boton marcado.
+        RadioButton? button = ZoomButtons()
+            .OrderBy(zoom => Math.Abs(FactorOf(zoom) - saved))
+            .FirstOrDefault();
 
-        if (button is not null)
-            button.IsChecked = true;
+        if (button is null)
+            return;
+
+        int factor = FactorOf(button);
+
+        button.IsChecked = true;
+
+        // Devolverlo a los ajustes: si venia uno que ya no existe, no hay que seguir
+        // arrastrandolo de una sesion a otra.
+        if (Editor is { } editor)
+            editor.Preferences.MapTileZoom = factor;
 
         // Por si el guardado ya era el que marca el XAML: entonces no ha saltado ningun
         // IsCheckedChanged y hay que aplicarlo a mano.
         TileSize = TileBaseScale * factor;
     }
+
+    /// <summary>Los botones del zoom del selector, que son quienes llevan los pasos.</summary>
+    private IEnumerable<RadioButton> ZoomButtons() =>
+        this.GetVisualDescendants().OfType<RadioButton>().Where(zoom => zoom.GroupName == "MapTileZoom");
+
+    private static int FactorOf(RadioButton button) =>
+        int.TryParse((string?)button.Tag, out int factor) ? factor : 0;
 
     private void OnTileZoomChanged(object? sender, RoutedEventArgs e)
     {

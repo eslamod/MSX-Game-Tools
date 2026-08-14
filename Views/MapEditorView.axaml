@@ -314,9 +314,11 @@
       <!-- Sobre la tira de pestañas, que ahi sobra sitio y es donde se busca. -->
       <StackPanel Orientation="Horizontal" Margin="0,2,8,0"
                   HorizontalAlignment="Right" VerticalAlignment="Top">
-        <RadioButton GroupName="MapTileZoom" Theme="{StaticResource ToggleRadioButton}"
-                     Content="X1" Tag="1" Width="30" Margin="1"
-                     IsCheckedChanged="OnTileZoomChanged" />
+        <!-- Sin el X1: ocho pixeles por tile son ilegibles, y quien quiere ver mucho mapa
+             de golpe aleja el lienzo, que para eso tiene pasos por debajo de x1. Arriba
+             llega hasta X8 porque aqui se viene a reconocer el dibujo de un tile, no a
+             tenerlos todos a la vista. El numero es el aumento de verdad, como en las
+             demas tiras del programa. -->
         <RadioButton GroupName="MapTileZoom" Theme="{StaticResource ToggleRadioButton}"
                      Content="X2" Tag="2" Width="30" Margin="1" IsChecked="True"
                      IsCheckedChanged="OnTileZoomChanged" />
@@ -325,6 +327,12 @@
                      IsCheckedChanged="OnTileZoomChanged" />
         <RadioButton GroupName="MapTileZoom" Theme="{StaticResource ToggleRadioButton}"
                      Content="X4" Tag="4" Width="30" Margin="1"
+                     IsCheckedChanged="OnTileZoomChanged" />
+        <RadioButton GroupName="MapTileZoom" Theme="{StaticResource ToggleRadioButton}"
+                     Content="X6" Tag="6" Width="30" Margin="1"
+                     IsCheckedChanged="OnTileZoomChanged" />
+        <RadioButton GroupName="MapTileZoom" Theme="{StaticResource ToggleRadioButton}"
+                     Content="X8" Tag="8" Width="30" Margin="1"
                      IsCheckedChanged="OnTileZoomChanged" />
       </StackPanel>
     </Grid>
