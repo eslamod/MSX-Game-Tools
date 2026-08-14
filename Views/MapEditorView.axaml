@@ -278,8 +278,13 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:BlockChoiceViewModel">
+                  <!-- Arriba y sin estirar: el WrapPanel da a toda la fila el alto del
+                       bloque mas alto, y una casilla estirada le pasa ese alto de mas al
+                       UniformGrid de dentro, que lo reparte entre sus filas. Un bloque de
+                       dos filas al lado de uno de tres salia partido por la mitad. -->
                   <Border Classes="choice" Classes.selected="{Binding IsSelected}"
                           Background="#404040"
+                          VerticalAlignment="Top"
                           PointerPressed="OnBlockPressed"
                           ToolTip.Tip="{Binding Label}">
                     <ItemsControl ItemsSource="{Binding Cells}">
