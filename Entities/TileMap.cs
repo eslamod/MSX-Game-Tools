@@ -149,10 +149,15 @@ public class TileMap
     public bool Fill(int layer, int column, int row, int width, int height, TilePatch pattern) =>
         Edit(layer, column, row, width, height, grid =>
         {
+            // Con los huecos del trozo respetados, igual que al estampar: es la misma
+            // brocha y no tiene por que borrar en una herramienta y en la otra no.
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
-                    grid[column + x, row + y] = pattern[x % pattern.Width, y % pattern.Height];
+                {
+                    if (pattern[x % pattern.Width, y % pattern.Height] is int tile)
+                        grid[column + x, row + y] = tile;
+                }
             }
         });
 
@@ -257,7 +262,7 @@ public class TileMap
         for (int index = 0; index < Layers.Count; index++)
         {
             Layers[index].Grid.Clear();
-            Layers[index].Grid.Stamp(offsetColumn, offsetRow, before[index]);
+            Layers[index].Grid.Overwrite(offsetColumn, offsetRow, before[index]);
         }
 
         var after = Layers.Select(layer => layer.Grid.ToPatch()).ToList();
@@ -285,7 +290,7 @@ public class TileMap
     public void Restore(int layer, int column, int row, TilePatch patch)
     {
         if ((uint)layer < (uint)Layers.Count)
-            Layers[layer].Grid.Stamp(column, row, patch);
+            Layers[layer].Grid.Overwrite(column, row, patch);
     }
 
     /// <inheritdoc cref="Restore"/>
@@ -299,7 +304,7 @@ public class TileMap
         for (int index = 0; index < Math.Min(contents.Count, Layers.Count); index++)
         {
             Layers[index].Grid.Clear();
-            Layers[index].Grid.Stamp(0, 0, contents[index]);
+            Layers[index].Grid.Overwrite(0, 0, contents[index]);
         }
     }
 

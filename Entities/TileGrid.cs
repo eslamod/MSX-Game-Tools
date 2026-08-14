@@ -81,8 +81,39 @@ public class TileGrid
         Height = height;
     }
 
-    /// <summary>Estampa otra rejilla con su esquina en (column, row).</summary>
+    /// <summary>
+    /// Estampa un trozo con su esquina en (column, row), dejando lo que hubiera debajo
+    /// por los huecos.
+    /// </summary>
+    /// <remarks>
+    /// Un bloque no tiene por qué ser un rectángulo lleno: el de una curva trae sus celdas
+    /// y deja vacías las esquinas que no le tocan. Esas vacías son huecos de la brocha, no
+    /// una orden de borrar, así que estampar la curva sobre la hierba deja la hierba
+    /// asomando por donde el bloque no pinta nada. Para copiar un trozo tal cual, con sus
+    /// huecos incluidos, está <see cref="Overwrite"/>.
+    /// </remarks>
     public void Stamp(int column, int row, TilePatch patch)
+    {
+        for (int y = 0; y < patch.Height; y++)
+        {
+            for (int x = 0; x < patch.Width; x++)
+            {
+                if (patch[x, y] is int tile)
+                    this[column + x, row + y] = tile;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Copia un trozo tal cual, huecos incluidos: donde el trozo no tiene tile, la rejilla
+    /// se queda sin él.
+    /// </summary>
+    /// <remarks>
+    /// Esto es para devolver la rejilla a un estado guardado —deshacer, rehacer o cambiar
+    /// de tamaño—, no para pintar. Ahí un hueco es parte de lo que había y hay que
+    /// reponerlo: con la brocha, deshacer no devolvería las celdas que estaban vacías.
+    /// </remarks>
+    public void Overwrite(int column, int row, TilePatch patch)
     {
         for (int y = 0; y < patch.Height; y++)
         {
