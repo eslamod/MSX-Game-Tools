@@ -147,7 +147,14 @@ public class TileSetEditorTests
         window.Show();
         Dispatcher.UIThread.RunJobs();
 
-        Canvas canvas = view.GetVisualDescendants().OfType<Canvas>().Single();
+        // El del lienzo de edición, que ya no es el único: la rejilla de la derecha lleva
+        // encima otro para marcar y estampar.
+        Canvas canvas = view.GetVisualDescendants()
+            .OfType<PixelCanvas>()
+            .Single()
+            .GetVisualDescendants()
+            .OfType<Canvas>()
+            .Single();
 
         Assert.Equal(64, canvas.Children.Count);
         Assert.Equal(256d / 8, view.CellSize);

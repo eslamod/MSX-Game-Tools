@@ -246,6 +246,185 @@ public partial class TileSetEditorView : UserControl
         Dispatcher.UIThread.Post(() => popup.IsOpen = false, DispatcherPriority.Background);
     }
 
+    // ------------------------------------------------------------------ copiar y estampar
+
+    /// <summary>Celda por la que se empezó a arrastrar, para coger el rectángulo.</summary>
+    private (int Column, int Row)? _anchor;
+
+    private TileSetEditorViewModel? Editor => DataContext as TileSetEditorViewModel;
+
+    /// <remarks>
+    /// Por IsCheckedChanged y no por Click, igual que el zoom de al lado: con Click, poner
+    /// el modo desde código no haría nada, y el estado visual y el del ViewModel se irían
+    /// cada uno por su lado.
+    /// </remarks>
+    private void OnToolChanged(object? sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { IsChecked: true, Tag: string tag } && Enum.TryParse(tag, out TileTool tool))
+            SetTool(tool);
+    }
+
+    private void SetTool(TileTool tool)
+    {
+        if (Editor is not { } editor)
+            return;
+
+        editor.Tool = tool;
+        _anchor = null;
+
+        StampGhost.IsVisible = false;
+        SelectionMark.IsVisible = editor.HasSelection && tool != TileTool.Edit;
+
+        if (SelectionMark.IsVisible)
+            ShowSelection();
+    }
+
+    private void OnToolLayerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        if (Editor is not { } editor || !TryCellAt(e.GetPosition(ToolLayer), out (int Column, int Row) cell))
+            return;
+
+        if (editor.Tool == TileTool.Select)
+        {
+            _anchor = cell;
+            editor.SelectRegion(cell.Column, cell.Row, 1, 1);
+            ShowSelection();
+
+            e.Pointer.Capture(ToolLayer);
+        }
+        else if (editor.Tool == TileTool.Stamp)
+        {
+            editor.StampAt(cell.Column, cell.Row);
+        }
+    }
+
+    private void OnToolLayerMoved(object? sender, Avalonia.Input.PointerEventArgs e)
+    {
+        if (Editor is not { } editor || !TryCellAt(e.GetPosition(ToolLayer), out (int Column, int Row) cell))
+            return;
+
+        if (editor.Tool == TileTool.Select && _anchor is { } anchor)
+        {
+            editor.SelectRegion(
+                Math.Min(anchor.Column, cell.Column),
+                Math.Min(anchor.Row, cell.Row),
+                Math.Abs(cell.Column - anchor.Column) + 1,
+                Math.Abs(cell.Row - anchor.Row) + 1);
+
+            ShowSelection();
+        }
+        else if (editor.Tool == TileTool.Stamp)
+        {
+            ShowGhost(cell);
+        }
+    }
+
+    private void OnToolLayerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
+    {
+        _anchor = null;
+        e.Pointer.Capture(null);
+    }
+
+    /// <summary>Al salirse, el fantasma se va: si no, se queda pegado en el borde.</summary>
+    private void OnToolLayerExited(object? sender, Avalonia.Input.PointerEventArgs e) =>
+        StampGhost.IsVisible = false;
+
+    /// <summary>Dibuja el rectángulo marcado sobre la rejilla.</summary>
+    private void ShowSelection()
+    {
+        if (Editor?.Selection is not { } region || !TryGeometry(out Point origin, out double cell))
+            return;
+
+        Canvas.SetLeft(SelectionMark, origin.X + (region.Left * cell));
+        Canvas.SetTop(SelectionMark, origin.Y + (region.Top * cell));
+
+        SelectionMark.Width = region.Width * cell;
+        SelectionMark.Height = region.Height * cell;
+        SelectionMark.IsVisible = true;
+    }
+
+    /// <summary>
+    /// Enseña bajo el ratón lo que se va a soltar.
+    /// </summary>
+    /// <remarks>
+    /// Con las miniaturas de verdad, que son las que el editor ya mantiene pintadas. Se
+    /// ven donde van a caer antes de tocar nada, que es lo que evita estampar en la celda
+    /// de al lado y tener que deshacerlo.
+    /// </remarks>
+    private void ShowGhost((int Column, int Row) cell)
+    {
+        if (Editor is not { } editor || editor.Selection is not { } region
+            || !TryGeometry(out Point origin, out double size))
+        {
+            return;
+        }
+
+        var tiles = new List<ImageMini>(region.Width * region.Height);
+
+        for (int row = 0; row < region.Height; row++)
+        {
+            for (int column = 0; column < region.Width; column++)
+            {
+                int index = ((region.Top + row) * TileSet.Columns) + region.Left + column;
+
+                if ((uint)index < (uint)editor.Thumbnails.Count)
+                    tiles.Add(editor.Thumbnails[index]);
+            }
+        }
+
+        if (GhostGrid is { } grid)
+            grid.Columns = region.Width;
+
+        StampGhost.ItemsSource = tiles;
+
+        Canvas.SetLeft(StampGhost, origin.X + (cell.Column * size));
+        Canvas.SetTop(StampGhost, origin.Y + (cell.Row * size));
+
+        StampGhost.IsVisible = true;
+    }
+
+    /// <summary>
+    /// En qué celda de la rejilla cae un punto de la capa.
+    /// </summary>
+    private bool TryCellAt(Point point, out (int Column, int Row) cell)
+    {
+        cell = default;
+
+        if (!TryGeometry(out Point origin, out double size))
+            return false;
+
+        cell = (
+            Math.Clamp((int)((point.X - origin.X) / size), 0, TileSet.Columns - 1),
+            Math.Clamp((int)((point.Y - origin.Y) / size), 0, TileSet.GridRows - 1));
+
+        return true;
+    }
+
+    /// <summary>
+    /// Dónde empieza la rejilla dentro de la capa y cuánto mide una celda.
+    /// </summary>
+    /// <remarks>
+    /// Preguntándoselo a la primera casilla ya colocada, en vez de sumar el tamaño de la
+    /// miniatura con los bordes: el zoom, la rejilla y el borde del ListBox cambian esa
+    /// cuenta, y una celda mal medida descuadra la selección más según se baja.
+    /// </remarks>
+    private bool TryGeometry(out Point origin, out double size)
+    {
+        origin = default;
+        size = 0;
+
+        if (TileGrid.ContainerFromIndex(0) is not Control first
+            || first.TranslatePoint(new Point(0, 0), ToolLayer) is not { } corner)
+        {
+            return false;
+        }
+
+        origin = corner;
+        size = first.Bounds.Width;
+
+        return size > 0;
+    }
+
     private void ApplyZoom(int index)
     {
         double size = ZoomSizes[Math.Clamp(index, 0, ZoomSizes.Length - 1)];

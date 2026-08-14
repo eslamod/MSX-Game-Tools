@@ -48,6 +48,16 @@ public partial class TileRow : ObservableObject
     /// <summary>El byte de la tabla de colores: el de frente arriba y el de fondo abajo.</summary>
     public byte ColorByte => (byte)(((ForeColor & 0x0F) << 4) | (BackColor & 0x0F));
 
+    /// <summary>Se queda con el dibujo y los colores de otra línea.</summary>
+    public void CopyFrom(TileRow other)
+    {
+        ForeColor = other.ForeColor;
+        BackColor = other.BackColor;
+
+        for (int column = 0; column < Columns; column++)
+            ArrayPattern[column] = other.ArrayPattern[column];
+    }
+
     /// <summary>
     /// Cambia la línea a la otra forma de escribir exactamente lo mismo: intercambia los
     /// dos colores e invierte los bits.

@@ -210,6 +210,13 @@
   <data name="TilesGrid" xml:space="preserve"><value>Grid</value></data>
   <data name="TilesGridTip" xml:space="preserve"><value>Outline each tile</value></data>
   <data name="TileSwapRowColors" xml:space="preserve"><value>Swap foreground and background</value></data>
+  <data name="TileToolEdit" xml:space="preserve"><value>Edit</value></data>
+  <data name="TileToolSelect" xml:space="preserve"><value>Select</value></data>
+  <data name="TileToolSelectTip" xml:space="preserve"><value>Mark a rectangle of tiles to copy it</value></data>
+  <data name="TileToolStamp" xml:space="preserve"><value>Stamp</value></data>
+  <data name="TileToolStampTip" xml:space="preserve"><value>Drop what you marked, as many times as you need</value></data>
+  <data name="TileUndoStamp" xml:space="preserve"><value>Undo the stamp</value></data>
+  <data name="TileUndoStampTip" xml:space="preserve"><value>Brings back the tiles the last stamp overwrote</value></data>
 
   <data name="BlocksTitle" xml:space="preserve"><value>Tile blocks</value></data>
   <data name="BlocksComposition" xml:space="preserve"><value>Composition</value></data>

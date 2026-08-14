@@ -233,6 +233,13 @@
   <data name="TilesGrid" xml:space="preserve"><value>Rejilla</value></data>
   <data name="TilesGridTip" xml:space="preserve"><value>Marcar el borde de cada tile</value></data>
   <data name="TileSwapRowColors" xml:space="preserve"><value>Intercambiar frente y fondo</value></data>
+  <data name="TileToolEdit" xml:space="preserve"><value>Editar</value></data>
+  <data name="TileToolSelect" xml:space="preserve"><value>Seleccionar</value></data>
+  <data name="TileToolSelectTip" xml:space="preserve"><value>Marcar un rectángulo de tiles para copiarlo</value></data>
+  <data name="TileToolStamp" xml:space="preserve"><value>Estampar</value></data>
+  <data name="TileToolStampTip" xml:space="preserve"><value>Soltar lo marcado, tantas veces como haga falta</value></data>
+  <data name="TileUndoStamp" xml:space="preserve"><value>Deshacer el estampado</value></data>
+  <data name="TileUndoStampTip" xml:space="preserve"><value>Devuelve los tiles que machacó el último estampado</value></data>
 
   <!-- Panel de bloques -->
   <data name="BlocksTitle" xml:space="preserve"><value>Bloques de tiles</value></data>

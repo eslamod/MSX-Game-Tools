@@ -8,11 +8,38 @@ using MSX_GameTools.Services;
 namespace MSX_GameTools.ViewModels;
 
 /// <summary>
+/// Qué hace el ratón sobre la rejilla de los 256 tiles.
+/// </summary>
+/// <remarks>
+/// Los mismos tres modos que el editor de mapas y con los mismos nombres: quien sabe usar
+/// aquél no tiene que aprender nada aquí. «Estampar» en vez de «Pegar» porque dice lo que
+/// «Pegar» calla, que se puede soltar varias veces seguidas.
+/// </remarks>
+public enum TileTool
+{
+    /// <summary>Elegir el tile que se edita en el lienzo, que es lo de siempre.</summary>
+    Edit,
+
+    /// <summary>Marcar un rectángulo de tiles para copiarlo.</summary>
+    Select,
+
+    /// <summary>Soltar en otro sitio lo que se marcó.</summary>
+    Stamp,
+}
+
+/// <summary>
 /// Edición de un juego de tiles: el patrón actual en el lienzo y los 256 en la rejilla.
 /// </summary>
 public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocument
 {
     private readonly TileSet _tileSet;
+
+    /// <summary>Lo que había donde se estampó por última vez, y dónde.</summary>
+    private TileSetPatch? _overwritten;
+
+    private int _overwrittenLeft;
+
+    private int _overwrittenTop;
 
     /// <summary>La paleta del juego, a cuyos cambios de color estamos suscritos.</summary>
     private ColorPalette _palette;
@@ -46,6 +73,17 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BorderColor))]
     private int _borderColorIndex;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEditTool))]
+    [NotifyPropertyChangedFor(nameof(IsSelectTool))]
+    [NotifyPropertyChangedFor(nameof(IsStampTool))]
+    private TileTool _tool = TileTool.Edit;
+
+    /// <summary>El rectángulo marcado en la rejilla, en celdas.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelection))]
+    private MapRegion? _selection;
 
     /// <param name="palette">
     /// Con qué colores se dibuja y se guarda. Es del juego: la trae su fichero, y si es
@@ -229,6 +267,85 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
     {
         if (color is not null)
             BorderColorIndex = color.Index;
+    }
+
+    // ------------------------------------------------------------------ copiar y estampar
+
+    public bool IsEditTool => Tool == TileTool.Edit;
+
+    public bool IsSelectTool => Tool == TileTool.Select;
+
+    public bool IsStampTool => Tool == TileTool.Stamp;
+
+    public bool HasSelection => Selection is not null;
+
+    /// <summary>Si hay un estampado que devolver.</summary>
+    public bool CanUndoStamp => _overwritten is not null;
+
+    /// <summary>Marca un rectángulo de la rejilla como origen de lo que se va a estampar.</summary>
+    public void SelectRegion(int left, int top, int width, int height) =>
+        Selection = new MapRegion(left, top, width, height);
+
+    /// <summary>
+    /// Suelta lo marcado con su esquina en esa celda.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Los dibujos se copian ahora y no al marcar, así lo que cae es lo que se está viendo
+    /// en la rejilla: la vista enseña el trozo bajo el ratón con las miniaturas de verdad,
+    /// y si se copiara al marcar, retocar un tile de origen dejaría el fantasma diciendo
+    /// una cosa y el estampado haciendo otra.
+    /// </para>
+    /// <para>
+    /// Sobrescribe: aquí no hay huecos, los 256 tiles existen siempre. Y se guarda lo que
+    /// había, que machacar el trabajo de una hora sin vuelta atrás no es aceptable en algo
+    /// que se hace con un clic.
+    /// </para>
+    /// </remarks>
+    public void StampAt(int column, int row)
+    {
+        if (Selection is not { } source)
+            return;
+
+        // La copia sale entera antes de escribir nada, asi que estampar encima de lo
+        // marcado, o solapandolo, no se pisa a si mismo.
+        TileSetPatch copied = _tileSet.Copy(source.Left, source.Top, source.Width, source.Height);
+
+        _overwrittenLeft = Math.Clamp(column, 0, TileSet.Columns - 1);
+        _overwrittenTop = Math.Clamp(row, 0, TileSet.GridRows - 1);
+        _overwritten = _tileSet.Stamp(_overwrittenLeft, _overwrittenTop, copied);
+
+        AfterTilesChanged();
+    }
+
+    /// <summary>Devuelve los tiles que machacó el último estampado.</summary>
+    [RelayCommand(CanExecute = nameof(CanUndoStamp))]
+    private void UndoStamp()
+    {
+        if (_overwritten is null)
+            return;
+
+        _tileSet.Stamp(_overwrittenLeft, _overwrittenTop, _overwritten);
+        _overwritten = null;
+
+        AfterTilesChanged();
+    }
+
+    /// <summary>
+    /// Repinta y avisa después de cambiar tiles de golpe.
+    /// </summary>
+    /// <remarks>
+    /// Los 256, que son cuatro mil pixeles y no se nota: el trozo puede caer donde sea y
+    /// llevar la cuenta de cuáles tocó sólo serviría para equivocarse.
+    /// </remarks>
+    private void AfterTilesChanged()
+    {
+        Touch();
+        OnPropertyChanged(nameof(CanUndoStamp));
+        UndoStampCommand.NotifyCanExecuteChanged();
+
+        RenderAll();
+        RefreshRequested?.Invoke();
     }
 
     private void OnRowColorPicked(int rowIndex)
