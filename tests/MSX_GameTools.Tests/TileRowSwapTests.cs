@@ -118,27 +118,35 @@ public class TileRowSwapTests
         // Ocho lineas por dos colores.
         Assert.Equal(16, swatches.Count);
 
+        // Que la opcion este en los dieciseis y diga lo que toca. El texto sale del
+        // diccionario y no del DataContext, asi que se resuelve sin abrir el menu.
         foreach (Button swatch in swatches)
         {
+            MenuItem entry = Assert.IsType<MenuItem>(Assert.Single(swatch.ContextMenu!.Items)!);
+
+            Assert.Equal("Intercambiar frente y fondo", entry.Header);
+        }
+
+        // Y que el comando llegue, en los dos colores de una misma linea. Esto si obliga
+        // a abrir el menu, porque el ContextMenu no recibe el DataContext hasta entonces
+        // y sin el no hay comando. Solo dos y no dieciseis: cada menu abierto es una
+        // ventana emergente, y a base de abrirlas se queda tocado el entorno headless y
+        // empiezan a fallar, mucho mas adelante, otras pruebas que montan ventanas.
+        foreach (Button swatch in swatches.Skip(Line * 2).Take(2))
+        {
+            int before = row.ForeColor;
+
             swatch.ContextMenu!.Open(swatch);
             Dispatcher.UIThread.RunJobs();
 
-            MenuItem item = Assert.IsType<MenuItem>(Assert.Single(swatch.ContextMenu.Items)!);
+            var item = (MenuItem)swatch.ContextMenu.Items[0]!;
 
             Assert.NotNull(item.Command);
-            Assert.Equal("Intercambiar frente y fondo", item.Header);
+
+            item.Command.Execute(item.CommandParameter);
 
             swatch.ContextMenu.Close();
             Dispatcher.UIThread.RunJobs();
-        }
-
-        // Y el comando del menu es el de su linea: los dos colores de la cuarta.
-        foreach (Button swatch in swatches.Skip(Line * 2).Take(2))
-        {
-            var item = (MenuItem)swatch.ContextMenu!.Items[0]!;
-            int before = row.ForeColor;
-
-            item.Command!.Execute(item.CommandParameter);
 
             Assert.NotEqual(before, row.ForeColor);
         }
