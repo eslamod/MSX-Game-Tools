@@ -96,14 +96,17 @@ public partial class ReplaceTilesViewModel : PanelBaseViewModel
         Header = Text.Format("ReplaceHeader", editor.Map.Name);
         TagId = "replace:tiles";
 
-        HasSelection = editor.HasSelection;
         OnlySelection = HasSelection;
+
+        // El formulario se queda abierto mientras se trabaja en el mapa, asi que la
+        // seleccion puede aparecer, cambiar o irse despues de haberlo abierto.
+        _editor.PropertyChanged += OnEditorChanged;
     }
 
     private static Localizer Text => Localizer.Instance;
 
-    /// <summary>Si había algo marcado al abrir el formulario.</summary>
-    public bool HasSelection { get; }
+    /// <summary>Si hay algo marcado en el mapa ahora mismo.</summary>
+    public bool HasSelection => _editor.HasSelection;
 
     public int MaxTile => TileSet.TileCount - 1;
 
@@ -235,6 +238,26 @@ public partial class ReplaceTilesViewModel : PanelBaseViewModel
     /// <summary>El dibujo de un tile, o nada si ese número no existe en el juego.</summary>
     private ImageMini? TileAt(int index) =>
         (uint)index < (uint)_editor.Tiles.Count ? _editor.Tiles[index] : null;
+
+    /// <summary>
+    /// Al marcar o desmarcar en el mapa, la casilla de la selección se entera.
+    /// </summary>
+    /// <remarks>
+    /// Y se propone usarla, igual que al abrir el formulario con algo ya marcado: quien
+    /// marca un rectángulo teniendo esto delante es porque quiere sustituir ahí. Al
+    /// deshacerse la selección hay que quitarlo, que si no queda marcada una casilla
+    /// apagada y no se sabe si va a hacer caso.
+    /// </remarks>
+    private void OnEditorChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(MapEditorViewModel.HasSelection))
+            return;
+
+        OnPropertyChanged(nameof(HasSelection));
+        OnlySelection = HasSelection;
+    }
+
+    public override void OnClosed() => _editor.PropertyChanged -= OnEditorChanged;
 
     [RelayCommand]
     private void CloseReplace() => _mainWindowVm.RightPanViewModel = null;

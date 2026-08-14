@@ -314,24 +314,86 @@ public class ReplaceListTests
         Assert.False(form.IsRangeMode);
     }
 
-    /// <summary>El formulario abierto sobre un mapa con su juego de tiles.</summary>
-    private static ReplaceTilesViewModel NewForm(out MapEditorViewModel editor)
+    // ------------------------------------------------------------------ la seleccion
+
+    /// <summary>
+    /// Marcar en el mapa con el formulario abierto enciende lo de la selección.
+    /// </summary>
+    /// <remarks>
+    /// Se leía una sola vez al abrir, así que marcando después se quedaba apagado para
+    /// siempre y había que cerrar y volver a abrir. El formulario se queda abierto para
+    /// sustituir varias veces seguidas, de modo que lo normal es marcar teniéndolo delante.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Marcar_en_el_mapa_enciende_lo_de_la_seleccion()
     {
-        var main = new MainWindowViewModel();
+        ReplaceTilesViewModel form = NewForm(out MapEditorViewModel editor);
 
-        main.OpenTileSet(new TileSet("Bosque"));
-        main.AddMapCommand.Execute(null);
+        Assert.False(form.HasSelection);
+        Assert.False(form.OnlySelection);
 
-        var newMap = (EditMapViewModel)main.RightPanViewModel!;
+        editor.Selection = new MapRegion(1, 1, 3, 3);
+
+        Assert.True(form.HasSelection);
+
+        // Y se propone usarla, igual que al abrir con algo ya marcado.
+        Assert.True(form.OnlySelection);
+    }
+
+    /// <summary>Y al deshacerla se apaga, que si no queda marcada una casilla apagada.</summary>
+    [AvaloniaFact]
+    public void Quitar_la_seleccion_lo_vuelve_a_apagar()
+    {
+        ReplaceTilesViewModel form = NewForm(out MapEditorViewModel editor);
+
+        editor.Selection = new MapRegion(1, 1, 3, 3);
+        editor.Selection = null;
+
+        Assert.False(form.HasSelection);
+        Assert.False(form.OnlySelection);
+    }
+
+    /// <summary>
+    /// Y un formulario cerrado deja de escuchar.
+    /// </summary>
+    /// <remarks>
+    /// Si no, abrir y cerrar el formulario va dejando oyentes muertos enganchados al
+    /// editor, que además siguen recibiendo avisos.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Al_cerrarlo_deja_de_escuchar_al_mapa()
+    {
+        ReplaceTilesViewModel form = NewForm(out MapEditorViewModel editor, out MainWindowViewModel main);
+
+        main.CloseRightPanel(form);
+
+        editor.Selection = new MapRegion(1, 1, 3, 3);
+
+        Assert.False(form.OnlySelection);
+    }
+
+    private static ReplaceTilesViewModel NewForm(out MapEditorViewModel editor) =>
+        NewForm(out editor, out _);
+
+    /// <summary>El formulario abierto sobre un mapa con su juego de tiles.</summary>
+    private static ReplaceTilesViewModel NewForm(
+        out MapEditorViewModel editor, out MainWindowViewModel window)
+    {
+        window = new MainWindowViewModel();
+
+        window.OpenTileSet(new TileSet("Bosque"));
+        window.AddMapCommand.Execute(null);
+
+        var newMap = (EditMapViewModel)window.RightPanViewModel!;
         newMap.Name = "Nivel 1";
         newMap.Columns = 10;
         newMap.Rows = 10;
         newMap.AcceptMapCommand.Execute(null);
 
-        editor = main.Tabs.OfType<MapEditorViewModel>().Last();
+        editor = window.Tabs.OfType<MapEditorViewModel>().Last();
 
-        main.ReplaceTilesCommand.Execute(null);
+        window.ReplaceTilesCommand.Execute(null);
 
-        return (ReplaceTilesViewModel)main.RightPanViewModel!;
+        return (ReplaceTilesViewModel)window.RightPanViewModel!;
     }
 }

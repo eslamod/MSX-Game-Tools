@@ -207,6 +207,8 @@ public partial class MainWindowViewModel : ObservableObject
             nameof(RightPanViewModel));
 
         RightPanels.RemoveAt(index);
+
+        panel.OnClosed();
     }
 
     public int CurrentSpriteBankCounter { get; set; }

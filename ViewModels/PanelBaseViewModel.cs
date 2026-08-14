@@ -63,6 +63,18 @@ public abstract partial class PanelBaseViewModel : ObservableObject
     public virtual string HeaderTag => string.Empty;
 
     /// <summary>
+    /// El panel se ha cerrado y ya no está en el lateral.
+    /// </summary>
+    /// <remarks>
+    /// Para soltar lo que se enganchó al abrirlo. Un formulario que escucha a su editor
+    /// para enterarse de lo que pasa fuera lo seguiría escuchando después de cerrado, y
+    /// abrir y cerrar el mismo formulario iría dejando oyentes muertos detrás.
+    /// </remarks>
+    public virtual void OnClosed()
+    {
+    }
+
+    /// <summary>
     /// Rehace la cabecera a partir del nombre.
     /// </summary>
     /// <remarks>
