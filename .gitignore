@@ -6,6 +6,9 @@ obj/
 *.user
 *.suo
 
+# Lo que deja dotnet test: los .trx de cada ejecucion y los volcados de --blame-hang
+TestResults/
+
 ## Visual Studio / legacy
 .vs/
 packages/
