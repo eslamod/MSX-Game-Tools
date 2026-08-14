@@ -23,15 +23,14 @@
 ;   - Cursores para moverse, si el mapa es mas grande que la pantalla. Si cabe
 ;     entero, no se mueve y lo que sobra queda con el tile 0.
 ;
-; El cartucho es de 16K y vive entero en la pagina 1, igual que sus dos
-; hermanas. Descontando el codigo, las dos tablas del juego de tiles y la
-; paleta quedan unos 11600 bytes para el mapa, que son 11600 celdas: 128x90 o
-; 108x108, tres o cuatro pantallas en cada direccion.
+; El cartucho es de 32K y ocupa las paginas 1 y 2, a diferencia de sus dos
+; hermanas, que son de 16K. La BIOS conmuta la pagina 1, donde encuentra la
+; "AB", pero deja la 2 en RAM: la primera cosa que hace esta ROM al arrancar es
+; engancharse ella misma ahi con ENASLT, y de eso va EnablePage2.
 ;
-; No es de 32K a proposito. Ocupar tambien la pagina 2 obliga a que el cartucho
-; se enganche ahi el mismo con ENASLT en el arranque, porque la BIOS deja esa
-; pagina en RAM: sin ese codigo la ROM perderia de vista su propia mitad de
-; arriba. Para una prueba de un exportador no compensa meter eso en medio.
+; Descontando el codigo, las dos tablas del juego de tiles y la paleta quedan
+; unos 28000 bytes para el mapa, que son 28000 celdas: 224x125, 168x168 o lo
+; que salga sin pasar de ahi.
 ;-----------------------------------------------------------------------------
 
 ; --- Puertos del VDP ---------------------------------------------------------
@@ -42,6 +41,10 @@ VDP_ADDR        .equ 0x99       ; direccion de VRAM y registros
 SNSMAT          .equ 0x0141     ; A = fila de la matriz -> A, bit a 0 = pulsada
 MSX_VERSION     .equ 0x002D     ; 0 = MSX1, 1 = MSX2, 2 = MSX2+, 3 = TurboR
 JIFFY           .equ 0xFC9E     ; contador de interrupciones del VDP, en RAM
+ENASLT          .equ 0x0024     ; A = slot, H = pagina -> la conmuta
+RSLREG          .equ 0x0138     ; -> A = registro de slots primarios
+EXPTBL          .equ 0xFCC1     ; un byte por slot: bit 7 si esta expandido
+SLTTBL          .equ 0xFCC5     ; un byte por slot: que subslot hay puesto
 
 ; --- Paleta ------------------------------------------------------------------
 VDP_PALETTE     .equ 0x9A       ; puerto por el que entran los colores
@@ -95,6 +98,7 @@ Moved           .equ 0xE013     ; 1 byte: si la camara ha cambiado
 ; Arranque
 ;-----------------------------------------------------------------------------
 Start:
+                call EnablePage2
                 call SetupVdp
                 call LoadPalette
                 call LoadTables
@@ -111,6 +115,51 @@ MainLoop:
                 jr z,MainLoop
                 call DrawMap
                 jr MainLoop
+
+;-----------------------------------------------------------------------------
+; La segunda mitad del cartucho
+;-----------------------------------------------------------------------------
+; Lo primero de todo, porque de aqui en adelante hay datos por encima de 0x8000
+; y sin esto no estarian ahi.
+;
+; La BIOS busca la "AB" en la pagina 1 y conmuta esa, pero deja la 2 como
+; estaba, que es RAM: un cartucho de 32K no ve su propia mitad de arriba hasta
+; que se engancha el mismo. Aqui se averigua en que slot esta uno mismo
+; —mirando que slot hay puesto en la pagina 1, que es donde se esta
+; ejecutando— y se pone ese mismo en la pagina 2.
+;
+; Es la rutina del Technical Handbook, tal cual. El rodeo por EXPTBL y SLTTBL
+; es porque el slot puede estar expandido en subslots, y entonces el numero
+; primario no basta para nombrarlo.
+;
+; Si alguna maquina o emulador ya hubiera conmutado la pagina 2, esto vuelve a
+; poner el mismo slot y no pasa nada.
+EnablePage2:
+                call RSLREG             ; slots primarios de las cuatro paginas
+                rrca                    ; bits 2 y 3: el de la pagina 1
+                rrca
+                and 0x03
+                ld c,a
+                ld b,0
+
+                ld hl,EXPTBL            ; ¿esta expandido ese slot?
+                add hl,bc
+                ld c,a                  ; el primario, guardado
+                ld a,(hl)
+                and 0x80
+                or c                    ; con el bit de expandido si lo esta
+                ld c,a
+
+                inc hl                  ; SLTTBL esta cuatro bytes despues
+                inc hl
+                inc hl
+                inc hl
+                ld a,(hl)               ; que subslot hay puesto ahora mismo
+                and 0x0C
+                or c                    ; ya es el slot entero
+
+                ld h,0x80               ; una direccion de la pagina 2
+                jp ENASLT
 
 ;-----------------------------------------------------------------------------
 ; Registros del VDP
@@ -391,7 +440,7 @@ DrawDone:
 
 ; DE * BC -> HL. Se pierde lo que pase de 16 bits, cosa que aqui no llega a
 ; pasar: el mapa entero tiene que caber en el cartucho, asi que el mayor
-; desplazamiento posible son unos 11600.
+; desplazamiento posible son unos 28000.
 Mul16:
                 ld hl,0
 MulNext:
@@ -588,8 +637,8 @@ MapData:
               ; .include "map.asm"
 MapEnd:
 
-; Relleno hasta 16K, que es el tamano que espera un cartucho en la pagina 1.
+; Relleno hasta 32K, que es lo que ocupa un cartucho en las paginas 1 y 2.
 ; Con una etiqueta y no con $, porque en sass el $ dentro de una expresion no
 ; da el PC: se queda a cero y sale una ROM enorme.
 RomEnd:
-                .ds 0x8000 - RomEnd, 0xFF
+                .ds 0xC000 - RomEnd, 0xFF

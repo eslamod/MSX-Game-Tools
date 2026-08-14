@@ -36,13 +36,18 @@ sasSX.exe tileset_test.asm --output tileset_test.rom
 sasSX.exe map_test.asm --output map_test.rom
 ```
 
-Las tres salen de 16384 bytes exactos, que es lo que espera un cartucho en la
-página 1.
+Las dos primeras salen de 16384 bytes exactos, que es lo que espera un cartucho
+en la página 1. La del mapa sale de 32768 y ocupa las páginas 1 y 2, porque el
+mapa viaja dentro de la ROM y con 16K se quedaba corta enseguida.
 
-Ninguna es de 32K a propósito. Ocupar además la página 2 obligaría al cartucho a
-engancharse ahí él mismo con `ENASLT` al arrancar, porque **la BIOS deja esa
-página en RAM**: sin ese código la ROM no vería su propia mitad de arriba. Para
-probar un exportador no compensa.
+Un cartucho de 32K no es sólo cuestión de tamaño: **la BIOS busca la `AB` en la
+página 1 y conmuta esa, pero deja la 2 como estaba, que es RAM**. Sin hacer nada
+más, la ROM no vería su propia mitad de arriba. Por eso lo primero que hace
+`map_test.asm` al arrancar es averiguar en qué slot está —mirando cuál hay
+puesto en la página 1, que es donde se está ejecutando— y ponerse ahí también
+con `ENASLT`. Es la rutina del Technical Handbook, y el rodeo por `EXPTBL` y
+`SLTTBL` es porque el slot puede estar expandido en subslots y entonces el
+número primario no basta para nombrarlo.
 
 ---
 
@@ -233,22 +238,19 @@ qué parte del bloque estás.
    con la extensión que toque.
 3. Vuelve a ensamblar.
 
-El mapa tiene que caber en lo que sobra del cartucho: 16K menos el código, menos
-los 4096 de las dos tablas y los 32 de la paleta dejan sitio para unas 11600
-celdas, o sea 128x90, 108x108 o cualquier otra combinación que no pase de ahí.
-Son tres o cuatro pantallas en cada dirección, de sobra para ver si el
-desplazamiento y la cabecera están bien. Si algún día hace falta más, la salida
-es una ROM de 32K con el `ENASLT` de la página 2 al arrancar.
+El mapa tiene que caber en lo que sobra del cartucho: 32K menos el código, menos
+los 4096 de las dos tablas y los 32 de la paleta dejan sitio para unas 28000
+celdas, o sea 224x125, 168x168 o cualquier otra combinación que no pase de ahí.
 
 Si te pasas, sasSX lo dice pero no se planta:
 
 ```
-.fill or .ds too big:18446744073709543301 at line:595, param:0x8000 - RomEnd, 0xFF
+.fill or .ds too big:18446744073709543301 at line:595, param:0xC000 - RomEnd, 0xFF
 ```
 
-Ese número enorme es el relleno hasta 16K puesto en negativo. **Y escribe el
-`.rom` igualmente**, con el tamaño que salga en vez de 16384, así que la
-comprobación de verdad es el tamaño del fichero: si no son 16384 bytes exactos,
+Ese número enorme es el relleno hasta 32K puesto en negativo. **Y escribe el
+`.rom` igualmente**, con el tamaño que salga en vez de 32768, así que la
+comprobación de verdad es el tamaño del fichero: si no son 32768 bytes exactos,
 no lo cargues.
 
 Igual que las otras dos, el `.incbin` está activo y el `.include` comentado al
