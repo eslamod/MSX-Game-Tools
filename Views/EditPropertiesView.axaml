@@ -7,7 +7,7 @@
              mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="300"
              x:Class="MSX_GameTools.Views.EditPropertiesView"
              x:DataType="vm:EditPropertiesViewModel"
-             Background="Gainsboro">
+             Background="{DynamicResource AppPanelBackground}">
 
   <!-- El titulo arriba, los botones abajo y lo de en medio con barra: con la seccion de
        supertiles las filas Auto empujaban a Aceptar y Cancelar fuera del panel. -->
@@ -26,11 +26,11 @@
     <!-- El fichero se enseña pero no se toca: renombrar el documento no renombra el
          fichero, que es cosa de donde lo guardes. -->
     <TextBlock Text="{Binding Where}"
-               Foreground="#606060" TextWrapping="Wrap" Margin="0,0,0,8" />
+               Foreground="{DynamicResource AppTextSecondary}" TextWrapping="Wrap" Margin="0,0,0,8" />
 
     <TextBlock Text="{Binding Affected}"
                IsVisible="{Binding HasAffected}"
-               Foreground="#606060" TextWrapping="Wrap" />
+               Foreground="{DynamicResource AppTextSecondary}" TextWrapping="Wrap" />
 
     <!-- Un juego que ya existe, con sus tiles dibujados, es justo el que uno quiere pasar
          a supertiles; volver a empezar de cero para eso no tiene sentido. -->
@@ -58,13 +58,13 @@
            mapas ya dibujados cambian de significado sin cambiar de numero. -->
       <TextBlock Text="{Binding SuperTileWarning}"
                  IsVisible="{Binding HasSuperTileWarning}"
-                 Foreground="#8A5A00" TextWrapping="Wrap" Margin="0,6,0,0" />
+                 Foreground="{DynamicResource AppTextWarning}" TextWrapping="Wrap" Margin="0,6,0,0" />
 
     </StackPanel>
 
     <TextBlock Text="{Binding ErrorMessage}"
                IsVisible="{Binding HasError}"
-               Foreground="Firebrick"
+               Foreground="{DynamicResource AppTextError}"
                TextWrapping="Wrap"
                Margin="0,10,0,0" />
 

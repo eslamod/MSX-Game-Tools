@@ -8,7 +8,7 @@
              mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="700"
              x:Class="MSX_GameTools.Views.TileBlocksView"
              x:DataType="vm:TileBlocksViewModel"
-             Background="Gainsboro">
+             Background="{DynamicResource AppPanelBackground}">
 
   <UserControl.Styles>
     <!-- El recuadro de seleccion va superpuesto y sin cambiar de grosor, igual que en la
@@ -68,7 +68,7 @@
       </StackPanel>
     </Grid>
 
-    <GridSplitter Grid.Row="2" Height="4" Background="DarkGray" ResizeDirection="Rows" />
+    <GridSplitter Grid.Row="2" Height="4" Background="{DynamicResource AppSeparator}" ResizeDirection="Rows" />
 
     <!-- 2. Composicion del bloque -->
     <Grid Grid.Row="3" RowDefinitions="Auto,Auto,*" IsEnabled="{Binding HasBlock}">
@@ -153,7 +153,7 @@
       </Border>
     </Grid>
 
-    <GridSplitter Grid.Row="4" Height="4" Background="DarkGray" ResizeDirection="Rows" />
+    <GridSplitter Grid.Row="4" Height="4" Background="{DynamicResource AppSeparator}" ResizeDirection="Rows" />
 
     <!-- 3. Los tiles del juego, para elegir -->
     <Grid Grid.Row="5" RowDefinitions="Auto,*">

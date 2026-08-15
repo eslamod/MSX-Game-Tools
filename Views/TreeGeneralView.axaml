@@ -8,7 +8,7 @@
              mc:Ignorable="d" d:DesignWidth="225" d:DesignHeight="400"
              x:Class="MSX_GameTools.Views.TreeGeneralView"
              x:DataType="vm:TreeGeneralViewModel"
-             Background="Gainsboro">
+             Background="{DynamicResource AppPanelBackground}">
 
   <!-- El doble clic y el menú contextual se resuelven en el code-behind: un
        ContextMenu vive en su propio árbol visual (es un popup), así que desde dentro
@@ -16,7 +16,7 @@
        un comando. Desde el code-behind los dos gestos son tres líneas. -->
   <TreeView x:Name="ProjectTree"
             ItemsSource="{Binding PrimaryNodes}"
-            Background="Gainsboro"
+            Background="{DynamicResource AppPanelBackground}"
             DoubleTapped="OnItemDoubleTapped"
             KeyDown="OnTreeKeyDown">
     <TreeView.ItemTemplate>

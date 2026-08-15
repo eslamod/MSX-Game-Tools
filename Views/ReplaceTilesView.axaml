@@ -7,7 +7,7 @@
              mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="340"
              x:Class="MSX_GameTools.Views.ReplaceTilesView"
              x:DataType="vm:ReplaceTilesViewModel"
-             Background="Gainsboro">
+             Background="{DynamicResource AppPanelBackground}">
 
   <UserControl.Styles>
     <!-- El marco del dibujo, para que un tile todo negro no se confunda con el fondo. -->
@@ -62,7 +62,7 @@
     </Grid>
 
     <TextBlock Text="{Binding RangeLabel}" TextWrapping="Wrap"
-               Foreground="#404040" Margin="0,4,0,8" />
+               Foreground="{DynamicResource AppTextSecondary}" Margin="0,4,0,8" />
 
     </StackPanel>
 
@@ -102,7 +102,7 @@
       </StackPanel>
 
       <TextBlock Text="{l:Localize ReplaceAlreadyListed}" TextWrapping="Wrap"
-                 Foreground="#903030" Margin="0,0,0,4"
+                 Foreground="{DynamicResource AppTextError}" Margin="0,0,0,4"
                  IsVisible="{Binding AlreadyListed}" />
 
       <ListBox ItemsSource="{Binding Substitutions}"

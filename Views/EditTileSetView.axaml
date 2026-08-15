@@ -8,7 +8,7 @@
              mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="300"
              x:Class="MSX_GameTools.Views.EditTileSetView"
              x:DataType="vm:EditTileSetViewModel"
-             Background="Gainsboro">
+             Background="{DynamicResource AppPanelBackground}">
 
   <!-- El titulo arriba, los botones abajo y lo de en medio con barra: al crecer el
        formulario, las filas Auto empujaban a Aceptar y Cancelar fuera del panel. -->
@@ -44,7 +44,7 @@
          lo lleva la paleta de aqui arriba. -->
     <StackPanel>
 
-      <TextBlock Text="{l:Localize NewTileSetNote}" Foreground="#606060" TextWrapping="Wrap" />
+      <TextBlock Text="{l:Localize NewTileSetNote}" Foreground="{DynamicResource AppTextSecondary}" TextWrapping="Wrap" />
 
       <!-- Se pregunta aqui y no al crear el mapa: el tamaño del supertile es del juego,
            porque un supertile es un bloque con el tamaño clavado y los bloques cuelgan
@@ -69,14 +69,14 @@
         </Grid>
 
         <TextBlock Text="{l:Localize NewTileSetSuperTilesNote}"
-                   Foreground="#606060" TextWrapping="Wrap" />
+                   Foreground="{DynamicResource AppTextSecondary}" TextWrapping="Wrap" />
       </StackPanel>
 
     </StackPanel>
 
     <TextBlock Text="{Binding ErrorMessage}"
                IsVisible="{Binding HasError}"
-               Foreground="Firebrick"
+               Foreground="{DynamicResource AppTextError}"
                TextWrapping="Wrap"
                Margin="0,10,0,0" />
 

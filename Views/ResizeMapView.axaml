@@ -7,7 +7,7 @@
              mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="300"
              x:Class="MSX_GameTools.Views.ResizeMapView"
              x:DataType="vm:ResizeMapViewModel"
-             Background="Gainsboro">
+             Background="{DynamicResource AppPanelBackground}">
 
   <!-- Los botones anclados abajo y el resto con barra: con la escala de la interfaz al
        200% el contenido mide el doble y los empujaba fuera del panel. -->
@@ -44,10 +44,10 @@
                 ToolTip.Tip="{l:Localize ResizeAnchorTip}" />
     </Grid>
 
-    <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Foreground="#505050"
+    <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Foreground="{DynamicResource AppTextSecondary}"
                Text="{l:Localize ResizeNote}" />
 
-    <TextBlock Text="{Binding ErrorMessage}" Foreground="Firebrick"
+    <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource AppTextError}"
                TextWrapping="Wrap" Margin="0,8,0,0"
                IsVisible="{Binding HasError}" />
 

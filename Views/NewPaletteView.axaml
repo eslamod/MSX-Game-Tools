@@ -8,7 +8,7 @@
              mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="240"
              x:Class="MSX_GameTools.Views.NewPaletteView"
              x:DataType="vm:NewPaletteViewModel"
-             Background="Gainsboro">
+             Background="{DynamicResource AppPanelBackground}">
 
   <!-- Titulo arriba, botones abajo y lo de en medio con barra, como el resto de los
        formularios: al crecer, las filas Auto empujaban los botones fuera del panel. -->
@@ -39,10 +39,10 @@
           </ComboBox>
         </Grid>
 
-        <TextBlock Text="{l:Localize NewPaletteFromTip}" Foreground="#606060"
+        <TextBlock Text="{l:Localize NewPaletteFromTip}" Foreground="{DynamicResource AppTextSecondary}"
                    TextWrapping="Wrap" Margin="70,0,0,6" />
 
-        <TextBlock Text="{Binding ErrorMessage}" Foreground="Firebrick"
+        <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource AppTextError}"
                    TextWrapping="Wrap" VerticalAlignment="Top"
                    IsVisible="{Binding HasError}" />
 

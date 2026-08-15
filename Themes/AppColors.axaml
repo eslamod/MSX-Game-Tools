@@ -1,0 +1,91 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Los colores del cromo de la aplicación, por variante.
+
+    Son nuestros y no los de Fluent a propósito: las vistas se enlazan a estos nombres, así
+    que cambiar el tema base más adelante es repuntar este fichero y nada más. Con los
+    nombres de Fluent metidos en cuarenta sitios, cambiar de tema sería volver a pasar por
+    los cuarenta.
+
+    Aquí NO están los colores de dominio. La paleta del MSX, las rejillas de los lienzos,
+    las marcas de selección y los fondos sobre los que se recortan los dibujos —ese gris
+    oscuro que hay detrás de las miniaturas para que un tile negro no se confunda con el
+    fondo— se quedan fijos: un tile tiene que verse igual con la variante que sea.
+  -->
+
+  <ResourceDictionary.ThemeDictionaries>
+
+    <!-- ============================================================ claro -->
+    <ResourceDictionary x:Key="Light">
+
+      <!-- Superficies -->
+      <SolidColorBrush x:Key="AppPanelBackground" Color="#DCDCDC" />
+      <SolidColorBrush x:Key="AppSurfaceBackground" Color="#F0F0F0" />
+      <SolidColorBrush x:Key="AppSeparator" Color="#A9A9A9" />
+      <SolidColorBrush x:Key="AppControlBorder" Color="#909090" />
+
+      <!-- Texto -->
+      <SolidColorBrush x:Key="AppTextSecondary" Color="#606060" />
+      <SolidColorBrush x:Key="AppTextError" Color="#B22222" />
+      <SolidColorBrush x:Key="AppTextWarning" Color="#8A5A00" />
+
+      <!-- Señales -->
+      <SolidColorBrush x:Key="AppHighlightBackground" Color="#FFE9A8" />
+      <SolidColorBrush x:Key="AppGlyph" Color="#303030" />
+      <SolidColorBrush x:Key="AppGlyphAlert" Color="#B00000" />
+      <SolidColorBrush x:Key="AppDropTarget" Color="#1565C0" />
+
+      <!-- Los botones de herramienta: el ControlTheme ToggleRadioButton -->
+      <SolidColorBrush x:Key="AppToolButtonBackground" Color="#F0F0F0" />
+      <SolidColorBrush x:Key="AppToolButtonBorder" Color="#909090" />
+      <SolidColorBrush x:Key="AppToolButtonForeground" Color="#000000" />
+      <SolidColorBrush x:Key="AppToolButtonHoverBackground" Color="#E0E0E0" />
+      <SolidColorBrush x:Key="AppToolButtonCheckedBackground" Color="#3B78FF" />
+      <SolidColorBrush x:Key="AppToolButtonCheckedBorder" Color="#2A5BC7" />
+      <SolidColorBrush x:Key="AppToolButtonCheckedForeground" Color="#FFFFFF" />
+
+      <!-- Las muestras de color: el ControlTheme TileColorSwatch -->
+      <SolidColorBrush x:Key="AppSwatchBorder" Color="#606060" />
+      <SolidColorBrush x:Key="AppSwatchHoverBorder" Color="#FFC107" />
+
+    </ResourceDictionary>
+
+    <!-- ============================================================ oscuro -->
+    <ResourceDictionary x:Key="Dark">
+
+      <SolidColorBrush x:Key="AppPanelBackground" Color="#2B2B2B" />
+      <SolidColorBrush x:Key="AppSurfaceBackground" Color="#333333" />
+      <SolidColorBrush x:Key="AppSeparator" Color="#3F3F46" />
+      <SolidColorBrush x:Key="AppControlBorder" Color="#5A5A5A" />
+
+      <SolidColorBrush x:Key="AppTextSecondary" Color="#A0A0A0" />
+      <SolidColorBrush x:Key="AppTextError" Color="#FF7B72" />
+      <SolidColorBrush x:Key="AppTextWarning" Color="#E3B341" />
+
+      <!-- El resaltado ámbar, oscurecido: en claro es un papel amarillo, en oscuro
+           tiene que seguir leyéndose como resaltado sin cegar. -->
+      <SolidColorBrush x:Key="AppHighlightBackground" Color="#4A3F1E" />
+      <SolidColorBrush x:Key="AppGlyph" Color="#D0D0D0" />
+      <SolidColorBrush x:Key="AppGlyphAlert" Color="#FF6B6B" />
+      <SolidColorBrush x:Key="AppDropTarget" Color="#4FC3F7" />
+
+      <SolidColorBrush x:Key="AppToolButtonBackground" Color="#3A3A3A" />
+      <SolidColorBrush x:Key="AppToolButtonBorder" Color="#5A5A5A" />
+      <SolidColorBrush x:Key="AppToolButtonForeground" Color="#E6E6E6" />
+      <SolidColorBrush x:Key="AppToolButtonHoverBackground" Color="#484848" />
+      <SolidColorBrush x:Key="AppToolButtonCheckedBackground" Color="#2E6FE0" />
+      <SolidColorBrush x:Key="AppToolButtonCheckedBorder" Color="#1E4FA8" />
+      <SolidColorBrush x:Key="AppToolButtonCheckedForeground" Color="#FFFFFF" />
+
+      <SolidColorBrush x:Key="AppSwatchBorder" Color="#7A7A7A" />
+
+      <!-- El ámbar del ratón encima se queda igual: es la señal de «esto se puede
+           pulsar» sobre dibujos del usuario, y ahí manda el dibujo, no la variante. -->
+      <SolidColorBrush x:Key="AppSwatchHoverBorder" Color="#FFC107" />
+
+    </ResourceDictionary>
+
+  </ResourceDictionary.ThemeDictionaries>
+</ResourceDictionary>

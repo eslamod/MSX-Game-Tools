@@ -9,7 +9,7 @@
              x:Class="MSX_GameTools.Views.EditPaletteView"
              x:DataType="vm:EditPaletteViewModel"
              DragDrop.AllowDrop="True"
-             Background="Gainsboro">
+             Background="{DynamicResource AppPanelBackground}">
 
   <UserControl.Styles>
     <!-- Las filas de la lista, apretadas. El ListBoxItem de serie trae relleno y alto
@@ -26,7 +26,7 @@
          puesto siempre y transparente: si apareciera al marcar, la fila cambiaria de alto
          al pasar el raton por encima y la lista entera daria un salto. -->
     <Style Selector="ListBox#ColorList > ListBoxItem.drop">
-      <Setter Property="BorderBrush" Value="#1565C0" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppDropTarget}" />
     </Style>
   </UserControl.Styles>
 
@@ -75,7 +75,7 @@
                        TextAlignment="Center" />
             <TextBlock Grid.Column="2" Text="{Binding DisplayName}" VerticalAlignment="Center" />
             <TextBlock Grid.Column="3" Text="{Binding HexRgb}"
-                       FontFamily="Consolas" Foreground="#606060"
+                       FontFamily="Consolas" Foreground="{DynamicResource AppTextSecondary}"
                        VerticalAlignment="Center" Margin="6,0,0,0"
                        ToolTip.Tip="{l:Localize PaletteComponentsTip}" />
           </Grid>
@@ -89,7 +89,7 @@
 
       <TextBlock Text="{l:Localize PaletteTransparent}"
                  IsVisible="{Binding SelectedColor.IsTransparent}"
-                 Foreground="Firebrick" TextWrapping="Wrap" Margin="0,0,0,6" />
+                 Foreground="{DynamicResource AppTextError}" TextWrapping="Wrap" Margin="0,0,0,6" />
 
       <Grid ColumnDefinitions="20,*" Margin="0,2,0,6">
         <TextBlock Grid.Column="0" Text="N" VerticalAlignment="Center"

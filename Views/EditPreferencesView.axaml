@@ -8,7 +8,7 @@
              mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="480"
              x:Class="MSX_GameTools.Views.EditPreferencesView"
              x:DataType="vm:EditPreferencesViewModel"
-             Background="Gainsboro">
+             Background="{DynamicResource AppPanelBackground}">
 
   <!-- El titulo arriba, los botones abajo y lo de en medio con barra: es el formulario mas
        alto del programa y con la escala al 200% no cabe, y sin esto los botones se iban

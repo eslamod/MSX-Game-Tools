@@ -7,7 +7,7 @@
              mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="300"
              x:Class="MSX_GameTools.Views.EditMapView"
              x:DataType="vm:EditMapViewModel"
-             Background="Gainsboro">
+             Background="{DynamicResource AppPanelBackground}">
 
   <!-- El titulo arriba, los botones abajo y lo de en medio con barra: al crecer el
        formulario, las filas Auto empujaban a Aceptar y Cancelar fuera del panel. -->
@@ -60,10 +60,10 @@
     <Grid ColumnDefinitions="70,*" Margin="0,0,0,6" VerticalAlignment="Top">
       <TextBlock Grid.Column="0" Text="{l:Localize NewMapKind}" VerticalAlignment="Top" />
       <TextBlock Grid.Column="1" Text="{Binding KindLabel}" TextWrapping="Wrap"
-                 Foreground="#606060" />
+                 Foreground="{DynamicResource AppTextSecondary}" />
     </Grid>
 
-    <TextBlock Text="{Binding ErrorMessage}" Foreground="Firebrick"
+    <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource AppTextError}"
                TextWrapping="Wrap" VerticalAlignment="Top"
                IsVisible="{Binding HasError}" />
 

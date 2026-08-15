@@ -25,14 +25,20 @@
   </Application.Styles>
 
   <Application.Resources>
+    <ResourceDictionary>
+
+      <ResourceDictionary.MergedDictionaries>
+        <!-- Los colores del cromo, por variante. Todo lo de abajo tira de ahí. -->
+        <ResourceInclude Source="avares://MSX_GameTools/Themes/AppColors.axaml" />
+      </ResourceDictionary.MergedDictionaries>
 
     <!-- Equivalente al ControlTemplate que en WPF convertía los RadioButton
          en ToggleButton. En Avalonia esto es un ControlTheme. -->
     <ControlTheme x:Key="ToggleRadioButton" TargetType="RadioButton">
-      <Setter Property="Background" Value="#F0F0F0" />
-      <Setter Property="BorderBrush" Value="#909090" />
+      <Setter Property="Background" Value="{DynamicResource AppToolButtonBackground}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppToolButtonBorder}" />
       <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Foreground" Value="Black" />
+      <Setter Property="Foreground" Value="{DynamicResource AppToolButtonForeground}" />
       <Setter Property="Padding" Value="6,2" />
       <Setter Property="Cursor" Value="Hand" />
       <Setter Property="Template">
@@ -53,22 +59,22 @@
       </Setter>
 
       <Style Selector="^:pointerover /template/ Border#PART_Root">
-        <Setter Property="Background" Value="#E0E0E0" />
+        <Setter Property="Background" Value="{DynamicResource AppToolButtonHoverBackground}" />
       </Style>
 
       <Style Selector="^:checked">
-        <Setter Property="Foreground" Value="White" />
+        <Setter Property="Foreground" Value="{DynamicResource AppToolButtonCheckedForeground}" />
       </Style>
       <Style Selector="^:checked /template/ Border#PART_Root">
-        <Setter Property="Background" Value="#3B78FF" />
-        <Setter Property="BorderBrush" Value="#2A5BC7" />
+        <Setter Property="Background" Value="{DynamicResource AppToolButtonCheckedBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AppToolButtonCheckedBorder}" />
       </Style>
     </ControlTheme>
 
 
     <ControlTheme x:Key="TileColorSwatch" TargetType="Button">
       <Setter Property="Background" Value="Transparent" />
-      <Setter Property="BorderBrush" Value="#606060" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppSwatchBorder}" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="Padding" Value="0" />
       <Setter Property="Cursor" Value="Hand" />
@@ -85,9 +91,10 @@
         </ControlTemplate>
       </Setter>
       <Style Selector="^:pointerover">
-        <Setter Property="BorderBrush" Value="#FFC107" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AppSwatchHoverBorder}" />
       </Style>
     </ControlTheme>
 
+    </ResourceDictionary>
   </Application.Resources>
 </Application>
