@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using MSX_GameTools.Entities;
 using MSX_GameTools.Services;
 using Xunit;
@@ -60,15 +61,66 @@ public class PaletteSerializerTests
         }
     }
 
+    /// <summary>
+    /// La paleta se comporta igual antes y después de guardar.
+    /// </summary>
+    /// <remarks>
+    /// Antes, al leerla de fichero todos los nombres pasaban por escritos por el usuario,
+    /// así que dejaban de descartarse al cambiar el color. La misma paleta hacía una cosa
+    /// recién creada y otra al volver a abrirla, que es de las cosas que más desconciertan.
+    /// </remarks>
     [AvaloniaFact]
-    public void Los_nombres_leidos_de_fichero_no_se_descartan_al_editar()
+    public void Un_nombre_heredado_sigue_descartandose_despues_de_una_ida_y_vuelta()
     {
         ColorPalette original = new PaletteLibrary().Add("Nocturna");
 
         ColorPalette copy = PaletteSerializer.Deserialize(PaletteSerializer.Serialize(original));
+
+        Assert.Equal("Light green", copy[3].Name);
+        Assert.True(copy[3].HasInheritedName);
+
         copy[3].Red = 0;
 
-        // Un nombre guardado a fichero es deliberado, no heredado de la paleta MSX.
+        Assert.Equal(string.Empty, copy[3].Name);
+        Assert.Equal("Color 3", copy[3].DisplayName);
+    }
+
+    /// <summary>Y el que escribes tú se respeta siempre, también al volver de fichero.</summary>
+    [AvaloniaFact]
+    public void Un_nombre_escrito_por_el_usuario_aguanta_la_ida_y_vuelta()
+    {
+        ColorPalette original = new PaletteLibrary().Add("Nocturna");
+        original[3].Name = "Verde del bosque";
+
+        ColorPalette copy = PaletteSerializer.Deserialize(PaletteSerializer.Serialize(original));
+
+        Assert.False(copy[3].HasInheritedName);
+
+        copy[3].Red = 0;
+
+        Assert.Equal("Verde del bosque", copy[3].Name);
+    }
+
+    /// <summary>
+    /// Un fichero de antes de que existiera la marca sigue abriendo, con los nombres por
+    /// escritos: es lo que hacían al abrirse entonces.
+    /// </summary>
+    [AvaloniaFact]
+    public void Un_fichero_sin_la_marca_trata_los_nombres_como_escritos()
+    {
+        ColorPalette original = new PaletteLibrary().Add("Nocturna");
+
+        string json = Regex.Replace(
+            PaletteSerializer.Serialize(original), ",\\s*\"inherited\":\\s*true", string.Empty);
+
+        Assert.DoesNotContain("inherited", json);
+
+        ColorPalette copy = PaletteSerializer.Deserialize(json);
+
+        Assert.False(copy[3].HasInheritedName);
+
+        copy[3].Red = 0;
+
         Assert.Equal("Light green", copy[3].Name);
     }
 
