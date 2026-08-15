@@ -321,7 +321,7 @@ public class ProjectFileTests : IDisposable
 
         NewTileSet(main, "Bosque");
 
-        main.AddPaletteCommand.Execute(null);
+        TestPalette.Create(main);
         main.Palettes.ActivePalette.Name = "Nocturna";
 
         await main.SaveProjectCommand.ExecuteAsync(null);

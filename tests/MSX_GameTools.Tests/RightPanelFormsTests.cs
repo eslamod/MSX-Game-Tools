@@ -96,7 +96,7 @@ public class RightPanelFormsTests
     {
         var main = new MainWindowViewModel();
 
-        main.AddPaletteCommand.Execute(null);
+        TestPalette.Create(main);
         PanelBaseViewModel first = main.RightPanViewModel!;
 
         main.EditPaletteCommand.Execute(null);
@@ -111,10 +111,10 @@ public class RightPanelFormsTests
     {
         var main = new MainWindowViewModel();
 
-        main.AddPaletteCommand.Execute(null);
+        TestPalette.Create(main);
         ColorPalette first = ((EditPaletteViewModel)main.RightPanViewModel!).Palette;
 
-        main.AddPaletteCommand.Execute(null);
+        TestPalette.Create(main);
 
         Assert.Single(main.RightPanels);
 

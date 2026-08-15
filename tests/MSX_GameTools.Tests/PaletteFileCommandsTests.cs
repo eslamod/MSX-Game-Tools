@@ -22,7 +22,7 @@ public class PaletteFileCommandsTests : IDisposable
         var dialogs = new TestDialogService { SavePath = path };
         var main = new MainWindowViewModel(dialogs);
 
-        main.AddPaletteCommand.Execute(null);
+        TestPalette.Create(main);
         main.Palettes.ActivePalette.Name = "Nocturna";
         main.Palettes.ActivePalette[3].SetComponents(7, 0, 5);
 
@@ -40,7 +40,7 @@ public class PaletteFileCommandsTests : IDisposable
         var dialogs = new TestDialogService { SavePath = null };
         var main = new MainWindowViewModel(dialogs);
 
-        main.AddPaletteCommand.Execute(null);
+        TestPalette.Create(main);
         main.Palettes.ActivePalette.Name = "Cueva: nivel 3/4";
 
         await main.SavePaletteCommand.ExecuteAsync(null);

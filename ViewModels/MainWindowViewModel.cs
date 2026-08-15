@@ -946,7 +946,11 @@ public partial class MainWindowViewModel : ObservableObject
     /// original ni los demás documentos que la usen.
     /// </remarks>
     [RelayCommand]
-    private void AddPalette() => OpenPaletteEditor(Palettes.Add());
+    private void AddPalette() => OpenForm(() => new NewPaletteViewModel(this));
+
+    /// <summary>Crea la paleta que pide el formulario y la deja abierta para editarla.</summary>
+    public void CreatePalette(string name, ColorPalette from) =>
+        OpenPaletteEditor(Palettes.Add(name, from));
 
     [RelayCommand(CanExecute = nameof(CanEditPalette))]
     private void EditPalette() => OpenPaletteEditor(Palettes.ActivePalette);

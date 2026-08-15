@@ -49,9 +49,13 @@ public sealed partial class PaletteLibrary : ObservableObject
     /// Añade una copia editable de la seleccionada y la deja seleccionada. Partir de la
     /// que se está mirando es más útil que partir de una paleta en negro.
     /// </summary>
-    public ColorPalette Add(string? name = null)
+    /// <param name="from">
+    /// De cuál se copia. Sin ella, de la que esté seleccionada. Copiar de la del MSX da
+    /// los colores de la máquina sin sus nombres, que son suyos.
+    /// </param>
+    public ColorPalette Add(string? name = null, ColorPalette? from = null)
     {
-        ColorPalette created = ActivePalette.Clone(name ?? NextAvailableName());
+        ColorPalette created = (from ?? ActivePalette).Clone(name ?? NextAvailableName());
 
         Palettes.Add(created);
         ActivePalette = created;
@@ -130,6 +134,9 @@ public sealed partial class PaletteLibrary : ObservableObject
 
         return true;
     }
+
+    /// <summary>El siguiente «Palette N» que quede libre, para proponerlo al crear.</summary>
+    public string SuggestName() => NextAvailableName();
 
     private string NextAvailableName()
     {

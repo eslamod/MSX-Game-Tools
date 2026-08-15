@@ -276,6 +276,11 @@
   <data name="PaletteTitle" xml:space="preserve"><value>Edita la paleta</value></data>
   <data name="PaletteTransparent" xml:space="preserve"><value>El color 0 és transparent i no es pot editar</value></data>
   <data name="PaletteSwapTip" xml:space="preserve"><value>Arrossega un color sobre un altre per intercanviar-los</value></data>
+  <data name="NewPaletteTitle" xml:space="preserve"><value>Nova paleta</value></data>
+  <data name="NewPaletteFrom" xml:space="preserve"><value>Copia de</value></data>
+  <data name="NewPaletteFromTip" xml:space="preserve"><value>Els 16 colors surten d'aquesta. Els noms també es copien, tret dels de la paleta MSX, que són de la màquina.</value></data>
+  <data name="NewPaletteNoName" xml:space="preserve"><value>El nom de la paleta no pot estar buit.</value></data>
+  <data name="NewPaletteRepeated" xml:space="preserve"><value>Ja hi ha una paleta que es diu «{0}».</value></data>
   <data name="PaletteApply" xml:space="preserve"><value>Aplica</value></data>
   <data name="PaletteApplyTitle" xml:space="preserve"><value>Aplica els colors intercanviats</value></data>
   <data name="PaletteApplyBody" xml:space="preserve"><value>S'ajustaran els índexs de color de: {0}.

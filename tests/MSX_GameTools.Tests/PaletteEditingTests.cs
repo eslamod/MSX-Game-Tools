@@ -225,18 +225,32 @@ public class PaletteEditingTests
         Assert.False(main.EditPaletteCommand.CanExecute(null));
         Assert.False(main.DeletePaletteCommand.CanExecute(null));
 
-        main.AddPaletteCommand.Execute(null);
+        TestPalette.Create(main);
 
         Assert.True(main.EditPaletteCommand.CanExecute(null));
         Assert.True(main.DeletePaletteCommand.CanExecute(null));
     }
 
+    /// <summary>
+    /// Crear son dos pasos: el formulario primero y el editor después de aceptarlo.
+    /// </summary>
+    /// <remarks>
+    /// El formulario pregunta de qué paleta se copia. Los 16 colores de partida son medio
+    /// trabajo hecho, y la que quieres de base rara vez es la que estabas mirando.
+    /// </remarks>
     [AvaloniaFact]
     public void Crear_una_paleta_abre_su_editor_en_el_panel_derecho()
     {
         var main = new MainWindowViewModel();
 
         main.AddPaletteCommand.Execute(null);
+
+        var form = Assert.IsType<NewPaletteViewModel>(main.RightPanViewModel);
+
+        // Todavía no hay paleta: sólo está la del MSX.
+        Assert.Single(main.Palettes.Palettes);
+
+        form.AcceptPaletteCommand.Execute(null);
 
         var editor = Assert.IsType<EditPaletteViewModel>(main.RightPanViewModel);
         Assert.Same(main.Palettes.ActivePalette, editor.Palette);
@@ -249,7 +263,7 @@ public class PaletteEditingTests
     public void El_panel_de_edicion_refleja_y_aplica_los_sliders()
     {
         var main = new MainWindowViewModel();
-        main.AddPaletteCommand.Execute(null);
+        TestPalette.Create(main);
         var vm = (EditPaletteViewModel)main.RightPanViewModel!;
 
         using PaletteEditorHost host = PaletteEditorHost.Show(vm);
@@ -275,7 +289,7 @@ public class PaletteEditingTests
     public void Los_sliders_se_deshabilitan_en_el_color_transparente()
     {
         var main = new MainWindowViewModel();
-        main.AddPaletteCommand.Execute(null);
+        TestPalette.Create(main);
         var vm = (EditPaletteViewModel)main.RightPanViewModel!;
 
         using PaletteEditorHost host = PaletteEditorHost.Show(vm);
@@ -302,7 +316,7 @@ public class PaletteEditingTests
     public void La_barra_no_tapa_los_valores_de_los_sliders()
     {
         var main = new MainWindowViewModel();
-        main.AddPaletteCommand.Execute(null);
+        TestPalette.Create(main);
 
         using PaletteEditorHost host = PaletteEditorHost.Show(
             (EditPaletteViewModel)main.RightPanViewModel!, height: 420);
@@ -393,8 +407,8 @@ public class PaletteEditingTests
     {
         using MainWindowHost app = MainWindowHost.Show();
 
-        app.ViewModel.AddPaletteCommand.Execute(null); // Palette 1
-        app.ViewModel.AddPaletteCommand.Execute(null); // Palette 2, activa
+        TestPalette.Create(app.ViewModel); // Palette 1
+        TestPalette.Create(app.ViewModel); // Palette 2, activa
         app.Pump();
 
         Assert.Same(app.ViewModel.Palettes.ActivePalette, app.PaletteCombo.SelectedItem);
@@ -412,7 +426,7 @@ public class PaletteEditingTests
     {
         using MainWindowHost app = MainWindowHost.Show();
 
-        app.ViewModel.AddPaletteCommand.Execute(null);
+        TestPalette.Create(app.ViewModel);
         await app.ViewModel.DeletePaletteCommand.ExecuteAsync(null);
         app.Pump();
 
@@ -508,7 +522,7 @@ public class PaletteEditingTests
     public async Task Eliminar_la_paleta_que_se_esta_editando_cierra_el_panel()
     {
         var main = new MainWindowViewModel();
-        main.AddPaletteCommand.Execute(null);
+        TestPalette.Create(main);
 
         await main.DeletePaletteCommand.ExecuteAsync(null);
 
@@ -521,7 +535,7 @@ public class PaletteEditingTests
     {
         var dialogs = new TestDialogService { ConfirmAnswer = true };
         var main = new MainWindowViewModel(dialogs);
-        main.AddPaletteCommand.Execute(null);
+        TestPalette.Create(main);
         main.Palettes.ActivePalette.Name = "Nocturna";
 
         await main.DeletePaletteCommand.ExecuteAsync(null);
@@ -537,7 +551,7 @@ public class PaletteEditingTests
     {
         var dialogs = new TestDialogService { ConfirmAnswer = false };
         var main = new MainWindowViewModel(dialogs);
-        main.AddPaletteCommand.Execute(null);
+        TestPalette.Create(main);
         ColorPalette created = main.Palettes.ActivePalette;
 
         await main.DeletePaletteCommand.ExecuteAsync(null);

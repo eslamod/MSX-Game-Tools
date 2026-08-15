@@ -301,6 +301,11 @@
   <data name="PaletteTitle" xml:space="preserve"><value>Editar la paleta</value></data>
   <data name="PaletteTransparent" xml:space="preserve"><value>El color 0 es transparente y no se puede editar</value></data>
   <data name="PaletteSwapTip" xml:space="preserve"><value>Arrastra un color sobre otro para intercambiarlos</value></data>
+  <data name="NewPaletteTitle" xml:space="preserve"><value>Nueva paleta</value></data>
+  <data name="NewPaletteFrom" xml:space="preserve"><value>Copiar de</value></data>
+  <data name="NewPaletteFromTip" xml:space="preserve"><value>Los 16 colores salen de ésa. Los nombres se copian, salvo los de la paleta MSX, que son de la máquina.</value></data>
+  <data name="NewPaletteNoName" xml:space="preserve"><value>El nombre de la paleta no puede estar vacío.</value></data>
+  <data name="NewPaletteRepeated" xml:space="preserve"><value>Ya hay una paleta que se llama «{0}».</value></data>
   <data name="PaletteApply" xml:space="preserve"><value>Aplicar</value></data>
   <data name="PaletteApplyTitle" xml:space="preserve"><value>Aplicar los colores intercambiados</value></data>
   <data name="PaletteApplyBody" xml:space="preserve"><value>Se van a ajustar los índices de color de: {0}.

@@ -349,7 +349,7 @@ public class PaletteSwapTests
     public void El_boton_de_aplicar_sale_al_intercambiar()
     {
         var main = new MainWindowViewModel(new TestDialogService());
-        main.AddPaletteCommand.Execute(null);
+        TestPalette.Create(main);
 
         var panel = (EditPaletteViewModel)main.RightPanViewModel!;
 
@@ -399,7 +399,7 @@ public class PaletteSwapTests
     public void Pulsar_en_un_color_lo_deja_listo_para_arrastrar()
     {
         var main = new MainWindowViewModel(new TestDialogService());
-        main.AddPaletteCommand.Execute(null);
+        TestPalette.Create(main);
 
         var panel = (EditPaletteViewModel)main.RightPanViewModel!;
 

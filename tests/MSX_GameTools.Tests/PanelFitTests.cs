@@ -97,6 +97,7 @@ public class PanelFitTests
     [InlineData("Resize")]
     [InlineData("Replace")]
     [InlineData("Palette")]
+    [InlineData("NewPalette")]
     public void Los_botones_de_los_formularios_caben(string form)
     {
         var main = new MainWindowViewModel(new TestDialogService { ChooseAnswer = false });
@@ -305,8 +306,14 @@ public class PanelFitTests
                 main.AddSpriteBankCommand.Execute(null);
                 break;
 
-            case "Palette":
+            // El formulario de crear, que pregunta el nombre y de cuál se copia.
+            case "NewPalette":
                 main.AddPaletteCommand.Execute(null);
+                break;
+
+            // Y el editor, que sale al aceptarlo.
+            case "Palette":
+                TestPalette.Create(main);
                 break;
 
             case "Properties":
