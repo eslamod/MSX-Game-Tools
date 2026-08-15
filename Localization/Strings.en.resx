@@ -253,7 +253,6 @@
   <data name="BlocksTiles" xml:space="preserve"><value>Tiles</value></data>
   <data name="BlocksAddTip" xml:space="preserve"><value>Add a block</value></data>
   <data name="BlocksDeleteTip" xml:space="preserve"><value>Delete the selected block</value></data>
-  <data name="BlocksFit" xml:space="preserve"><value>Fit</value></data>
   <data name="BlocksFitTip" xml:space="preserve"><value>Shrink the block to what the tiles take up</value></data>
   <data name="BlocksSizeTip" xml:space="preserve"><value>The size of the block</value></data>
   <data name="BlocksNoName" xml:space="preserve"><value>No name</value></data>

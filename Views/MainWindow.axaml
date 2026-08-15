@@ -6,10 +6,27 @@
         xmlns:views="clr-namespace:MSX_GameTools.Views"
         xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
         xmlns:l="clr-namespace:MSX_GameTools.Localization"
+        xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
         mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="560"
         x:Class="MSX_GameTools.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding WindowTitle}" Width="900" Height="560">
+
+  <Window.Styles>
+    <!-- Los de junto a los desplegables: pequeños, que acompañan a un ComboBox y no
+         tienen que competir con el. -->
+    <Style Selector="Button.bar > icons|MaterialIcon">
+      <Setter Property="Width" Value="16" />
+      <Setter Property="Height" Value="16" />
+    </Style>
+
+    <!-- La aspa de cerrar pestaña: del tamaño del rotulo que la acompaña, no del de un
+         boton de barra. Es un adorno del texto. -->
+    <Style Selector="Button.close > icons|MaterialIcon">
+      <Setter Property="Width" Value="11" />
+      <Setter Property="Height" Value="11" />
+    </Style>
+  </Window.Styles>
 
   <!-- El InputGesture del menu solo se dibuja; para que la tecla haga algo hace falta
        decirlo aqui. -->
@@ -119,18 +136,26 @@
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
-        <Button Content="+" Width="28" Margin="6,0,0,0"
+        <!-- La E de editar era la unica letra suelta de toda la barra, y una letra sola
+             no dice nada en ningun idioma. -->
+        <Button Classes="bar" Width="28" Margin="6,0,0,0"
                 HorizontalContentAlignment="Center"
                 Command="{Binding AddPaletteCommand}"
-                ToolTip.Tip="{l:Localize BarPaletteAddTip}" />
-        <Button Content="E" Width="28" Margin="2,0,0,0"
+                ToolTip.Tip="{l:Localize BarPaletteAddTip}">
+          <icons:MaterialIcon Kind="Plus" />
+        </Button>
+        <Button Classes="bar" Width="28" Margin="2,0,0,0"
                 HorizontalContentAlignment="Center"
                 Command="{Binding EditPaletteCommand}"
-                ToolTip.Tip="{l:Localize BarPaletteEditTip}" />
-        <Button Content="-" Width="28" Margin="2,0,0,0"
+                ToolTip.Tip="{l:Localize BarPaletteEditTip}">
+          <icons:MaterialIcon Kind="Pencil" />
+        </Button>
+        <Button Classes="bar" Width="28" Margin="2,0,0,0"
                 HorizontalContentAlignment="Center"
                 Command="{Binding DeletePaletteCommand}"
-                ToolTip.Tip="{l:Localize BarPaletteDeleteTip}" />
+                ToolTip.Tip="{l:Localize BarPaletteDeleteTip}">
+          <icons:MaterialIcon Kind="Minus" />
+        </Button>
       </StackPanel>
 
       <!-- Imagenes de referencia. Aqui va la gestion (cargar y borrar el fichero), no
@@ -148,17 +173,27 @@
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
-        <Button Content="+" Width="28" Margin="6,0,0,0"
+        <!-- Este no es un mas: abre el dialogo de fichero para traer una imagen de
+             fuera, y una carpeta lo dice mejor que un signo. -->
+        <Button Classes="bar" Width="28" Margin="6,0,0,0"
                 HorizontalContentAlignment="Center"
                 Command="{Binding LoadBackgroundCommand}"
-                ToolTip.Tip="{l:Localize BarBackgroundAddTip}" />
-        <Button Content="-" Width="28" Margin="2,0,0,0"
+                ToolTip.Tip="{l:Localize BarBackgroundAddTip}">
+          <icons:MaterialIcon Kind="FolderImage" />
+        </Button>
+        <Button Classes="bar" Width="28" Margin="2,0,0,0"
                 HorizontalContentAlignment="Center"
                 Command="{Binding DeleteBackgroundCommand}"
-                ToolTip.Tip="{l:Localize BarBackgroundDeleteTip}" />
+                ToolTip.Tip="{l:Localize BarBackgroundDeleteTip}">
+          <icons:MaterialIcon Kind="Minus" />
+        </Button>
       </StackPanel>
 
       <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+        <!-- Estos tres se quedan solo con el rotulo. Llevaban icono y texto, y con eso el
+             ultimo acababa en 1950 sobre una ventana de 1920: es lo que queda de un 4K al
+             200%, y esta barra ya iba al limite. El rotulo dice que se crea, que es lo
+             unico que hacen; el icono era adorno y ademas el que no cabia. -->
         <Button Content="{l:Localize BarAddMap}" MinWidth="90" Margin="4" Command="{Binding AddMapCommand}" />
         <Button Content="{l:Localize BarAddTileSet}" MinWidth="90" Margin="4" Command="{Binding AddTileSetCommand}" />
         <Button Content="{l:Localize BarAddSpriteBank}" MinWidth="90" Margin="4" Command="{Binding AddSpriteBankCommand}" />
@@ -199,12 +234,14 @@
               <!-- Cerrar no es eliminar: la pestaña se va de la vista pero el elemento
                    sigue en el arbol, y un doble clic alli la trae de vuelta con el
                    estado que tenia. Eliminar de verdad esta en el menu del arbol. -->
-              <Button Content="✕" FontSize="10" Padding="4,0" Margin="8,0,0,0"
+              <Button Classes="close" Padding="4,0" Margin="8,0,0,0"
                       VerticalAlignment="Center"
                       Background="Transparent" BorderThickness="0"
                       Command="{Binding $parent[TabControl].((vm:MainWindowViewModel)DataContext).CloseTabCommand}"
                       CommandParameter="{Binding}"
-                      ToolTip.Tip="{l:Localize TabCloseTip}" />
+                      ToolTip.Tip="{l:Localize TabCloseTip}">
+                <icons:MaterialIcon Kind="Close" />
+              </Button>
             </StackPanel>
           </DataTemplate>
         </TabControl.ItemTemplate>
@@ -227,12 +264,14 @@
             <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
               <!-- TabLabel y no Header: lleva el asterisco de lo que esta sin guardar. -->
               <TextBlock Text="{Binding TabLabel}" VerticalAlignment="Center" />
-              <Button Content="✕" FontSize="10" Padding="4,0" Margin="8,0,0,0"
+              <Button Classes="close" Padding="4,0" Margin="8,0,0,0"
                       VerticalAlignment="Center"
                       Background="Transparent" BorderThickness="0"
                       Command="{Binding $parent[TabControl].((vm:MainWindowViewModel)DataContext).CloseRightPanelCommand}"
                       CommandParameter="{Binding}"
-                      ToolTip.Tip="{l:Localize PanelCloseTip}" />
+                      ToolTip.Tip="{l:Localize PanelCloseTip}">
+                <icons:MaterialIcon Kind="Close" />
+              </Button>
             </StackPanel>
           </DataTemplate>
         </TabControl.ItemTemplate>

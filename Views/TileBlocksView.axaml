@@ -5,12 +5,18 @@
              xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
              xmlns:l="clr-namespace:MSX_GameTools.Localization"
              xmlns:views="clr-namespace:MSX_GameTools.Views"
+             xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="700"
              x:Class="MSX_GameTools.Views.TileBlocksView"
              x:DataType="vm:TileBlocksViewModel"
              Background="{DynamicResource AppPanelBackground}">
 
   <UserControl.Styles>
+    <Style Selector="Button > icons|MaterialIcon">
+      <Setter Property="Width" Value="16" />
+      <Setter Property="Height" Value="16" />
+    </Style>
+
     <!-- El recuadro de seleccion va superpuesto y sin cambiar de grosor, igual que en la
          rejilla del editor: si el borde creciera al seleccionar, los tiles bailarian. -->
     <Style Selector="Border.tile">
@@ -59,12 +65,16 @@
       </ListBox>
 
       <StackPanel Grid.Column="1" Margin="4,0,0,0">
-        <Button Content="+" Width="28" HorizontalContentAlignment="Center"
+        <Button Width="28" HorizontalContentAlignment="Center"
                 Command="{Binding AddBlockCommand}"
-                ToolTip.Tip="{l:Localize BlocksAddTip}" />
-        <Button Content="-" Width="28" Margin="0,4,0,0" HorizontalContentAlignment="Center"
+                ToolTip.Tip="{l:Localize BlocksAddTip}">
+          <icons:MaterialIcon Kind="Plus" />
+        </Button>
+        <Button Width="28" Margin="0,4,0,0" HorizontalContentAlignment="Center"
                 Command="{Binding DeleteBlockCommand}"
-                ToolTip.Tip="{l:Localize BlocksDeleteTip}" />
+                ToolTip.Tip="{l:Localize BlocksDeleteTip}">
+          <icons:MaterialIcon Kind="Minus" />
+        </Button>
       </StackPanel>
     </Grid>
 
@@ -111,9 +121,14 @@
                        Minimum="1" Maximum="16" Increment="1" FormatString="0"
                        IsEnabled="{Binding CanResizeBlock}"
                        Value="{Binding SelectedBlock.Height}" />
-        <Button Grid.Column="5" Content="{l:Localize BlocksFit}" Margin="6,0,0,0" Padding="8,2"
+        <!-- Recorta, no encuadra: por eso no lleva el icono de ajustar a la pagina que usa
+             el zoom del editor de mapas. Ahi se cambia lo que ves; aqui se cambia el
+             bloque. -->
+        <Button Grid.Column="5" Margin="6,0,0,0" Padding="6,2"
                 Command="{Binding FitToContentCommand}"
-                ToolTip.Tip="{l:Localize BlocksFitTip}" />
+                ToolTip.Tip="{l:Localize BlocksFitTip}">
+          <icons:MaterialIcon Kind="Crop" />
+        </Button>
       </Grid>
 
       <Border Grid.Row="2" Background="Gray" Padding="4">

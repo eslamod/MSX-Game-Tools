@@ -99,6 +99,46 @@ public class ToolStripLayoutTests : IDisposable
         AssertIconsExplainThemselves(editor.View, atLeast: 4);
     }
 
+    /// <summary>Y en el panel de bloques.</summary>
+    [AvaloniaFact]
+    public void En_el_panel_de_bloques_los_iconos_tambien_se_explican()
+    {
+        var main = new MainWindowViewModel();
+        TileSetEditorViewModel tiles = main.OpenTileSet(new TileSet("Bosque"));
+
+        var view = new TileBlocksView { DataContext = new TileBlocksViewModel(tiles) };
+        var window = new Window { Content = view, Width = 420, Height = 800 };
+
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        AssertIconsExplainThemselves(view, atLeast: 3);
+
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+    }
+
+    /// <summary>Y en la barra de arriba, con una pestaña abierta para que salga su aspa.</summary>
+    [AvaloniaFact]
+    public void En_la_barra_de_arriba_los_iconos_tambien_se_explican()
+    {
+        var main = new MainWindowViewModel();
+
+        main.OpenTileSet(new TileSet("Bosque"));
+
+        var window = new MainWindow { DataContext = main, Width = 1280, Height = 720 };
+
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        // Cinco de la barra —los tres de paleta y los dos de fondo— mas el aspa de la
+        // pestaña. Los tres de crear llevan rotulo y no cuentan.
+        AssertIconsExplainThemselves(window, atLeast: 6);
+
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+    }
+
     /// <summary>
     /// La tira de zoom y modo de pintado cabe en su columna.
     /// </summary>

@@ -5,6 +5,7 @@ using Avalonia.Headless.XUnit;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Material.Icons.Avalonia;
 using MSX_GameTools.Entities;
 using MSX_GameTools.Localization;
 using MSX_GameTools.ViewModels;
@@ -250,7 +251,22 @@ public class PanelFitTests
             .Where(control => !control.GetVisualAncestors().OfType<ScrollViewer>().Any());
 
     private static string Describe(Control control) =>
-        $"{control.GetType().Name} «{(control as ContentControl)?.Content}»";
+        $"{control.GetType().Name} «{Label(control)}»";
+
+    /// <summary>Con qué llamar al control en el mensaje.</summary>
+    /// <remarks>
+    /// Desde que los botones llevan icono, su contenido es un panel y no una cadena: sin
+    /// esto el aviso decía «Avalonia.Controls.StackPanel» y no había forma de saber cuál
+    /// de ellos se estaba saliendo. Se busca el texto dentro, y si no hay ninguno queda el
+    /// icono, que también identifica.
+    /// </remarks>
+    private static string Label(Control control) => control switch
+    {
+        ContentControl { Content: string text } => text,
+        _ => control.GetVisualDescendants().OfType<TextBlock>().FirstOrDefault()?.Text
+             ?? control.GetVisualDescendants().OfType<MaterialIcon>().FirstOrDefault()?.Kind.ToString()
+             ?? control.GetType().Name,
+    };
 
     /// <summary>
     /// Los botones del diálogo crecen con su texto.
