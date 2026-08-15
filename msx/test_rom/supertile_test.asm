@@ -309,9 +309,15 @@ ReadSuperHeader:
 ; A = B * A, con el resultado en A. Los dos caben en un byte y el producto
 ; tambien: ocho por ocho son 64.
 MulBytes:
-                ld c,a
-                xor a
-                or b
+                ld c,a          ; C = lo que se va sumando
+                xor a           ; y el acumulador empieza a cero
+
+                ; Si B es cero el producto es cero, y djnz daria 256 vueltas. Se
+                ; comprueba con inc/dec y no con «or b», que ademas de mirar el
+                ; cero deja A valiendo B: asi el producto salia b + b*c, y con
+                ; supertiles de 2x2 el area daba 6 en vez de 4.
+                inc b
+                dec b
                 ret z
 MulNextByte:
                 add a,c
@@ -735,27 +741,27 @@ PaletteData:
 PaletteEnd:
 
 PatternsData:
-                .incbin "tiles_patterns.bin"
-              ; .include "tiles_patterns.asm"
+              ;  .incbin "tiles_patterns.bin"
+                 .include "tileset_super_patterns.asm"
 PatternsEnd:
 
 ColorsData:
-                .incbin "tiles_colors.bin"
-              ; .include "tiles_colors.asm"
+              ;  .incbin "tiles_colors.bin"
+                .include "tileset_super_colors.asm"
 ColorsEnd:
 
 ; La tabla: tres bytes de cabecera y los tiles de cada supertile.
 SuperData:
-                .incbin "tiles_supertiles.bin"
-              ; .include "tiles_supertiles.asm"
+              ; .incbin "tiles_supertiles.bin"
+                .include "tileset_super_supertiles.asm"
 SuperEnd:
 
 ; El mapa, con sus celdas en numeros de supertile. Con otro nombre que el de
 ; map_test a proposito: son mapas distintos y no se pueden intercambiar, porque
 ; alli una celda es un tile y aqui un supertile.
 MapData:
-                .incbin "super_map.bin"
-              ; .include "super_map.asm"
+              ;  .incbin "super_map.bin"
+                .include "Mapa_superTiles.asm"
 MapEnd:
 
 ; Relleno hasta 32K, que es lo que ocupa un cartucho en las paginas 1 y 2.

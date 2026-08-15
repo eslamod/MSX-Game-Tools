@@ -310,6 +310,14 @@ leer los tiles por columnas en vez de por filas da un dibujo transpuesto que a
 simple vista puede pasar por bueno; con 2x3, un orden equivocado descuadra la
 pantalla entera y no hay forma de no verlo.
 
+Pero conviene probar **también con uno cuadrado y dos supertiles bien distintos**
+—uno todo de un tile y otro todo de otro—, porque eso caza un fallo que el
+rectangular disimula: si la cuenta de dónde empieza cada supertile dentro de la
+tabla se desvía, cada uno se lee mezclado con el vecino y salen supertiles que no
+son ninguno de los definidos. Así se encontró que la multiplicación de la ROM
+devolvía 6 donde tenía que devolver 4. Dos manchas grandes de colores planos lo
+delatan al instante; un dibujo con detalle, no.
+
 Una cuenta de 0 en la cabecera significa 256, que es el tope que un mapa puede
 nombrar porque cada celda es un byte.
 
