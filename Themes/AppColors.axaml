@@ -236,5 +236,89 @@
 
     </ResourceDictionary>
 
+    <!-- ============================================================ clara azulada -->
+    <!-- Las dos claras teñidas van igual que sus hermanas oscuras, heredando de la clara.
+         La selección sí baja de tono aquí: en claro Fluent la pinta con su azul fuerte y
+         el texto encima en negro —medido, #0078D7 con negro, unos 4,2 de contraste—, que
+         es justo. Con una pálida y texto negro se lee mucho mejor. -->
+    <ResourceDictionary x:Key="{x:Static services:AppTheme.LightBlue}">
+
+      <SolidColorBrush x:Key="AppPanelBackground" Color="#D6DCE4" />
+      <SolidColorBrush x:Key="AppSurfaceBackground" Color="#EBEFF4" />
+      <SolidColorBrush x:Key="AppSeparator" Color="#A3ACB8" />
+      <SolidColorBrush x:Key="AppControlBorder" Color="#8A95A3" />
+      <SolidColorBrush x:Key="AppListBackground" Color="#F8FAFC" />
+
+      <SolidColorBrush x:Key="AppListSelection" Color="#AECBEA" />
+      <SolidColorBrush x:Key="AppListSelectionHover" Color="#C0D8F0" />
+
+      <SolidColorBrush x:Key="AppTextSecondary" Color="#55606E" />
+      <SolidColorBrush x:Key="AppGlyph" Color="#2A323C" />
+
+      <SolidColorBrush x:Key="AppToolButtonBackground" Color="#EBEFF4" />
+      <SolidColorBrush x:Key="AppToolButtonBorder" Color="#8A95A3" />
+      <SolidColorBrush x:Key="AppToolButtonHoverBackground" Color="#DCE2EA" />
+
+      <SolidColorBrush x:Key="AppSwatchBorder" Color="#55606E" />
+
+    </ResourceDictionary>
+
+    <!-- ============================================================ clara anaranjada -->
+    <!-- Y ésta, como la oscura anaranjada, además tiñe el acento de Fluent: el azul de
+         serie desentona igual sobre grises cálidos claros que sobre oscuros. -->
+    <ResourceDictionary x:Key="{x:Static services:AppTheme.LightOrange}">
+
+      <SolidColorBrush x:Key="AppPanelBackground" Color="#E6DED4" />
+      <SolidColorBrush x:Key="AppSurfaceBackground" Color="#F5F0E9" />
+      <SolidColorBrush x:Key="AppSeparator" Color="#B8AC9C" />
+      <SolidColorBrush x:Key="AppControlBorder" Color="#9E9384" />
+      <SolidColorBrush x:Key="AppListBackground" Color="#FDFBF7" />
+
+      <SolidColorBrush x:Key="AppListSelection" Color="#F0C591" />
+      <SolidColorBrush x:Key="AppListSelectionHover" Color="#F7D6AE" />
+
+      <SolidColorBrush x:Key="AppTextSecondary" Color="#6B5F50" />
+      <SolidColorBrush x:Key="AppGlyph" Color="#3A322A" />
+
+      <SolidColorBrush x:Key="AppToolButtonBackground" Color="#F5F0E9" />
+      <SolidColorBrush x:Key="AppToolButtonBorder" Color="#9E9384" />
+      <SolidColorBrush x:Key="AppToolButtonHoverBackground" Color="#E9E1D6" />
+      <SolidColorBrush x:Key="AppToolButtonCheckedBackground" Color="#C2681E" />
+      <SolidColorBrush x:Key="AppToolButtonCheckedBorder" Color="#9B5218" />
+
+      <SolidColorBrush x:Key="AppSwatchBorder" Color="#6B5F50" />
+
+      <!-- El mismo bloque de claves que la oscura anaranjada. Ver allí el porqué de tener
+           que nombrarlas una a una. -->
+      <Color x:Key="SystemAccentColor">#C2681E</Color>
+      <Color x:Key="SystemAccentColorLight1">#E07F2E</Color>
+      <Color x:Key="SystemAccentColorLight2">#EC9A57</Color>
+      <Color x:Key="SystemAccentColorLight3">#F5BC8C</Color>
+      <Color x:Key="SystemAccentColorDark1">#9B5218</Color>
+      <Color x:Key="SystemAccentColorDark2">#743D12</Color>
+      <Color x:Key="SystemAccentColorDark3">#4D290C</Color>
+
+      <SolidColorBrush x:Key="SliderTrackValueFill" Color="#C2681E" />
+      <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="#E07F2E" />
+      <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#9B5218" />
+      <SolidColorBrush x:Key="SliderThumbBackground" Color="#C2681E" />
+      <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#E07F2E" />
+
+      <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked" Color="#C2681E" />
+      <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedFill" Color="#C2681E" />
+      <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedStroke" Color="#C2681E" />
+      <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#C2681E" />
+      <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected" Color="#C2681E" />
+      <SolidColorBrush x:Key="AccentButtonBackground" Color="#C2681E" />
+
+      <SolidColorBrush x:Key="SystemControlForegroundAccentBrush" Color="#C2681E" />
+      <SolidColorBrush x:Key="SystemControlBackgroundAccentBrush" Color="#C2681E" />
+      <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#C2681E" />
+      <SolidColorBrush x:Key="SystemControlHighlightListAccentLowBrush" Color="#C2681E" />
+      <SolidColorBrush x:Key="SystemControlHighlightAltListAccentLowBrush" Color="#C2681E" />
+      <Color x:Key="TextControlSelectionHighlightColor">#C2681E</Color>
+
+    </ResourceDictionary>
+
   </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>

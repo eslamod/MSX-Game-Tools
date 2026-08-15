@@ -209,12 +209,92 @@ public class ThemeVariantTests
     [InlineData("AppHighlightBackground")]
     [InlineData("AppGlyphAlert")]
     [InlineData("AppSwatchHoverBorder")]
-    public void Lo_que_una_variante_teñida_no_declara_lo_hereda_de_la_oscura(string key)
+    public void Lo_que_una_variante_teñida_no_declara_lo_hereda_de_su_base(string key)
     {
         Color dark = Resolve(key, ThemeVariant.Dark);
+        Color light = Resolve(key, ThemeVariant.Light);
 
         Assert.Equal(dark, Resolve(key, AppTheme.Blue));
         Assert.Equal(dark, Resolve(key, AppTheme.Orange));
+        Assert.Equal(light, Resolve(key, AppTheme.LightBlue));
+        Assert.Equal(light, Resolve(key, AppTheme.LightOrange));
+    }
+
+    /// <summary>
+    /// Cada teñida hereda de la base que le toca: las oscuras oscuras y las claras claras.
+    /// </summary>
+    /// <remarks>
+    /// Es lo que se rompe si al declarar una variante nueva se copia el
+    /// <c>ThemeVariant</c> de al lado y se olvida cambiarle la base: saldría una «clara»
+    /// con los textos de la oscura, ilegible sobre su propio fondo.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Cada_teñida_hereda_de_la_base_que_le_toca()
+    {
+        int light = Brightness(Resolve("AppPanelBackground", ThemeVariant.Light));
+        int dark = Brightness(Resolve("AppPanelBackground", ThemeVariant.Dark));
+
+        foreach (ThemeVariant variant in (ThemeVariant[])[AppTheme.Blue, AppTheme.Orange])
+        {
+            Assert.True(
+                Brightness(Resolve("AppPanelBackground", variant)) < (light + dark) / 2,
+                $"«{variant}» debería ser oscura y su panel sale claro.");
+        }
+
+        foreach (ThemeVariant variant in (ThemeVariant[])[AppTheme.LightBlue, AppTheme.LightOrange])
+        {
+            Assert.True(
+                Brightness(Resolve("AppPanelBackground", variant)) > (light + dark) / 2,
+                $"«{variant}» debería ser clara y su panel sale oscuro.");
+        }
+    }
+
+    /// <summary>
+    /// En toda variante, el texto atenuado se distingue de su panel.
+    /// </summary>
+    /// <remarks>
+    /// La regla que hay que mantener al añadir variantes, y la que se olvida: un tono
+    /// nuevo se elige mirando el fondo, y el texto secundario es lo primero que se pierde.
+    /// </remarks>
+    [AvaloniaFact]
+    public void En_toda_variante_el_texto_atenuado_se_distingue_del_panel()
+    {
+        ThemeVariant[] all =
+        [
+            ThemeVariant.Light, ThemeVariant.Dark,
+            AppTheme.Blue, AppTheme.Orange, AppTheme.LightBlue, AppTheme.LightOrange,
+        ];
+
+        foreach (ThemeVariant variant in all)
+        {
+            int panel = Brightness(Resolve("AppPanelBackground", variant));
+            int text = Brightness(Resolve("AppTextSecondary", variant));
+
+            Assert.True(
+                Math.Abs(panel - text) > 150,
+                $"En «{variant}» el texto atenuado y el panel se diferencian en "
+                + $"{Math.Abs(panel - text)}, que es poco para leerlo.");
+        }
+    }
+
+    /// <summary>Y la selección de las claras teñidas deja leer el texto negro de encima.</summary>
+    /// <remarks>
+    /// En claro Fluent pinta la fila seleccionada con su azul fuerte y el texto encima en
+    /// negro —medido: #0078D7 con negro—, que es justo de contraste. Las teñidas usan una
+    /// selección pálida a propósito, y esto lo vigila.
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_seleccion_de_las_claras_teñidas_deja_leer_el_texto()
+    {
+        foreach (ThemeVariant variant in (ThemeVariant[])[AppTheme.LightBlue, AppTheme.LightOrange])
+        {
+            Color selection = Resolve("AppListSelection", variant);
+
+            Assert.True(
+                Brightness(selection) > 500,
+                $"En «{variant}» la selección sale {selection}, demasiado oscura para "
+                + "el texto negro que Fluent pone encima en las variantes claras.");
+        }
     }
 
     /// <summary>

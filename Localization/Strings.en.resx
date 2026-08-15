@@ -175,6 +175,8 @@
   <data name="PreferencesThemeDark" xml:space="preserve"><value>Dark</value></data>
   <data name="PreferencesThemeBlue" xml:space="preserve"><value>Dark blue</value></data>
   <data name="PreferencesThemeOrange" xml:space="preserve"><value>Dark amber</value></data>
+  <data name="PreferencesThemeLightBlue" xml:space="preserve"><value>Light blue</value></data>
+  <data name="PreferencesThemeLightOrange" xml:space="preserve"><value>Light amber</value></data>
   <data name="PreferencesZoom" xml:space="preserve"><value>Starting zoom</value></data>
   <data name="PreferencesSpriteCanvas" xml:space="preserve"><value>Sprite canvas</value></data>
   <data name="PreferencesSpriteThumbnails" xml:space="preserve"><value>Sprite thumbnails</value></data>

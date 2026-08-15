@@ -113,6 +113,8 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
         new(Localizer.Instance["PreferencesThemeDark"], AppThemeVariant.Dark),
         new(Localizer.Instance["PreferencesThemeBlue"], AppThemeVariant.Blue),
         new(Localizer.Instance["PreferencesThemeOrange"], AppThemeVariant.Orange),
+        new(Localizer.Instance["PreferencesThemeLightBlue"], AppThemeVariant.LightBlue),
+        new(Localizer.Instance["PreferencesThemeLightOrange"], AppThemeVariant.LightOrange),
     ];
 
     /// <summary>Los lienzos de dibujo, que guardan la posición del botón y no el factor.</summary>

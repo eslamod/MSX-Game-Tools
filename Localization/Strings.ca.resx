@@ -176,6 +176,8 @@
   <data name="PreferencesThemeDark" xml:space="preserve"><value>Fosc</value></data>
   <data name="PreferencesThemeBlue" xml:space="preserve"><value>Fosc blavós</value></data>
   <data name="PreferencesThemeOrange" xml:space="preserve"><value>Fosc ataronjat</value></data>
+  <data name="PreferencesThemeLightBlue" xml:space="preserve"><value>Clar blavós</value></data>
+  <data name="PreferencesThemeLightOrange" xml:space="preserve"><value>Clar ataronjat</value></data>
   <data name="PreferencesZoom" xml:space="preserve"><value>Zoom de partida</value></data>
   <data name="PreferencesSpriteCanvas" xml:space="preserve"><value>Llenç de sprites</value></data>
   <data name="PreferencesSpriteThumbnails" xml:space="preserve"><value>Miniatures de sprites</value></data>

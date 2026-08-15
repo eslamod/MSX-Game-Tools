@@ -38,4 +38,10 @@ public enum AppThemeVariant
     /// que se están editando.
     /// </remarks>
     Orange,
+
+    /// <summary>Clara con los grises virados a azul.</summary>
+    LightBlue,
+
+    /// <summary>Clara con los grises virados a cálido y el acento en ámbar.</summary>
+    LightOrange,
 }

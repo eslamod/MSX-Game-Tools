@@ -194,6 +194,8 @@
   <data name="PreferencesThemeDark" xml:space="preserve"><value>Oscuro</value></data>
   <data name="PreferencesThemeBlue" xml:space="preserve"><value>Oscuro azulado</value></data>
   <data name="PreferencesThemeOrange" xml:space="preserve"><value>Oscuro anaranjado</value></data>
+  <data name="PreferencesThemeLightBlue" xml:space="preserve"><value>Claro azulado</value></data>
+  <data name="PreferencesThemeLightOrange" xml:space="preserve"><value>Claro anaranjado</value></data>
   <data name="PreferencesZoom" xml:space="preserve"><value>Zoom de partida</value></data>
   <data name="PreferencesSpriteCanvas" xml:space="preserve"><value>Lienzo de sprites</value></data>
   <data name="PreferencesSpriteThumbnails" xml:space="preserve"><value>Miniaturas de sprites</value></data>
