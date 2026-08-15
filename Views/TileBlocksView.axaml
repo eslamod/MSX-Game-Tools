@@ -114,26 +114,29 @@
         <TextBox Watermark="{l:Localize BlocksNoName}"
                  Text="{Binding SelectedBlock.Name}" />
 
-        <!-- Los dos giradores se reparten lo que quede: con ancho fijo o sobra hueco a la
-             derecha o falta sitio para el numero, segun como este el separador. -->
-        <Grid ColumnDefinitions="Auto,*,Auto,*,Auto">
+        <!-- Ancho fijo y una columna elastica al final que se come lo que sobre. Estirados
+             quedaban ridiculos: un numero que va de 1 a 16 no necesita media anchura del
+             panel, y con el separador abierto la caja se iba a mas de doscientos. Los 102
+             son lo justo para dos cifras mas los dos botones del girador, que se llevan
+             sesenta y ocho ellos solos. -->
+        <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*">
           <!-- Apagados en un juego de supertiles: ahi un bloque es una celda del mapa y
                tiene que medir lo que mida el supertile, ni mas ni menos. Uno de otro
                tamaño no se podria colocar en ninguna parte. -->
           <TextBlock Grid.Column="0" Text="W" VerticalAlignment="Center" Margin="0,0,4,0" />
-          <NumericUpDown Grid.Column="1" MinWidth="102" ShowButtonSpinner="True"
+          <NumericUpDown Grid.Column="1" Width="102" ShowButtonSpinner="True"
                          Minimum="1" Maximum="16" Increment="1" FormatString="0"
                          IsEnabled="{Binding CanResizeBlock}"
                          Value="{Binding SelectedBlock.Width}" />
-          <TextBlock Grid.Column="2" Text="H" VerticalAlignment="Center" Margin="8,0,4,0" />
-          <NumericUpDown Grid.Column="3" MinWidth="102" ShowButtonSpinner="True"
+          <TextBlock Grid.Column="2" Text="H" VerticalAlignment="Center" Margin="10,0,4,0" />
+          <NumericUpDown Grid.Column="3" Width="102" ShowButtonSpinner="True"
                          Minimum="1" Maximum="16" Increment="1" FormatString="0"
                          IsEnabled="{Binding CanResizeBlock}"
                          Value="{Binding SelectedBlock.Height}" />
           <!-- Recorta, no encuadra: por eso no lleva el icono de ajustar a la pagina que
                usa el zoom del editor de mapas. Ahi se cambia lo que ves; aqui se cambia el
                bloque. -->
-          <Button Grid.Column="4" Margin="6,0,0,0" Padding="6,2"
+          <Button Grid.Column="4" Margin="8,0,0,0" Padding="6,2"
                   Command="{Binding FitToContentCommand}"
                   ToolTip.Tip="{l:Localize BlocksFitTip}">
             <icons:MaterialIcon Kind="Crop" />

@@ -41,6 +41,13 @@ public class ToolStripLayoutTests : IDisposable
     /// </remarks>
     private const double ShortName = 80;
 
+    /// <summary>Lo más ancho que se le consiente al girador del tamaño.</summary>
+    /// <remarks>
+    /// El valor va de 1 a 16. Repartiendo el hueco sobrante entre los dos, con el separador
+    /// abierto la caja pasaba de doscientos para enseñar una cifra.
+    /// </remarks>
+    private const double Roomy = 120;
+
     private readonly Window _window;
     private readonly MapEditorView _view;
 
@@ -216,12 +223,14 @@ public class ToolStripLayoutTests : IDisposable
     /// número —el control sigue ahí, con sus flechas, y sólo se nota mirándolo—.
     /// </remarks>
     /// <param name="width">
-    /// El panel se estira con su separador, así que se mide también estrecho: los dos
-    /// giradores se llevan lo suyo por ancho fijo y lo que sobra es para el nombre.
+    /// El panel se estira con su separador, así que se mide en los dos extremos: cerrado,
+    /// que es donde el número desaparecía, y abierto del todo, que es donde se estiraba
+    /// hasta ocupar media anchura para enseñar una cifra.
     /// </param>
     [AvaloniaTheory]
-    [InlineData(380)]
     [InlineData(300)]
+    [InlineData(380)]
+    [InlineData(700)]
     public void El_ancho_y_el_alto_del_bloque_se_leen(int width)
     {
         var main = new MainWindowViewModel();
@@ -249,6 +258,12 @@ public class ToolStripLayoutTests : IDisposable
                 $"La caja del número mide {box.Bounds.Width:0.0} dentro de un control de "
                 + $"{number.Bounds.Width:0.0}, y hacen falta {TwoDigits} para leer dos "
                 + "cifras: se ve el girador pero no el valor.");
+
+            Assert.True(
+                number.Bounds.Width <= Roomy,
+                $"Con el panel a {width}, el girador mide {number.Bounds.Width:0.0} para "
+                + $"enseñar dos cifras, y el tope está en {Roomy}: se está estirando con "
+                + "el panel en vez de quedarse quieto.");
         }
 
         // Y lo que ganan los números no se lo pueden quitar todo al nombre, que comparte
