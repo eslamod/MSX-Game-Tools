@@ -166,6 +166,14 @@
   <data name="NewTileSetTitle" xml:space="preserve"><value>Nuevo juego de tiles</value></data>
   <data name="NewTileSetHint" xml:space="preserve"><value>Juego 1</value></data>
   <data name="NewTileSetNote" xml:space="preserve"><value>256 tiles de 8x8, vacíos.</value></data>
+  <data name="NewTileSetSuperTiles" xml:space="preserve"><value>Los mapas de este juego van por supertiles</value></data>
+  <data name="NewTileSetSuperTilesNote" xml:space="preserve"><value>Sus bloques medirán siempre esto y no se podrán redimensionar: cada uno es una celda del mapa.</value></data>
+  <data name="NewTileSetSuperWidth" xml:space="preserve"><value>Ancho</value></data>
+  <data name="NewTileSetSuperHeight" xml:space="preserve"><value>Alto</value></data>
+  <data name="NewMapKind" xml:space="preserve"><value>Va a ser</value></data>
+  <data name="NewMapKindTiles" xml:space="preserve"><value>Un mapa de tiles sueltos.</value></data>
+  <data name="NewMapKindSuperTiles" xml:space="preserve"><value>Un mapa de supertiles de {0}x{1}. El tamaño se pide en supertiles.</value></data>
+  <data name="BlocksFixedBySuperTiles" xml:space="preserve"><value>Supertiles de {0}: el tamaño no se toca.</value></data>
 
   <!-- Crear un mapa -->
   <data name="NewMapTitle" xml:space="preserve"><value>Nuevo mapa</value></data>

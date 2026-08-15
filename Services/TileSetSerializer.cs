@@ -33,11 +33,12 @@ namespace MSX_GameTools.Services;
 public static class TileSetSerializer
 {
     /// <summary>
-    /// La 2 añade los bloques y la 3 la identidad del juego. Los ficheros anteriores se
-    /// siguen abriendo: sin bloques los de la 1, y con una identidad recién hecha los de
-    /// la 2, que es lo que los mapas antiguos esperan porque ellos van por el nombre.
+    /// La 2 añade los bloques, la 3 la identidad del juego y la 4 el tamaño del supertile.
+    /// Los ficheros anteriores se siguen abriendo: sin bloques los de la 1, con una
+    /// identidad recién hecha los de la 2 —que es lo que los mapas antiguos esperan porque
+    /// van por el nombre— y sin supertiles los de la 3, que es lo que eran.
     /// </summary>
-    public const int FormatVersion = 3;
+    public const int FormatVersion = 4;
 
     /// <summary>Ocho bytes por tabla y dos dígitos por byte.</summary>
     private const int Digits = Tile.Rows * 2;
@@ -81,6 +82,11 @@ public static class TileSetSerializer
         foreach (TileFile tile in file.Tiles ?? [])
             ReadTile(tile, tileSet);
 
+        // Antes de los bloques: si el juego va de supertiles, sus bloques miden lo que
+        // diga esto, y leerlo despues dejaria la comprobacion para nunca.
+        tileSet.SuperTileWidth = file.SuperTileWidth;
+        tileSet.SuperTileHeight = file.SuperTileHeight;
+
         foreach (BlockFile block in file.Blocks ?? [])
             tileSet.Blocks.Add(ReadBlock(block));
 
@@ -96,7 +102,9 @@ public static class TileSetSerializer
         borderColorIndex,
         PaletteSerializer.ToFile(palette),
         [.. Drawn(tileSet)],
-        [.. tileSet.Blocks.Select(ToFile)]);
+        [.. tileSet.Blocks.Select(ToFile)],
+        tileSet.SuperTileWidth,
+        tileSet.SuperTileHeight);
 
     private static BlockFile ToFile(TileBlock block) => new(
         block.Name,
@@ -238,7 +246,9 @@ public static class TileSetSerializer
         int BorderColor,
         PaletteSerializer.PaletteFile? Palette,
         IReadOnlyList<TileFile>? Tiles,
-        IReadOnlyList<BlockFile>? Blocks);
+        IReadOnlyList<BlockFile>? Blocks,
+        int SuperTileWidth = 0,
+        int SuperTileHeight = 0);
 
     private sealed record TileFile(int Index, string? Pattern, string? Colors);
 

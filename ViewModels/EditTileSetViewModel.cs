@@ -26,6 +26,23 @@ public partial class EditTileSetViewModel : PanelBaseViewModel
     [ObservableProperty]
     private ColorPalette _palette;
 
+    /// <summary>
+    /// Si los mapas de este juego se dibujan con supertiles en vez de tiles sueltos.
+    /// </summary>
+    /// <remarks>
+    /// Se pregunta aquí y no al crear el mapa porque el tamaño del supertile es del juego:
+    /// un supertile es un bloque con el tamaño clavado, y los bloques cuelgan del juego.
+    /// Preguntándolo por mapa, dos mapas del mismo juego podrían pedir tamaños distintos.
+    /// </remarks>
+    [ObservableProperty]
+    private bool _useSuperTiles;
+
+    [ObservableProperty]
+    private int _superTileWidth = 2;
+
+    [ObservableProperty]
+    private int _superTileHeight = 2;
+
     public EditTileSetViewModel(MainWindowViewModel mainWindowVm)
     {
         _mainWindowVm = mainWindowVm;
@@ -48,6 +65,9 @@ public partial class EditTileSetViewModel : PanelBaseViewModel
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
+    /// <summary>Lo más grande que puede medir un supertile por cada lado.</summary>
+    public static int MaxSuperTileSide => TileSet.MaxSuperTileSide;
+
     [RelayCommand]
     private void AcceptTileSet()
     {
@@ -57,10 +77,26 @@ public partial class EditTileSetViewModel : PanelBaseViewModel
             return;
         }
 
+        if (UseSuperTiles
+            && (SuperTileWidth is < 1 || SuperTileHeight is < 1
+                || SuperTileWidth > MaxSuperTileSide || SuperTileHeight > MaxSuperTileSide))
+        {
+            ErrorMessage = $"El supertile tiene que medir entre 1 y {MaxSuperTileSide} en cada lado.";
+            return;
+        }
+
         ErrorMessage = null;
 
+        var tileSet = new TileSet(Name);
+
+        if (UseSuperTiles)
+        {
+            tileSet.SuperTileWidth = SuperTileWidth;
+            tileSet.SuperTileHeight = SuperTileHeight;
+        }
+
         // Recien creado y vacio: no hay nada que perder todavia, asi que sale sin marcar.
-        _mainWindowVm.OpenTileSet(new TileSet(Name), Palette).MarkClean();
+        _mainWindowVm.OpenTileSet(tileSet, Palette).MarkClean();
         _mainWindowVm.RightPanViewModel = null;
     }
 

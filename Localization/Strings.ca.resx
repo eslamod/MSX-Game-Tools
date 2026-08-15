@@ -150,6 +150,14 @@
   <data name="NewTileSetTitle" xml:space="preserve"><value>Joc de tiles nou</value></data>
   <data name="NewTileSetHint" xml:space="preserve"><value>Joc 1</value></data>
   <data name="NewTileSetNote" xml:space="preserve"><value>256 tiles de 8x8, buits.</value></data>
+  <data name="NewTileSetSuperTiles" xml:space="preserve"><value>Els mapes d'aquest joc van per supertiles</value></data>
+  <data name="NewTileSetSuperTilesNote" xml:space="preserve"><value>Els seus blocs mesuraran sempre això i no es podran redimensionar: cadascun és una cel·la del mapa.</value></data>
+  <data name="NewTileSetSuperWidth" xml:space="preserve"><value>Amplada</value></data>
+  <data name="NewTileSetSuperHeight" xml:space="preserve"><value>Alçada</value></data>
+  <data name="NewMapKind" xml:space="preserve"><value>Serà</value></data>
+  <data name="NewMapKindTiles" xml:space="preserve"><value>Un mapa de tiles solts.</value></data>
+  <data name="NewMapKindSuperTiles" xml:space="preserve"><value>Un mapa de supertiles de {0}x{1}. La mida es demana en supertiles.</value></data>
+  <data name="BlocksFixedBySuperTiles" xml:space="preserve"><value>Supertiles de {0}: la mida no es toca.</value></data>
 
   <data name="NewMapTitle" xml:space="preserve"><value>Mapa nou</value></data>
   <data name="NewMapHint" xml:space="preserve"><value>Mapa 1</value></data>

@@ -102,10 +102,33 @@ public partial class TileBlocksViewModel : PanelBaseViewModel
     /// <summary>Tiles por fila del selector, la misma disposición que el editor y el png.</summary>
     public int TilesPerRow => 32;
 
+    /// <summary>
+    /// Si este juego va de supertiles, y entonces sus bloques tienen el tamaño clavado.
+    /// </summary>
+    /// <remarks>
+    /// En un juego de supertiles un bloque no es un adorno para pintar más rápido: es una
+    /// celda del mapa. Uno de otro tamaño no se podría colocar en ninguna parte.
+    /// </remarks>
+    public bool HasSuperTiles => TileSet.HasSuperTiles;
+
+    /// <summary>Lo que mide un supertile, escrito, para el aviso del panel.</summary>
+    public string SuperTileLabel =>
+        HasSuperTiles ? $"{TileSet.SuperTileWidth} × {TileSet.SuperTileHeight}" : string.Empty;
+
+    public bool CanResizeBlock => !HasSuperTiles;
+
     [RelayCommand]
     private void AddBlock()
     {
         var block = new TileBlock(NextAvailableName());
+
+        // En un juego de supertiles nace ya con el tamaño que toca: es una celda del mapa
+        // y no se puede cambiar, asi que no tiene sentido empezar en 1x1 y crecer.
+        if (HasSuperTiles)
+        {
+            block.Width = TileSet.SuperTileWidth;
+            block.Height = TileSet.SuperTileHeight;
+        }
 
         TileSet.Blocks.Add(block);
 
@@ -143,7 +166,7 @@ public partial class TileBlocksViewModel : PanelBaseViewModel
     /// El tamaño no se deduce solo al borrar, que dejaría un supertile de 2x2 con la
     /// esquina vacía convertido en 2x1. Cuando de verdad sobra sitio, se pide con esto.
     /// </remarks>
-    [RelayCommand(CanExecute = nameof(HasBlock))]
+    [RelayCommand(CanExecute = nameof(CanFitToContent))]
     private void FitToContent()
     {
         if (SelectedBlock is not { } block)
@@ -155,6 +178,9 @@ public partial class TileBlocksViewModel : PanelBaseViewModel
         block.Width = Math.Max(1, width);
         block.Height = Math.Max(1, height);
     }
+
+    /// <summary>En un juego de supertiles no hay nada que ajustar: el tamaño es fijo.</summary>
+    private bool CanFitToContent() => HasBlock && CanResizeBlock;
 
     /// <summary>Coge un tile suelto, que es un trozo de una celda.</summary>
     public void SelectTile(int index) => SelectRange(index, index);

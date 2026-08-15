@@ -9,25 +9,30 @@
              x:DataType="vm:EditMapViewModel"
              Background="Gainsboro">
 
-  <Grid Margin="10" RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto">
+  <!-- El titulo arriba, los botones abajo y lo de en medio con barra: al crecer el
+       formulario, las filas Auto empujaban a Aceptar y Cancelar fuera del panel. -->
+  <Grid Margin="10" RowDefinitions="Auto,*,Auto">
 
     <TextBlock Grid.Row="0" Text="{l:Localize NewMapTitle}" FontWeight="Bold" Margin="0,0,0,10" />
 
-    <Grid Grid.Row="1" ColumnDefinitions="70,*" Margin="0,0,0,6">
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel>
+
+    <Grid ColumnDefinitions="70,*" Margin="0,0,0,6">
       <TextBlock Grid.Column="0" Text="{l:Localize FormName}" VerticalAlignment="Center" />
       <TextBox Grid.Column="1" Text="{Binding Name}" Watermark="{l:Localize NewMapHint}" />
     </Grid>
 
     <!-- El tamaño se pide al crear y no se deduce: un mapa vacío no tiene contenido del
          que sacarlo, y cambiarlo después es una operación aparte. -->
-    <Grid Grid.Row="2" ColumnDefinitions="70,*" Margin="0,0,0,6">
+    <Grid ColumnDefinitions="70,*" Margin="0,0,0,6">
       <TextBlock Grid.Column="0" Text="{l:Localize NewMapColumns}" VerticalAlignment="Center" />
       <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
                      Minimum="1" Maximum="{Binding MaxSide}" Increment="1"
                      Value="{Binding Columns}" />
     </Grid>
 
-    <Grid Grid.Row="3" ColumnDefinitions="70,*" Margin="0,0,0,6">
+    <Grid ColumnDefinitions="70,*" Margin="0,0,0,6">
       <TextBlock Grid.Column="0" Text="{l:Localize NewMapRows}" VerticalAlignment="Center" />
       <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
                      Minimum="1" Maximum="{Binding MaxSide}" Increment="1"
@@ -36,7 +41,7 @@
 
     <!-- Con qué juego se dibuja. Un mapa son números de tile: sin saber de cuál son, no
          significan nada. -->
-    <Grid Grid.Row="4" ColumnDefinitions="70,*" Margin="0,0,0,6">
+    <Grid ColumnDefinitions="70,*" Margin="0,0,0,6">
       <TextBlock Grid.Column="0" Text="{l:Localize NewMapTileSet}" VerticalAlignment="Center" />
       <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                 ItemsSource="{Binding TileSets}"
@@ -49,11 +54,24 @@
       </ComboBox>
     </Grid>
 
-    <TextBlock Grid.Row="5" Text="{Binding ErrorMessage}" Foreground="Firebrick"
+    <!-- Que va a salir, segun el juego elegido. No se elige aqui: el tamaño del supertile
+         es del juego, asi que preguntarlo por mapa dejaria a dos mapas del mismo juego
+         pidiendo tamaños distintos. Se dice para no enterarse despues. -->
+    <Grid ColumnDefinitions="70,*" Margin="0,0,0,6" VerticalAlignment="Top">
+      <TextBlock Grid.Column="0" Text="{l:Localize NewMapKind}" VerticalAlignment="Top" />
+      <TextBlock Grid.Column="1" Text="{Binding KindLabel}" TextWrapping="Wrap"
+                 Foreground="#606060" />
+    </Grid>
+
+    <TextBlock Text="{Binding ErrorMessage}" Foreground="Firebrick"
                TextWrapping="Wrap" VerticalAlignment="Top"
                IsVisible="{Binding HasError}" />
 
-    <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right">
+      </StackPanel>
+    </ScrollViewer>
+
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right"
+                Margin="0,10,0,0">
       <Button Content="{l:Localize FormAccept}" MinWidth="90" Command="{Binding AcceptMapCommand}" />
       <Button Content="{l:Localize FormCancel}" MinWidth="90" Margin="8,0,0,0" Command="{Binding CancelMapCommand}" />
     </StackPanel>

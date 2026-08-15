@@ -27,6 +27,8 @@ public partial class EditMapViewModel : PanelBaseViewModel
     private int _rows = 24;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(UsesSuperTiles))]
+    [NotifyPropertyChangedFor(nameof(KindLabel))]
     private TileSetEditorViewModel? _tileSet;
 
     [ObservableProperty]
@@ -57,6 +59,29 @@ public partial class EditMapViewModel : PanelBaseViewModel
 
     /// <summary>Lo más grande que se puede pedir, que es lo que aguanta el mapa.</summary>
     public int MaxSide => TileMap.MaxSide;
+
+    /// <summary>
+    /// Si el mapa va a ser de supertiles, que lo decide el juego con el que se dibuja.
+    /// </summary>
+    /// <remarks>
+    /// No se elige aquí: el tamaño del supertile es del juego de tiles, así que preguntarlo
+    /// por mapa dejaría a dos mapas del mismo juego pidiendo tamaños distintos. Aquí sólo
+    /// se dice lo que va a salir, para no enterarse después.
+    /// </remarks>
+    public bool UsesSuperTiles => TileSet?.TileSet.HasSuperTiles ?? false;
+
+    /// <summary>De qué va el mapa que va a salir, y en qué unidades se está pidiendo.</summary>
+    public string KindLabel
+    {
+        get
+        {
+            if (TileSet?.TileSet is not { HasSuperTiles: true } tiles)
+                return Localizer.Instance["NewMapKindTiles"];
+
+            return Localizer.Instance.Format(
+                "NewMapKindSuperTiles", tiles.SuperTileWidth, tiles.SuperTileHeight);
+        }
+    }
 
     [RelayCommand]
     private void AcceptMap()

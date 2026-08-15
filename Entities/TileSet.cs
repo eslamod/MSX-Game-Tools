@@ -36,6 +36,19 @@ public class TileSet
     /// <summary>Filas que salen de los 256 tiles repartidos de 32 en 32.</summary>
     public const int GridRows = TileCount / Columns;
 
+    /// <summary>
+    /// Lo más grande que puede ser un supertile por cada lado.
+    /// </summary>
+    /// <remarks>
+    /// Ocho tiles son 64 pixeles, un cuarto de pantalla de ancho. Más grande que eso el
+    /// mapa tendría tan pocas celdas que colocarlas deja de ser dibujar.
+    /// </remarks>
+    public const int MaxSuperTileSide = 8;
+
+    private int _superTileWidth;
+
+    private int _superTileHeight;
+
     public TileSet(string name = "")
     {
         Name = name;
@@ -72,6 +85,43 @@ public class TileSet
     /// abiertos a la vez, un bloque suelto se vería como un churro con el juego que no es.
     /// </remarks>
     public IList<TileBlock> Blocks { get; } = new List<TileBlock>();
+
+    /// <summary>
+    /// Ancho del supertile de este juego en tiles, o 0 si no va de supertiles.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Vive aquí y no en el mapa a propósito. Un supertile es un bloque con el tamaño
+    /// clavado, y los bloques cuelgan del juego porque son números de tile. Poniendo el
+    /// tamaño en el mapa, dos mapas del mismo juego podrían pedir tamaños distintos y la
+    /// regla «los bloques de este juego miden 2x2» no se podría cumplir para los dos.
+    /// </para>
+    /// <para>
+    /// Así además la tabla de supertiles la comparten todos los mapas del juego, que es
+    /// como se escribe en la máquina: una tabla y varios niveles que la indexan.
+    /// </para>
+    /// </remarks>
+    public int SuperTileWidth
+    {
+        get => _superTileWidth;
+        set => _superTileWidth = ClampSide(value);
+    }
+
+    /// <inheritdoc cref="SuperTileWidth"/>
+    public int SuperTileHeight
+    {
+        get => _superTileHeight;
+        set => _superTileHeight = ClampSide(value);
+    }
+
+    /// <summary>Si este juego se dibuja con supertiles en vez de con tiles sueltos.</summary>
+    public bool HasSuperTiles => SuperTileWidth > 0 && SuperTileHeight > 0;
+
+    /// <summary>Tiles que ocupa un supertile, que es lo que mide una celda del mapa.</summary>
+    public int SuperTileArea => SuperTileWidth * SuperTileHeight;
+
+    private static int ClampSide(int value) =>
+        value <= 0 ? 0 : Math.Min(value, MaxSuperTileSide);
 
     /// <summary>Copia los dibujos de un rectángulo de la rejilla.</summary>
     public TileSetPatch Copy(int left, int top, int width, int height)
