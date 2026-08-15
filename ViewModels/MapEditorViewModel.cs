@@ -260,6 +260,14 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
 
         // Un bloque es un supertile aqui, asi que su dibujo tambien cambia.
         RefreshSuperTiles();
+
+        // Y el juego puede haber pasado a ser de supertiles mientras el mapa estaba
+        // abierto: entonces cambia de que van sus celdas y cuanto miden.
+        OnPropertyChanged(nameof(UsesSuperTiles));
+        OnPropertyChanged(nameof(CellTilesWidth));
+        OnPropertyChanged(nameof(CellTilesHeight));
+        OnPropertyChanged(nameof(CellImages));
+
         RefreshRequested?.Invoke();
     }
 

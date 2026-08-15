@@ -120,6 +120,37 @@ public class TileSet
     /// <summary>Tiles que ocupa un supertile, que es lo que mide una celda del mapa.</summary>
     public int SuperTileArea => SuperTileWidth * SuperTileHeight;
 
+    /// <summary>
+    /// Pone el tamaño del supertile y deja los bloques que ya hubiera midiendo eso.
+    /// </summary>
+    /// <remarks>
+    /// Los bloques se ajustan porque en un juego de supertiles cada uno es una celda del
+    /// mapa: dejar uno de 3x1 entre supertiles de 2x2 sería dejar algo que no se puede
+    /// colocar en ninguna parte. Lo que sobre se recorta, que es lo que hace la rejilla al
+    /// encogerse, y lo que falte queda vacío.
+    /// </remarks>
+    public void UseSuperTiles(int width, int height)
+    {
+        SuperTileWidth = width;
+        SuperTileHeight = height;
+
+        if (!HasSuperTiles)
+            return;
+
+        foreach (TileBlock block in Blocks)
+        {
+            block.Width = SuperTileWidth;
+            block.Height = SuperTileHeight;
+        }
+    }
+
+    /// <summary>Deja de ir por supertiles. Los bloques se quedan como estén.</summary>
+    public void DropSuperTiles()
+    {
+        SuperTileWidth = 0;
+        SuperTileHeight = 0;
+    }
+
     private static int ClampSide(int value) =>
         value <= 0 ? 0 : Math.Min(value, MaxSuperTileSide);
 

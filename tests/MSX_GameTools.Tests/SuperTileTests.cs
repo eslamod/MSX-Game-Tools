@@ -309,6 +309,132 @@ public class SuperTileTests
         Assert.Contains("2x2", form.KindLabel);
     }
 
+    // ------------------------------------------------------------------ marcarlo despues
+
+    /// <summary>
+    /// Un juego que ya existe se puede pasar a supertiles desde sus propiedades.
+    /// </summary>
+    /// <remarks>
+    /// Es justo el caso: un juego con sus tiles ya dibujados es el que uno quiere pasar a
+    /// supertiles, y volver a empezar de cero para eso no tiene sentido.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Un_juego_que_ya_existe_se_puede_pasar_a_supertiles()
+    {
+        var main = new MainWindowViewModel();
+        TileSetEditorViewModel tiles = main.OpenTileSet(new TileSet("Bosque"));
+
+        tiles.MarkClean();
+
+        var form = new EditPropertiesViewModel(main, tiles)
+        {
+            UseSuperTiles = true,
+            SuperTileWidth = 2,
+            SuperTileHeight = 3,
+        };
+
+        form.AcceptPropertiesCommand.Execute(null);
+
+        Assert.True(tiles.TileSet.HasSuperTiles);
+        Assert.Equal(2, tiles.TileSet.SuperTileWidth);
+        Assert.Equal(3, tiles.TileSet.SuperTileHeight);
+
+        // Y el juego queda sin guardar, que su fichero ha cambiado.
+        Assert.True(tiles.IsModified);
+    }
+
+    /// <summary>
+    /// Los bloques que ya hubiera pasan a medir el supertile.
+    /// </summary>
+    /// <remarks>
+    /// Dejar uno de 3x1 entre supertiles de 2x2 sería dejar algo que no se puede colocar en
+    /// ninguna parte.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Al_pasar_a_supertiles_los_bloques_se_ajustan()
+    {
+        var tileSet = new TileSet("Bosque");
+        tileSet.Blocks.Add(new TileBlock("Ancho") { [0, 0] = 1, [2, 0] = 3 });
+        tileSet.Blocks.Add(new TileBlock("Alto") { [0, 0] = 1, [0, 3] = 4 });
+
+        tileSet.UseSuperTiles(2, 2);
+
+        Assert.All(tileSet.Blocks, block =>
+        {
+            Assert.Equal(2, block.Width);
+            Assert.Equal(2, block.Height);
+        });
+
+        // Lo que cabia se queda: la esquina de arriba a la izquierda no se toca.
+        Assert.Equal(1, tileSet.Blocks[0][0, 0]);
+    }
+
+    /// <summary>Y el aviso lo dice antes de aceptar, con lo que hay delante.</summary>
+    [AvaloniaFact]
+    public void El_panel_avisa_de_lo_que_va_a_pasar()
+    {
+        var main = new MainWindowViewModel();
+        var tileSet = new TileSet("Bosque");
+
+        tileSet.Blocks.Add(new TileBlock("Arbol"));
+        tileSet.Blocks.Add(new TileBlock("Roca"));
+
+        TileSetEditorViewModel tiles = main.OpenTileSet(tileSet);
+        main.OpenMap(new TileMap("Nivel", 8, 8), tiles);
+
+        var form = new EditPropertiesViewModel(main, tiles);
+
+        // Sin tocar nada no hay nada que avisar.
+        Assert.False(form.HasSuperTileWarning);
+
+        form.UseSuperTiles = true;
+
+        Assert.Contains("2 bloques", form.SuperTileWarning);
+        Assert.Contains("supertile", form.SuperTileWarning);
+    }
+
+    /// <summary>Un mapa abierto se entera de que su juego ha cambiado.</summary>
+    [AvaloniaFact]
+    public void El_mapa_abierto_se_entera_del_cambio()
+    {
+        var main = new MainWindowViewModel();
+        var tileSet = new TileSet("Bosque");
+
+        tileSet.Blocks.Add(new TileBlock("Arbol") { [0, 0] = 1 });
+
+        TileSetEditorViewModel tiles = main.OpenTileSet(tileSet);
+        MapEditorViewModel map = main.OpenMap(new TileMap("Nivel", 8, 8), tiles);
+
+        Assert.False(map.UsesSuperTiles);
+        Assert.Empty(map.SuperTiles);
+
+        var form = new EditPropertiesViewModel(main, tiles) { UseSuperTiles = true };
+        form.AcceptPropertiesCommand.Execute(null);
+
+        Assert.True(map.UsesSuperTiles);
+        Assert.Equal(2, map.CellTilesWidth);
+        Assert.Single(map.SuperTiles);
+    }
+
+    /// <summary>Renombrar sin tocar los supertiles no ajusta nada.</summary>
+    [AvaloniaFact]
+    public void Renombrar_no_toca_los_bloques()
+    {
+        var main = new MainWindowViewModel();
+        var tileSet = new TileSet("Bosque");
+
+        tileSet.Blocks.Add(new TileBlock("Ancho") { [2, 0] = 3 });
+
+        TileSetEditorViewModel tiles = main.OpenTileSet(tileSet);
+
+        var form = new EditPropertiesViewModel(main, tiles) { Name = "Otro" };
+        form.AcceptPropertiesCommand.Execute(null);
+
+        Assert.Equal("Otro", tileSet.Name);
+        Assert.Equal(3, tileSet.Blocks[0].Width);
+        Assert.False(tileSet.HasSuperTiles);
+    }
+
     /// <summary>Un mapa abierto sobre ese juego de tiles.</summary>
     private static MapEditorViewModel NewMap(TileSet tileSet) =>
         new(new TileMap("Nivel", 8, 8),
