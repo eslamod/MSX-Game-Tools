@@ -1,11 +1,15 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using MSX_GameTools.Entities;
 using MSX_GameTools.Localization;
 using MSX_GameTools.Services;
 using MSX_GameTools.ViewModels;
+using MSX_GameTools.Views;
 using Xunit;
 
 namespace MSX_GameTools.Tests;
@@ -354,6 +358,56 @@ public class PaletteSwapTests
 
         Assert.True(showed, "Tras intercambiar dos colores tendria que salir el boton de aplicar.");
         Assert.True(hidAgain, "Al deshacer los intercambios el boton tendria que irse.");
+    }
+
+    /// <summary>
+    /// Pulsar sobre una fila de la lista tiene que llegar al panel para poder arrastrarla.
+    /// </summary>
+    /// <remarks>
+    /// Esto es lo que estaba roto: el <c>ListBoxItem</c> marca el <c>PointerPressed</c>
+    /// como manejado al seleccionar la fila, y un manejador puesto desde el XAML no recibe
+    /// los eventos ya manejados. El arrastre no empezaba nunca. Con el ratón de verdad y
+    /// no llamando al manejador a mano, que si no la prueba pasaría igual estando mal.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Pulsar_en_un_color_lo_deja_listo_para_arrastrar()
+    {
+        var main = new MainWindowViewModel(new TestDialogService());
+        main.AddPaletteCommand.Execute(null);
+
+        var panel = (EditPaletteViewModel)main.RightPanViewModel!;
+
+        var window = new Window
+        {
+            Content = new ContentControl { Content = panel },
+            Width = 360,
+            Height = 700,
+        };
+
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        EditPaletteView view = window.GetVisualDescendants().OfType<EditPaletteView>().Single();
+        ListBox list = view.GetVisualDescendants().OfType<ListBox>().Single();
+
+        // La fila del color 5, por su contenedor: es donde pincharía el usuario.
+        ListBoxItem row = list.GetRealizedContainers()
+            .OfType<ListBoxItem>()
+            .Single(item => item.DataContext is PaletteColor { Index: 5 });
+
+        Point centre = row.TranslatePoint(
+            new Point(row.Bounds.Width / 2, row.Bounds.Height / 2), window)!.Value;
+
+        window.MouseDown(centre, MouseButton.Left);
+        Dispatcher.UIThread.RunJobs();
+
+        int? pressed = view.PressedIndex;
+
+        window.MouseUp(centre, MouseButton.Left);
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(5, pressed);
     }
 
     /// <summary>

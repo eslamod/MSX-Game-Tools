@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using MSX_GameTools.ViewModels;
 
@@ -34,10 +35,26 @@ public partial class EditPaletteView : UserControl
     {
         InitializeComponent();
 
+        // Por la bajada y no por la subida: el ListBoxItem marca como manejado el
+        // PointerPressed al seleccionar la fila, y un manejador normal —el que se pone
+        // desde el XAML— no recibe los eventos ya manejados. Enganchado ahí, el arrastre
+        // no llegaba a empezar nunca por mucho que se moviera el raton.
+        AddHandler(PointerPressedEvent, OnColorPressed, RoutingStrategies.Tunnel);
+        AddHandler(PointerMovedEvent, OnColorMoved, RoutingStrategies.Tunnel);
+        AddHandler(PointerReleasedEvent, OnColorReleased, RoutingStrategies.Tunnel);
+
         AddHandler(DragDrop.DragOverEvent, OnDragOver);
         AddHandler(DragDrop.DropEvent, OnDrop);
         AddHandler(DragDrop.DragLeaveEvent, OnDragLeave);
     }
+
+    /// <summary>Índice del color que se ha pulsado y todavía no se ha soltado.</summary>
+    /// <remarks>
+    /// Expuesto para poder comprobarlo desde fuera: que la pulsación llegue hasta aquí es
+    /// justo lo que fallaba, y el arrastre de verdad no se puede simular sin sistema
+    /// operativo debajo.
+    /// </remarks>
+    public int? PressedIndex => _pressed?.Index;
 
     private EditPaletteViewModel? Editor => DataContext as EditPaletteViewModel;
 

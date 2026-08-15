@@ -8,6 +8,7 @@
              mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="600"
              x:Class="MSX_GameTools.Views.EditPaletteView"
              x:DataType="vm:EditPaletteViewModel"
+             DragDrop.AllowDrop="True"
              Background="Gainsboro">
 
   <UserControl.Styles>
@@ -56,9 +57,6 @@
              SelectionMode="Single"
              DragDrop.AllowDrop="True"
              ToolTip.Tip="{l:Localize PaletteSwapTip}"
-             PointerPressed="OnColorPressed"
-             PointerMoved="OnColorMoved"
-             PointerReleased="OnColorReleased"
              ScrollViewer.VerticalScrollBarVisibility="Disabled">
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="entities:PaletteColor">
