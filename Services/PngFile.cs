@@ -51,6 +51,8 @@ public static class PngFile
                 Marshal.Copy(pixels, y * size.Width, buffer.Address + (y * buffer.RowBytes), size.Width);
         }
 
-        bitmap.Save(path);
+        // Con opciones explicitas: la sobrecarga del entero suelto -que era la calidad-
+        // esta obsoleta desde Avalonia 12, y en un png la calidad no significa nada.
+        bitmap.Save(path, new PngBitmapEncoderOptions());
     }
 }
