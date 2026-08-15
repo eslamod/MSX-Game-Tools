@@ -24,6 +24,9 @@ public static class AppTheme
     /// </remarks>
     public static ThemeVariant Blue { get; } = new("Blue", ThemeVariant.Dark);
 
+    /// <inheritdoc cref="Blue"/>
+    public static ThemeVariant Orange { get; } = new("Orange", ThemeVariant.Dark);
+
     /// <summary>La variante de Avalonia que corresponde a la elegida.</summary>
     /// <remarks>
     /// «Del sistema» es <see cref="ThemeVariant.Default"/>: Avalonia mira entonces lo que
@@ -35,6 +38,7 @@ public static class AppTheme
         AppThemeVariant.Light => ThemeVariant.Light,
         AppThemeVariant.Dark => ThemeVariant.Dark,
         AppThemeVariant.Blue => Blue,
+        AppThemeVariant.Orange => Orange,
         _ => ThemeVariant.Default,
     };
 

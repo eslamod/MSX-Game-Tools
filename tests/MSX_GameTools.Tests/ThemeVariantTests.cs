@@ -209,9 +209,67 @@ public class ThemeVariantTests
     [InlineData("AppHighlightBackground")]
     [InlineData("AppGlyphAlert")]
     [InlineData("AppSwatchHoverBorder")]
-    public void Lo_que_la_azulada_no_declara_lo_hereda_de_la_oscura(string key)
+    public void Lo_que_una_variante_teñida_no_declara_lo_hereda_de_la_oscura(string key)
     {
-        Assert.Equal(Resolve(key, ThemeVariant.Dark), Resolve(key, AppTheme.Blue));
+        Color dark = Resolve(key, ThemeVariant.Dark);
+
+        Assert.Equal(dark, Resolve(key, AppTheme.Blue));
+        Assert.Equal(dark, Resolve(key, AppTheme.Orange));
+    }
+
+    /// <summary>
+    /// La anaranjada vira los grises a cálido.
+    /// </summary>
+    [AvaloniaFact]
+    public void La_anaranjada_tiñe_los_neutros_a_calido()
+    {
+        Color panel = Resolve("AppPanelBackground", AppTheme.Orange);
+
+        Assert.True(
+            panel.R > panel.B + 8,
+            $"El panel anaranjado sale {panel}, que no tiene calidez suficiente para notarse.");
+
+        Assert.True(
+            Brightness(panel) < Brightness(Resolve("AppPanelBackground", ThemeVariant.Light)),
+            $"El panel anaranjado sale {panel} y no es más oscuro que el de la variante clara.");
+    }
+
+    /// <summary>
+    /// Y además tiñe el acento de Fluent, que es lo que pinta los deslizadores.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Ésta es la prueba que decide si el enfoque vale. Medido antes de escribirla: todo el
+    /// acento de Fluent sale de <c>SystemAccentColor</c>, y quien lo enseña a la vista en
+    /// esta aplicación son los deslizadores R, G y B del panel de paleta.
+    /// </para>
+    /// <para>
+    /// Si Fluent resolviera ese color al cargar su tema en vez de al pintar, redefinirlo en
+    /// nuestro diccionario no llegaría al control y el deslizador seguiría azul. Por eso se
+    /// mide sobre un <see cref="Slider"/> montado y no sobre el recurso.
+    /// </para>
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_anaranjada_tiñe_tambien_el_acento_de_Fluent()
+    {
+        Color orange = SliderAccent(AppTheme.Orange);
+        Color dark = SliderAccent(ThemeVariant.Dark);
+
+        Assert.True(
+            orange != dark,
+            $"El deslizador sale {orange} con la anaranjada, igual que con la oscura: "
+            + "redefinir SystemAccentColor no está llegando al control.");
+
+        Assert.True(
+            orange.R > orange.B,
+            $"El acento anaranjado sale {orange}, que no es cálido.");
+    }
+
+    /// <summary>Y la azulada no lo toca: allí el azul de serie va bien.</summary>
+    [AvaloniaFact]
+    public void La_azulada_se_queda_con_el_acento_de_Fluent()
+    {
+        Assert.Equal(SliderAccent(ThemeVariant.Dark), SliderAccent(AppTheme.Blue));
     }
 
     /// <summary>
@@ -407,6 +465,18 @@ public class ThemeVariantTests
             .OfType<Border>()
             .First(border => border.Name == "PART_Root")
             .Background);
+    }
+
+    /// <summary>El color con el que Fluent pinta la barra llena de un deslizador.</summary>
+    /// <remarks>
+    /// Es el sitio donde el acento se ve en esta aplicación: los tres deslizadores R, G y
+    /// B del panel de paleta, justo al lado de los colores que se están editando.
+    /// </remarks>
+    private static Color SliderAccent(ThemeVariant variant)
+    {
+        var slider = new Slider { Minimum = 0, Maximum = 10, Value = 6, Width = 200 };
+
+        return InScope(slider, variant, mounted => ((Slider)mounted).Foreground);
     }
 
     /// <summary>Monta el control con la variante pedida, lo mide y lo cierra.</summary>

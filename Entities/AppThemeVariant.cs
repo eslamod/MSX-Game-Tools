@@ -28,4 +28,14 @@ public enum AppThemeVariant
     /// la lista entera.
     /// </remarks>
     Blue,
+
+    /// <summary>
+    /// Oscura con los grises virados a cálido y el acento en ámbar.
+    /// </summary>
+    /// <remarks>
+    /// Ésta sí redefine el acento de Fluent: con los grises cálidos, el azul de serie que
+    /// pinta los deslizadores del panel de paleta desentona justo al lado de los colores
+    /// que se están editando.
+    /// </remarks>
+    Orange,
 }

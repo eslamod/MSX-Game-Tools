@@ -161,5 +161,80 @@
 
     </ResourceDictionary>
 
+    <!-- ============================================================ anaranjada -->
+    <!--
+      Como la azulada, pero además redefine el acento de Fluent.
+
+      Ese acento —medido: todo sale de SystemAccentColor, #0078D7— es lo que pinta los
+      deslizadores R, G y B del panel de paleta, las casillas marcadas, las opciones
+      elegidas y los aros de foco. Con los grises azulados el azul de Fluent armonizaba de
+      casualidad; con los cálidos desentona, y encima justo al lado de los colores que se
+      están editando, que es el peor sitio posible.
+
+      La azulada no lo toca a propósito: allí el azul de serie va bien y ya está aprobado.
+    -->
+    <ResourceDictionary x:Key="{x:Static services:AppTheme.Orange}">
+
+      <SolidColorBrush x:Key="AppPanelBackground" Color="#2E2823" />
+      <SolidColorBrush x:Key="AppSurfaceBackground" Color="#38312A" />
+      <SolidColorBrush x:Key="AppSeparator" Color="#4A4038" />
+      <SolidColorBrush x:Key="AppControlBorder" Color="#6B5D51" />
+      <SolidColorBrush x:Key="AppListBackground" Color="#241F1B" />
+
+      <SolidColorBrush x:Key="AppListSelection" Color="#855428" />
+      <SolidColorBrush x:Key="AppListSelectionHover" Color="#99632F" />
+
+      <SolidColorBrush x:Key="AppTextSecondary" Color="#B8A99B" />
+      <SolidColorBrush x:Key="AppGlyph" Color="#DED4C8" />
+
+      <SolidColorBrush x:Key="AppToolButtonBackground" Color="#403830" />
+      <SolidColorBrush x:Key="AppToolButtonBorder" Color="#6B5D51" />
+      <SolidColorBrush x:Key="AppToolButtonForeground" Color="#F0E8DF" />
+      <SolidColorBrush x:Key="AppToolButtonHoverBackground" Color="#4D443A" />
+      <SolidColorBrush x:Key="AppToolButtonCheckedBackground" Color="#855428" />
+      <SolidColorBrush x:Key="AppToolButtonCheckedBorder" Color="#633E1D" />
+
+      <SolidColorBrush x:Key="AppSwatchBorder" Color="#8F8074" />
+
+      <!--
+        El acento de Fluent. Son sus nombres, no los nuestros: es el acoplamiento que
+        evitamos en la fase 1 para poder cambiar de tema base barato, y que deja de
+        importar desde que Fluent se queda.
+
+        Hay que nombrarlos uno a uno. Redefinir SystemAccentColor no basta —se probó y el
+        deslizador seguia azul—: Fluent no deriva el color al pintar, lo resuelve al
+        cargar su tema en un brush por control. Estas claves salieron de medirlas; si en
+        una version futura cambian de nombre, la prueba del deslizador lo canta.
+      -->
+      <Color x:Key="SystemAccentColor">#C2681E</Color>
+      <Color x:Key="SystemAccentColorLight1">#E07F2E</Color>
+      <Color x:Key="SystemAccentColorLight2">#EC9A57</Color>
+      <Color x:Key="SystemAccentColorLight3">#F5BC8C</Color>
+      <Color x:Key="SystemAccentColorDark1">#9B5218</Color>
+      <Color x:Key="SystemAccentColorDark2">#743D12</Color>
+      <Color x:Key="SystemAccentColorDark3">#4D290C</Color>
+
+      <SolidColorBrush x:Key="SliderTrackValueFill" Color="#C2681E" />
+      <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="#E07F2E" />
+      <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#9B5218" />
+      <SolidColorBrush x:Key="SliderThumbBackground" Color="#C2681E" />
+      <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#E07F2E" />
+
+      <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked" Color="#C2681E" />
+      <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedFill" Color="#C2681E" />
+      <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedStroke" Color="#C2681E" />
+      <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#C2681E" />
+      <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected" Color="#C2681E" />
+      <SolidColorBrush x:Key="AccentButtonBackground" Color="#C2681E" />
+
+      <SolidColorBrush x:Key="SystemControlForegroundAccentBrush" Color="#C2681E" />
+      <SolidColorBrush x:Key="SystemControlBackgroundAccentBrush" Color="#C2681E" />
+      <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#C2681E" />
+      <SolidColorBrush x:Key="SystemControlHighlightListAccentLowBrush" Color="#C2681E" />
+      <SolidColorBrush x:Key="SystemControlHighlightAltListAccentLowBrush" Color="#C2681E" />
+      <Color x:Key="TextControlSelectionHighlightColor">#C2681E</Color>
+
+    </ResourceDictionary>
+
   </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>
