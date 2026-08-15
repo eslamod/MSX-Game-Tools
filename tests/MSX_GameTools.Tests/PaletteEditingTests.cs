@@ -59,17 +59,53 @@ public class PaletteEditingTests
         Assert.Equal(expected, color.Red);
     }
 
+    /// <summary>
+    /// Una paleta nueva sale sin nombres, aunque los colores sean los del MSX.
+    /// </summary>
+    /// <remarks>
+    /// Los nombres del MSX son de la máquina: «Light green» es <b>el</b> color 3 del
+    /// TMS9918, no una etiqueta. En una paleta propia el 3 acaba siendo cualquier otra
+    /// cosa, así que arrastrar ese nombre sólo sirve para que mienta en cuanto lo tocas.
+    /// Los nombres que salgan aquí los ha escrito el usuario, y por eso no se tiran nunca.
+    /// </remarks>
     [AvaloniaFact]
-    public void Cambiar_el_color_descarta_el_nombre_heredado()
+    public void Una_paleta_nueva_no_hereda_los_nombres_del_msx()
     {
         ColorPalette palette = new PaletteLibrary().Add();
-        Assert.Equal("Light green", palette[3].Name);
 
-        palette[3].Red = 7;
-
-        // "Light green" describía el color de la paleta original: ya no es cierto.
-        Assert.Equal(string.Empty, palette[3].Name);
+        Assert.All(palette.Colors, color => Assert.Equal(string.Empty, color.Name));
         Assert.Equal("Color 3", palette[3].DisplayName);
+
+        // Y los colores sí son los del MSX: es sólo el nombre lo que no se copia.
+        Assert.Equal("373", palette[3].HexRgb);
+    }
+
+    /// <summary>Copiar una paleta tuya sí se lleva los nombres: los escribiste tú.</summary>
+    [AvaloniaFact]
+    public void Copiar_una_paleta_propia_se_lleva_sus_nombres()
+    {
+        var library = new PaletteLibrary();
+
+        ColorPalette mine = library.Add("Nocturna");
+        mine[3].Name = "Verde del bosque";
+
+        ColorPalette copy = mine.Clone("Nocturna 2");
+
+        Assert.Equal("Verde del bosque", copy[3].Name);
+    }
+
+    /// <summary>La paleta del MSX no se toca, y no depende de que nadie se acuerde.</summary>
+    [AvaloniaFact]
+    public void La_paleta_del_msx_no_admite_cambios()
+    {
+        ColorPalette standard = ColorPalette.CreateMsxStandard();
+
+        standard[3].Red = 0;
+        standard[3].Name = "otro";
+        standard[3].SetComponents(0, 0, 0);
+
+        Assert.Equal("373", standard[3].HexRgb);
+        Assert.Equal("Light green", standard[3].Name);
     }
 
     [AvaloniaFact]

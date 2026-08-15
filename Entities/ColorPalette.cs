@@ -126,7 +126,7 @@ public sealed class ColorPalette : ObservableObject
     public static ColorPalette CreateMsxStandard() => new(
         StandardName,
         isReadOnly: true,
-        MsxColors.Select((c, i) => new PaletteColor(i, c.Name, c.R, c.G, c.B)));
+        MsxColors.Select((c, i) => new PaletteColor(i, c.Name, c.R, c.G, c.B, isLocked: true)));
 
     /// <summary>
     /// Se puede arrastrar esa entrada, o soltar algo encima.
@@ -162,11 +162,19 @@ public sealed class ColorPalette : ObservableObject
         return true;
     }
 
-    /// <summary>Una copia editable, con sus propios colores.</summary>
+    /// <summary>
+    /// Una copia editable, con sus propios colores.
+    /// </summary>
+    /// <remarks>
+    /// Los nombres se copian, porque los ha escrito el usuario y describen lo que él
+    /// quiso. Los de la paleta del MSX no: ésos son de la máquina —«Medium green» es el
+    /// color 2 del TMS9918, no una etiqueta— y en una paleta propia el índice 2 acaba
+    /// siendo cualquier otra cosa. Una copia de la del MSX arranca sin nombres.
+    /// </remarks>
     public ColorPalette Clone(string name) => new(
         name,
         isReadOnly: false,
-        _colors.Select(color => color.Clone()));
+        _colors.Select(color => color.Clone(withName: !IsReadOnly)));
 
     public override string ToString() => Name;
 

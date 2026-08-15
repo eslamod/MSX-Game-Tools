@@ -15,12 +15,6 @@ namespace MSX_GameTools.Services;
 public static class PaletteSerializer
 {
     /// <summary>Versión del formato. Un fichero más nuevo se rechaza en vez de leerse a medias.</summary>
-    /// <remarks>
-    /// Sigue en 1 después de añadir <c>inherited</c>: es un campo opcional que quien no lo
-    /// entienda puede ignorar sin leer nada mal —se queda con el comportamiento de antes,
-    /// que era tratar todos los nombres como escritos—. Subirla haría que una versión
-    /// anterior del editor rechazara ficheros que sabe abrir perfectamente.
-    /// </remarks>
     public const int FormatVersion = 1;
 
     internal static readonly JsonSerializerOptions Options = new()
@@ -60,8 +54,7 @@ public static class PaletteSerializer
         palette.Name,
         [.. palette.Colors.Select(color => new PaletteColorFile(
             color.HexRgb,
-            string.IsNullOrWhiteSpace(color.Name) ? null : color.Name,
-            color.HasInheritedName && !string.IsNullOrWhiteSpace(color.Name) ? true : null))]);
+            string.IsNullOrWhiteSpace(color.Name) ? null : color.Name))]);
 
     internal static ColorPalette FromFile(PaletteFile file)
     {
@@ -82,17 +75,10 @@ public static class PaletteSerializer
             PaletteColorFile entry = file.Colors![index];
             (int red, int green, int blue) = ParseRgb(entry.Rgb, index);
 
-            // La marca viaja en el fichero para que la paleta se comporte igual antes y
-            // después de guardar: un nombre heredado de la MSX se descarta al cambiar el
-            // color, y uno escrito por el usuario se respeta. Sin el campo —los ficheros
-            // de antes— se da por escrito, que es lo que hacían al abrirse.
-            colors.Add(new PaletteColor(
-                index,
-                entry.Name ?? string.Empty,
-                red,
-                green,
-                blue,
-                nameIsInherited: entry.Inherited ?? false));
+            // Todo nombre que llegue a un fichero lo ha escrito el usuario: los de la
+            // paleta del MSX son de la máquina y no salen de ella —una copia arranca sin
+            // nombres— y la propia paleta del MSX no se guarda nunca.
+            colors.Add(new PaletteColor(index, entry.Name ?? string.Empty, red, green, blue));
         }
 
         string name = string.IsNullOrWhiteSpace(file.Name) ? "Paleta sin nombre" : file.Name;
@@ -136,9 +122,5 @@ public static class PaletteSerializer
 
     internal sealed record PaletteFile(int Version, string? Name, IReadOnlyList<PaletteColorFile>? Colors);
 
-    /// <param name="Inherited">
-    /// El nombre viene heredado de la paleta de la que se copió y no lo eligió el usuario,
-    /// así que se descarta en cuanto se cambia el color. Se omite cuando no lo es.
-    /// </param>
-    internal sealed record PaletteColorFile(string? Rgb, string? Name, bool? Inherited = null);
+    internal sealed record PaletteColorFile(string? Rgb, string? Name);
 }

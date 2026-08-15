@@ -101,13 +101,13 @@ public class PaletteSwapTests
     {
         ColorPalette palette = ColorPalette.CreateMsxStandard().Clone("Mía");
 
-        string wasThree = palette[3].DisplayName;
-        string wasTen = palette[10].DisplayName;
+        palette[3].Name = "Hierba";
+        palette[10].Name = "Arena";
 
         palette.Swap(3, 10);
 
-        Assert.Equal(wasTen, palette[3].DisplayName);
-        Assert.Equal(wasThree, palette[10].DisplayName);
+        Assert.Equal("Arena", palette[3].Name);
+        Assert.Equal("Hierba", palette[10].Name);
     }
 
     /// <summary>
@@ -125,13 +125,15 @@ public class PaletteSwapTests
     {
         ColorPalette palette = ColorPalette.CreateMsxStandard().Clone("Mía");
 
+        palette[3].Name = "Hierba";
+
         List<string> seen = [];
         palette.ColorsChanged += _ => seen.Add(palette[2].DisplayName);
 
         palette.Swap(2, 3);
 
         Assert.NotEmpty(seen);
-        Assert.All(seen, name => Assert.Equal("Light green", name));
+        Assert.All(seen, name => Assert.Equal("Hierba", name));
     }
 
     [AvaloniaFact]

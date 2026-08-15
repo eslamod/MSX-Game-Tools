@@ -20,23 +20,23 @@ public sealed class PaletteColor : ObservableObject
     private readonly SolidColorBrush _brush;
 
     private string _name;
-    private bool _nameIsInherited;
     private int _red;
     private int _green;
     private int _blue;
 
-    /// <param name="nameIsInherited">
-    /// <c>true</c> si el nombre viene de la paleta de la que se copió y no lo eligió
-    /// el usuario. Un nombre heredado se descarta en cuanto el color cambia, porque
-    /// dejaría de describirlo; uno propio se respeta siempre.
+    /// <param name="isLocked">
+    /// <c>true</c> para los colores de la paleta fija del MSX, que no se tocan. Lo lleva
+    /// el color y no sólo la paleta para que la invariante la sostenga quien la tiene:
+    /// que el editor no se abra para la paleta de sólo lectura protege lo mismo, pero
+    /// desde fuera, y basta con que un panel nuevo se olvide.
     /// </param>
-    public PaletteColor(int index, string name, int red, int green, int blue, bool nameIsInherited = true)
+    public PaletteColor(int index, string name, int red, int green, int blue, bool isLocked = false)
     {
         Index = index;
         Hex = index.ToString("X1");
+        IsLocked = isLocked;
 
         _name = name;
-        _nameIsInherited = nameIsInherited;
         _red = Clamp(red);
         _green = Clamp(green);
         _blue = Clamp(blue);
@@ -51,6 +51,9 @@ public sealed class PaletteColor : ObservableObject
 
     /// <summary>Dígito hexadecimal del índice, "0" a "F".</summary>
     public string Hex { get; }
+
+    /// <summary>Es de la paleta fija del MSX y no admite cambios.</summary>
+    public bool IsLocked { get; }
 
     /// <summary>
     /// El índice 0 no es un color: la línea del sprite no se dibuja y se ve el fondo.
@@ -69,20 +72,15 @@ public sealed class PaletteColor : ObservableObject
         get => _name;
         set
         {
-            if (!SetProperty(ref _name, value))
+            if (IsLocked || !SetProperty(ref _name, value))
                 return;
 
-            // Si lo escribes tú, pasa a ser tuyo y ya no se descarta nunca.
-            _nameIsInherited = false;
             OnPropertyChanged(nameof(DisplayName));
         }
     }
 
     /// <summary>Lo que se enseña cuando el color no tiene nombre propio.</summary>
     public string DisplayName => string.IsNullOrWhiteSpace(_name) ? $"Color {Hex}" : _name;
-
-    /// <summary>El nombre viene heredado de la paleta original, no lo eligió el usuario.</summary>
-    public bool HasInheritedName => _nameIsInherited;
 
     /// <summary>Componente roja en el formato del MSX, 0-7.</summary>
     public int Red
@@ -112,7 +110,15 @@ public sealed class PaletteColor : ObservableObject
     /// <summary>Las tres componentes, un dígito hexadecimal cada una. Es lo que se guarda en fichero.</summary>
     public string HexRgb => $"{_red:X1}{_green:X1}{_blue:X1}";
 
-    public PaletteColor Clone() => new(Index, _name, _red, _green, _blue, _nameIsInherited);
+    /// <summary>
+    /// Una copia editable. Con el nombre, salvo que se pida sin él.
+    /// </summary>
+    /// <param name="withName">
+    /// <c>false</c> al copiar la paleta del MSX: sus nombres describen los colores fijos
+    /// de la máquina, y en una paleta tuya el índice 3 va a acabar siendo otra cosa.
+    /// </param>
+    public PaletteColor Clone(bool withName = true) =>
+        new(Index, withName ? _name : string.Empty, _red, _green, _blue);
 
     /// <summary>
     /// Se queda con el color de otra entrada: las componentes y el nombre, con su marca
@@ -126,22 +132,17 @@ public sealed class PaletteColor : ObservableObject
     /// </remarks>
     public void TakeFrom(PaletteColor other)
     {
-        bool renamed = _name != other._name || _nameIsInherited != other._nameIsInherited;
+        if (IsLocked)
+            return;
 
-        // El nombre nuevo antes de tocar las componentes, y no al revés: puesto después,
-        // había un instante con el color ya cambiado y el nombre en blanco —lo borra la
-        // regla de más abajo— y ese instante se notifica y se ve.
-        //
-        // Marcado como propio mientras duran las componentes para que esa regla no se lo
-        // lleve: descartar el nombre heredado tiene sentido cuando cambias un color y el
-        // nombre se queda describiendo al de antes, pero aquí el nombre viaja con su
-        // color, así que lo sigue describiendo igual de bien.
+        bool renamed = _name != other._name;
+
+        // El nombre antes que las componentes: así no hay ningún instante con el color ya
+        // cambiado y el nombre todavía siendo el de antes. Cada componente avisa, y ese
+        // aviso es el que repinta todo lo que dibuja con la paleta.
         _name = other._name;
-        _nameIsInherited = false;
 
         SetComponents(other._red, other._green, other._blue);
-
-        _nameIsInherited = other._nameIsInherited;
 
         if (!renamed)
             return;
@@ -161,24 +162,15 @@ public sealed class PaletteColor : ObservableObject
 
     private void SetComponent(ref int field, int value, string propertyName)
     {
+        if (IsLocked)
+            return;
+
         int clamped = Clamp(value);
         if (field == clamped)
             return;
 
         field = clamped;
         _brush.Color = Compose();
-
-        // El nombre heredado describía el color de la paleta original: en cuanto se
-        // toca deja de ser cierto, así que se descarta. El que hayas escrito tú se
-        // queda, porque no es una descripción del color sino la etiqueta que le diste.
-        if (_nameIsInherited && !string.IsNullOrEmpty(_name))
-        {
-            _name = string.Empty;
-            _nameIsInherited = false;
-
-            OnPropertyChanged(nameof(Name));
-            OnPropertyChanged(nameof(DisplayName));
-        }
 
         OnPropertyChanged(propertyName);
         OnPropertyChanged(nameof(Color));
