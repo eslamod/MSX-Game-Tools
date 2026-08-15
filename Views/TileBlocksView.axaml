@@ -105,31 +105,41 @@
 
       <!-- Nombre y tamaño del bloque. El tamaño crece solo al pintar mas alla, pero se
            puede fijar: un supertile de 2x2 con la esquina vacia sigue siendo de 2x2. -->
-      <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" Margin="0,0,0,4">
-        <TextBox Grid.Column="0" Watermark="{l:Localize BlocksNoName}"
+      <!-- El nombre en su propia linea. Iban los tres en una, y no cabian: un
+           NumericUpDown reparte su ancho entre la caja del numero y los dos botones del
+           girador, los botones van primero, y con el panel estrecho al numero le quedaban
+           dos pixeles. Se veian las flechas y no el valor. Ensanchandolos se arreglaba el
+           numero y se hundia el nombre, asi que lo que sobraba era la fila. -->
+      <StackPanel Grid.Row="1" Spacing="4" Margin="0,0,0,4">
+        <TextBox Watermark="{l:Localize BlocksNoName}"
                  Text="{Binding SelectedBlock.Name}" />
-        <!-- Apagados en un juego de supertiles: ahi un bloque es una celda del mapa y
-             tiene que medir lo que mida el supertile, ni mas ni menos. Uno de otro
-             tamaño no se podria colocar en ninguna parte. -->
-        <TextBlock Grid.Column="1" Text="W" VerticalAlignment="Center" Margin="6,0,2,0" />
-        <NumericUpDown Grid.Column="2" Width="70" ShowButtonSpinner="True"
-                       Minimum="1" Maximum="16" Increment="1" FormatString="0"
-                       IsEnabled="{Binding CanResizeBlock}"
-                       Value="{Binding SelectedBlock.Width}" />
-        <TextBlock Grid.Column="3" Text="H" VerticalAlignment="Center" Margin="6,0,2,0" />
-        <NumericUpDown Grid.Column="4" Width="70" ShowButtonSpinner="True"
-                       Minimum="1" Maximum="16" Increment="1" FormatString="0"
-                       IsEnabled="{Binding CanResizeBlock}"
-                       Value="{Binding SelectedBlock.Height}" />
-        <!-- Recorta, no encuadra: por eso no lleva el icono de ajustar a la pagina que usa
-             el zoom del editor de mapas. Ahi se cambia lo que ves; aqui se cambia el
-             bloque. -->
-        <Button Grid.Column="5" Margin="6,0,0,0" Padding="6,2"
-                Command="{Binding FitToContentCommand}"
-                ToolTip.Tip="{l:Localize BlocksFitTip}">
-          <icons:MaterialIcon Kind="Crop" />
-        </Button>
-      </Grid>
+
+        <!-- Los dos giradores se reparten lo que quede: con ancho fijo o sobra hueco a la
+             derecha o falta sitio para el numero, segun como este el separador. -->
+        <Grid ColumnDefinitions="Auto,*,Auto,*,Auto">
+          <!-- Apagados en un juego de supertiles: ahi un bloque es una celda del mapa y
+               tiene que medir lo que mida el supertile, ni mas ni menos. Uno de otro
+               tamaño no se podria colocar en ninguna parte. -->
+          <TextBlock Grid.Column="0" Text="W" VerticalAlignment="Center" Margin="0,0,4,0" />
+          <NumericUpDown Grid.Column="1" MinWidth="102" ShowButtonSpinner="True"
+                         Minimum="1" Maximum="16" Increment="1" FormatString="0"
+                         IsEnabled="{Binding CanResizeBlock}"
+                         Value="{Binding SelectedBlock.Width}" />
+          <TextBlock Grid.Column="2" Text="H" VerticalAlignment="Center" Margin="8,0,4,0" />
+          <NumericUpDown Grid.Column="3" MinWidth="102" ShowButtonSpinner="True"
+                         Minimum="1" Maximum="16" Increment="1" FormatString="0"
+                         IsEnabled="{Binding CanResizeBlock}"
+                         Value="{Binding SelectedBlock.Height}" />
+          <!-- Recorta, no encuadra: por eso no lleva el icono de ajustar a la pagina que
+               usa el zoom del editor de mapas. Ahi se cambia lo que ves; aqui se cambia el
+               bloque. -->
+          <Button Grid.Column="4" Margin="6,0,0,0" Padding="6,2"
+                  Command="{Binding FitToContentCommand}"
+                  ToolTip.Tip="{l:Localize BlocksFitTip}">
+            <icons:MaterialIcon Kind="Crop" />
+          </Button>
+        </Grid>
+      </StackPanel>
 
       <Border Grid.Row="2" Background="Gray" Padding="4">
         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"

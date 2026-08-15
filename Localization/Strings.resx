@@ -230,8 +230,8 @@
   <data name="SpritesColor" xml:space="preserve"><value>Color</value></data>
   <data name="SpritesColors" xml:space="preserve"><value>Colores</value></data>
   <data name="SpritesGroup" xml:space="preserve"><value>Grupo</value></data>
-  <data name="SpritesOffsetX" xml:space="preserve"><value>Desplazamiento X</value></data>
-  <data name="SpritesOffsetY" xml:space="preserve"><value>Desplazamiento Y</value></data>
+  <data name="SpritesOffsetX" xml:space="preserve"><value>Desp. X</value></data>
+  <data name="SpritesOffsetY" xml:space="preserve"><value>Desp. Y</value></data>
   <data name="SpritesFromPattern" xml:space="preserve"><value>Del patrón</value></data>
   <data name="SpritesFromPatternTip" xml:space="preserve"><value>Volver a sembrar los colores desde el patrón del miembro</value></data>
   <data name="SpritesAddTip" xml:space="preserve"><value>Añadir un sprite con el mismo patrón</value></data>

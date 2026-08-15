@@ -6,6 +6,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Material.Icons.Avalonia;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Localization;
 using MSX_GameTools.ViewModels;
 using MSX_GameTools.Views;
 using Xunit;
@@ -25,6 +26,20 @@ public class ToolStripLayoutTests : IDisposable
     /// un pelo más ancha se lo come.
     /// </remarks>
     private const double MinimumSlack = 3;
+
+    /// <summary>Lo que ocupan dos cifras más el relleno de la caja.</summary>
+    /// <remarks>
+    /// Dos porque el tamaño de un bloque llega a 16, y con una sola cifra visible «16» se
+    /// leería «1».
+    /// </remarks>
+    private const double TwoDigits = 28;
+
+    /// <summary>Lo que se le exige a la caja del nombre del bloque.</summary>
+    /// <remarks>
+    /// Da para «Arbol 2» y su relleno. Es una caja de texto y se desplaza sola con nombres
+    /// largos, así que lo que importa es que no se quede en un sello.
+    /// </remarks>
+    private const double ShortName = 80;
 
     private readonly Window _window;
     private readonly MapEditorView _view;
@@ -99,6 +114,80 @@ public class ToolStripLayoutTests : IDisposable
         AssertIconsExplainThemselves(editor.View, atLeast: 4);
     }
 
+    /// <summary>
+    /// Los rótulos del miembro del grupo caben en su columna, en los tres idiomas.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Esa columna mide 56 y el rótulo «Desplazamiento X» pedía 101: salía cortado en
+    /// «Desplaza» y la flecha se le venía encima. Ahora pone «Desp. X», que es lo que dice
+    /// el usuario que hace falta para que quepa; lo que se pierde de la palabra entera
+    /// está en la ayuda emergente de las flechas, que ya explican el movimiento.
+    /// </para>
+    /// <para>
+    /// Por idioma porque el catalán es el más largo de los tres y es el que se olvida:
+    /// una abreviatura que cabe en español puede no caber traducida.
+    /// </para>
+    /// </remarks>
+    [AvaloniaTheory]
+    [InlineData("es")]
+    [InlineData("en")]
+    [InlineData("ca")]
+    public void Los_rotulos_del_miembro_caben_en_su_columna(string language)
+    {
+        string before = Localizer.Instance.Language;
+
+        try
+        {
+            Localizer.Instance.Language = language;
+
+            var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bichos");
+            var view = new SpritesEditorView
+            {
+                DataContext = new SpritesEditorViewModel(bank, ColorPalette.CreateMsxStandard()),
+            };
+
+            var window = new Window { Content = view, Width = 1400, Height = 900 };
+
+            window.Show();
+            Dispatcher.UIThread.RunJobs();
+
+            // Por el conmutador y no por la propiedad del ViewModel: el panel del grupo
+            // sólo existe si se llega a él como se llega en la aplicación.
+            var groups = (RadioButton)view.FindControl<RadioButton>("GroupsModeButton")!;
+
+            groups.IsChecked = true;
+            Dispatcher.UIThread.RunJobs();
+
+            Grid[] rows = [.. view.GetVisualDescendants()
+                .OfType<Grid>()
+                .Where(grid => grid.ColumnDefinitions.Count == 4
+                               && grid.ColumnDefinitions[0].Width.Value == 56)];
+
+            Assert.Equal(3, rows.Length);
+
+            foreach (Grid row in rows)
+            {
+                TextBlock label = row.Children.OfType<TextBlock>().First();
+
+                double needed = Unconstrained(label);
+                double room = row.ColumnDefinitions[0].Width.Value;
+
+                Assert.True(
+                    room >= needed + MinimumSlack,
+                    $"En {language}, «{label.Text}» pide {needed:0.0} y la columna deja "
+                    + $"{room:0.0}: se queda en {room - needed:0.0} de aire.");
+            }
+
+            window.Close();
+            Dispatcher.UIThread.RunJobs();
+        }
+        finally
+        {
+            Localizer.Instance.Language = before;
+        }
+    }
+
     /// <summary>Y en el panel de bloques.</summary>
     [AvaloniaFact]
     public void En_el_panel_de_bloques_los_iconos_tambien_se_explican()
@@ -113,6 +202,65 @@ public class ToolStripLayoutTests : IDisposable
         Dispatcher.UIThread.RunJobs();
 
         AssertIconsExplainThemselves(view, atLeast: 3);
+
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+    }
+
+    /// <summary>
+    /// El ancho y el alto del bloque se leen: el número cabe al lado de su girador.
+    /// </summary>
+    /// <remarks>
+    /// Un <c>NumericUpDown</c> reparte su ancho entre la caja del número y los dos botones
+    /// del girador, y los botones van primero. Si se queda corto, lo que desaparece es el
+    /// número —el control sigue ahí, con sus flechas, y sólo se nota mirándolo—.
+    /// </remarks>
+    /// <param name="width">
+    /// El panel se estira con su separador, así que se mide también estrecho: los dos
+    /// giradores se llevan lo suyo por ancho fijo y lo que sobra es para el nombre.
+    /// </param>
+    [AvaloniaTheory]
+    [InlineData(380)]
+    [InlineData(300)]
+    public void El_ancho_y_el_alto_del_bloque_se_leen(int width)
+    {
+        var main = new MainWindowViewModel();
+        TileSetEditorViewModel tiles = main.OpenTileSet(new TileSet("Bosque"));
+        var blocks = new TileBlocksViewModel(tiles);
+
+        blocks.AddBlockCommand.Execute(null);
+
+        var view = new TileBlocksView { DataContext = blocks };
+        var window = new Window { Content = view, Width = width, Height = 800 };
+
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        NumericUpDown[] numbers = [.. view.GetVisualDescendants().OfType<NumericUpDown>()];
+
+        Assert.Equal(2, numbers.Length);
+
+        foreach (NumericUpDown number in numbers)
+        {
+            TextBox box = number.GetVisualDescendants().OfType<TextBox>().First();
+
+            Assert.True(
+                box.Bounds.Width >= TwoDigits,
+                $"La caja del número mide {box.Bounds.Width:0.0} dentro de un control de "
+                + $"{number.Bounds.Width:0.0}, y hacen falta {TwoDigits} para leer dos "
+                + "cifras: se ve el girador pero no el valor.");
+        }
+
+        // Y lo que ganan los números no se lo pueden quitar todo al nombre, que comparte
+        // fila con ellos y es el único que se estira.
+        TextBox name = view.GetVisualDescendants()
+            .OfType<TextBox>()
+            .First(box => !box.GetVisualAncestors().OfType<NumericUpDown>().Any());
+
+        Assert.True(
+            name.Bounds.Width >= ShortName,
+            $"Con el panel a {width}, la caja del nombre queda en {name.Bounds.Width:0.0} "
+            + $"y hacen falta {ShortName}: no cabría ni un nombre corto.");
 
         window.Close();
         Dispatcher.UIThread.RunJobs();
