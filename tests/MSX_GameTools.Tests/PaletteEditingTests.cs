@@ -1,5 +1,8 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Headless.XUnit;
+using Avalonia.Layout;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -15,6 +18,9 @@ namespace MSX_GameTools.Tests;
 
 public class PaletteEditingTests
 {
+    /// <summary>Aire que se le exige entre el número de un slider y la barra.</summary>
+    private const double MinimumGap = 4;
+
     [AvaloniaFact]
     public void Cambiar_una_componente_actualiza_color_y_hex()
     {
@@ -247,7 +253,49 @@ public class PaletteEditingTests
         Assert.All(host.Sliders, s => Assert.False(s.IsEffectivelyEnabled));
     }
 
-    /// <summary>Monta el panel de edición como lo haría la aplicación, vía ViewLocator.</summary>
+    /// <summary>
+    /// La barra de desplazamiento no puede taparle los números a los sliders, ni pegarse.
+    /// </summary>
+    /// <remarks>
+    /// Se dibuja encima del contenido, y los valores de R, G y B van pegados al borde
+    /// derecho, así que quedaban debajo. Se mide en vez de mirarlo: el ancho de la barra lo
+    /// pone el tema y no es un número que se pueda dar por sabido. Y no basta con que no se
+    /// toquen: la barra engorda al agarrarla, y con el hueco justo el número quedaba a ras.
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_barra_no_tapa_los_valores_de_los_sliders()
+    {
+        var main = new MainWindowViewModel();
+        main.AddPaletteCommand.Execute(null);
+
+        using PaletteEditorHost host = PaletteEditorHost.Show(
+            (EditPaletteViewModel)main.RightPanViewModel!, height: 420);
+
+        // La que se ve, que hay mas de una: el ListBox tiene la suya aunque este apagada.
+        ScrollBar bar = Assert.Single(
+            host.View.GetVisualDescendants().OfType<ScrollBar>(),
+            scroll => scroll.Orientation == Orientation.Vertical && scroll.IsVisible);
+
+        double barLeft = bar.TranslatePoint(new Point(0, 0), host.View)!.Value.X;
+
+        // Los numeros de los sliders son los Consolas que van a la derecha de cada uno.
+        foreach (Slider slider in host.Sliders)
+        {
+            Grid row = slider.FindAncestorOfType<Grid>()!;
+
+            TextBlock value = row.GetVisualDescendants()
+                .OfType<TextBlock>()
+                .Last(text => text.Bounds.Width > 0);
+
+            double right = value.TranslatePoint(new Point(value.Bounds.Width, 0), host.View)!.Value.X;
+
+            Assert.True(
+                right <= barLeft - MinimumGap,
+                $"El valor acaba en {right:0} y la barra empieza en {barLeft:0}: "
+                + $"quedan {barLeft - right:0} px y hacen falta {MinimumGap}.");
+        }
+    }
+
     private sealed class PaletteEditorHost : IDisposable
     {
         private readonly Window _window;
@@ -260,7 +308,14 @@ public class PaletteEditingTests
 
         public List<Slider> Sliders { get; }
 
-        public static PaletteEditorHost Show(EditPaletteViewModel vm)
+        /// <summary>El panel montado, para medirlo.</summary>
+        public EditPaletteView View { get; private set; } = null!;
+
+        /// <param name="height">
+        /// Alto de la ventana. Con el de por omisión el panel cabe entero y no sale barra;
+        /// para lo que la barra tape hay que apretarlo.
+        /// </param>
+        public static PaletteEditorHost Show(EditPaletteViewModel vm, double height = 700)
         {
             // Un ContentControl con el ViewModel dentro, igual que el panel derecho de
             // la ventana principal: asi se ejerce tambien el ViewLocator, que es quien
@@ -269,7 +324,7 @@ public class PaletteEditingTests
             {
                 Content = new ContentControl { Content = vm },
                 Width = 360,
-                Height = 700,
+                Height = height,
             };
 
             window.Show();
@@ -277,7 +332,10 @@ public class PaletteEditingTests
 
             EditPaletteView view = window.GetVisualDescendants().OfType<EditPaletteView>().Single();
 
-            return new PaletteEditorHost(window, [.. view.GetVisualDescendants().OfType<Slider>()]);
+            return new PaletteEditorHost(window, [.. view.GetVisualDescendants().OfType<Slider>()])
+            {
+                View = view,
+            };
         }
 
         public void Pump() => Dispatcher.UIThread.RunJobs();

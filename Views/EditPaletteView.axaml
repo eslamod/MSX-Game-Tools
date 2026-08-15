@@ -10,6 +10,16 @@
              x:DataType="vm:EditPaletteViewModel"
              Background="Gainsboro">
 
+  <UserControl.Styles>
+    <!-- Las filas de la lista, apretadas. El ListBoxItem de serie trae relleno y alto
+         minimo pensados para texto suelto, y con dieciseis colores eso son dos pantallas
+         de lista para algo que se lee de un vistazo. -->
+    <Style Selector="ListBox#ColorList > ListBoxItem">
+      <Setter Property="Padding" Value="4,0" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+  </UserControl.Styles>
+
   <!-- Una sola barra para todo el contenido, con el boton de cerrar anclado abajo. La
        lista de colores no lleva la suya: dentro de la barra de fuera crece hasta los 16 y
        dos barras anidadas son peores que una. Con la escala al 200% el boton se iba por
@@ -19,7 +29,10 @@
     <TextBlock Grid.Row="0" Text="{l:Localize PaletteTitle}" FontWeight="Bold" Margin="0,0,0,10" />
 
     <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
-      <StackPanel>
+      <!-- Hueco a la derecha para la barra: se dibuja encima del contenido, y sin esto
+           tapaba los numeros de R, G y B, que van pegados al borde. Los dieciseis que mide
+           la barra agarrada no bastan: dejaban el numero justo a ras. -->
+      <StackPanel Margin="0,0,22,0">
 
     <Grid ColumnDefinitions="60,*" Margin="0,0,0,10">
       <TextBlock Grid.Column="0" Text="{l:Localize FormName}" VerticalAlignment="Center" />
