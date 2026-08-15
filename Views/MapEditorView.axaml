@@ -131,7 +131,7 @@
           <TextBlock Text="{l:Localize MapLayers}" FontWeight="Bold" VerticalAlignment="Center" />
         </DockPanel>
 
-        <ListBox Grid.Row="1" Background="White"
+        <ListBox Grid.Row="1" Background="{DynamicResource AppListBackground}"
                  ItemsSource="{Binding Layers}"
                  SelectedItem="{Binding ActiveLayer}">
           <ListBox.ItemTemplate>

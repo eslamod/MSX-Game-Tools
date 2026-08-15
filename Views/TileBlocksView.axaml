@@ -50,7 +50,7 @@
       <ListBox Grid.Column="0"
                ItemsSource="{Binding Blocks}"
                SelectedItem="{Binding SelectedBlock}"
-               Background="White">
+               Background="{DynamicResource AppListBackground}">
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:TileBlockViewModel">
             <TextBlock Text="{Binding Name}" />

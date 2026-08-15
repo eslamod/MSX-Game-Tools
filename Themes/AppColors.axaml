@@ -26,6 +26,15 @@
       <SolidColorBrush x:Key="AppSeparator" Color="#A9A9A9" />
       <SolidColorBrush x:Key="AppControlBorder" Color="#909090" />
 
+      <!-- Las listas de nombres —capas, bloques—, que son un campo hundido dentro del
+           panel y no una superficie donde se dibuje. -->
+      <SolidColorBrush x:Key="AppListBackground" Color="#FFFFFF" />
+
+      <!-- La fila seleccionada. Es el azul que pone Fluent, medido: lo pinta igual en
+           claro que en oscuro, así que aquí se deja tal cual y sólo se baja en la otra. -->
+      <SolidColorBrush x:Key="AppListSelection" Color="#0078D7" />
+      <SolidColorBrush x:Key="AppListSelectionHover" Color="#1683DD" />
+
       <!-- Texto -->
       <SolidColorBrush x:Key="AppTextSecondary" Color="#606060" />
       <SolidColorBrush x:Key="AppTextError" Color="#B22222" />
@@ -59,6 +68,15 @@
       <SolidColorBrush x:Key="AppSurfaceBackground" Color="#333333" />
       <SolidColorBrush x:Key="AppSeparator" Color="#3F3F46" />
       <SolidColorBrush x:Key="AppControlBorder" Color="#5A5A5A" />
+
+      <!-- Más oscura que el panel, para que se siga leyendo como un campo hundido. -->
+      <SolidColorBrush x:Key="AppListBackground" Color="#1F1F1F" />
+
+      <!-- El azul de Fluent sobre un fondo oscuro pega un salto de luminosidad enorme y
+           la fila seleccionada se lleva toda la atención de la ventana. Este mantiene el
+           tono y el texto blanco encima, pero sin gritar. -->
+      <SolidColorBrush x:Key="AppListSelection" Color="#2F5D8A" />
+      <SolidColorBrush x:Key="AppListSelectionHover" Color="#3A6EA0" />
 
       <SolidColorBrush x:Key="AppTextSecondary" Color="#A0A0A0" />
       <SolidColorBrush x:Key="AppTextError" Color="#FF7B72" />

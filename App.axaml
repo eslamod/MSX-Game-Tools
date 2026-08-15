@@ -22,6 +22,23 @@
       <Setter Property="MinHeight" Value="0" />
       <Setter Property="Padding" Value="10,6" />
     </Style>
+
+    <!-- La fila seleccionada de cualquier lista. Fluent la pinta con el mismo azul en
+         claro y en oscuro -medido, #0078D7 en las dos-, y sobre un fondo oscuro ese salto
+         de luminosidad se lleva toda la atencion de la ventana. Con estos recursos el
+         claro se queda exactamente como estaba y solo baja el oscuro.
+
+         Los tres estados y no solo el base: el de raton encima tiene mas especificidad en
+         Fluent y sin el la fila volvia al azul fuerte al pasar por encima. -->
+    <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AppListSelection}" />
+    </Style>
+    <Style Selector="ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AppListSelectionHover}" />
+    </Style>
+    <Style Selector="ListBoxItem:selected:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AppListSelectionHover}" />
+    </Style>
   </Application.Styles>
 
   <Application.Resources>

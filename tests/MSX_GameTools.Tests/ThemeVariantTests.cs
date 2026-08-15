@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Headless.XUnit;
 using Avalonia.Media;
 using Avalonia.Styling;
@@ -91,6 +92,55 @@ public class ThemeVariantTests
 
         Assert.Equal(Color.FromRgb(36, 219, 36), green);
         Assert.Equal("161", palette[2].HexRgb);
+    }
+
+    // ------------------------------------------------------------------ las listas
+
+    /// <summary>
+    /// Las listas de nombres no se quedan blancas en oscuro.
+    /// </summary>
+    /// <remarks>
+    /// La de capas y la de bloques llevaban el fondo blanco puesto a mano. En oscuro
+    /// quedaban blancas mientras Fluent pintaba la letra en blanco, y no se leía nada.
+    /// Se comprueba sobre la vista montada porque el fallo era justo ése: el recurso
+    /// existía y la vista no lo usaba.
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_lista_de_bloques_no_se_queda_blanca_en_oscuro()
+    {
+        Color light = BlockListBackground(ThemeVariant.Light);
+        Color dark = BlockListBackground(ThemeVariant.Dark);
+
+        // En claro sigue siendo blanca, que es como estaba.
+        Assert.Equal(Colors.White, light);
+
+        Assert.True(
+            Brightness(dark) < Brightness(light) / 2,
+            $"En oscuro la lista sale {dark}: sigue siendo un fondo claro.");
+    }
+
+    /// <summary>
+    /// La fila seleccionada baja el tono en oscuro, y en claro se queda igual.
+    /// </summary>
+    /// <remarks>
+    /// Fluent pinta la selección con el mismo azul en las dos variantes —#0078D7, medido—
+    /// y sobre fondo oscuro ese salto de luminosidad se lleva toda la atención. Lo que se
+    /// vigila aquí es que bajarlo en oscuro no se haya llevado por delante el claro.
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_seleccion_baja_el_tono_en_oscuro_sin_tocar_el_claro()
+    {
+        Color light = SelectionBackground(ThemeVariant.Light);
+        Color dark = SelectionBackground(ThemeVariant.Dark);
+
+        Assert.Equal(Color.Parse("#0078D7"), light);
+
+        Assert.True(
+            Brightness(dark) < Brightness(light),
+            $"En oscuro la selección sale {dark}, que no es más suave que el {light} de claro.");
+
+        // Sigue siendo azul: bajar el tono no es apagarlo hasta que no se vea cuál es.
+        Assert.True(dark.B > dark.R && dark.B > dark.G, $"La selección en oscuro sale {dark}, y ya no es azul.");
     }
 
     // ------------------------------------------------------------------ el ajuste
@@ -201,6 +251,56 @@ public class ThemeVariantTests
 
         Panel root = view.GetVisualDescendants().OfType<Panel>().First();
         IBrush? brush = view.Background ?? root.Background;
+
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+
+        return Assert.IsAssignableFrom<ISolidColorBrush>(brush).Color;
+    }
+
+    /// <summary>El fondo con el que acaba pintándose la lista de bloques de tiles.</summary>
+    private static Color BlockListBackground(ThemeVariant variant)
+    {
+        var editor = new TileSetEditorViewModel(new TileSet("Bosque"), ColorPalette.CreateMsxStandard());
+        var view = new TileBlocksView { DataContext = new TileBlocksViewModel(editor) };
+
+        return InScope(view, variant, mounted => mounted
+            .GetVisualDescendants()
+            .OfType<ListBox>()
+            .First()
+            .Background);
+    }
+
+    /// <summary>El fondo de la fila seleccionada de una lista cualquiera.</summary>
+    private static Color SelectionBackground(ThemeVariant variant)
+    {
+        var list = new ListBox { ItemsSource = new[] { "uno", "dos" } };
+
+        return InScope(list, variant, mounted =>
+        {
+            ((ListBox)mounted).SelectedIndex = 0;
+            Dispatcher.UIThread.RunJobs();
+
+            return ((ListBox)mounted).GetRealizedContainers()
+                .OfType<ListBoxItem>()
+                .Single(row => row.IsSelected)
+                .GetVisualDescendants()
+                .OfType<ContentPresenter>()
+                .First(presenter => presenter.Name == "PART_ContentPresenter")
+                .Background;
+        });
+    }
+
+    /// <summary>Monta el control con la variante pedida, lo mide y lo cierra.</summary>
+    private static Color InScope(Control control, ThemeVariant variant, Func<Control, IBrush?> measure)
+    {
+        var scope = new ThemeVariantScope { RequestedThemeVariant = variant, Child = control };
+        var window = new Window { Content = scope, Width = 500, Height = 700 };
+
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        IBrush? brush = measure(control);
 
         window.Close();
         Dispatcher.UIThread.RunJobs();
