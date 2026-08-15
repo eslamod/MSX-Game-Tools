@@ -160,6 +160,11 @@ public class BackgroundLibraryCommandsTests : IDisposable
 
         Assert.Same(first, library.SelectedImage);
         Assert.Same(first, combo.SelectedItem);
+
+        // Cerrarla no es cortesía: una ventana abierta se queda en la aplicación con su
+        // compositor vivo el resto de la serie. Ver «suite-headless-se-cuelga».
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
     }
 
     [AvaloniaFact]

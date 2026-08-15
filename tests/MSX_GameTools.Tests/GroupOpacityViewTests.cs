@@ -39,6 +39,9 @@ public class GroupOpacityViewTests
 
         double[] opacities = [.. groupList.GetVisualDescendants().OfType<Image>().Select(image => image.Opacity)];
 
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+
         Assert.Contains(0.25, opacities);
     }
 
@@ -68,6 +71,11 @@ public class GroupOpacityViewTests
         slider.Value = 0.3;
         Dispatcher.UIThread.RunJobs();
 
-        Assert.Equal(0.3, vm.SelectedGroup!.SpriteOpacity);
+        double opacity = vm.SelectedGroup!.SpriteOpacity;
+
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(0.3, opacity);
     }
 }

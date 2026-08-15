@@ -62,6 +62,11 @@ public class GroupOpacityRenderTests : IDisposable
         // A tope se ve el sprite blanco; al bajarlo tiene que entrar el verde de debajo.
         Assert.True(opaque.G - opaque.R < 40, $"El sprite deberia verse blanco y salio {opaque}.");
         Assert.True(faded.G - faded.R > 60, $"Al 25% deberia verse el verde de debajo y salio {faded}.");
+
+        // Cerrarla no es cortesía: una ventana abierta se queda en la aplicación con su
+        // compositor vivo el resto de la serie. Ver «suite-headless-se-cuelga».
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
     }
 
     /// <summary>Color del pixel central de la miniatura del grupo, en la ventana ya pintada.</summary>

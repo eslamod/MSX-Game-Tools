@@ -158,6 +158,8 @@ public class TileSetEditorTests
 
         Assert.Equal(64, canvas.Children.Count);
         Assert.Equal(256d / 8, view.CellSize);
+
+        Close(window);
     }
 
     /// <summary>
@@ -184,6 +186,8 @@ public class TileSetEditorTests
         // A cero y no sólo transparente: si no, al apagarla quedaría una separación.
         Assert.Equal(default, view.GridThickness);
         Assert.Equal(Brushes.Transparent, view.GridBrush);
+
+        Close(window);
     }
 
     /// <summary>
@@ -205,6 +209,8 @@ public class TileSetEditorTests
         Dispatcher.UIThread.RunJobs();
 
         Assert.True(canvas.ShowGrid);
+
+        Close(window);
     }
 
     /// <summary>
@@ -233,6 +239,8 @@ public class TileSetEditorTests
 
         Assert.Equal((32 * cell) + view.GridEdgeThickness.Right, grid.Bounds.Width);
         Assert.Equal((8 * cell) + view.GridEdgeThickness.Bottom, grid.Bounds.Height);
+
+        Close(window);
     }
 
     /// <summary>
@@ -259,6 +267,8 @@ public class TileSetEditorTests
         Dispatcher.UIThread.RunJobs();
 
         Assert.Equal(default, grid.BorderThickness);
+
+        Close(window);
     }
 
     /// <summary>
@@ -294,6 +304,8 @@ public class TileSetEditorTests
         Point right = last.TranslatePoint(new Point(last.Bounds.Width, 0), window)!.Value;
 
         Assert.True(right.X <= window.Width, $"A X{zoom} la barra acaba en {right.X} y la ventana mide {window.Width}.");
+
+        Close(window);
     }
 
     /// <summary>El borde se ve en todos los tiles que usen el 0, no solo en el actual.</summary>
@@ -322,6 +334,20 @@ public class TileSetEditorTests
     [AvaloniaFact]
     public void El_borde_no_puede_ser_el_color_0()
         => Assert.DoesNotContain(NewEditor().BorderChoices, color => color.Index == 0);
+
+    /// <summary>
+    /// Cierra la ventana del test.
+    /// </summary>
+    /// <remarks>
+    /// Una ventana que se queda abierta sigue en la aplicación con su compositor vivo el
+    /// resto de la serie, y esa actividad de fondo compite con el hilo de los tests. Ver
+    /// <c>suite-headless-se-cuelga</c>.
+    /// </remarks>
+    private static void Close(Window window)
+    {
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+    }
 
     private static TileSetEditorViewModel NewEditor() =>
         new(new TileSet("Bosque"), ColorPalette.CreateMsxStandard());

@@ -106,6 +106,14 @@ public class ZoomMemoryTests
         Mount(new TileSetEditorView { DataContext = vm }, act);
     }
 
+    /// <summary>
+    /// Monta la vista en una ventana, la usa y la cierra.
+    /// </summary>
+    /// <remarks>
+    /// El cierre no es cortesía: una ventana abierta se queda en la aplicación con su
+    /// compositor vivo el resto de la serie, y esa actividad de fondo compite con el hilo
+    /// de los tests. Ver <c>suite-headless-se-cuelga</c>.
+    /// </remarks>
     private static void Mount<T>(T view, Action<T> act)
         where T : Control
     {
@@ -115,6 +123,9 @@ public class ZoomMemoryTests
         Dispatcher.UIThread.RunJobs();
 
         act(view);
+        Dispatcher.UIThread.RunJobs();
+
+        window.Close();
         Dispatcher.UIThread.RunJobs();
     }
 }
