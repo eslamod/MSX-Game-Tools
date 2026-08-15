@@ -93,8 +93,21 @@
       <SolidColorBrush x:Key="AppToolButtonBorder" Color="#5A5A5A" />
       <SolidColorBrush x:Key="AppToolButtonForeground" Color="#E6E6E6" />
       <SolidColorBrush x:Key="AppToolButtonHoverBackground" Color="#484848" />
-      <SolidColorBrush x:Key="AppToolButtonCheckedBackground" Color="#2E6FE0" />
-      <SolidColorBrush x:Key="AppToolButtonCheckedBorder" Color="#1E4FA8" />
+      <!--
+        El botón pulsado, al mismo tono que la fila seleccionada de una lista: sobre fondo
+        oscuro el azul vivo revienta igual aquí que allí, y con los dos a la vez en pantalla
+        —la tira de Estampar encima de la lista de capas— la diferencia cantaba.
+
+        Mismo valor pero nombre propio, no el de la lista. Son dos ideas distintas: «esta
+        fila es la actual» y «estoy metido en esta herramienta». Que hoy se pinten igual no
+        es motivo para que mañana no puedan separarse, y con el nombre compartido habría
+        que deshacer el enredo antes de poder tocar una sola de las dos.
+
+        En claro no se tocan: allí estos dos azules llevan conviviendo desde el principio
+        y nunca han molestado, que es la mejor prueba de que ahí no sobra nada.
+      -->
+      <SolidColorBrush x:Key="AppToolButtonCheckedBackground" Color="#2F5D8A" />
+      <SolidColorBrush x:Key="AppToolButtonCheckedBorder" Color="#24496C" />
       <SolidColorBrush x:Key="AppToolButtonCheckedForeground" Color="#FFFFFF" />
 
       <SolidColorBrush x:Key="AppSwatchBorder" Color="#7A7A7A" />

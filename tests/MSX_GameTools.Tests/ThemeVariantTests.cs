@@ -135,12 +135,38 @@ public class ThemeVariantTests
 
         Assert.Equal(Color.Parse("#0078D7"), light);
 
-        Assert.True(
-            Brightness(dark) < Brightness(light),
-            $"En oscuro la selección sale {dark}, que no es más suave que el {light} de claro.");
+        AssertDoesNotLeapOffThePanel(dark, "La selección");
 
         // Sigue siendo azul: bajar el tono no es apagarlo hasta que no se vea cuál es.
         Assert.True(dark.B > dark.R && dark.B > dark.G, $"La selección en oscuro sale {dark}, y ya no es azul.");
+    }
+
+    /// <summary>
+    /// El botón de herramienta pulsado también baja el tono en oscuro, y no en claro.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// La tira de Estampar/Seleccionar sale justo encima de la lista de capas, así que los
+    /// dos azules se ven a la vez y la diferencia cantaba.
+    /// </para>
+    /// <para>
+    /// No se comprueba que valga lo mismo que la selección de las listas, aunque hoy lo
+    /// valga: son dos ideas distintas y atarlas con una prueba obligaría a deshacer el
+    /// enredo antes de poder tocar una sola de las dos.
+    /// </para>
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_boton_pulsado_baja_el_tono_en_oscuro_sin_tocar_el_claro()
+    {
+        Color light = CheckedToolButton(ThemeVariant.Light);
+        Color dark = CheckedToolButton(ThemeVariant.Dark);
+
+        // En claro, el de siempre.
+        Assert.Equal(Color.Parse("#3B78FF"), light);
+
+        AssertDoesNotLeapOffThePanel(dark, "El botón pulsado");
+
+        Assert.True(dark.B > dark.R && dark.B > dark.G, $"El botón pulsado sale {dark}, y ya no es azul.");
     }
 
     // ------------------------------------------------------------------ el ajuste
@@ -291,6 +317,23 @@ public class ThemeVariantTests
         });
     }
 
+    /// <summary>El fondo de un botón de herramienta pulsado, con su ControlTheme propio.</summary>
+    private static Color CheckedToolButton(ThemeVariant variant)
+    {
+        var button = new RadioButton
+        {
+            Content = "X2",
+            IsChecked = true,
+            Theme = (ControlTheme)Application.Current!.FindResource("ToggleRadioButton")!,
+        };
+
+        return InScope(button, variant, mounted => mounted
+            .GetVisualDescendants()
+            .OfType<Border>()
+            .First(border => border.Name == "PART_Root")
+            .Background);
+    }
+
     /// <summary>Monta el control con la variante pedida, lo mide y lo cierra.</summary>
     private static Color InScope(Control control, ThemeVariant variant, Func<Control, IBrush?> measure)
     {
@@ -306,6 +349,34 @@ public class ThemeVariantTests
         Dispatcher.UIThread.RunJobs();
 
         return Assert.IsAssignableFrom<ISolidColorBrush>(brush).Color;
+    }
+
+    /// <summary>
+    /// Lo que puede subir un color de señal por encima del panel que tiene detrás.
+    /// </summary>
+    /// <remarks>
+    /// Ochenta y nueve de margen tiene el tono elegido, y doscientos cincuenta y dos tenía
+    /// el azul vivo que molestaba; el listón queda cómodamente en medio.
+    /// </remarks>
+    private const int MaxJumpOverPanel = 150;
+
+    /// <summary>
+    /// El color no pega un salto de luminosidad contra el panel oscuro.
+    /// </summary>
+    /// <remarks>
+    /// Es la regla que hay que medir, y no «que el oscuro sea más oscuro que el claro»:
+    /// eso ya se cumplía con el azul vivo puesto, así que la prueba pasaba con el fallo
+    /// delante. Lo que se veía mal era el salto contra el fondo, no el valor absoluto.
+    /// </remarks>
+    private static void AssertDoesNotLeapOffThePanel(Color signal, string what)
+    {
+        int panel = Brightness(Resolve("AppPanelBackground", ThemeVariant.Dark));
+        int jump = Brightness(signal) - panel;
+
+        Assert.True(
+            jump < MaxJumpOverPanel,
+            $"{what} en oscuro sale {signal}, que salta {jump} por encima del panel: "
+            + $"el maximo son {MaxJumpOverPanel}.");
     }
 
     private static int Brightness(Color color) => color.R + color.G + color.B;
