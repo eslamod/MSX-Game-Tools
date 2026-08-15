@@ -4,8 +4,9 @@ Comprueban en una máquina real (o en un emulador) que lo que exporta el editor 
 lo que espera el VDP. No son parte de la herramienta: son el banco de pruebas de
 los exportadores.
 
-Hay tres: `sprites_test.asm` para los grupos de sprites, `tileset_test.asm` para
-los juegos de tiles y `map_test.asm` para los mapas.
+Hay cuatro: `sprites_test.asm` para los grupos de sprites, `tileset_test.asm`
+para los juegos de tiles, `map_test.asm` para los mapas y `supertile_test.asm`
+para los mapas hechos con supertiles.
 
 ## La paleta
 
@@ -36,9 +37,13 @@ sasSX.exe tileset_test.asm --output tileset_test.rom
 sasSX.exe map_test.asm --output map_test.rom
 ```
 
+```bash
+sasSX.exe supertile_test.asm --output supertile_test.rom
+```
+
 Las dos primeras salen de 16384 bytes exactos, que es lo que espera un cartucho
-en la página 1. La del mapa sale de 32768 y ocupa las páginas 1 y 2, porque el
-mapa viaja dentro de la ROM y con 16K se quedaba corta enseguida.
+en la página 1. Las dos de mapas salen de 32768 y ocupan las páginas 1 y 2,
+porque el mapa viaja dentro de la ROM y con 16K se quedaban cortas enseguida.
 
 Un cartucho de 32K no es sólo cuestión de tamaño: **la BIOS busca la `AB` en la
 página 1 y conmuta esa, pero deja la 2 como estaba, que es RAM**. Sin hacer nada
@@ -284,3 +289,71 @@ deja celdas vacías, escribe el tile de relleno que tenga puesto el mapa.
 El mismo que la ROM del tileset, que es el de siempre en SCREEN 2. La única
 diferencia entre las dos es lo que se escribe en la tabla de nombres: allí
 `0..255` repetido, y aquí la ventana del mapa que toque.
+
+---
+
+# La ROM de los supertiles
+
+Lo mismo que la del mapa, pero cuando una celda del mapa no es un tile sino un
+supertile entero: un rectángulo de tiles que se coloca de una vez.
+
+## Lo que de verdad comprueba
+
+**La tabla de supertiles**, que son tres bytes de cabecera —ancho, alto y
+cuántos— y después los números de tile de cada uno, de izquierda a derecha y de
+arriba abajo. La ROM la lee como la leería un juego: saca de la cabecera cuánto
+mide un supertile, calcula dónde empieza cada uno y resuelve cada celda de
+pantalla a través de ella.
+
+Y la comprueba **con supertiles rectangulares a propósito**. Con uno cuadrado,
+leer los tiles por columnas en vez de por filas da un dibujo transpuesto que a
+simple vista puede pasar por bueno; con 2x3, un orden equivocado descuadra la
+pantalla entera y no hay forma de no verlo.
+
+Una cuenta de 0 en la cabecera significa 256, que es el tope que un mapa puede
+nombrar porque cada celda es un byte.
+
+## Los datos de ejemplo
+
+`tiles_supertiles.bin` trae **ocho supertiles de 2x3**, y cada uno son seis tiles
+consecutivos: el 0 lleva los tiles 0 a 5, el 1 los tiles 6 a 11, y así. Como los
+tiles de ejemplo llevan su número escrito en binario, cada supertile se lee de
+un vistazo y se ve si el orden es el que dice el exportador.
+
+`super_map.bin` es de **20x12 supertiles** —o sea 40x36 tiles, más que la
+pantalla por los dos lados— y cada celda lleva el supertile `(x + y) mod 8`, que
+sale en bandas diagonales. Una banda torcida o cortada delata que la cámara o la
+tabla no cuadran.
+
+Los dos están generados con los exportadores de verdad, no escritos a mano.
+
+## Con tus propios datos
+
+1. En el editor, **Tiles → Exportar**: salen tres ficheros, y el tercero es
+   `..._supertiles`. Y **Mapas → Exportar** el mapa de supertiles.
+2. Copia aquí los cuatro como `tiles_patterns`, `tiles_colors`,
+   `tiles_supertiles` y `super_map`, con la extensión que toque.
+3. Vuelve a ensamblar:
+
+```bash
+sasSX.exe supertile_test.asm --output supertile_test.rom
+```
+
+Sale de 32768 bytes, como la del mapa y por lo mismo: ocupa las páginas 1 y 2 y
+se engancha ella misma a la 2 con `ENASLT`. Si no son 32768 exactos, no la
+cargues.
+
+## En marcha
+
+Los **cursores** mueven la cámara **de supertile en supertile**, que es la unidad
+en la que está hecho el mapa. Se para sola en los bordes.
+
+## Cómo lo dibuja
+
+La tabla de nombres se arma entera en RAM y se vuelca de una vez. Armarla
+directamente en VRAM obligaría a escribir cada supertile en filas salteadas, con
+un cambio de dirección por fila; así es una sola escritura seguida de 768 bytes.
+
+Y al arrancar se calcula dónde empieza cada supertile dentro de la tabla, una vez
+para los 256. Sin eso, pintar la pantalla serían 768 multiplicaciones, una por
+celda.
