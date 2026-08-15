@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using MSX_GameTools.Entities;
 using MSX_GameTools.ViewModels;
 
 namespace MSX_GameTools.Views;
@@ -17,8 +18,17 @@ namespace MSX_GameTools.Views;
 /// </remarks>
 public partial class EditPaletteView : UserControl
 {
-    /// <summary>Lo que viaja en el arrastre: el índice de la ranura de origen.</summary>
-    private const string ColorFormat = "msx-gametools/palette-color";
+    /// <summary>
+    /// Lo que viaja en el arrastre: el color de origen, tal cual.
+    /// </summary>
+    /// <remarks>
+    /// En proceso, que es lo que esto es: se arrastra dentro de nuestra propia lista y no
+    /// hace falta serializar nada, así que al soltar llega el mismo objeto y se le pregunta
+    /// el índice. El identificador sólo admite letras, dígitos, punto y guion —una barra
+    /// revienta el inicializador de la clase con «Invalid application identifier»—.
+    /// </remarks>
+    private static readonly DataFormat<PaletteColor> ColorFormat =
+        DataFormat.CreateInProcessFormat<PaletteColor>("msx-gametools.palette-color");
 
     /// <summary>Clase de la entrada marcada como destino, que le pone el recuadro.</summary>
     private const string DropClass = "drop";
@@ -26,8 +36,15 @@ public partial class EditPaletteView : UserControl
     /// <summary>Lo que hay que mover para que sea un arrastre y no un clic tembloroso.</summary>
     private const double DragThreshold = 4;
 
-    /// <summary>Dónde y sobre qué color se pulsó, mientras no se sepa si es un arrastre.</summary>
-    private (Point At, int Index)? _pressed;
+    /// <summary>
+    /// Dónde y sobre qué color se pulsó, mientras no se sepa si es un arrastre.
+    /// </summary>
+    /// <remarks>
+    /// Se guarda también el evento de la pulsación: <c>DoDragDropAsync</c> pide un
+    /// <see cref="PointerPressedEventArgs"/>, y aquí el arrastre no arranca al pulsar sino
+    /// al mover, que es lo que deja la lista usable para elegir color.
+    /// </remarks>
+    private (Point At, PaletteColor Color, PointerPressedEventArgs Args)? _pressed;
 
     private ListBoxItem? _marked;
 
@@ -54,7 +71,7 @@ public partial class EditPaletteView : UserControl
     /// justo lo que fallaba, y el arrastre de verdad no se puede simular sin sistema
     /// operativo debajo.
     /// </remarks>
-    public int? PressedIndex => _pressed?.Index;
+    public int? PressedIndex => _pressed?.Color.Index;
 
     private EditPaletteViewModel? Editor => DataContext as EditPaletteViewModel;
 
@@ -70,7 +87,7 @@ public partial class EditPaletteView : UserControl
             return;
         }
 
-        _pressed = (e.GetPosition(ColorList), color.Index);
+        _pressed = (e.GetPosition(ColorList), color, e);
     }
 
     private void OnColorMoved(object? sender, PointerEventArgs e)
@@ -89,13 +106,13 @@ public partial class EditPaletteView : UserControl
         if (Math.Abs(now.X - start.At.X) < DragThreshold && Math.Abs(now.Y - start.At.Y) < DragThreshold)
             return;
 
-        // Una sola vez por arrastre: DoDragDrop se queda dentro hasta que se suelta.
+        // Una sola vez por arrastre: DoDragDropAsync se queda dentro hasta que se suelta.
         _pressed = null;
 
-        var data = new DataObject();
-        data.Set(ColorFormat, start.Index);
+        var data = new DataTransfer();
+        data.Add(DataTransferItem.Create(ColorFormat, start.Color));
 
-        _ = DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
+        _ = DragDrop.DoDragDropAsync(start.Args, data, DragDropEffects.Move);
     }
 
     private void OnColorReleased(object? sender, PointerReleasedEventArgs e) => _pressed = null;
@@ -125,15 +142,15 @@ public partial class EditPaletteView : UserControl
     private (int From, int To)? TargetOf(DragEventArgs e)
     {
         if (Editor is not { } editor
-            || e.Data.Get(ColorFormat) is not int from
+            || e.DataTransfer?.TryGetValue(ColorFormat) is not { } dragged
             || ColorUnder(e.Source) is not { } target
-            || target.Index == from
+            || target.Index == dragged.Index
             || !editor.Palette.CanSwap(target.Index))
         {
             return null;
         }
 
-        return (from, target.Index);
+        return (dragged.Index, target.Index);
     }
 
     /// <summary>Deja el recuadro sólo en ésa, quitándolo de la que lo tuviera.</summary>
