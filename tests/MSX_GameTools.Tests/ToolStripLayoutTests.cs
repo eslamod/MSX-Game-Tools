@@ -90,6 +90,79 @@ public class ToolStripLayoutTests : IDisposable
         Dispatcher.UIThread.RunJobs();
     }
 
+    /// <summary>Y en el editor de tiles.</summary>
+    [AvaloniaFact]
+    public void En_el_editor_de_tiles_los_iconos_tambien_se_explican()
+    {
+        using var editor = new MountedTileSet();
+
+        AssertIconsExplainThemselves(editor.View, atLeast: 4);
+    }
+
+    /// <summary>
+    /// La tira de zoom y modo de pintado cabe en su columna.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Esa columna mide 256 fijos —los del lienzo— y no se estira: lo que no quepa se
+    /// corta sin avisar. Los modos llevan icono y texto como en el editor de mapas, y eso
+    /// son unos veinte píxeles más por botón, que es justo el margen que había.
+    /// </para>
+    /// <para>
+    /// Se suman los anchos que piden los hijos en vez de mirar el <c>DesiredSize</c> del
+    /// panel: el del panel ya viene recortado a la columna, así que siempre parece que
+    /// cabe. Los hijos no, porque un StackPanel horizontal los mide con ancho infinito.
+    /// </para>
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_tira_de_zoom_y_modo_cabe_en_su_columna()
+    {
+        using var editor = new MountedTileSet();
+
+        RadioButton paint = editor.View.GetVisualDescendants()
+            .OfType<RadioButton>()
+            .First(button => button.GroupName == "TilePaintMode");
+
+        var strip = (StackPanel)paint.Parent!;
+        var grid = (Grid)editor.View.GetVisualDescendants().First(v => v is Grid { Name: "EditorGrid" });
+
+        double column = grid.ColumnDefinitions[0].ActualWidth
+            - strip.Margin.Left - strip.Margin.Right;
+
+        // DesiredSize ya lleva dentro el margen de cada uno.
+        double asked = strip.Children.Sum(child => child.DesiredSize.Width);
+
+        Assert.True(
+            asked <= column,
+            $"La tira pide {asked:0.0} y la columna deja {column:0.0}: "
+            + $"se salen {asked - column:0.0} píxeles y ahí se corta.");
+    }
+
+    /// <summary>Un editor de tiles montado en su ventana, que se cierra solo.</summary>
+    private sealed class MountedTileSet : IDisposable
+    {
+        private readonly Window _window;
+
+        public MountedTileSet()
+        {
+            var main = new MainWindowViewModel();
+
+            View = new TileSetEditorView { DataContext = main.OpenTileSet(new TileSet("Bosque")) };
+            _window = new Window { Content = View, Width = 1100, Height = 800 };
+
+            _window.Show();
+            Dispatcher.UIThread.RunJobs();
+        }
+
+        public TileSetEditorView View { get; }
+
+        public void Dispose()
+        {
+            _window.Close();
+            Dispatcher.UIThread.RunJobs();
+        }
+    }
+
     /// <summary>
     /// Ningún botón de esa vista se queda con un icono y sin explicación.
     /// </summary>

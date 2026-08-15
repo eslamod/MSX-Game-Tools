@@ -6,9 +6,39 @@
              xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
              xmlns:l="clr-namespace:MSX_GameTools.Localization"
              xmlns:views="clr-namespace:MSX_GameTools.Views"
+             xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="500"
              x:Class="MSX_GameTools.Views.TileSetEditorView"
              x:DataType="vm:TileSetEditorViewModel">
+
+  <UserControl.Styles>
+    <!-- El mismo tamaño y el mismo aire que en el editor de mapas: son la misma barra
+         partida en dos vistas, y si no coinciden se nota al cambiar de pestaña.
+         Aqui va con :is() porque la rejilla es un ToggleButton, y el selector de tipo
+         de Avalonia no alcanza a los derivados. -->
+    <Style Selector=":is(Button).tool">
+      <Setter Property="Margin" Value="1" />
+      <Setter Property="Padding" Value="6,4" />
+    </Style>
+
+    <Style Selector=":is(Button).tool > icons|MaterialIcon">
+      <Setter Property="Width" Value="18" />
+      <Setter Property="Height" Value="18" />
+    </Style>
+
+    <Style Selector="icons|MaterialIcon.mode">
+      <Setter Property="Width" Value="15" />
+      <Setter Property="Height" Value="15" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Los de recorrer el tileset, abajo: mas grandes porque estan sueltos y sin
+         vecinos que los agrupen. -->
+    <Style Selector="Button.navigate > icons|MaterialIcon">
+      <Setter Property="Width" Value="20" />
+      <Setter Property="Height" Value="20" />
+    </Style>
+  </UserControl.Styles>
 
   <UserControl.Resources>
     <!-- Las miniaturas van pegadas, sin margen: la rejilla la forman sus propios
@@ -66,6 +96,10 @@
 
       <Border Width="1" Background="{DynamicResource AppSeparator}" Margin="6,4" />
 
+      <!-- Estos dos se quedan sin icono, y no por gusto: esta columna mide 256 fijos y
+           con icono la tira pedia 273. Entre quitarles el rotulo o quitarles el icono,
+           se va el icono: son un modo, y en un modo el rotulo es lo que dice donde
+           estas. La comprobacion que lo midio sigue puesta. -->
       <RadioButton GroupName="TilePaintMode" Theme="{StaticResource ToggleRadioButton}"
                    Content="{l:Localize PaintDot}" Tag="Click" Margin="2"
                    ToolTip.Tip="{l:Localize PaintDotTip}"
@@ -253,9 +287,11 @@
           </Button.Flyout>
         </Button>
 
-        <ToggleButton Content="{l:Localize TilesGrid}" Margin="2" Padding="8,2"
+        <ToggleButton Classes="tool"
                       IsChecked="{Binding $parent[views:TileSetEditorView].ShowGrid}"
-                      ToolTip.Tip="{l:Localize TilesGridTip}" />
+                      ToolTip.Tip="{l:Localize TilesGridTip}">
+          <icons:MaterialIcon Kind="Grid" />
+        </ToggleButton>
 
         <!-- Los mismos tres modos y los mismos nombres que el editor de mapas, para no
              tener que aprender dos vocabularios. Van aqui, encima de la rejilla, porque
@@ -263,23 +299,41 @@
         <Border Width="1" Background="#A0A0A0" Margin="8,4" />
 
         <RadioButton x:Name="EditTool" GroupName="TileTool" Theme="{StaticResource ToggleRadioButton}"
-                     Content="{l:Localize TileToolEdit}" Tag="Edit" Margin="2" Padding="8,2"
+                     Tag="Edit" Margin="2" Padding="8,2"
                      IsChecked="{Binding IsEditTool, Mode=OneWay}"
-                     IsCheckedChanged="OnToolChanged" />
+                     ToolTip.Tip="{l:Localize TileToolEditTip}"
+                     IsCheckedChanged="OnToolChanged">
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <icons:MaterialIcon Kind="Pencil" Classes="mode" />
+            <TextBlock Text="{l:Localize TileToolEdit}" VerticalAlignment="Center" />
+          </StackPanel>
+        </RadioButton>
         <RadioButton x:Name="SelectTool" GroupName="TileTool" Theme="{StaticResource ToggleRadioButton}"
-                     Content="{l:Localize TileToolSelect}" Tag="Select" Margin="2" Padding="8,2"
+                     Tag="Select" Margin="2" Padding="8,2"
                      IsChecked="{Binding IsSelectTool, Mode=OneWay}"
                      ToolTip.Tip="{l:Localize TileToolSelectTip}"
-                     IsCheckedChanged="OnToolChanged" />
+                     IsCheckedChanged="OnToolChanged">
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <icons:MaterialIcon Kind="SelectionDrag" Classes="mode" />
+            <TextBlock Text="{l:Localize TileToolSelect}" VerticalAlignment="Center" />
+          </StackPanel>
+        </RadioButton>
         <RadioButton x:Name="StampTool" GroupName="TileTool" Theme="{StaticResource ToggleRadioButton}"
-                     Content="{l:Localize TileToolStamp}" Tag="Stamp" Margin="2" Padding="8,2"
+                     Tag="Stamp" Margin="2" Padding="8,2"
                      IsChecked="{Binding IsStampTool, Mode=OneWay}"
                      ToolTip.Tip="{l:Localize TileToolStampTip}"
-                     IsCheckedChanged="OnToolChanged" />
+                     IsCheckedChanged="OnToolChanged">
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <icons:MaterialIcon Kind="Stamper" Classes="mode" />
+            <TextBlock Text="{l:Localize TileToolStamp}" VerticalAlignment="Center" />
+          </StackPanel>
+        </RadioButton>
 
-        <Button Content="{l:Localize TileUndoStamp}" Margin="8,2,2,2" Padding="8,2"
+        <Button Classes="tool" Margin="8,1,1,1"
                 Command="{Binding UndoStampCommand}"
-                ToolTip.Tip="{l:Localize TileUndoStampTip}" />
+                ToolTip.Tip="{l:Localize TileUndoStampTip}">
+          <icons:MaterialIcon Kind="Undo" />
+        </Button>
       </WrapPanel>
 
     </DockPanel>
@@ -375,19 +429,32 @@
       <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0">
         <TextBlock Text="{Binding TileLabel}" VerticalAlignment="Center"
                    FontFamily="Consolas" MinWidth="64" />
-        <Button Content="&lt;" Width="36" Margin="6,0,0,0"
+        <Button Classes="navigate" Width="36" Margin="6,0,0,0"
                 HorizontalContentAlignment="Center"
-                Command="{Binding PreviousTileCommand}" />
-        <Button Content="&gt;" Width="36" Margin="4,0,0,0"
+                Command="{Binding PreviousTileCommand}"
+                ToolTip.Tip="{l:Localize TilePreviousTip}">
+          <icons:MaterialIcon Kind="ChevronLeft" />
+        </Button>
+        <Button Classes="navigate" Width="36" Margin="4,0,0,0"
                 HorizontalContentAlignment="Center"
-                Command="{Binding NextTileCommand}" />
+                Command="{Binding NextTileCommand}"
+                ToolTip.Tip="{l:Localize TileNextTip}">
+          <icons:MaterialIcon Kind="ChevronRight" />
+        </Button>
 
         <!-- Los bloques tambien se abren con doble clic en su nodo del arbol, pero eso
              no lo descubre nadie: aqui estan a la vista mientras se dibujan los tiles,
-             que es cuando hacen falta. -->
-        <Button Content="{l:Localize TreeBlocks}" Margin="16,0,0,0" Padding="10,2"
+             que es cuando hacen falta. Este conserva el rotulo: no es una herramienta de
+             la barra, es la puerta a otro sitio, y el nombre del sitio es la mitad de la
+             informacion. -->
+        <Button Margin="16,0,0,0" Padding="10,2"
                 Click="OnShowBlocks"
-                ToolTip.Tip="{l:Localize BlocksOpenTip}" />
+                ToolTip.Tip="{l:Localize BlocksOpenTip}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <icons:MaterialIcon Kind="ViewGridOutline" Classes="mode" />
+            <TextBlock Text="{l:Localize TreeBlocks}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
       </StackPanel>
     </StackPanel>
   </Grid>
