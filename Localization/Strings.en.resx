@@ -177,6 +177,16 @@
   <data name="PreferencesThemeOrange" xml:space="preserve"><value>Dark amber</value></data>
   <data name="PreferencesThemeLightBlue" xml:space="preserve"><value>Light blue</value></data>
   <data name="PreferencesThemeLightOrange" xml:space="preserve"><value>Light amber</value></data>
+  <data name="SpritesPatternPrevTip" xml:space="preserve"><value>Previous pattern for this member</value></data>
+  <data name="SpritesPatternNextTip" xml:space="preserve"><value>Next pattern for this member</value></data>
+  <data name="SpritesOffsetLeftTip" xml:space="preserve"><value>Nudge the member one pixel to the left</value></data>
+  <data name="SpritesOffsetRightTip" xml:space="preserve"><value>Nudge the member one pixel to the right</value></data>
+  <data name="SpritesOffsetUpTip" xml:space="preserve"><value>Nudge the member one pixel up</value></data>
+  <data name="SpritesOffsetDownTip" xml:space="preserve"><value>Nudge the member one pixel down</value></data>
+  <data name="SpritesPreviousTip" xml:space="preserve"><value>Previous sprite in the bank</value></data>
+  <data name="SpritesNextTip" xml:space="preserve"><value>Next sprite in the bank</value></data>
+  <data name="SpritesAddSpriteTip" xml:space="preserve"><value>Add a sprite at the end of the bank</value></data>
+  <data name="SpritesDeleteSpriteTip" xml:space="preserve"><value>Delete the sprite on screen</value></data>
   <data name="PreferencesZoom" xml:space="preserve"><value>Starting zoom</value></data>
   <data name="PreferencesSpriteCanvas" xml:space="preserve"><value>Sprite canvas</value></data>
   <data name="PreferencesSpriteThumbnails" xml:space="preserve"><value>Sprite thumbnails</value></data>

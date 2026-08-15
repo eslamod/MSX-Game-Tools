@@ -7,9 +7,31 @@
              xmlns:l="clr-namespace:MSX_GameTools.Localization"
              xmlns:views="clr-namespace:MSX_GameTools.Views"
              xmlns:converters="clr-namespace:MSX_GameTools.Converters"
+             xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
              x:Class="MSX_GameTools.Views.SpritesEditorView"
              x:DataType="vm:SpritesEditorViewModel">
+
+  <UserControl.Styles>
+    <!-- Los botones de paso: los que flanquean un valor y los de ordenar la lista de
+         miembros. Pequeños, porque acompañan a un numero. -->
+    <Style Selector="Button.step > icons|MaterialIcon">
+      <Setter Property="Width" Value="14" />
+      <Setter Property="Height" Value="14" />
+    </Style>
+
+    <!-- La tira de navegacion del banco, que es la mas grande de la ventana. -->
+    <Style Selector="Button.navigate">
+      <Setter Property="Width" Value="44" />
+      <Setter Property="Margin" Value="3" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Button.navigate > icons|MaterialIcon">
+      <Setter Property="Width" Value="22" />
+      <Setter Property="Height" Value="22" />
+    </Style>
+  </UserControl.Styles>
 
   <UserControl.Resources>
     <!-- Contenedor de cada miniatura: el recuadro cambia de color al pasar por
@@ -209,16 +231,18 @@
         <Border Width="1" Background="{DynamicResource AppSeparator}" Margin="6,4" IsVisible="{Binding ShowsGroups}" />
 
         <!-- Alto explicito para que igualen a los toggles y la fila no cambie. -->
-        <Button Content="+" Width="28" Height="26" Padding="0" Margin="2"
-                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+        <Button Width="28" Height="26" Padding="0" Margin="2"
                 IsVisible="{Binding ShowsGroups}"
                 Command="{Binding AddGroupCommand}"
-                ToolTip.Tip="{l:Localize SpritesNewGroupTip}" />
-        <Button Content="-" Width="28" Height="26" Padding="0" Margin="2"
-                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                ToolTip.Tip="{l:Localize SpritesNewGroupTip}">
+          <icons:MaterialIcon Kind="Plus" />
+        </Button>
+        <Button Width="28" Height="26" Padding="0" Margin="2"
                 IsVisible="{Binding ShowsGroups}"
                 Command="{Binding DeleteGroupCommand}"
-                ToolTip.Tip="{l:Localize SpritesDeleteGroupTip}" />
+                ToolTip.Tip="{l:Localize SpritesDeleteGroupTip}">
+          <icons:MaterialIcon Kind="Minus" />
+        </Button>
       </StackPanel>
 
       <!-- Zoom de las miniaturas. El Tag es el multiplicador sobre el tamaño base. -->
@@ -456,18 +480,26 @@
 
         <!-- El orden de la lista es la prioridad: el primero manda. -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="4" Margin="0,6,0,0">
-          <Button Content="+" Width="30" HorizontalContentAlignment="Center"
+          <Button Classes="step" Width="30"
                   Command="{Binding SelectedGroup.AddMemberCommand}"
-                  ToolTip.Tip="{l:Localize SpritesAddTip}" />
-          <Button Content="-" Width="30" HorizontalContentAlignment="Center"
+                  ToolTip.Tip="{l:Localize SpritesAddTip}">
+            <icons:MaterialIcon Kind="Plus" />
+          </Button>
+          <Button Classes="step" Width="30"
                   Command="{Binding SelectedGroup.RemoveMemberCommand}"
-                  ToolTip.Tip="{l:Localize SpritesRemoveTip}" />
-          <Button Content="▲" Width="30" HorizontalContentAlignment="Center"
+                  ToolTip.Tip="{l:Localize SpritesRemoveTip}">
+            <icons:MaterialIcon Kind="Minus" />
+          </Button>
+          <Button Classes="step" Width="30"
                   Command="{Binding SelectedGroup.MoveMemberUpCommand}"
-                  ToolTip.Tip="{l:Localize SpritesUpTip}" />
-          <Button Content="▼" Width="30" HorizontalContentAlignment="Center"
+                  ToolTip.Tip="{l:Localize SpritesUpTip}">
+            <icons:MaterialIcon Kind="ArrowUp" />
+          </Button>
+          <Button Classes="step" Width="30"
                   Command="{Binding SelectedGroup.MoveMemberDownCommand}"
-                  ToolTip.Tip="{l:Localize SpritesDownTip}" />
+                  ToolTip.Tip="{l:Localize SpritesDownTip}">
+            <icons:MaterialIcon Kind="ArrowDown" />
+          </Button>
         </StackPanel>
 
         <StackPanel Grid.Row="4" Margin="0,10,0,0" Spacing="4"
@@ -475,32 +507,50 @@
 
           <Grid ColumnDefinitions="56,28,*,28">
             <TextBlock Grid.Column="0" Text="{l:Localize SpritesPattern}" VerticalAlignment="Center" />
-            <Button Grid.Column="1" Content="◄" HorizontalContentAlignment="Center"
-                    Command="{Binding SelectedGroup.StepPatternCommand}" CommandParameter="-1" />
+            <Button Grid.Column="1" Classes="step"
+                    Command="{Binding SelectedGroup.StepPatternCommand}" CommandParameter="-1"
+                    ToolTip.Tip="{l:Localize SpritesPatternPrevTip}">
+              <icons:MaterialIcon Kind="ChevronLeft" />
+            </Button>
             <TextBlock Grid.Column="2" Text="{Binding SelectedGroup.SelectedMember.PatternIndex}"
                        FontFamily="Consolas" TextAlignment="Center" VerticalAlignment="Center" />
-            <Button Grid.Column="3" Content="►" HorizontalContentAlignment="Center"
-                    Command="{Binding SelectedGroup.StepPatternCommand}" CommandParameter="1" />
+            <Button Grid.Column="3" Classes="step"
+                    Command="{Binding SelectedGroup.StepPatternCommand}" CommandParameter="1"
+                    ToolTip.Tip="{l:Localize SpritesPatternNextTip}">
+              <icons:MaterialIcon Kind="ChevronRight" />
+            </Button>
           </Grid>
 
           <Grid ColumnDefinitions="56,28,*,28">
             <TextBlock Grid.Column="0" Text="{l:Localize SpritesOffsetX}" VerticalAlignment="Center" />
-            <Button Grid.Column="1" Content="◄" HorizontalContentAlignment="Center"
-                    Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="left" />
+            <Button Grid.Column="1" Classes="step"
+                    Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="left"
+                    ToolTip.Tip="{l:Localize SpritesOffsetLeftTip}">
+              <icons:MaterialIcon Kind="ArrowLeft" />
+            </Button>
             <TextBlock Grid.Column="2" Text="{Binding SelectedGroup.SelectedMember.OffsetX}"
                        FontFamily="Consolas" TextAlignment="Center" VerticalAlignment="Center" />
-            <Button Grid.Column="3" Content="►" HorizontalContentAlignment="Center"
-                    Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="right" />
+            <Button Grid.Column="3" Classes="step"
+                    Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="right"
+                    ToolTip.Tip="{l:Localize SpritesOffsetRightTip}">
+              <icons:MaterialIcon Kind="ArrowRight" />
+            </Button>
           </Grid>
 
           <Grid ColumnDefinitions="56,28,*,28">
             <TextBlock Grid.Column="0" Text="{l:Localize SpritesOffsetY}" VerticalAlignment="Center" />
-            <Button Grid.Column="1" Content="▲" HorizontalContentAlignment="Center"
-                    Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="up" />
+            <Button Grid.Column="1" Classes="step"
+                    Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="up"
+                    ToolTip.Tip="{l:Localize SpritesOffsetUpTip}">
+              <icons:MaterialIcon Kind="ArrowUp" />
+            </Button>
             <TextBlock Grid.Column="2" Text="{Binding SelectedGroup.SelectedMember.OffsetY}"
                        FontFamily="Consolas" TextAlignment="Center" VerticalAlignment="Center" />
-            <Button Grid.Column="3" Content="▼" HorizontalContentAlignment="Center"
-                    Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="down" />
+            <Button Grid.Column="3" Classes="step"
+                    Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="down"
+                    ToolTip.Tip="{l:Localize SpritesOffsetDownTip}">
+              <icons:MaterialIcon Kind="ArrowDown" />
+            </Button>
           </Grid>
 
           <!-- Fondo del grupo. Es del grupo, no del miembro seleccionado: la referencia
@@ -782,18 +832,24 @@
         <TextBlock Text=" / " VerticalAlignment="Center" />
         <TextBlock Text="{Binding NumberSprites}" VerticalAlignment="Center" />
       </StackPanel>
-      <Button Width="44" Content="&lt;" FontSize="20" Margin="3"
-              HorizontalContentAlignment="Center"
-              Command="{Binding PreviousSpriteCommand}" />
-      <Button Width="44" Content="&gt;" FontSize="20" Margin="3"
-              HorizontalContentAlignment="Center"
-              Command="{Binding NextSpriteCommand}" />
-      <Button Width="44" Content="+" FontSize="20" Margin="3"
-              HorizontalContentAlignment="Center"
-              Command="{Binding AddSpriteCommand}" />
-      <Button Width="44" Content="X" FontSize="20" Margin="3" Foreground="Red"
-              HorizontalContentAlignment="Center"
-              Command="{Binding DeleteSpriteCommand}" />
+      <Button Classes="navigate" Command="{Binding PreviousSpriteCommand}"
+              ToolTip.Tip="{l:Localize SpritesPreviousTip}">
+        <icons:MaterialIcon Kind="ChevronLeft" />
+      </Button>
+      <Button Classes="navigate" Command="{Binding NextSpriteCommand}"
+              ToolTip.Tip="{l:Localize SpritesNextTip}">
+        <icons:MaterialIcon Kind="ChevronRight" />
+      </Button>
+      <Button Classes="navigate" Command="{Binding AddSpriteCommand}"
+              ToolTip.Tip="{l:Localize SpritesAddSpriteTip}">
+        <icons:MaterialIcon Kind="Plus" />
+      </Button>
+      <!-- El unico rojo de la tira: borra el sprite que se esta viendo. -->
+      <Button Classes="navigate" Command="{Binding DeleteSpriteCommand}"
+              Foreground="{DynamicResource AppTextError}"
+              ToolTip.Tip="{l:Localize SpritesDeleteSpriteTip}">
+        <icons:MaterialIcon Kind="TrashCanOutline" />
+      </Button>
     </StackPanel>
 
     <!-- Fondo del patrón que se está dibujando. Se elige aquí y no en el panel del

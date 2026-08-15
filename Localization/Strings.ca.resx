@@ -178,6 +178,16 @@
   <data name="PreferencesThemeOrange" xml:space="preserve"><value>Fosc ataronjat</value></data>
   <data name="PreferencesThemeLightBlue" xml:space="preserve"><value>Clar blavós</value></data>
   <data name="PreferencesThemeLightOrange" xml:space="preserve"><value>Clar ataronjat</value></data>
+  <data name="SpritesPatternPrevTip" xml:space="preserve"><value>Patró anterior per a aquest membre</value></data>
+  <data name="SpritesPatternNextTip" xml:space="preserve"><value>Patró següent per a aquest membre</value></data>
+  <data name="SpritesOffsetLeftTip" xml:space="preserve"><value>Desplaça el membre un píxel a l'esquerra</value></data>
+  <data name="SpritesOffsetRightTip" xml:space="preserve"><value>Desplaça el membre un píxel a la dreta</value></data>
+  <data name="SpritesOffsetUpTip" xml:space="preserve"><value>Desplaça el membre un píxel amunt</value></data>
+  <data name="SpritesOffsetDownTip" xml:space="preserve"><value>Desplaça el membre un píxel avall</value></data>
+  <data name="SpritesPreviousTip" xml:space="preserve"><value>Sprite anterior del banc</value></data>
+  <data name="SpritesNextTip" xml:space="preserve"><value>Sprite següent del banc</value></data>
+  <data name="SpritesAddSpriteTip" xml:space="preserve"><value>Afegeix un sprite al final del banc</value></data>
+  <data name="SpritesDeleteSpriteTip" xml:space="preserve"><value>Elimina l'sprite que s'està veient</value></data>
   <data name="PreferencesZoom" xml:space="preserve"><value>Zoom de partida</value></data>
   <data name="PreferencesSpriteCanvas" xml:space="preserve"><value>Llenç de sprites</value></data>
   <data name="PreferencesSpriteThumbnails" xml:space="preserve"><value>Miniatures de sprites</value></data>

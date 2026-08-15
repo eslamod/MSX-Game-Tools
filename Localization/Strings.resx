@@ -196,6 +196,16 @@
   <data name="PreferencesThemeOrange" xml:space="preserve"><value>Oscuro anaranjado</value></data>
   <data name="PreferencesThemeLightBlue" xml:space="preserve"><value>Claro azulado</value></data>
   <data name="PreferencesThemeLightOrange" xml:space="preserve"><value>Claro anaranjado</value></data>
+  <data name="SpritesPatternPrevTip" xml:space="preserve"><value>Patrón anterior para este miembro</value></data>
+  <data name="SpritesPatternNextTip" xml:space="preserve"><value>Patrón siguiente para este miembro</value></data>
+  <data name="SpritesOffsetLeftTip" xml:space="preserve"><value>Correr el miembro un pixel a la izquierda</value></data>
+  <data name="SpritesOffsetRightTip" xml:space="preserve"><value>Correr el miembro un pixel a la derecha</value></data>
+  <data name="SpritesOffsetUpTip" xml:space="preserve"><value>Correr el miembro un pixel hacia arriba</value></data>
+  <data name="SpritesOffsetDownTip" xml:space="preserve"><value>Correr el miembro un pixel hacia abajo</value></data>
+  <data name="SpritesPreviousTip" xml:space="preserve"><value>Sprite anterior del banco</value></data>
+  <data name="SpritesNextTip" xml:space="preserve"><value>Sprite siguiente del banco</value></data>
+  <data name="SpritesAddSpriteTip" xml:space="preserve"><value>Añadir un sprite al final del banco</value></data>
+  <data name="SpritesDeleteSpriteTip" xml:space="preserve"><value>Eliminar el sprite que se está viendo</value></data>
   <data name="PreferencesZoom" xml:space="preserve"><value>Zoom de partida</value></data>
   <data name="PreferencesSpriteCanvas" xml:space="preserve"><value>Lienzo de sprites</value></data>
   <data name="PreferencesSpriteThumbnails" xml:space="preserve"><value>Miniaturas de sprites</value></data>

@@ -59,11 +59,54 @@ public class ToolStripLayoutTests : IDisposable
     [AvaloniaFact]
     public void Todo_boton_que_solo_lleva_icono_se_explica_al_pasar_el_raton()
     {
-        Button[] iconOnly = [.. _view.GetVisualDescendants()
+        AssertIconsExplainThemselves(_view, atLeast: 9);
+    }
+
+    /// <summary>Y lo mismo en el editor de sprites, que es donde faltaban.</summary>
+    /// <remarks>
+    /// De los dieciséis botones que allí eran glifos de texto, diez no tenían ayuda
+    /// emergente —entre ellos la equis roja que borra un sprite, que además es la única
+    /// destructiva de la tira—. Convertirlos a icono obligó a escribirlas.
+    /// </remarks>
+    [AvaloniaFact]
+    public void En_el_editor_de_sprites_los_iconos_tambien_se_explican()
+    {
+        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bichos");
+        var view = new SpritesEditorView
+        {
+            DataContext = new SpritesEditorViewModel(bank, ColorPalette.CreateMsxStandard()),
+        };
+
+        var window = new Window { Content = view, Width = 1400, Height = 900 };
+
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        // Los cuatro de navegación del banco están siempre; los de grupo salen al cambiar
+        // de modo, así que no se exigen aquí.
+        AssertIconsExplainThemselves(view, atLeast: 4);
+
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+    }
+
+    /// <summary>
+    /// Ningún botón de esa vista se queda con un icono y sin explicación.
+    /// </summary>
+    /// <param name="atLeast">
+    /// Cuántos tiene que encontrar como mínimo. Sin esto la comprobación pasaría sola el
+    /// día que un cambio dejara la vista sin ningún icono realizado.
+    /// </param>
+    private static void AssertIconsExplainThemselves(Control view, int atLeast)
+    {
+        Button[] iconOnly = [.. view.GetVisualDescendants()
             .OfType<Button>()
             .Where(button => button.Content is MaterialIcon)];
 
-        Assert.NotEmpty(iconOnly);
+        Assert.True(
+            iconOnly.Length >= atLeast,
+            $"Sólo se han encontrado {iconOnly.Length} botones de icono y se esperaban "
+            + $"al menos {atLeast}: la comprobación no estaría mirando nada.");
 
         foreach (Button button in iconOnly)
         {
