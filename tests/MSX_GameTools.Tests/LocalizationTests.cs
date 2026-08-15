@@ -103,8 +103,12 @@ public class LocalizationTests : IDisposable
         window.GetLogicalDescendants().OfType<MenuItem>().Select(item => item.Header as string);
 
     /// <summary>Lo mismo que pone el XAML con {l:Localize ...}.</summary>
-    private static IBinding Bound(string key) =>
-        (IBinding)new LocalizeExtension(key).ProvideValue(null!);
+    /// <remarks>
+    /// El tipo concreto y no <c>IBinding</c>: esa interfaz desaparece en Avalonia 12, y
+    /// la extensión devuelve un <see cref="Binding"/> de todos modos.
+    /// </remarks>
+    private static Binding Bound(string key) =>
+        (Binding)new LocalizeExtension(key).ProvideValue(null!);
 
     [AvaloniaFact]
     public void Un_idioma_que_no_hablamos_se_ignora()

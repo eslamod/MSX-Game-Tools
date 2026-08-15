@@ -243,7 +243,9 @@ internal sealed class SpriteCanvasHarness : IDisposable
     /// <summary>Pulsación real sobre un botón, con su pulsar y soltar.</summary>
     public static void ClickButton(Button button)
     {
-        var root = (TopLevel)button.GetVisualRoot()!;
+        // Por TopLevel.GetTopLevel y no por GetVisualRoot: esa extensión desaparece en
+        // Avalonia 12, y esto ya funciona en las dos.
+        TopLevel root = TopLevel.GetTopLevel(button)!;
         Point centre = button.TranslatePoint(
             new Point(button.Bounds.Width / 2, button.Bounds.Height / 2), root)!.Value;
 
