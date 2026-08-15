@@ -6,11 +6,31 @@
              xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
              xmlns:l="clr-namespace:MSX_GameTools.Localization"
              xmlns:views="clr-namespace:MSX_GameTools.Views"
+             xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
              x:Class="MSX_GameTools.Views.MapEditorView"
              x:DataType="vm:MapEditorViewModel">
 
   <UserControl.Styles>
+    <!-- Los botones de accion de la barra: cuadrados y del mismo tamaño, que es lo que
+         hace que una tira de iconos se lea como una tira y no como cosas sueltas. -->
+    <Style Selector="Button.tool">
+      <Setter Property="Margin" Value="1" />
+      <Setter Property="Padding" Value="6,4" />
+    </Style>
+
+    <Style Selector="Button.tool > icons|MaterialIcon">
+      <Setter Property="Width" Value="18" />
+      <Setter Property="Height" Value="18" />
+    </Style>
+
+    <!-- Los de modo van un pelin mas pequeños: acompañan al texto, no lo sustituyen. -->
+    <Style Selector="icons|MaterialIcon.mode">
+      <Setter Property="Width" Value="15" />
+      <Setter Property="Height" Value="15" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
     <Style Selector="Border.choice">
       <Setter Property="BorderThickness" Value="2" />
       <Setter Property="BorderBrush" Value="Transparent" />
@@ -38,50 +58,82 @@
          sólo una manda a la vez. Lo demás son acciones sobre lo que haya. -->
     <DockPanel Grid.Row="0" Background="{DynamicResource AppPanelBackground}">
 
+      <!-- Los modos llevan icono y texto: es en cual estas metido, y el rotulo refuerza el
+           estado. Las acciones sueltas van solo con icono, apoyadas en la ayuda emergente
+           que ya tenian. -->
       <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="4,3">
         <RadioButton GroupName="MapTool" Theme="{StaticResource ToggleRadioButton}"
-                     Content="{l:Localize MapStamp}" Tag="Stamp" Margin="1" IsChecked="True"
+                     Tag="Stamp" Margin="1" IsChecked="True"
                      IsCheckedChanged="OnToolChanged"
-                     ToolTip.Tip="{l:Localize MapStampTip}" />
+                     ToolTip.Tip="{l:Localize MapStampTip}">
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <icons:MaterialIcon Kind="Stamper" Classes="mode" />
+            <TextBlock Text="{l:Localize MapStamp}" VerticalAlignment="Center" />
+          </StackPanel>
+        </RadioButton>
         <RadioButton GroupName="MapTool" Theme="{StaticResource ToggleRadioButton}"
-                     Content="{l:Localize MapSelect}" Tag="Select" Margin="1"
+                     Tag="Select" Margin="1"
                      IsCheckedChanged="OnToolChanged"
-                     ToolTip.Tip="{l:Localize MapSelectTip}" />
+                     ToolTip.Tip="{l:Localize MapSelectTip}">
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <icons:MaterialIcon Kind="SelectionDrag" Classes="mode" />
+            <TextBlock Text="{l:Localize MapSelect}" VerticalAlignment="Center" />
+          </StackPanel>
+        </RadioButton>
         <RadioButton GroupName="MapTool" Theme="{StaticResource ToggleRadioButton}"
-                     Content="{l:Localize MapPan}" Tag="Pan" Margin="1"
+                     Tag="Pan" Margin="1"
                      IsCheckedChanged="OnToolChanged"
-                     ToolTip.Tip="{l:Localize MapPanTip}" />
+                     ToolTip.Tip="{l:Localize MapPanTip}">
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <icons:MaterialIcon Kind="CursorMove" Classes="mode" />
+            <TextBlock Text="{l:Localize MapPan}" VerticalAlignment="Center" />
+          </StackPanel>
+        </RadioButton>
 
         <Border Width="1" Background="{DynamicResource AppSeparator}" Margin="6,2" />
 
-        <Button Content="{l:Localize MapFill}" Margin="1" Padding="8,2"
-                Command="{Binding FillSelectionCommand}"
-                ToolTip.Tip="{l:Localize MapFillTip}" />
-        <Button Content="{l:Localize MapCopy}" Margin="1" Padding="8,2"
-                Command="{Binding CopySelectionCommand}"
-                ToolTip.Tip="{l:Localize MapCopyTip}" />
-        <Button Content="{l:Localize MapClear}" Margin="1" Padding="8,2"
-                Command="{Binding EraseSelectionCommand}"
-                ToolTip.Tip="{l:Localize MapClearTip}" />
-        <Button Content="{l:Localize MapReplace}" Margin="1" Padding="8,2"
-                Click="OnReplaceTiles"
-                ToolTip.Tip="{l:Localize MapReplaceTip}" />
+        <Button Classes="tool" Command="{Binding FillSelectionCommand}"
+                ToolTip.Tip="{l:Localize MapFillTip}">
+          <icons:MaterialIcon Kind="FormatColorFill" />
+        </Button>
+        <Button Classes="tool" Command="{Binding CopySelectionCommand}"
+                ToolTip.Tip="{l:Localize MapCopyTip}">
+          <icons:MaterialIcon Kind="ContentCopy" />
+        </Button>
+        <Button Classes="tool" Command="{Binding EraseSelectionCommand}"
+                ToolTip.Tip="{l:Localize MapClearTip}">
+          <icons:MaterialIcon Kind="Eraser" />
+        </Button>
+        <Button Classes="tool" Click="OnReplaceTiles"
+                ToolTip.Tip="{l:Localize MapReplaceTip}">
+          <icons:MaterialIcon Kind="FindReplace" />
+        </Button>
 
         <Border Width="1" Background="{DynamicResource AppSeparator}" Margin="6,2" />
 
-        <Button Content="↶" Margin="1" Padding="8,2" FontSize="14"
-                Command="{Binding UndoCommand}" ToolTip.Tip="{l:Localize MapUndoTip}" />
-        <Button Content="↷" Margin="1" Padding="8,2" FontSize="14"
-                Command="{Binding RedoCommand}" ToolTip.Tip="{l:Localize MapRedoTip}" />
+        <Button Classes="tool" Command="{Binding UndoCommand}"
+                ToolTip.Tip="{l:Localize MapUndoTip}">
+          <icons:MaterialIcon Kind="Undo" />
+        </Button>
+        <Button Classes="tool" Command="{Binding RedoCommand}"
+                ToolTip.Tip="{l:Localize MapRedoTip}">
+          <icons:MaterialIcon Kind="Redo" />
+        </Button>
 
         <Border Width="1" Background="{DynamicResource AppSeparator}" Margin="6,2" />
 
-        <Button Content="−" Margin="1" Padding="10,2" FontSize="14"
-                Command="{Binding ZoomOutCommand}" ToolTip.Tip="{l:Localize MapZoomOutTip}" />
-        <Button Content="+" Margin="1" Padding="10,2" FontSize="14"
-                Command="{Binding ZoomInCommand}" ToolTip.Tip="{l:Localize MapZoomInTip}" />
-        <Button Content="{l:Localize MapFit}" Margin="1" Padding="8,2"
-                Click="OnFitZoom" ToolTip.Tip="{l:Localize MapFitTip}" />
+        <Button Classes="tool" Command="{Binding ZoomOutCommand}"
+                ToolTip.Tip="{l:Localize MapZoomOutTip}">
+          <icons:MaterialIcon Kind="MagnifyMinusOutline" />
+        </Button>
+        <Button Classes="tool" Command="{Binding ZoomInCommand}"
+                ToolTip.Tip="{l:Localize MapZoomInTip}">
+          <icons:MaterialIcon Kind="MagnifyPlusOutline" />
+        </Button>
+        <Button Classes="tool" Click="OnFitZoom"
+                ToolTip.Tip="{l:Localize MapFitTip}">
+          <icons:MaterialIcon Kind="FitToPageOutline" />
+        </Button>
       </StackPanel>
 
       <!-- Lo que se lee mientras se trabaja: dónde está el ratón, el zoom y lo cogido. -->

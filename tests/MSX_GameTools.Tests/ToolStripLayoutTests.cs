@@ -4,6 +4,7 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Material.Icons.Avalonia;
 using MSX_GameTools.Entities;
 using MSX_GameTools.ViewModels;
 using MSX_GameTools.Views;
@@ -45,6 +46,93 @@ public class ToolStripLayoutTests : IDisposable
     {
         _window.Close();
         Dispatcher.UIThread.RunJobs();
+    }
+
+    /// <summary>
+    /// Un botón que sólo lleva icono tiene que explicarse al pasar el ratón.
+    /// </summary>
+    /// <remarks>
+    /// Es lo que sostiene la decisión de quitarles el texto: sin la ayuda emergente, un
+    /// icono que no reconoces no tiene ninguna otra forma de decirte qué hace. Y es lo que
+    /// se olvida al añadir el botón número trece.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Todo_boton_que_solo_lleva_icono_se_explica_al_pasar_el_raton()
+    {
+        Button[] iconOnly = [.. _view.GetVisualDescendants()
+            .OfType<Button>()
+            .Where(button => button.Content is MaterialIcon)];
+
+        Assert.NotEmpty(iconOnly);
+
+        foreach (Button button in iconOnly)
+        {
+            object? tip = ToolTip.GetTip(button);
+
+            Assert.True(
+                tip is string text && text.Length > 0,
+                $"El botón del icono «{((MaterialIcon)button.Content!).Kind}» no tiene "
+                + "ayuda emergente, y sin texto no hay otra forma de saber qué hace.");
+        }
+    }
+
+    /// <summary>
+    /// Los iconos dibujan algo de verdad.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Si se olvidan los estilos del paquete en App.axaml, el control se queda sin
+    /// plantilla: la barra sale con huecos en blanco y nada se queja.
+    /// </para>
+    /// <para>
+    /// Se mira que tenga hijos en el árbol visual y no que ocupe sitio. Medir el tamaño no
+    /// vale: los estilos de esta vista le ponen un ancho y un alto fijos, así que ocupa
+    /// sus dieciocho píxeles aunque no tenga nada dentro. Ese fue el primer intento y
+    /// pasaba con los estilos quitados.
+    /// </para>
+    /// </remarks>
+    [AvaloniaFact]
+    public void Los_iconos_de_la_barra_dibujan_algo()
+    {
+        MaterialIcon[] icons = [.. _view.GetVisualDescendants().OfType<MaterialIcon>()];
+
+        Assert.NotEmpty(icons);
+
+        foreach (MaterialIcon icon in icons)
+        {
+            Assert.True(
+                icon.GetVisualDescendants().Any(),
+                $"El icono «{icon.Kind}» no tiene nada dentro: se queda en un hueco vacío. "
+                + "¿Están puestos los estilos del paquete en App.axaml?");
+        }
+    }
+
+    /// <summary>
+    /// Los modos conservan su texto: el icono los acompaña, no los sustituye.
+    /// </summary>
+    /// <remarks>
+    /// En cuál estás metido es lo que más se mira de la barra, y un rótulo refuerza el
+    /// estado mejor que un recuadro de color.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Los_modos_conservan_su_texto_junto_al_icono()
+    {
+        RadioButton[] modes = [.. _view.GetVisualDescendants()
+            .OfType<RadioButton>()
+            .Where(button => button.GroupName == "MapTool")];
+
+        Assert.Equal(3, modes.Length);
+
+        foreach (RadioButton mode in modes)
+        {
+            Assert.Single(mode.GetVisualDescendants().OfType<MaterialIcon>());
+
+            TextBlock label = Assert.Single(mode.GetVisualDescendants().OfType<TextBlock>());
+
+            Assert.False(
+                string.IsNullOrWhiteSpace(label.Text),
+                $"El modo «{mode.Tag}» se ha quedado sin rótulo.");
+        }
     }
 
     [AvaloniaFact]

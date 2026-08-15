@@ -1,6 +1,7 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:MSX_GameTools"
+             xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              x:Class="MSX_GameTools.App"
              RequestedThemeVariant="Light"><!-- Hasta que se lean los ajustes, que mandan -->
 
@@ -11,6 +12,10 @@
 
   <Application.Styles>
     <FluentTheme />
+
+    <!-- Los iconos de las barras. Son trazos que heredan el Foreground, asi que siguen a
+         la variante igual que el texto al que sustituyen. -->
+    <icons:MaterialIconStyles />
 
     <!-- Fluent le da a las pestañas una fuente mucho mayor que la del resto de la
          interfaz y unas cabeceras muy altas. Va aqui y no en cada TabControl porque

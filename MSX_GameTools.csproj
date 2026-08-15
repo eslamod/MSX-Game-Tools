@@ -31,6 +31,9 @@
          no lo usaba nadie —no hay una sola llamada a AttachDevTools—. Si algun dia se
          quieren las DevTools, el sucesor es AvaloniaUI.DiagnosticsSupport. -->
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <!-- Iconos para las barras de herramientas. Independiente del tema base: son trazos
+         que heredan el Foreground, asi que siguen a la variante como el resto. -->
+    <PackageReference Include="Material.Icons.Avalonia" Version="3.0.2" />
   </ItemGroup>
 
 </Project>
