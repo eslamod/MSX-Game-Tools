@@ -169,6 +169,11 @@
   <data name="PreferencesLanguage" xml:space="preserve"><value>Idioma</value></data>
   <data name="PreferencesScale" xml:space="preserve"><value>Escala</value></data>
   <data name="PreferencesScaleTip" xml:space="preserve"><value>Fa més gran tot el programa, per sobre del que ja faci el sistema</value></data>
+  <data name="PreferencesTheme" xml:space="preserve"><value>Aspecte</value></data>
+  <data name="PreferencesThemeTip" xml:space="preserve"><value>Els colors del programa. Els del MSX no canvien: un tile es veu igual amb l'aspecte que sigui</value></data>
+  <data name="PreferencesThemeSystem" xml:space="preserve"><value>El del sistema</value></data>
+  <data name="PreferencesThemeLight" xml:space="preserve"><value>Clar</value></data>
+  <data name="PreferencesThemeDark" xml:space="preserve"><value>Fosc</value></data>
   <data name="PreferencesZoom" xml:space="preserve"><value>Zoom de partida</value></data>
   <data name="PreferencesSpriteCanvas" xml:space="preserve"><value>Llenç de sprites</value></data>
   <data name="PreferencesSpriteThumbnails" xml:space="preserve"><value>Miniatures de sprites</value></data>

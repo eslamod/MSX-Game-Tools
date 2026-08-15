@@ -168,6 +168,11 @@
   <data name="PreferencesLanguage" xml:space="preserve"><value>Language</value></data>
   <data name="PreferencesScale" xml:space="preserve"><value>Scale</value></data>
   <data name="PreferencesScaleTip" xml:space="preserve"><value>Makes the whole application bigger, on top of what the system already does</value></data>
+  <data name="PreferencesTheme" xml:space="preserve"><value>Appearance</value></data>
+  <data name="PreferencesThemeTip" xml:space="preserve"><value>The application's colours. The MSX ones do not change: a tile looks the same whatever the appearance</value></data>
+  <data name="PreferencesThemeSystem" xml:space="preserve"><value>Match the system</value></data>
+  <data name="PreferencesThemeLight" xml:space="preserve"><value>Light</value></data>
+  <data name="PreferencesThemeDark" xml:space="preserve"><value>Dark</value></data>
   <data name="PreferencesZoom" xml:space="preserve"><value>Starting zoom</value></data>
   <data name="PreferencesSpriteCanvas" xml:space="preserve"><value>Sprite canvas</value></data>
   <data name="PreferencesSpriteThumbnails" xml:space="preserve"><value>Sprite thumbnails</value></data>

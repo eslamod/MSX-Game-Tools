@@ -51,6 +51,22 @@
         </ComboBox>
       </Grid>
 
+      <!-- Claro u oscuro. Se aplica al aceptar, como el idioma: ir cambiando el aspecto
+           de toda la ventana mientras se recorre la lista marea mas que ayuda. -->
+      <Grid ColumnDefinitions="150,*" Margin="0,0,0,10">
+        <TextBlock Grid.Column="0" Text="{l:Localize PreferencesTheme}" VerticalAlignment="Center" />
+        <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding Variants}"
+                  SelectedItem="{Binding Variant}"
+                  ToolTip.Tip="{l:Localize PreferencesThemeTip}">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:VariantChoice">
+              <TextBlock Text="{Binding Label}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+      </Grid>
+
       <TextBlock Text="{l:Localize PreferencesZoom}" FontWeight="Bold" Margin="0,0,0,2" />
 
       <!-- Con que zoom se abre cada sitio. Lo que ya este abierto se queda con el suyo

@@ -48,6 +48,15 @@ public partial class MainWindowViewModel : ObservableObject
         Dialogs = dialogs ?? new SilentDialogService();
         _settings = settings;
 
+        // La variante, por un solo sitio: aquí llegan tanto la que viene del fichero de
+        // ajustes al arrancar —CopyFrom pasa por los setters— como la que se elige en el
+        // panel de preferencias. Sin esto habría que acordarse de aplicarla en los dos.
+        Preferences.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(EditorPreferences.ThemeVariant))
+                AppTheme.Apply(Preferences.ThemeVariant);
+        };
+
         Palettes.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName != nameof(PaletteLibrary.ActivePalette))
@@ -469,6 +478,10 @@ public partial class MainWindowViewModel : ObservableObject
             Localization.Localizer.Instance.Language = settings.Language;
 
         Preferences.CopyFrom(settings.Preferences);
+
+        // Y a mano además de por el aviso de arriba: si lo guardado coincide con lo que ya
+        // había, el setter no avisa de nada y la variante se quedaría sin aplicar.
+        AppTheme.Apply(Preferences.ThemeVariant);
     }
 
     /// <summary>Guarda los ajustes. Se llama al aceptar las preferencias y al salir.</summary>

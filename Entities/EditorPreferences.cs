@@ -24,6 +24,8 @@ public sealed class EditorPreferences : ObservableObject
 {
     private double _interfaceScale = 1;
 
+    private AppThemeVariant _themeVariant = AppThemeVariant.Light;
+
     /// <summary>
     /// Cuánto se agranda toda la interfaz, sobre lo que ya diga el sistema.
     /// </summary>
@@ -48,6 +50,20 @@ public sealed class EditorPreferences : ObservableObject
     {
         get => _interfaceScale;
         set => SetProperty(ref _interfaceScale, Math.Clamp(value, MinScale, MaxScale));
+    }
+
+    /// <summary>
+    /// Con qué variante se pinta la interfaz.
+    /// </summary>
+    /// <remarks>
+    /// Arranca en <see cref="AppThemeVariant.Light"/> y no siguiendo al sistema: la
+    /// aplicación siempre ha sido clara, y a quien la actualice no se le cambia el aspecto
+    /// sin haberlo pedido. Seguir al sistema está a un desplegable de distancia.
+    /// </remarks>
+    public AppThemeVariant ThemeVariant
+    {
+        get => _themeVariant;
+        set => SetProperty(ref _themeVariant, value);
     }
 
     /// <summary>Por debajo de uno no tiene sentido: es para agrandar, no para encoger.</summary>
@@ -87,6 +103,7 @@ public sealed class EditorPreferences : ObservableObject
     public void CopyFrom(EditorPreferences other)
     {
         InterfaceScale = other.InterfaceScale;
+        ThemeVariant = other.ThemeVariant;
         SpriteCanvasZoom = other.SpriteCanvasZoom;
         SpriteThumbnailZoom = other.SpriteThumbnailZoom;
         TileCanvasZoom = other.TileCanvasZoom;

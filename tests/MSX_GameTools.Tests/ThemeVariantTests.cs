@@ -6,6 +6,7 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Services;
 using MSX_GameTools.ViewModels;
 using MSX_GameTools.Views;
 using Xunit;
@@ -90,6 +91,84 @@ public class ThemeVariantTests
 
         Assert.Equal(Color.FromRgb(36, 219, 36), green);
         Assert.Equal("161", palette[2].HexRgb);
+    }
+
+    // ------------------------------------------------------------------ el ajuste
+
+    [AvaloniaTheory]
+    [InlineData(AppThemeVariant.System, "Default")]
+    [InlineData(AppThemeVariant.Light, "Light")]
+    [InlineData(AppThemeVariant.Dark, "Dark")]
+    public void Cada_variante_elegida_es_una_de_Avalonia(AppThemeVariant chosen, string expected)
+    {
+        Assert.Equal(expected, AppTheme.ToAvalonia(chosen).ToString());
+    }
+
+    /// <summary>
+    /// «El del sistema» no es lo mismo que «claro», aunque hoy se vean igual.
+    /// </summary>
+    /// <remarks>
+    /// Es la que se rompe si alguien resuelve System como Light por atajar: entonces
+    /// elegir «el del sistema» dejaría de seguir al escritorio y nadie se enteraría hasta
+    /// ponerlo en oscuro.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Seguir_al_sistema_no_es_quedarse_en_claro()
+    {
+        Assert.NotEqual(
+            AppTheme.ToAvalonia(AppThemeVariant.Light),
+            AppTheme.ToAvalonia(AppThemeVariant.System));
+    }
+
+    [AvaloniaFact]
+    public void La_variante_arranca_en_claro_y_va_y_vuelve_del_fichero()
+    {
+        string folder = Path.Combine(Path.GetTempPath(), $"msxtheme-{Guid.NewGuid():N}");
+
+        try
+        {
+            var store = new SettingsStore(folder);
+
+            // Sin fichero, claro: a quien actualice no se le cambia el aspecto solo.
+            Assert.Equal(AppThemeVariant.Light, new EditorPreferences().ThemeVariant);
+
+            var main = new MainWindowViewModel(new TestDialogService(), store);
+            main.Preferences.ThemeVariant = AppThemeVariant.Dark;
+            main.SaveSettings();
+
+            var opened = new MainWindowViewModel(new TestDialogService(), store);
+            opened.LoadSettings();
+
+            Assert.Equal(AppThemeVariant.Dark, opened.Preferences.ThemeVariant);
+
+            // Y por nombre en el fichero, que se lee a mano cuando algo va mal.
+            Assert.Contains("Dark", File.ReadAllText(store.Path));
+        }
+        finally
+        {
+            if (Directory.Exists(folder))
+                Directory.Delete(folder, recursive: true);
+        }
+    }
+
+    /// <summary>Aceptar las preferencias deja puesta la variante elegida.</summary>
+    [AvaloniaFact]
+    public async Task Elegir_el_aspecto_en_preferencias_lo_aplica()
+    {
+        var main = new MainWindowViewModel(new TestDialogService());
+
+        main.ShowPreferencesCommand.Execute(null);
+
+        var panel = Assert.IsType<EditPreferencesViewModel>(main.RightPanViewModel);
+
+        Assert.Equal(AppThemeVariant.Light, panel.Variant.Value);
+
+        panel.Variant = EditPreferencesViewModel.Variants
+            .Single(choice => choice.Value == AppThemeVariant.Dark);
+
+        await panel.AcceptPreferencesCommand.ExecuteAsync(null);
+
+        Assert.Equal(AppThemeVariant.Dark, main.Preferences.ThemeVariant);
     }
 
     // ------------------------------------------------------------------ ayudas

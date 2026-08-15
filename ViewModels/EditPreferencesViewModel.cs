@@ -1,11 +1,19 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MSX_GameTools.Entities;
 using MSX_GameTools.Localization;
 
 namespace MSX_GameTools.ViewModels;
 
 /// <summary>Una escala de la interfaz, con lo que se lee y el factor que aplica.</summary>
 public sealed record ScaleChoice(string Label, double Value);
+
+/// <summary>Una variante de la interfaz, con lo que se lee y lo que vale.</summary>
+/// <remarks>
+/// La etiqueta se resuelve al abrir el formulario, como el resto: se abre y se cierra en
+/// un momento y no compensa enlazarla al idioma.
+/// </remarks>
+public sealed record VariantChoice(string Label, AppThemeVariant Value);
 
 /// <summary>Un nivel de zoom, con lo que se lee y lo que vale por dentro.</summary>
 /// <remarks>
@@ -32,6 +40,9 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
 
     [ObservableProperty]
     private ScaleChoice _scale;
+
+    [ObservableProperty]
+    private VariantChoice _variant;
 
     [ObservableProperty]
     private int _spriteCanvasZoom;
@@ -63,6 +74,7 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
         Entities.EditorPreferences zoom = mainWindowVm.Preferences;
 
         _scale = Scales.FirstOrDefault(choice => choice.Value == zoom.InterfaceScale) ?? Scales[0];
+        _variant = Variants.First(choice => choice.Value == zoom.ThemeVariant);
         _spriteCanvasZoom = zoom.SpriteCanvasZoom;
         _spriteThumbnailZoom = zoom.SpriteThumbnailZoom;
         _tileCanvasZoom = zoom.TileCanvasZoom;
@@ -86,6 +98,20 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
     /// </remarks>
     public static IReadOnlyList<ScaleChoice> Scales { get; } =
         [new("100 %", 1), new("125 %", 1.25), new("150 %", 1.5), new("175 %", 1.75), new("200 %", 2)];
+
+    /// <summary>
+    /// Claro, oscuro, o lo que diga el sistema.
+    /// </summary>
+    /// <remarks>
+    /// No es estática como las demás: las etiquetas están traducidas y una lista estática
+    /// se quedaría con el idioma del primer formulario que se abriera.
+    /// </remarks>
+    public static IReadOnlyList<VariantChoice> Variants =>
+    [
+        new(Localizer.Instance["PreferencesThemeSystem"], AppThemeVariant.System),
+        new(Localizer.Instance["PreferencesThemeLight"], AppThemeVariant.Light),
+        new(Localizer.Instance["PreferencesThemeDark"], AppThemeVariant.Dark),
+    ];
 
     /// <summary>Los lienzos de dibujo, que guardan la posición del botón y no el factor.</summary>
     public static IReadOnlyList<ZoomChoice> CanvasZooms { get; } =
@@ -119,8 +145,10 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
     {
         Entities.EditorPreferences zoom = _mainWindowVm.Preferences;
 
-        // La escala se aplica sola: la ventana está enlazada a ella.
+        // La escala se aplica sola: la ventana está enlazada a ella. Y la variante también,
+        // que la ventana principal la vigila y se la pasa a Avalonia.
         zoom.InterfaceScale = Scale.Value;
+        zoom.ThemeVariant = Variant.Value;
         zoom.SpriteCanvasZoom = SpriteCanvasZoom;
         zoom.SpriteThumbnailZoom = SpriteThumbnailZoom;
         zoom.TileCanvasZoom = TileCanvasZoom;
