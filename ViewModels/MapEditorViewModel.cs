@@ -168,6 +168,79 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
     public IList<TileBlock> Blocks => _tiles.TileSet.Blocks;
 
     /// <summary>
+    /// Si este mapa se dibuja con supertiles, que lo decide su juego de tiles.
+    /// </summary>
+    /// <remarks>
+    /// Entonces una celda del mapa es un supertile entero y su número es el del supertile,
+    /// no el de un tile. Coger tiles sueltos deja de tener sentido: no hay dónde ponerlos.
+    /// </remarks>
+    public bool UsesSuperTiles => _tiles.TileSet.HasSuperTiles;
+
+    /// <summary>Tiles que ocupa una celda del mapa, de ancho y de alto.</summary>
+    public int CellTilesWidth => UsesSuperTiles ? _tiles.TileSet.SuperTileWidth : 1;
+
+    /// <inheritdoc cref="CellTilesWidth"/>
+    public int CellTilesHeight => UsesSuperTiles ? _tiles.TileSet.SuperTileHeight : 1;
+
+    /// <summary>
+    /// Las imágenes con las que se pinta el mapa, indexadas por el número de la celda.
+    /// </summary>
+    /// <remarks>
+    /// Los tiles del juego en un mapa normal y los supertiles ya compuestos en uno de
+    /// supertiles. Así el lienzo dibuja una imagen por celda en los dos casos y no tiene
+    /// que saber de qué van.
+    /// </remarks>
+    public ObservableCollection<ImageMini> CellImages => UsesSuperTiles ? SuperTiles : Tiles;
+
+    /// <summary>Cada supertile compuesto en una sola imagen.</summary>
+    public ObservableCollection<ImageMini> SuperTiles { get; } = [];
+
+    /// <summary>
+    /// Rehace las imágenes de los supertiles.
+    /// </summary>
+    /// <remarks>
+    /// Al tocar un bloque, un tile o la paleta: el dibujo de un supertile sale de todo eso.
+    /// Se reutiliza la imagen anterior de cada uno cuando mide lo mismo, que es lo normal,
+    /// para no soltar el bitmap que la vista tiene cogido.
+    /// </remarks>
+    private void RefreshSuperTiles()
+    {
+        if (!UsesSuperTiles)
+        {
+            SuperTiles.Clear();
+
+            return;
+        }
+
+        for (int index = 0; index < Blocks.Count; index++)
+        {
+            ImageMini image = SuperTileRenderer.Render(
+                Blocks[index],
+                _tiles.TileSet,
+                ColorPalette,
+                ColorPalette.Resolve(BackgroundColorIndexOrBorder, ColorPalette[1].Color),
+                index < SuperTiles.Count ? SuperTiles[index] : null);
+
+            if (index < SuperTiles.Count)
+                SuperTiles[index] = image;
+            else
+                SuperTiles.Add(image);
+        }
+
+        while (SuperTiles.Count > Blocks.Count)
+            SuperTiles.RemoveAt(SuperTiles.Count - 1);
+    }
+
+    /// <summary>
+    /// Con qué color se ve el 0 dentro de un supertile.
+    /// </summary>
+    /// <remarks>
+    /// El del fondo del mapa, que es lo que se verá en la máquina: el 0 es transparente y
+    /// deja pasar el borde, y en el mapa ese borde es su color de fondo.
+    /// </remarks>
+    private int BackgroundColorIndexOrBorder => Map.BackgroundColorIndex;
+
+    /// <summary>
     /// Los bloques con su dibujo, para enseñarlos todos a la vez.
     /// </summary>
     /// <remarks>
@@ -184,6 +257,10 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
 
         foreach (TileBlock block in Blocks)
             BlockChoices.Add(new BlockChoiceViewModel(block, _tiles.Thumbnails));
+
+        // Un bloque es un supertile aqui, asi que su dibujo tambien cambia.
+        RefreshSuperTiles();
+        RefreshRequested?.Invoke();
     }
 
     /// <summary>
@@ -262,6 +339,10 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
         OnPropertyChanged(nameof(BackgroundChoices));
         OnPropertyChanged(nameof(BackgroundColor));
         OnPropertyChanged(nameof(BackgroundBrush));
+
+        // El dibujo de un supertile sale de los tiles y de la paleta, asi que hay que
+        // rehacerlo: sus miniaturas son nuestras, no las del juego.
+        RefreshSuperTiles();
 
         RefreshRequested?.Invoke();
     }
@@ -486,12 +567,23 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
             block.IsSelected = false;
     }
 
-    /// <summary>Coge un bloque, que se estampa entero.</summary>
+    /// <summary>
+    /// Coge un bloque, que se estampa entero.
+    /// </summary>
+    /// <remarks>
+    /// En un mapa de supertiles lo que se estampa es <b>una celda con el número del
+    /// supertile</b>, no sus tiles sueltos: ahí la celda del mapa es el supertile entero,
+    /// y guardar sus tiles la desharía en pedazos que el mapa no sabe colocar.
+    /// </remarks>
     public void PickBlock(TileBlock block)
     {
-        Brush = block.ToPatch();
-        BrushName = $"{block.Name} ({block.Width}x{block.Height})";
         _blockIndex = Blocks.IndexOf(block);
+
+        Brush = UsesSuperTiles && _blockIndex >= 0
+            ? TilePatch.Single(_blockIndex)
+            : block.ToPatch();
+
+        BrushName = $"{block.Name} ({block.Width}x{block.Height})";
 
         Unmark();
 

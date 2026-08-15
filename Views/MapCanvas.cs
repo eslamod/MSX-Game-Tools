@@ -52,6 +52,14 @@ public class MapCanvas : Control
     public static readonly StyledProperty<bool> ShowGridProperty =
         AvaloniaProperty.Register<MapCanvas, bool>(nameof(ShowGrid), defaultValue: true);
 
+    /// <inheritdoc cref="CellTilesWidth"/>
+    public static readonly StyledProperty<int> CellTilesWidthProperty =
+        AvaloniaProperty.Register<MapCanvas, int>(nameof(CellTilesWidth), defaultValue: 1);
+
+    /// <inheritdoc cref="CellTilesWidth"/>
+    public static readonly StyledProperty<int> CellTilesHeightProperty =
+        AvaloniaProperty.Register<MapCanvas, int>(nameof(CellTilesHeight), defaultValue: 1);
+
     private static readonly IPen GridPen = new Pen(new SolidColorBrush(Color.FromArgb(60, 0, 0, 0)));
     private static readonly IPen SelectionPen = new Pen(Brushes.Red, 2);
     private static readonly IPen EdgePen = new Pen(Brushes.DimGray);
@@ -76,7 +84,15 @@ public class MapCanvas : Control
     static MapCanvas()
     {
         AffectsRender<MapCanvas>(
-            MapProperty, ZoomProperty, BackgroundProperty, SelectionProperty, ShowGridProperty, BrushProperty);
+            MapProperty,
+            ZoomProperty,
+            BackgroundProperty,
+            SelectionProperty,
+            ShowGridProperty,
+            BrushProperty,
+            TilesProperty,
+            CellTilesWidthProperty,
+            CellTilesHeightProperty);
     }
 
     public MapCanvas()
@@ -147,8 +163,35 @@ public class MapCanvas : Control
         set => SetValue(BrushProperty, value);
     }
 
+    /// <summary>
+    /// Tiles que ocupa una celda del mapa: uno en un mapa normal, el supertile si no.
+    /// </summary>
+    /// <remarks>
+    /// El lienzo sigue dibujando una imagen por celda; lo único que cambia es lo que mide
+    /// la celda. Las imágenes que le pasen ya serán las de los supertiles, así que aquí no
+    /// hay que saber de qué van.
+    /// </remarks>
+    public int CellTilesWidth
+    {
+        get => GetValue(CellTilesWidthProperty);
+        set => SetValue(CellTilesWidthProperty, value);
+    }
+
+    /// <inheritdoc cref="CellTilesWidth"/>
+    public int CellTilesHeight
+    {
+        get => GetValue(CellTilesHeightProperty);
+        set => SetValue(CellTilesHeightProperty, value);
+    }
+
     /// <summary>Lo que mide un tile en pantalla con el zoom actual.</summary>
     public double TileSize => TileRow.Columns * Zoom;
+
+    /// <summary>Lo que mide una celda del mapa de ancho, que puede ser varios tiles.</summary>
+    public double CellWidth => TileSize * Math.Max(1, CellTilesWidth);
+
+    /// <inheritdoc cref="CellWidth"/>
+    public double CellHeight => TileSize * Math.Max(1, CellTilesHeight);
 
     /// <summary>
     /// Cómo se escalan los tiles al dibujarlos.
@@ -182,12 +225,13 @@ public class MapCanvas : Control
         if (Map is not { } map)
             return default;
 
-        double size = TileSize;
+        double cellWidth = CellWidth;
+        double cellHeight = CellHeight;
 
-        int firstColumn = Math.Max(0, (int)(_offset.X / size));
-        int firstRow = Math.Max(0, (int)(_offset.Y / size));
-        int lastColumn = Math.Min(map.Width - 1, (int)((_offset.X + Bounds.Width) / size));
-        int lastRow = Math.Min(map.Height - 1, (int)((_offset.Y + Bounds.Height) / size));
+        int firstColumn = Math.Max(0, (int)(_offset.X / cellWidth));
+        int firstRow = Math.Max(0, (int)(_offset.Y / cellHeight));
+        int lastColumn = Math.Min(map.Width - 1, (int)((_offset.X + Bounds.Width) / cellWidth));
+        int lastRow = Math.Min(map.Height - 1, (int)((_offset.Y + Bounds.Height) / cellHeight));
 
         return new MapRegion(
             firstColumn,
@@ -203,7 +247,8 @@ public class MapCanvas : Control
         if (Map is not { } map || Tiles is not { Count: > 0 } tiles)
             return;
 
-        double size = TileSize;
+        double cellWidth = CellWidth;
+        double cellHeight = CellHeight;
         MapRegion visible = VisibleRange();
 
         for (int row = visible.Top; row < visible.Top + visible.Height; row++)
@@ -211,10 +256,10 @@ public class MapCanvas : Control
             for (int column = visible.Left; column < visible.Left + visible.Width; column++)
             {
                 var rect = new Rect(
-                    (column * size) - _offset.X,
-                    (row * size) - _offset.Y,
-                    size,
-                    size);
+                    (column * cellWidth) - _offset.X,
+                    (row * cellHeight) - _offset.Y,
+                    cellWidth,
+                    cellHeight);
 
                 if (map.TileAt(column, row, onlyVisible: true) is int tile && (uint)tile < (uint)tiles.Count)
                     context.DrawImage(tiles[tile].SpritePreview, rect);
@@ -224,9 +269,9 @@ public class MapCanvas : Control
             }
         }
 
-        DrawEdge(context, map, size);
-        DrawGhost(context, map, tiles, size);
-        DrawSelection(context, size);
+        DrawEdge(context, map, cellWidth, cellHeight);
+        DrawGhost(context, map, tiles, cellWidth, cellHeight);
+        DrawSelection(context, cellWidth, cellHeight);
     }
 
     protected override Size MeasureOverride(Size availableSize)
@@ -244,7 +289,8 @@ public class MapCanvas : Control
     /// Se ve translúcido para distinguirlo de lo que ya está puesto. Sin esto hay que
     /// acordarse de lo que se cogió abajo, y con un bloque además de por dónde cae.
     /// </remarks>
-    private void DrawGhost(DrawingContext context, TileMap map, IList<ImageMini> tiles, double size)
+    private void DrawGhost(
+        DrawingContext context, TileMap map, IList<ImageMini> tiles, double cellWidth, double cellHeight)
     {
         if (_hover is not { } hover || Brush is not { } brush || Tool != MapTool.Stamp)
             return;
@@ -265,38 +311,38 @@ public class MapCanvas : Control
                         continue;
 
                     context.DrawImage(tiles[tile].SpritePreview, new Rect(
-                        (atColumn * size) - _offset.X,
-                        (atRow * size) - _offset.Y,
-                        size,
-                        size));
+                        (atColumn * cellWidth) - _offset.X,
+                        (atRow * cellHeight) - _offset.Y,
+                        cellWidth,
+                        cellHeight));
                 }
             }
         }
     }
 
     /// <summary>El borde del mapa, para saber dónde se acaba cuando sobra hueco.</summary>
-    private void DrawEdge(DrawingContext context, TileMap map, double size)
+    private void DrawEdge(DrawingContext context, TileMap map, double cellWidth, double cellHeight)
     {
         context.DrawRectangle(null, EdgePen, new Rect(
-            -_offset.X, -_offset.Y, map.Width * size, map.Height * size));
+            -_offset.X, -_offset.Y, map.Width * cellWidth, map.Height * cellHeight));
     }
 
-    private void DrawSelection(DrawingContext context, double size)
+    private void DrawSelection(DrawingContext context, double cellWidth, double cellHeight)
     {
         if (Selection is not { } region)
             return;
 
         context.DrawRectangle(null, SelectionPen, new Rect(
-            (region.Left * size) - _offset.X,
-            (region.Top * size) - _offset.Y,
-            region.Width * size,
-            region.Height * size));
+            (region.Left * cellWidth) - _offset.X,
+            (region.Top * cellHeight) - _offset.Y,
+            region.Width * cellWidth,
+            region.Height * cellHeight));
     }
 
     /// <summary>La celda que hay bajo ese punto, aunque caiga fuera del mapa.</summary>
     private (int Column, int Row) CellAt(Point point) => (
-        (int)Math.Floor((point.X + _offset.X) / TileSize),
-        (int)Math.Floor((point.Y + _offset.Y) / TileSize));
+        (int)Math.Floor((point.X + _offset.X) / CellWidth),
+        (int)Math.Floor((point.Y + _offset.Y) / CellHeight));
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
@@ -398,8 +444,8 @@ public class MapCanvas : Control
         if (Map is not { } map)
             return;
 
-        double maxX = Math.Max(0, (map.Width * TileSize) - (Bounds.Width / 2));
-        double maxY = Math.Max(0, (map.Height * TileSize) - (Bounds.Height / 2));
+        double maxX = Math.Max(0, (map.Width * CellWidth) - (Bounds.Width / 2));
+        double maxY = Math.Max(0, (map.Height * CellHeight) - (Bounds.Height / 2));
 
         _offset = new Point(
             Math.Clamp(_offset.X, 0, maxX),

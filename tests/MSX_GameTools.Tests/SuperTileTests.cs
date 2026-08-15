@@ -178,6 +178,107 @@ public class SuperTileTests
 
     // ------------------------------------------------------------------ crear el mapa
 
+    // ------------------------------------------------------------------ el editor del mapa
+
+    /// <summary>
+    /// En un mapa de supertiles la celda mide el supertile y se pinta con sus imágenes.
+    /// </summary>
+    /// <remarks>
+    /// El lienzo dibuja una imagen por celda en los dos casos; lo que cambia es cuánto mide
+    /// la celda y de qué lista salen las imágenes. Así no hay dos formas de pintar el mapa.
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_celda_del_mapa_mide_el_supertile()
+    {
+        MapEditorViewModel normal = NewMap(new TileSet("Normal"));
+        MapEditorViewModel super = NewMap(new TileSet("Grande") { SuperTileWidth = 3, SuperTileHeight = 2 });
+
+        Assert.False(normal.UsesSuperTiles);
+        Assert.Equal(1, normal.CellTilesWidth);
+        Assert.Equal(1, normal.CellTilesHeight);
+        Assert.Same(normal.Tiles, normal.CellImages);
+
+        Assert.True(super.UsesSuperTiles);
+        Assert.Equal(3, super.CellTilesWidth);
+        Assert.Equal(2, super.CellTilesHeight);
+        Assert.Same(super.SuperTiles, super.CellImages);
+    }
+
+    /// <summary>Cada supertile trae su imagen, del tamaño que le toca.</summary>
+    [AvaloniaFact]
+    public void Cada_supertile_tiene_su_imagen_compuesta()
+    {
+        var tileSet = new TileSet("Grande") { SuperTileWidth = 2, SuperTileHeight = 3 };
+        tileSet.Blocks.Add(new TileBlock("Arbol") { [0, 0] = 1, [1, 2] = 2 });
+
+        MapEditorViewModel map = NewMap(tileSet);
+
+        ImageMini image = Assert.Single(map.SuperTiles);
+
+        Assert.Equal(2 * TileRow.Columns, image.Width);
+        Assert.Equal(3 * Tile.Rows, image.Height);
+    }
+
+    /// <summary>
+    /// Coger un supertile deja una celda con su número, no sus tiles sueltos.
+    /// </summary>
+    /// <remarks>
+    /// La celda del mapa es el supertile entero. Guardando sus tiles se desharía en pedazos
+    /// que el mapa no sabe colocar, y al exportar saldrían números de tile donde el juego
+    /// espera números de supertile.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Coger_un_supertile_estampa_su_numero()
+    {
+        var tileSet = new TileSet("Grande") { SuperTileWidth = 2, SuperTileHeight = 2 };
+        tileSet.Blocks.Add(new TileBlock("Uno") { [0, 0] = 10 });
+        tileSet.Blocks.Add(new TileBlock("Dos") { [0, 0] = 20 });
+
+        MapEditorViewModel map = NewMap(tileSet);
+
+        map.PickBlock(tileSet.Blocks[1]);
+
+        Assert.Equal(1, map.Brush!.Width);
+        Assert.Equal(1, map.Brush.Height);
+        Assert.Equal(1, map.Brush[0, 0]);
+
+        map.Paint(3, 4);
+
+        Assert.Equal(1, map.Map.Layers[0].Grid[3, 4]);
+    }
+
+    /// <summary>En un mapa normal se sigue estampando el bloque entero, tile a tile.</summary>
+    [AvaloniaFact]
+    public void En_un_mapa_normal_el_bloque_sigue_estampando_sus_tiles()
+    {
+        var tileSet = new TileSet("Normal");
+        tileSet.Blocks.Add(new TileBlock("Arbol") { [0, 0] = 10, [1, 0] = 11 });
+
+        MapEditorViewModel map = NewMap(tileSet);
+
+        map.PickBlock(tileSet.Blocks[0]);
+        map.Paint(0, 0);
+
+        Assert.Equal(10, map.Map.Layers[0].Grid[0, 0]);
+        Assert.Equal(11, map.Map.Layers[0].Grid[1, 0]);
+    }
+
+    /// <summary>Un supertile nuevo aparece con su imagen sin tener que reabrir nada.</summary>
+    [AvaloniaFact]
+    public void Un_supertile_nuevo_trae_su_imagen()
+    {
+        var tileSet = new TileSet("Grande") { SuperTileWidth = 2, SuperTileHeight = 2 };
+        var tiles = new TileSetEditorViewModel(tileSet, ColorPalette.CreateMsxStandard());
+        var map = new MapEditorViewModel(new TileMap("Nivel", 8, 8), tiles);
+        var blocks = new TileBlocksViewModel(tiles);
+
+        Assert.Empty(map.SuperTiles);
+
+        blocks.AddBlockCommand.Execute(null);
+
+        Assert.Single(map.SuperTiles);
+    }
+
     /// <summary>
     /// El formulario del mapa dice qué va a salir, según el juego elegido.
     /// </summary>
@@ -207,4 +308,9 @@ public class SuperTileTests
         Assert.True(form.UsesSuperTiles);
         Assert.Contains("2x2", form.KindLabel);
     }
+
+    /// <summary>Un mapa abierto sobre ese juego de tiles.</summary>
+    private static MapEditorViewModel NewMap(TileSet tileSet) =>
+        new(new TileMap("Nivel", 8, 8),
+            new TileSetEditorViewModel(tileSet, ColorPalette.CreateMsxStandard()));
 }

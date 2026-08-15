@@ -101,9 +101,14 @@
     <!-- Mapa a la izquierda, capas y atributos a la derecha -->
     <Grid Grid.Row="1" ColumnDefinitions="*,3,250">
 
+      <!-- Las imagenes son los tiles del juego o los supertiles ya compuestos, segun de
+           que vaya el mapa; el lienzo dibuja una por celda sin saber cual es cual. Lo
+           unico que le hace falta es cuanto mide la celda. -->
       <views:MapCanvas x:Name="Canvas" Grid.Column="0"
                        Map="{Binding Map}"
-                       Tiles="{Binding Tiles}"
+                       Tiles="{Binding CellImages}"
+                       CellTilesWidth="{Binding CellTilesWidth}"
+                       CellTilesHeight="{Binding CellTilesHeight}"
                        Zoom="{Binding Zoom}"
                        Background="{Binding BackgroundBrush}"
                        Brush="{Binding Brush}"
@@ -228,7 +233,9 @@
 
     <TabControl Background="Gainsboro">
 
-      <TabItem Header="{l:Localize MapTilesTab}">
+      <!-- En un mapa de supertiles no sale: una celda es un supertile entero, asi que un
+           tile suelto no se puede colocar en ninguna parte. -->
+      <TabItem Header="{l:Localize MapTilesTab}" IsVisible="{Binding !UsesSuperTiles}">
         <Border Background="Gray" Padding="4">
           <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                         AllowAutoHide="False">
