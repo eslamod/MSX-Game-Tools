@@ -449,6 +449,8 @@ El proyecto se abre igual, sin ellos. Ojo: si lo guardas ahora, se irán tambié
 {1}
 
 Recuerda copiar cada tabla {2} veces en VRAM, una por tercio de pantalla.</value></data>
+  <data name="ExportedSuperTiles" xml:space="preserve"><value>Y la tabla de supertiles en {0}, con {1} supertiles. Sale con el juego y no con cada mapa porque es suya: todos los mapas dibujados con él la comparten.</value></data>
+  <data name="ExportedSuperTilesTooMany" xml:space="preserve"><value>Ojo: el juego tiene {0} supertiles y un mapa sólo puede nombrar {1}, porque cada celda es un byte. Los que sobran no han salido.</value></data>
   <data name="ExportedMapTitle" xml:space="preserve"><value>Mapa exportado</value></data>
   <data name="ExportedMapEmptyBody" xml:space="preserve"><value>Las celdas vacías han salido con el tile {0}: la tabla de nombres del VDP siempre dibuja algo y en un byte no cabe el hueco. Se puede cambiar en «Vacío» junto al tamaño del mapa.</value></data>
 

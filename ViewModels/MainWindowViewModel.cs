@@ -1521,17 +1521,27 @@ public partial class MainWindowViewModel : ObservableObject
         string patternsPath = Path.Combine(folder, $"{stem}_patterns{extension}");
         string colorsPath = Path.Combine(folder, $"{stem}_colors{extension}");
 
+        // La tabla de supertiles sale con el juego y no con el mapa: es del juego, y todos
+        // los mapas dibujados con el comparten la misma. Con cada mapa se repetiria igual.
+        string superPath = Path.Combine(folder, $"{stem}_supertiles{extension}");
+
         try
         {
             if (binary)
             {
                 await File.WriteAllBytesAsync(patternsPath, TileSetExporter.PatternsToBinary(tileSet));
                 await File.WriteAllBytesAsync(colorsPath, TileSetExporter.ColorsToBinary(tileSet));
+
+                if (tileSet.HasSuperTiles)
+                    await File.WriteAllBytesAsync(superPath, SuperTileExporter.ToBinary(tileSet));
             }
             else
             {
                 await File.WriteAllTextAsync(patternsPath, TileSetExporter.PatternsToAssembler(tileSet));
                 await File.WriteAllTextAsync(colorsPath, TileSetExporter.ColorsToAssembler(tileSet));
+
+                if (tileSet.HasSuperTiles)
+                    await File.WriteAllTextAsync(superPath, SuperTileExporter.ToAssembler(tileSet));
             }
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
@@ -1541,13 +1551,29 @@ public partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        await Dialogs.ShowMessageAsync(
-            Text["ExportedTileSetTitle"],
-            Text.Format(
-                "ExportedTileSetBody",
-                Path.GetFileName(patternsPath),
-                Path.GetFileName(colorsPath),
-                TileSetExporter.ScreenThirds));
+        string done = Text.Format(
+            "ExportedTileSetBody",
+            Path.GetFileName(patternsPath),
+            Path.GetFileName(colorsPath),
+            TileSetExporter.ScreenThirds);
+
+        if (tileSet.HasSuperTiles)
+        {
+            done += " " + Text.Format(
+                "ExportedSuperTiles", Path.GetFileName(superPath), SuperTileExporter.CountOf(tileSet));
+
+            // Una celda del mapa es un byte, asi que de 256 para arriba hay supertiles que
+            // ningun mapa puede nombrar. Mejor decirlo que dejar una tabla que no cuadra.
+            if (tileSet.Blocks.Count > SuperTileExporter.MaxSuperTiles)
+            {
+                done += " " + Text.Format(
+                    "ExportedSuperTilesTooMany",
+                    tileSet.Blocks.Count,
+                    SuperTileExporter.MaxSuperTiles);
+            }
+        }
+
+        await Dialogs.ShowMessageAsync(Text["ExportedTileSetTitle"], done);
     }
 
     [RelayCommand]

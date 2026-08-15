@@ -407,6 +407,8 @@ The project opens anyway, without them. Careful: saving it now drops them from t
 {1}
 
 Remember to copy each table {2} times into VRAM, one per third of the screen.</value></data>
+  <data name="ExportedSuperTiles" xml:space="preserve"><value>And the supertile table in {0}, with {1} supertiles. It goes with the tile set and not with each map because it belongs to the set: every map drawn with it shares the same table.</value></data>
+  <data name="ExportedSuperTilesTooMany" xml:space="preserve"><value>Careful: the set has {0} supertiles and a map can only name {1}, because each cell is one byte. The extra ones were not written.</value></data>
   <data name="ExportedMapTitle" xml:space="preserve"><value>Map exported</value></data>
   <data name="ExportedMapEmptyBody" xml:space="preserve"><value>Empty cells came out as tile {0}: the VDP name table always draws something and a byte has no room for the hole. It can be changed in «Empty», next to the size of the map.</value></data>
 

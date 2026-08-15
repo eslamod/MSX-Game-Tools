@@ -408,6 +408,8 @@ El projecte s'obre igualment, sense ells. Compte: si el deses ara, també marxar
 {1}
 
 Recorda copiar cada taula {2} vegades a la VRAM, una per terç de pantalla.</value></data>
+  <data name="ExportedSuperTiles" xml:space="preserve"><value>I la taula de supertiles a {0}, amb {1} supertiles. Surt amb el joc i no amb cada mapa perquè és seva: tots els mapes dibuixats amb ell la comparteixen.</value></data>
+  <data name="ExportedSuperTilesTooMany" xml:space="preserve"><value>Compte: el joc té {0} supertiles i un mapa només en pot anomenar {1}, perquè cada cel·la és un byte. Els que sobren no han sortit.</value></data>
   <data name="ExportedMapTitle" xml:space="preserve"><value>Mapa exportat</value></data>
   <data name="ExportedMapEmptyBody" xml:space="preserve"><value>Les cel·les buides han sortit amb el tile {0}: la taula de noms del VDP sempre dibuixa alguna cosa i en un byte no hi cap el buit. Es pot canviar a «Buit», al costat de la mida del mapa.</value></data>
 
