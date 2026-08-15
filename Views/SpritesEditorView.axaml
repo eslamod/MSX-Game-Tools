@@ -122,13 +122,13 @@
     <!-- Zoom del lienzo de edición y modo de pintado -->
     <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="2">
       <RadioButton GroupName="EditZoom" Theme="{StaticResource ToggleRadioButton}"
-                   Content="X1" Tag="0" Width="32" Margin="2" IsChecked="True"
+                   Content="X1" Tag="0" MinWidth="34" Margin="2" IsChecked="True"
                    IsCheckedChanged="OnZoomChanged" />
       <RadioButton GroupName="EditZoom" Theme="{StaticResource ToggleRadioButton}"
-                   Content="X2" Tag="1" Width="32" Margin="2"
+                   Content="X2" Tag="1" MinWidth="34" Margin="2"
                    IsCheckedChanged="OnZoomChanged" />
       <RadioButton GroupName="EditZoom" Theme="{StaticResource ToggleRadioButton}"
-                   Content="X3" Tag="2" Width="32" Margin="2"
+                   Content="X3" Tag="2" MinWidth="34" Margin="2"
                    IsCheckedChanged="OnZoomChanged" />
 
       <Border Width="1" Background="{DynamicResource AppSeparator}" Margin="6,4" />
@@ -224,16 +224,16 @@
       <!-- Zoom de las miniaturas. El Tag es el multiplicador sobre el tamaño base. -->
       <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
         <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
-                     Content="X1" Tag="1" Width="32" Margin="2" IsChecked="True"
+                     Content="X1" Tag="1" MinWidth="34" Margin="2" IsChecked="True"
                      IsCheckedChanged="OnThumbnailZoomChanged" />
         <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
-                     Content="X2" Tag="2" Width="32" Margin="2"
+                     Content="X2" Tag="2" MinWidth="34" Margin="2"
                      IsCheckedChanged="OnThumbnailZoomChanged" />
         <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
-                     Content="X3" Tag="3" Width="32" Margin="2"
+                     Content="X3" Tag="3" MinWidth="34" Margin="2"
                      IsCheckedChanged="OnThumbnailZoomChanged" />
         <RadioButton GroupName="PreviewZoom" Theme="{StaticResource ToggleRadioButton}"
-                     Content="X4" Tag="4" Width="32" Margin="2"
+                     Content="X4" Tag="4" MinWidth="34" Margin="2"
                      IsCheckedChanged="OnThumbnailZoomChanged" />
       </StackPanel>
 

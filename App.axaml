@@ -23,6 +23,24 @@
       <Setter Property="Padding" Value="10,6" />
     </Style>
 
+    <!-- La linea de la pestaña seleccionada, fuera del texto.
+
+         Fluent la mete dentro de la caja del contenido, alineada abajo, contando con que
+         sus pestañas son altas y al texto le sobra sitio. Con el relleno de arriba, esa
+         caja mide justo lo que el texto, asi que la linea le caia encima: medido, el texto
+         ocupaba de 6 a 22 y la linea de 18 a 20.
+
+         Subir el relleno no sirve: la caja se ajusta al texto pase lo que pase, y la
+         cuenta sale que harian falta pestañas de 44 pixeles para separarlas asi, que es
+         justo la altura que quitamos. Se baja la linea, que es la pieza que sobra ahi.
+
+         Por transformacion y no por margen: la plantilla de Fluent le pone el margen como
+         valor local, y en Avalonia un valor local gana a un Setter de estilo. Ademas asi
+         no se toca la medida, solo donde se pinta. -->
+    <Style Selector="TabItem /template/ Border#PART_SelectedPipe">
+      <Setter Property="RenderTransform" Value="translateY(6px)" />
+    </Style>
+
     <!-- La fila seleccionada de cualquier lista. Fluent la pinta con el mismo azul en
          claro y en oscuro -medido, #0078D7 en las dos-, y sobre un fondo oscuro ese salto
          de luminosidad se lleva toda la atencion de la ventana. Con estos recursos el
