@@ -148,6 +148,29 @@ public class SuperTileTests
         Assert.Equal(1, tileSet.Blocks[0].Width);
     }
 
+    /// <summary>
+    /// Un bloque de otro tamaño se enseña con el del juego, no con el suyo.
+    /// </summary>
+    /// <remarks>
+    /// Puede haberlos: de antes de que el juego fuera de supertiles, o de un fichero
+    /// anterior. El exportador lee por el tamaño del juego, así que si la imagen se hiciera
+    /// por el del bloque, el editor enseñaría una cosa y la máquina vería otra.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Un_bloque_descuadrado_se_enseña_con_el_tamaño_del_juego()
+    {
+        var tileSet = new TileSet("Grande") { SuperTileWidth = 2, SuperTileHeight = 2 };
+        var block = new TileBlock("Viejo") { Width = 4, Height = 5, [0, 0] = 1 };
+
+        tileSet.Blocks.Add(block);
+
+        ImageMini image = SuperTileRenderer.Render(
+            block, tileSet, ColorPalette.CreateMsxStandard(), Avalonia.Media.Colors.Black);
+
+        Assert.Equal(2 * TileRow.Columns, image.Width);
+        Assert.Equal(2 * Tile.Rows, image.Height);
+    }
+
     /// <summary>Y no se puede ajustar al contenido, que cambiaría el tamaño.</summary>
     [AvaloniaFact]
     public void Con_supertiles_no_se_deja_ajustar_el_bloque()

@@ -28,16 +28,23 @@ public static class SuperTileRenderer
     public static ImageMini Render(
         TileBlock block, TileSet tileSet, ColorPalette palette, Color border, ImageMini? target = null)
     {
-        int width = block.Width * TileRow.Columns;
-        int height = block.Height * Tile.Rows;
+        // Por el tamaño del juego y no por el del bloque, igual que el exportador. Un
+        // bloque de otro tamaño -de antes de que el juego fuera de supertiles, o traído
+        // de un fichero viejo- se enseñaría de un tamaño y se exportaría de otro, y el
+        // editor estaría contando una cosa distinta de la que va a ver la máquina.
+        int columns = tileSet.HasSuperTiles ? tileSet.SuperTileWidth : block.Width;
+        int rows = tileSet.HasSuperTiles ? tileSet.SuperTileHeight : block.Height;
+
+        int width = columns * TileRow.Columns;
+        int height = rows * Tile.Rows;
 
         ImageMini image = target is { } reused && reused.Width == width && reused.Height == height
             ? reused
             : new ImageMini(width, height);
 
-        for (int row = 0; row < block.Height; row++)
+        for (int row = 0; row < rows; row++)
         {
-            for (int column = 0; column < block.Width; column++)
+            for (int column = 0; column < columns; column++)
                 DrawCell(block, tileSet, palette, border, image, column, row);
         }
 
