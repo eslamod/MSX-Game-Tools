@@ -48,6 +48,14 @@ public class ToolStripLayoutTests : IDisposable
     /// </remarks>
     private const double Roomy = 120;
 
+    /// <summary>El hueco entre dos botones vecinos de una misma tira.</summary>
+    /// <remarks>
+    /// El mismo en todas las vistas, que es la mitad que importa: dentro de cada tira ya
+    /// eran iguales, pero el editor de mapas iba a 2 y el de tiles a 4, y al cambiar de
+    /// pestaña la barra del mapa se veía apretada. Son dos márgenes de 2 que se tocan.
+    /// </remarks>
+    private const double StripGap = 4;
+
     private readonly Window _window;
     private readonly MapEditorView _view;
 
@@ -194,6 +202,69 @@ public class ToolStripLayoutTests : IDisposable
             Localizer.Instance.Language = before;
         }
     }
+
+    /// <summary>
+    /// Los huecos dentro de una tira son todos iguales.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Un hueco distinto en medio de una fila de botones iguales se lee como si hubiera dos
+    /// grupos donde sólo hay uno. Es de lo que menos se sospecha y de lo que más se nota,
+    /// porque el ojo compara los huecos entre sí sin que le pidas.
+    /// </para>
+    /// <para>
+    /// Se miden los bordes de verdad y no los márgenes escritos: entre dos botones el hueco
+    /// es la suma de los dos márgenes que se tocan, así que un <c>Margin</c> que parece
+    /// simétrico en el XAML puede no serlo en pantalla.
+    /// </para>
+    /// </remarks>
+    [AvaloniaTheory]
+    [InlineData("TileZoom")]
+    [InlineData("TilePreviewZoom")]
+    [InlineData("TileTool")]
+    [InlineData("TilePaintMode")]
+    public void Los_huecos_de_una_tira_son_iguales(string group)
+    {
+        using var editor = new MountedTileSet();
+
+        AssertEvenGaps(editor.View, group);
+    }
+
+    /// <summary>Y las del editor de mapas.</summary>
+    [AvaloniaTheory]
+    [InlineData("MapTool")]
+    [InlineData("MapTileZoom")]
+    public void Los_huecos_de_las_tiras_del_mapa_son_iguales(string group)
+    {
+        AssertEvenGaps(_view, group);
+    }
+
+    /// <summary>Todos los huecos de esa tira miden <see cref="StripGap" />.</summary>
+    private static void AssertEvenGaps(Control view, string group)
+    {
+        RadioButton[] strip = [.. view.GetVisualDescendants()
+            .OfType<RadioButton>()
+            .Where(button => button.GroupName == group)];
+
+        Assert.True(strip.Length >= 2, $"«{group}» no tiene ni dos botones que comparar.");
+
+        Visual parent = strip[0].GetVisualParent()!;
+
+        double[] gaps = [.. strip
+            .Zip(strip.Skip(1))
+            .Select(pair => Left(pair.Second, parent) - Right(pair.First, parent))];
+
+        Assert.All(gaps, gap => Assert.True(
+            Math.Abs(gap - StripGap) < 0.5,
+            $"En «{group}» los huecos miden {string.Join(", ", gaps.Select(g => $"{g:0.0}"))} "
+            + $"y la medida de la casa es {StripGap}."));
+    }
+
+    private static double Left(Visual control, Visual parent) =>
+        control.TranslatePoint(new Point(0, 0), parent)!.Value.X;
+
+    private static double Right(Visual control, Visual parent) =>
+        control.TranslatePoint(new Point(control.Bounds.Width, 0), parent)!.Value.X;
 
     /// <summary>Y en el panel de bloques.</summary>
     [AvaloniaFact]
