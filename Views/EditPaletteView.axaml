@@ -17,6 +17,15 @@
     <Style Selector="ListBox#ColorList > ListBoxItem">
       <Setter Property="Padding" Value="4,0" />
       <Setter Property="MinHeight" Value="0" />
+      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+
+    <!-- La entrada sobre la que se va a soltar el color que se arrastra. El borde va
+         puesto siempre y transparente: si apareciera al marcar, la fila cambiaria de alto
+         al pasar el raton por encima y la lista entera daria un salto. -->
+    <Style Selector="ListBox#ColorList > ListBoxItem.drop">
+      <Setter Property="BorderBrush" Value="#1565C0" />
     </Style>
   </UserControl.Styles>
 
@@ -39,11 +48,17 @@
       <TextBox Grid.Column="1" Text="{Binding Palette.Name}" />
     </Grid>
 
-    <!-- Los 16 colores. El seleccionado es el que editan los sliders. -->
+    <!-- Los 16 colores. El seleccionado es el que editan los sliders, y arrastrar uno
+         sobre otro los intercambia de indice. -->
     <ListBox x:Name="ColorList"
              ItemsSource="{Binding Palette.Colors}"
              SelectedItem="{Binding SelectedColor, Mode=TwoWay}"
              SelectionMode="Single"
+             DragDrop.AllowDrop="True"
+             ToolTip.Tip="{l:Localize PaletteSwapTip}"
+             PointerPressed="OnColorPressed"
+             PointerMoved="OnColorMoved"
+             PointerReleased="OnColorReleased"
              ScrollViewer.VerticalScrollBarVisibility="Disabled">
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="entities:PaletteColor">
@@ -124,8 +139,15 @@
       </StackPanel>
     </ScrollViewer>
 
-    <Button Grid.Row="2" Content="{l:Localize FormClose}" MinWidth="85"
-            HorizontalAlignment="Right" Margin="0,12,0,0"
-            Command="{Binding CloseCommand}" />
+    <!-- Aplicar sólo sale cuando hay colores movidos de sitio: mientras no los haya no
+         hay nada que ajustar, y un botón apagado ahí sin explicación sólo distrae. -->
+    <StackPanel Grid.Row="2" Orientation="Horizontal"
+                HorizontalAlignment="Right" Margin="0,12,0,0" Spacing="8">
+      <Button Content="{l:Localize PaletteApply}" MinWidth="85"
+              IsVisible="{Binding HasSwaps}"
+              Command="{Binding ApplyCommand}" />
+      <Button Content="{l:Localize FormClose}" MinWidth="85"
+              Command="{Binding CloseCommand}" />
+    </StackPanel>
   </Grid>
 </UserControl>

@@ -300,6 +300,17 @@
   <!-- Editor de paleta -->
   <data name="PaletteTitle" xml:space="preserve"><value>Editar la paleta</value></data>
   <data name="PaletteTransparent" xml:space="preserve"><value>El color 0 es transparente y no se puede editar</value></data>
+  <data name="PaletteSwapTip" xml:space="preserve"><value>Arrastra un color sobre otro para intercambiarlos</value></data>
+  <data name="PaletteApply" xml:space="preserve"><value>Aplicar</value></data>
+  <data name="PaletteApplyTitle" xml:space="preserve"><value>Aplicar los colores intercambiados</value></data>
+  <data name="PaletteApplyBody" xml:space="preserve"><value>Se van a ajustar los índices de color de: {0}.
+
+Se verán igual que antes, pero con los colores en sus índices nuevos. Quedarán sin guardar.</value></data>
+  <data name="PaletteApplyAccept" xml:space="preserve"><value>Ajustar</value></data>
+  <data name="PaletteSwapsPendingTitle" xml:space="preserve"><value>Hay colores intercambiados</value></data>
+  <data name="PaletteSwapsPendingMessage" xml:space="preserve"><value>Has movido colores de sitio y todavía no se han ajustado los dibujos que los usaban.</value></data>
+  <data name="PaletteSwapsApply" xml:space="preserve"><value>Aplicar</value></data>
+  <data name="PaletteSwapsDiscard" xml:space="preserve"><value>Deshacer</value></data>
   <data name="PaletteComponentsTip" xml:space="preserve"><value>Componentes en 9 bits: un dígito hexadecimal por canal</value></data>
   <data name="PaletteColorNameTip" xml:space="preserve"><value>Nombre del color</value></data>
 

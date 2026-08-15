@@ -102,6 +102,19 @@ public partial class MainWindowViewModel : ObservableObject
     private IEnumerable<IPaletteDocument> PaletteDocuments => _panels.Values.OfType<IPaletteDocument>();
 
     /// <summary>
+    /// Los documentos que dibujan con esa misma paleta.
+    /// </summary>
+    /// <remarks>
+    /// Por referencia y no por contenido, que es como se comparten: al abrir un fichero,
+    /// <see cref="PaletteLibrary.Adopt"/> devuelve la paleta que ya estaba si coinciden el
+    /// nombre y los 16 colores, así que dos documentos acaban apuntando al mismo objeto.
+    /// Mover un color de sitio los afecta a todos, y reajustar sólo el que está delante
+    /// dejaría a los demás con los colores cambiados y sin avisar.
+    /// </remarks>
+    public IReadOnlyList<IPaletteDocument> DocumentsWith(ColorPalette palette) =>
+        [.. PaletteDocuments.Where(document => ReferenceEquals(document.ColorPalette, palette))];
+
+    /// <summary>
     /// Las paletas del proyecto, de donde eligen la suya los documentos.
     /// </summary>
     /// <remarks>

@@ -26,4 +26,15 @@ public interface IPaletteDocument
     /// sin guardar, porque cambia lo que iría a su fichero.
     /// </remarks>
     ColorPalette ColorPalette { get; set; }
+
+    /// <summary>
+    /// Reajusta los índices de color del documento después de haber movido los colores de
+    /// sitio en la paleta, para que se siga viendo igual que antes.
+    /// </summary>
+    /// <param name="table">Del índice de antes al de ahora, tal cual lo da <see cref="PaletteSwaps.Table"/>.</param>
+    /// <remarks>
+    /// Va por documento y no por entidad porque cada uno guarda algún índice suelto suyo
+    /// —el borde del juego de tiles, el fondo del banco— además de los de sus dibujos.
+    /// </remarks>
+    void RemapColors(IReadOnlyList<int> table);
 }

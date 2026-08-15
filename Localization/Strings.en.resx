@@ -274,6 +274,17 @@
 
   <data name="PaletteTitle" xml:space="preserve"><value>Edit the palette</value></data>
   <data name="PaletteTransparent" xml:space="preserve"><value>Colour 0 is transparent and cannot be edited</value></data>
+  <data name="PaletteSwapTip" xml:space="preserve"><value>Drag a colour onto another one to swap them</value></data>
+  <data name="PaletteApply" xml:space="preserve"><value>Apply</value></data>
+  <data name="PaletteApplyTitle" xml:space="preserve"><value>Apply the swapped colours</value></data>
+  <data name="PaletteApplyBody" xml:space="preserve"><value>The colour indices of the following will be adjusted: {0}.
+
+They will look just like before, but with the colours at their new indices. They will be left unsaved.</value></data>
+  <data name="PaletteApplyAccept" xml:space="preserve"><value>Adjust</value></data>
+  <data name="PaletteSwapsPendingTitle" xml:space="preserve"><value>There are swapped colours</value></data>
+  <data name="PaletteSwapsPendingMessage" xml:space="preserve"><value>You have moved colours around and the drawings that used them have not been adjusted yet.</value></data>
+  <data name="PaletteSwapsApply" xml:space="preserve"><value>Apply</value></data>
+  <data name="PaletteSwapsDiscard" xml:space="preserve"><value>Undo</value></data>
   <data name="PaletteComponentsTip" xml:space="preserve"><value>Components in 9 bits: one hexadecimal digit per channel</value></data>
   <data name="PaletteColorNameTip" xml:space="preserve"><value>Name of the colour</value></data>
 

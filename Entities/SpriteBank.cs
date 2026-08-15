@@ -40,6 +40,34 @@ public class SpriteBank
 
     public IReadOnlyList<Sprite> SpritesList => _sprites;
 
+    /// <summary>
+    /// Cambia de índice los colores de todo el banco, para que siga viéndose igual
+    /// después de haber movido los colores de sitio en la paleta.
+    /// </summary>
+    /// <param name="table">Del índice de antes al de ahora, tal cual lo da <see cref="PaletteSwaps.Table"/>.</param>
+    /// <remarks>
+    /// Los miembros de los grupos llevan <b>su propia</b> tabla de colores, que es lo que
+    /// se edita cuando se monta un personaje multicolor. No basta con recorrer los
+    /// patrones: hay que pasar también por las filas de cada miembro.
+    /// </remarks>
+    public void RemapColors(IReadOnlyList<int> table)
+    {
+        foreach (Sprite sprite in _sprites)
+        {
+            foreach (SpriteRow row in sprite.ArraySpriteRows)
+                row.Color = table[row.Color];
+        }
+
+        foreach (SpriteGroup group in Groups)
+        {
+            foreach (SpriteGroupMember member in group.Members)
+            {
+                foreach (SpriteAttributeRow row in member.Rows)
+                    row.Color = table[row.Color];
+            }
+        }
+    }
+
     /// <summary>Los personajes multicolor compuestos con los patrones de este banco.</summary>
     public ObservableCollection<SpriteGroup> Groups { get; } = [];
 

@@ -128,6 +128,40 @@ public sealed class ColorPalette : ObservableObject
         isReadOnly: true,
         MsxColors.Select((c, i) => new PaletteColor(i, c.Name, c.R, c.G, c.B)));
 
+    /// <summary>
+    /// Se puede arrastrar esa entrada, o soltar algo encima.
+    /// </summary>
+    /// <remarks>
+    /// El 0 no: no es un color sino «no pintes aquí», y llevárselo al 5 no movería un
+    /// color de sitio, cambiaría lo que significan las dos ranuras.
+    /// </remarks>
+    public bool CanSwap(int index) =>
+        !IsReadOnly && index > 0 && index < _colors.Length;
+
+    /// <summary>
+    /// Intercambia dos colores de ranura. Devuelve si se ha hecho.
+    /// </summary>
+    /// <remarks>
+    /// Para cuando ya llevas medio juego de tiles dibujado y te das cuenta de que los
+    /// colores tenían que estar en otros índices, para que salgan los OR de los sprites.
+    /// Esto mueve los colores; los dibujos que los usaban se quedan apuntando al índice
+    /// de antes y hay que reajustarlos aparte.
+    /// </remarks>
+    public bool Swap(int one, int other)
+    {
+        if (one == other || !CanSwap(one) || !CanSwap(other))
+            return false;
+
+        // Por una copia: sin ella, el segundo se quedaría con lo que le acaba de dejar
+        // el primero y los dos acabarían del mismo color.
+        PaletteColor kept = _colors[one].Clone();
+
+        _colors[one].TakeFrom(_colors[other]);
+        _colors[other].TakeFrom(kept);
+
+        return true;
+    }
+
     /// <summary>Una copia editable, con sus propios colores.</summary>
     public ColorPalette Clone(string name) => new(
         name,

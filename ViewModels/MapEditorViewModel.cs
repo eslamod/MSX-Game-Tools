@@ -338,6 +338,22 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
     public IBrush BackgroundBrush => ColorPalette.GetBrush(Map.BackgroundColorIndex);
 
     /// <summary>
+    /// Reajusta el fondo del mapa. Los tiles los reajusta su juego, que es de quien son.
+    /// </summary>
+    /// <remarks>
+    /// El mapa se apunta a la lista de documentos a reajustar por su fondo, que es un
+    /// índice de la paleta como cualquier otro. Si no, un mapa con el fondo en el color
+    /// que se ha movido se quedaría con el fondo cambiado sin que nadie lo tocara.
+    /// </remarks>
+    public void RemapColors(IReadOnlyList<int> table)
+    {
+        Map.RemapColors(table);
+
+        Touch();
+        OnTilesPaletteChanged();
+    }
+
+    /// <summary>
     /// El juego ha cambiado de paleta o de colores: sus miniaturas ya están rehechas, pero
     /// el fondo del mapa es un índice de esa paleta y hay que volver a leerlo.
     /// </summary>

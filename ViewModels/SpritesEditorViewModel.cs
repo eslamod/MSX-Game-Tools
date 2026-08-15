@@ -480,6 +480,16 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
         RefreshRequested?.Invoke(CurrentSprite);
     }
 
+    /// <inheritdoc/>
+    public void RemapColors(IReadOnlyList<int> table)
+    {
+        _spriteBank.RemapColors(table);
+        BackgroundColorIndex = table[BackgroundColorIndex];
+
+        // Aunque el fondo no se haya movido: los patrones y los grupos sí.
+        RefreshPaletteDependentState();
+    }
+
     /// <summary>MSX2: el color elegido se aplica sólo a esa línea.</summary>
     private void OnRowColorPicked(int rowIndex, PaletteColor color)
     {

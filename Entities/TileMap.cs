@@ -55,6 +55,18 @@ public class TileMap
     public int BackgroundColorIndex { get; set; } = 1;
 
     /// <summary>
+    /// Cambia de índice los colores del mapa, para que siga viéndose igual después de
+    /// haber movido los colores de sitio en la paleta.
+    /// </summary>
+    /// <param name="table">Del índice de antes al de ahora, tal cual lo da <see cref="PaletteSwaps.Table"/>.</param>
+    /// <remarks>
+    /// Un mapa son números de tile: lo único suyo que es un color es el fondo. Los tiles
+    /// los reajusta su juego.
+    /// </remarks>
+    public void RemapColors(IReadOnlyList<int> table) =>
+        BackgroundColorIndex = table[BackgroundColorIndex];
+
+    /// <summary>
     /// El juego de tiles con el que se dibuja. Sin él los números no dicen nada.
     /// </summary>
     /// <remarks>

@@ -77,6 +77,26 @@ public class TileSet
     public IReadOnlyList<Tile> ListOfTiles { get; }
 
     /// <summary>
+    /// Cambia de índice los colores de todos los tiles, para que sigan viéndose igual
+    /// después de haber movido los colores de sitio en la paleta.
+    /// </summary>
+    /// <param name="table">Del índice de antes al de ahora, tal cual lo da <see cref="PaletteSwaps.Table"/>.</param>
+    /// <remarks>
+    /// Los bloques y los supertiles son números de tile, no de color: no se tocan.
+    /// </remarks>
+    public void RemapColors(IReadOnlyList<int> table)
+    {
+        foreach (Tile tile in ListOfTiles)
+        {
+            foreach (TileRow row in tile.ArrayTileRows)
+            {
+                row.ForeColor = table[row.ForeColor];
+                row.BackColor = table[row.BackColor];
+            }
+        }
+    }
+
+    /// <summary>
     /// Los bloques definidos con estos tiles.
     /// </summary>
     /// <remarks>

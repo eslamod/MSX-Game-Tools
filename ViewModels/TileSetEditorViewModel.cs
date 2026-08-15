@@ -269,6 +269,16 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
             BorderColorIndex = color.Index;
     }
 
+    /// <inheritdoc/>
+    public void RemapColors(IReadOnlyList<int> table)
+    {
+        _tileSet.RemapColors(table);
+        BorderColorIndex = table[BorderColorIndex];
+
+        // Aunque el borde no se haya movido: los 256 tiles sí, y hay que repintarlos.
+        RefreshPalette();
+    }
+
     // ------------------------------------------------------------------ copiar y estampar
 
     public bool IsEditTool => Tool == TileTool.Edit;

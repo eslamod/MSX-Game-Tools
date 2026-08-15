@@ -114,6 +114,32 @@ public sealed class PaletteColor : ObservableObject
 
     public PaletteColor Clone() => new(Index, _name, _red, _green, _blue, _nameIsInherited);
 
+    /// <summary>
+    /// Se queda con el color de otra entrada: las componentes y el nombre, con su marca
+    /// de heredado.
+    /// </summary>
+    /// <remarks>
+    /// El índice no se toca. Cada entrada <b>es</b> su ranura de la paleta: lleva colgados
+    /// el brush con el que está pintado todo lo que usa ese índice y los enlaces de la
+    /// lista. Intercambiar dos colores se hace pasándose los valores, no moviendo los
+    /// objetos de sitio, que dejaría el <see cref="Index"/> y el <see cref="Hex"/> mintiendo.
+    /// </remarks>
+    public void TakeFrom(PaletteColor other)
+    {
+        // Las componentes antes que el nombre: cambiarlas descarta el nombre heredado,
+        // y aquí el nombre viaja con el color en vez de describir al que había.
+        SetComponents(other._red, other._green, other._blue);
+
+        if (_name == other._name && _nameIsInherited == other._nameIsInherited)
+            return;
+
+        _name = other._name;
+        _nameIsInherited = other._nameIsInherited;
+
+        OnPropertyChanged(nameof(Name));
+        OnPropertyChanged(nameof(DisplayName));
+    }
+
     public void SetComponents(int red, int green, int blue)
     {
         Red = red;
