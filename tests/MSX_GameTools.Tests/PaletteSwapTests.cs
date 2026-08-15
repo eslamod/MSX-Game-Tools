@@ -435,6 +435,42 @@ public class PaletteSwapTests
     }
 
     /// <summary>
+    /// Deshacer los movimientos no se lleva por delante lo que se haya retocado.
+    /// </summary>
+    /// <remarks>
+    /// Deshacer se hacía volviendo a una copia de antes del primer intercambio, y eso
+    /// borraba <b>todo</b> lo hecho desde entonces: movías un color, lo retocabas, y al
+    /// deshacer volvía el de antes con su nombre viejo y el retoque desaparecía sin
+    /// avisar. Deshacer es de los movimientos, no de la sesión entera.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Deshacer_los_movimientos_respeta_lo_retocado()
+    {
+        var main = new MainWindowViewModel(new TestDialogService());
+        ColorPalette palette = main.Palettes.Add("Mía");
+
+        var panel = new EditPaletteViewModel(main, palette);
+
+        string wasThree = palette[3].HexRgb;
+
+        // Se mueve el 3 al 10 y allí se pone rojo.
+        panel.SwapColors(3, 10);
+
+        palette[10].SetComponents(7, 0, 0);
+
+        Assert.Equal("700", palette[10].HexRgb);
+        Assert.Equal("Color A", palette[10].DisplayName);
+
+        panel.DiscardSwaps();
+
+        // El color vuelve al 3, pero rojo y sin el nombre viejo: eso se retocó a posta.
+        Assert.Equal("700", palette[3].HexRgb);
+        Assert.Equal("Color 3", palette[3].DisplayName);
+        Assert.NotEqual(wasThree, palette[3].HexRgb);
+        Assert.False(panel.HasSwaps);
+    }
+
+    /// <summary>
     /// Si el panel se va por cualquier otra vía, los intercambios pendientes se deshacen.
     /// </summary>
     /// <remarks>

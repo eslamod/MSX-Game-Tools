@@ -36,6 +36,11 @@ public sealed class PaletteSwaps
         }
     }
 
+    public int Size => _origin.Length;
+
+    /// <summary>En qué ranura estaba el color que ahora ocupa ésta.</summary>
+    public int OriginOf(int slot) => _origin[slot];
+
     public void Swap(int one, int other) =>
         (_origin[one], _origin[other]) = (_origin[other], _origin[one]);
 

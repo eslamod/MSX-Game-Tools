@@ -23,9 +23,6 @@ public partial class EditPaletteViewModel : PanelBaseViewModel
     /// <summary>Dónde ha acabado cada color desde que se abrió el panel.</summary>
     private readonly PaletteSwaps _swaps = new();
 
-    /// <summary>Cómo estaba la paleta antes del primer intercambio, para poder deshacer.</summary>
-    private PaletteColor[]? _before;
-
     [ObservableProperty]
     private PaletteColor _selectedColor;
 
@@ -56,14 +53,9 @@ public partial class EditPaletteViewModel : PanelBaseViewModel
     /// </remarks>
     public bool SwapColors(int one, int other)
     {
-        // La copia antes de tocar, y sólo la primera vez: es a lo que se vuelve al
-        // descartar, por muchos intercambios que se encadenen.
-        PaletteColor[] before = _before ?? [.. Palette.Colors.Select(color => color.Clone())];
-
         if (!Palette.Swap(one, other))
             return false;
 
-        _before = before;
         _swaps.Swap(one, other);
 
         NotifySwapsChanged();
@@ -71,14 +63,24 @@ public partial class EditPaletteViewModel : PanelBaseViewModel
         return true;
     }
 
-    /// <summary>Devuelve la paleta a como estaba antes del primer intercambio.</summary>
+    /// <summary>Devuelve cada color movido a la ranura de la que salió.</summary>
+    /// <remarks>
+    /// Por la permutación al revés y no por una copia de cómo estaba la paleta antes del
+    /// primer intercambio: con la copia, deshacer se llevaba por delante <b>todo</b> lo
+    /// hecho desde entonces. Si movías un color y luego lo retocabas, al deshacer volvía
+    /// el de antes con su nombre viejo y el retoque desaparecía sin haber avisado.
+    /// </remarks>
     public void DiscardSwaps()
     {
-        if (_before is null)
+        if (_swaps.IsEmpty)
             return;
 
-        for (int index = 0; index < _before.Length; index++)
-            Palette[index].TakeFrom(_before[index]);
+        // Copia de cómo están ahora, con los retoques puestos, para poder repartirlos sin
+        // pisar los que aún no se han movido.
+        PaletteColor[] moved = [.. Palette.Colors.Select(color => color.Clone())];
+
+        for (int slot = 0; slot < moved.Length; slot++)
+            Palette[_swaps.OriginOf(slot)].TakeFrom(moved[slot]);
 
         Forget();
     }
@@ -155,11 +157,10 @@ public partial class EditPaletteViewModel : PanelBaseViewModel
         return !HasSwaps;
     }
 
-    /// <summary>Ya no hay nada pendiente: ni movimientos que aplicar ni copia a la que volver.</summary>
+    /// <summary>Ya no hay movimientos pendientes.</summary>
     private void Forget()
     {
         _swaps.Reset();
-        _before = null;
 
         NotifySwapsChanged();
     }
