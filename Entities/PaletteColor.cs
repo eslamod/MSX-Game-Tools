@@ -126,15 +126,25 @@ public sealed class PaletteColor : ObservableObject
     /// </remarks>
     public void TakeFrom(PaletteColor other)
     {
-        // Las componentes antes que el nombre: cambiarlas descarta el nombre heredado,
-        // y aquí el nombre viaja con el color en vez de describir al que había.
+        bool renamed = _name != other._name || _nameIsInherited != other._nameIsInherited;
+
+        // El nombre nuevo antes de tocar las componentes, y no al revés: puesto después,
+        // había un instante con el color ya cambiado y el nombre en blanco —lo borra la
+        // regla de más abajo— y ese instante se notifica y se ve.
+        //
+        // Marcado como propio mientras duran las componentes para que esa regla no se lo
+        // lleve: descartar el nombre heredado tiene sentido cuando cambias un color y el
+        // nombre se queda describiendo al de antes, pero aquí el nombre viaja con su
+        // color, así que lo sigue describiendo igual de bien.
+        _name = other._name;
+        _nameIsInherited = false;
+
         SetComponents(other._red, other._green, other._blue);
 
-        if (_name == other._name && _nameIsInherited == other._nameIsInherited)
-            return;
-
-        _name = other._name;
         _nameIsInherited = other._nameIsInherited;
+
+        if (!renamed)
+            return;
 
         OnPropertyChanged(nameof(Name));
         OnPropertyChanged(nameof(DisplayName));

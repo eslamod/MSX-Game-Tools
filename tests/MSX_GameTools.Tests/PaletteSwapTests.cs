@@ -110,6 +110,30 @@ public class PaletteSwapTests
         Assert.Equal(wasThree, palette[10].DisplayName);
     }
 
+    /// <summary>
+    /// El nombre no pasa por un estado en blanco mientras se intercambia.
+    /// </summary>
+    /// <remarks>
+    /// Cambiar una componente descarta el nombre heredado, porque deja de describir al
+    /// color. En un intercambio esa regla no vale —el nombre viaja con su color— y, si se
+    /// aplicaba, quedaba un instante con el color nuevo y el nombre vacío. Se mira en el
+    /// aviso de la paleta y no al final, porque ése es el momento en el que todo lo que
+    /// dibuja con ella se repinta: lo que se vea ahí es lo que llega a la pantalla.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_nombre_nunca_se_queda_en_blanco_por_el_camino()
+    {
+        ColorPalette palette = ColorPalette.CreateMsxStandard().Clone("Mía");
+
+        List<string> seen = [];
+        palette.ColorsChanged += _ => seen.Add(palette[2].DisplayName);
+
+        palette.Swap(2, 3);
+
+        Assert.NotEmpty(seen);
+        Assert.All(seen, name => Assert.Equal("Light green", name));
+    }
+
     [AvaloniaFact]
     public void El_transparente_no_se_mueve_de_sitio()
     {
