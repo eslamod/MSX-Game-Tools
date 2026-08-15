@@ -231,7 +231,7 @@
     <!-- Los dos orígenes de lo que se estampa -->
     <Grid Grid.Row="3">
 
-    <TabControl Background="Gainsboro">
+    <TabControl x:Name="SourceTabs" Background="Gainsboro">
 
       <!-- En un mapa de supertiles no sale: una celda es un supertile entero, asi que un
            tile suelto no se puede colocar en ninguna parte. -->

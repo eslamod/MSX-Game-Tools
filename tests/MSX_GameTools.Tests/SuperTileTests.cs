@@ -1,7 +1,11 @@
+using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
 using MSX_GameTools.Entities;
 using MSX_GameTools.Services;
 using MSX_GameTools.ViewModels;
+using MSX_GameTools.Views;
 using Xunit;
 
 namespace MSX_GameTools.Tests;
@@ -456,6 +460,41 @@ public class SuperTileTests
         Assert.Equal("Otro", tileSet.Name);
         Assert.Equal(3, tileSet.Blocks[0].Width);
         Assert.False(tileSet.HasSuperTiles);
+    }
+
+    /// <summary>
+    /// El selector de abajo nunca se queda en una pestaña escondida.
+    /// </summary>
+    /// <remarks>
+    /// Ocultar la pestaña de tiles en un mapa de supertiles no movía la selección: la
+    /// cabecera desaparecía pero su contenido seguía delante bajo la cabecera de Bloques,
+    /// así que lo que se cogía eran tiles sueltos, que ahí no se pueden colocar en ninguna
+    /// parte. La etiqueta de la brocha lo decía —«Tile 4»— y la tira enseñaba cinco cosas
+    /// con tres bloques definidos.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_selector_de_abajo_no_se_queda_en_la_pestaña_escondida()
+    {
+        var tileSet = new TileSet("Grande") { SuperTileWidth = 2, SuperTileHeight = 2 };
+        tileSet.Blocks.Add(new TileBlock("Uno") { [0, 0] = 1 });
+
+        var editor = new MapEditorViewModel(
+            new TileMap("Nivel", 8, 8),
+            new TileSetEditorViewModel(tileSet, ColorPalette.CreateMsxStandard()));
+
+        var view = new MapEditorView { DataContext = editor };
+        var window = new Window { Content = view, Width = 1100, Height = 800 };
+
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        var tabs = view.GetVisualDescendants().OfType<TabControl>().Single();
+        var selected = (TabItem)tabs.SelectedItem!;
+
+        Assert.True(selected.IsVisible, "El selector se ha quedado en una pestaña escondida.");
+
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
     }
 
     /// <summary>Un mapa abierto sobre ese juego de tiles.</summary>

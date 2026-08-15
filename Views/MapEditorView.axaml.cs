@@ -57,6 +57,22 @@ public partial class MapEditorView : UserControl
         }
 
         RestoreTileZoom();
+        SelectSourceTab();
+    }
+
+    /// <summary>
+    /// En un mapa de supertiles, el selector de abajo tiene que estar en los bloques.
+    /// </summary>
+    /// <remarks>
+    /// Ocultar la pestaña de tiles no mueve la selección: la cabecera desaparece pero su
+    /// contenido se queda delante, bajo la cabecera de Bloques. Se cogían tiles sueltos, y
+    /// la etiqueta decía «Tile 4» en un mapa donde un tile suelto no se puede colocar en
+    /// ninguna parte.
+    /// </remarks>
+    private void SelectSourceTab()
+    {
+        if (Editor is { UsesSuperTiles: true })
+            SourceTabs.SelectedIndex = 1;
     }
 
     /// <summary>
@@ -127,7 +143,14 @@ public partial class MapEditorView : UserControl
         base.OnUnloaded(e);
     }
 
-    private void OnRefreshRequested() => Canvas.InvalidateVisual();
+    private void OnRefreshRequested()
+    {
+        // Tambien aqui: el juego puede pasar a ser de supertiles con el mapa abierto, y
+        // entonces la pestaña de tiles desaparece estando seleccionada.
+        SelectSourceTab();
+
+        Canvas.InvalidateVisual();
+    }
 
     // ------------------------------------------------------------------ el mapa
 
