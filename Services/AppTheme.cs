@@ -14,6 +14,16 @@ namespace MSX_GameTools.Services;
 /// </remarks>
 public static class AppTheme
 {
+    /// <summary>
+    /// La variante azulada, que hereda de la oscura.
+    /// </summary>
+    /// <remarks>
+    /// La clave tiene que ser la misma que la del diccionario de <c>AppColors.axaml</c>.
+    /// Lo que no se encuentre con esta clave se busca en la heredada, y eso vale también
+    /// para los recursos de Fluent, que sólo conocen la clara y la oscura.
+    /// </remarks>
+    public static ThemeVariant Blue { get; } = new("Blue", ThemeVariant.Dark);
+
     /// <summary>La variante de Avalonia que corresponde a la elegida.</summary>
     /// <remarks>
     /// «Del sistema» es <see cref="ThemeVariant.Default"/>: Avalonia mira entonces lo que
@@ -24,6 +34,7 @@ public static class AppTheme
     {
         AppThemeVariant.Light => ThemeVariant.Light,
         AppThemeVariant.Dark => ThemeVariant.Dark,
+        AppThemeVariant.Blue => Blue,
         _ => ThemeVariant.Default,
     };
 

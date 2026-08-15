@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:services="clr-namespace:MSX_GameTools.Services">
 
   <!--
     Los colores del cromo de la aplicación, por variante.
@@ -115,6 +116,48 @@
       <!-- El ámbar del ratón encima se queda igual: es la señal de «esto se puede
            pulsar» sobre dibujos del usuario, y ahí manda el dibujo, no la variante. -->
       <SolidColorBrush x:Key="AppSwatchHoverBorder" Color="#FFC107" />
+
+    </ResourceDictionary>
+
+    <!-- ============================================================ azulada -->
+    <!--
+      Hereda de la oscura, que es lo que declara AppTheme.Blue. Aquí sólo están los
+      colores que de verdad viran: los grises neutros llevados hacia el azul y la
+      selección ajustada al fondo nuevo.
+
+      Lo que NO está aquí sale de la oscura, y es a propósito. Los colores semánticos
+      —error, aviso, alerta—, el resaltado ámbar y el ámbar del ratón encima no se tiñen:
+      un error tiene que verse igual de error con el tono que sea. Esa herencia es lo que
+      hace que añadir una variante cueste dieciséis colores y no la lista entera.
+    -->
+    <!-- Por x:Static y no por una cadena: el convertidor de ThemeVariant sólo entiende las
+         de serie —«ThemeVariant type converter supports only build in variants»— y para
+         una propia hay que señalar el objeto. De ahí que AppTheme.Blue sea una propiedad
+         estática y no algo que se construya al vuelo. -->
+    <ResourceDictionary x:Key="{x:Static services:AppTheme.Blue}">
+
+      <SolidColorBrush x:Key="AppPanelBackground" Color="#232A33" />
+      <SolidColorBrush x:Key="AppSurfaceBackground" Color="#2B333E" />
+      <SolidColorBrush x:Key="AppSeparator" Color="#38424F" />
+      <SolidColorBrush x:Key="AppControlBorder" Color="#55616F" />
+      <SolidColorBrush x:Key="AppListBackground" Color="#1A2027" />
+
+      <!-- Más apagada que en la oscura: el fondo de aquí ya es azul, así que el mismo
+           tono de antes saltaría demasiado por encima. -->
+      <SolidColorBrush x:Key="AppListSelection" Color="#2C5580" />
+      <SolidColorBrush x:Key="AppListSelectionHover" Color="#37648F" />
+
+      <SolidColorBrush x:Key="AppTextSecondary" Color="#9BA8B8" />
+      <SolidColorBrush x:Key="AppGlyph" Color="#C8D2DE" />
+
+      <SolidColorBrush x:Key="AppToolButtonBackground" Color="#313A45" />
+      <SolidColorBrush x:Key="AppToolButtonBorder" Color="#55616F" />
+      <SolidColorBrush x:Key="AppToolButtonForeground" Color="#E2E8F0" />
+      <SolidColorBrush x:Key="AppToolButtonHoverBackground" Color="#3D4854" />
+      <SolidColorBrush x:Key="AppToolButtonCheckedBackground" Color="#2C5580" />
+      <SolidColorBrush x:Key="AppToolButtonCheckedBorder" Color="#21415F" />
+
+      <SolidColorBrush x:Key="AppSwatchBorder" Color="#74818F" />
 
     </ResourceDictionary>
 

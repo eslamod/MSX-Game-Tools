@@ -173,6 +173,7 @@
   <data name="PreferencesThemeSystem" xml:space="preserve"><value>Match the system</value></data>
   <data name="PreferencesThemeLight" xml:space="preserve"><value>Light</value></data>
   <data name="PreferencesThemeDark" xml:space="preserve"><value>Dark</value></data>
+  <data name="PreferencesThemeBlue" xml:space="preserve"><value>Dark blue</value></data>
   <data name="PreferencesZoom" xml:space="preserve"><value>Starting zoom</value></data>
   <data name="PreferencesSpriteCanvas" xml:space="preserve"><value>Sprite canvas</value></data>
   <data name="PreferencesSpriteThumbnails" xml:space="preserve"><value>Sprite thumbnails</value></data>

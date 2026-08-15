@@ -169,6 +169,81 @@ public class ThemeVariantTests
         Assert.True(dark.B > dark.R && dark.B > dark.G, $"El botón pulsado sale {dark}, y ya no es azul.");
     }
 
+    // ------------------------------------------------------------------ la azulada
+
+    /// <summary>
+    /// La variante azulada vira los grises hacia el azul.
+    /// </summary>
+    [AvaloniaFact]
+    public void La_azulada_tiñe_los_neutros()
+    {
+        Color dark = Resolve("AppPanelBackground", ThemeVariant.Dark);
+        Color blue = Resolve("AppPanelBackground", AppTheme.Blue);
+
+        Assert.True(blue != dark, $"El panel azulado sale {blue}, igual que el oscuro.");
+
+        // Azul de verdad y no un gris con otro nombre: el canal azul manda sobre el rojo.
+        Assert.True(
+            blue.B > blue.R + 8,
+            $"El panel azulado sale {blue}, que no tiene azul suficiente para notarse.");
+
+        // Y sigue siendo oscuro, que hereda de la oscura y no de la clara.
+        Assert.True(
+            Brightness(blue) < Brightness(Resolve("AppPanelBackground", ThemeVariant.Light)),
+            $"El panel azulado sale {blue} y no es más oscuro que el de la variante clara.");
+    }
+
+    /// <summary>
+    /// Lo que la azulada no declara sale de la oscura, que es de quien hereda.
+    /// </summary>
+    /// <remarks>
+    /// Es lo que hace barato añadir una variante: sólo se declaran los colores que de
+    /// verdad cambian. Los semánticos —error, aviso— no se tiñen a propósito: un error
+    /// tiene que verse igual de error con el tono que sea. Si esta prueba cae, la herencia
+    /// de <c>ThemeVariant</c> no está funcionando y cada variante tendría que repetir la
+    /// lista entera.
+    /// </remarks>
+    [AvaloniaTheory]
+    [InlineData("AppTextError")]
+    [InlineData("AppTextWarning")]
+    [InlineData("AppHighlightBackground")]
+    [InlineData("AppGlyphAlert")]
+    [InlineData("AppSwatchHoverBorder")]
+    public void Lo_que_la_azulada_no_declara_lo_hereda_de_la_oscura(string key)
+    {
+        Assert.Equal(Resolve(key, ThemeVariant.Dark), Resolve(key, AppTheme.Blue));
+    }
+
+    /// <summary>
+    /// Y la herencia vale también para los recursos del tema base.
+    /// </summary>
+    /// <remarks>
+    /// Fluent sólo conoce la clara y la oscura. Si su búsqueda no siguiera la variante
+    /// heredada, con la azulada puesta los controles se quedarían sin sus pinceles y la
+    /// ventana saldría en blanco. Se mira sobre un botón montado, que es lo que lo prueba.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Los_controles_de_Fluent_siguen_pintados_en_la_azulada()
+    {
+        var button = new Button { Content = "Aceptar" };
+
+        Color blue = InScope(button, AppTheme.Blue, mounted => ((Button)mounted).Foreground);
+        Color dark = InScope(new Button { Content = "Aceptar" }, ThemeVariant.Dark, m => ((Button)m).Foreground);
+
+        Assert.Equal(dark, blue);
+    }
+
+    /// <summary>Y el panel montado con la azulada se pinta de azul, no de gris.</summary>
+    [AvaloniaFact]
+    public void Un_panel_montado_en_azulado_se_pinta_de_azul()
+    {
+        Color blue = BlockListBackground(AppTheme.Blue);
+        Color dark = BlockListBackground(ThemeVariant.Dark);
+
+        Assert.True(blue != dark, $"La lista azulada sale {blue}, igual que la oscura.");
+        Assert.True(blue.B > blue.R + 4, $"La lista azulada sale {blue} y no tiene azul.");
+    }
+
     // ------------------------------------------------------------------ el ajuste
 
     [AvaloniaTheory]

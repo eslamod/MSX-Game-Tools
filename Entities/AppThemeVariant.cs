@@ -18,4 +18,14 @@ public enum AppThemeVariant
     Light,
 
     Dark,
+
+    /// <summary>
+    /// Oscura con los grises virados a azul.
+    /// </summary>
+    /// <remarks>
+    /// Hereda de la oscura: lo que no redefina —los colores semánticos, los avisos— sale
+    /// de allí, así que teñir una variante cuesta los colores que de verdad cambian y no
+    /// la lista entera.
+    /// </remarks>
+    Blue,
 }
