@@ -45,6 +45,7 @@ public partial class MapEditorView : UserControl
 
         Canvas.CellPressed += OnCellPressed;
         Canvas.CellDragged += OnCellDragged;
+        Canvas.DragEnded += OnDragEnded;
         Canvas.HoverChanged += OnHoverChanged;
 
         if (Editor is { } editor)
@@ -132,6 +133,7 @@ public partial class MapEditorView : UserControl
     {
         Canvas.CellPressed -= OnCellPressed;
         Canvas.CellDragged -= OnCellDragged;
+        Canvas.DragEnded -= OnDragEnded;
         Canvas.HoverChanged -= OnHoverChanged;
 
         if (_subscribed is not null)
@@ -170,7 +172,23 @@ public partial class MapEditorView : UserControl
             return;
         }
 
+        // El trazo se abre aquí y no en el lienzo: seleccionar también arrastra y no toca
+        // el mapa, así que abrirlo allí dejaría trazos vacíos abiertos todo el rato.
+        editor.BeginStroke();
         editor.Paint(column, row);
+    }
+
+    /// <summary>
+    /// Soltar el botón cierra el trazo, y con él el paso de deshacer.
+    /// </summary>
+    /// <remarks>
+    /// El lienzo ya avisaba de esto desde siempre y no lo escuchaba nadie.
+    /// </remarks>
+    private void OnDragEnded()
+    {
+        _selectingFrom = null;
+
+        Editor?.EndStroke();
     }
 
     private void OnCellDragged(int column, int row)

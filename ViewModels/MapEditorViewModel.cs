@@ -440,6 +440,12 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
             RefreshRequested?.Invoke();
     }
 
+    /// <summary>Empieza un arrastre: todo lo que se pinte hasta soltar es un solo paso.</summary>
+    public void BeginStroke() => Map.Undo.BeginStroke();
+
+    /// <summary>Cierra el arrastre. Vale llamarlo de más.</summary>
+    public void EndStroke() => Map.Undo.EndStroke();
+
     /// <summary>
     /// El mapa ha cambiado de tamaño: se repinta y se olvida la selección.
     /// </summary>

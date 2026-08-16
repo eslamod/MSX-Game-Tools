@@ -401,13 +401,34 @@ public class MapCanvas : Control
     {
         base.OnPointerReleased(e);
 
+        EndDrag();
+
+        e.Pointer.Capture(null);
+    }
+
+    /// <summary>
+    /// Perder la captura cuenta como soltar.
+    /// </summary>
+    /// <remarks>
+    /// Si el sistema se lleva el ratón a media —cambiar de ventana, un diálogo que salta—
+    /// no llega el soltar, y quien esté contando ese arrastre se queda esperando para
+    /// siempre. Desde que el trazo decide qué es un paso de deshacer, eso significaría que
+    /// deshacer deja de anotar y nadie se entera hasta que lo necesita.
+    /// </remarks>
+    protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+    {
+        base.OnPointerCaptureLost(e);
+
+        EndDrag();
+    }
+
+    private void EndDrag()
+    {
         if (_painting)
             DragEnded?.Invoke();
 
         _panning = false;
         _painting = false;
-
-        e.Pointer.Capture(null);
     }
 
     protected override void OnPointerExited(PointerEventArgs e)
