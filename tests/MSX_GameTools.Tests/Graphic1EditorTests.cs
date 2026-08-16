@@ -167,7 +167,7 @@ public class Graphic1EditorTests
                 notices++;
         };
 
-        editor.InHand = new CopiedTiles(origin.Copy(0, 0, 1, 1), [], origin.Name);
+        editor.InHand = new CopiedTiles(origin.Copy(0, 0, 1, 1), [], origin.Name, origin.Id);
         editor.StampAt(0, 0);
 
         Assert.Equal(2, editor.TileSet.ColorGroups[0].ForeColor);

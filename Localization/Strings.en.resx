@@ -271,6 +271,7 @@
   <data name="TileToolStampTip" xml:space="preserve"><value>Drop what you marked, as many times as you need</value></data>
   <data name="TileUndoStamp" xml:space="preserve"><value>Undo the stamp</value></data>
   <data name="TileUndoStampTip" xml:space="preserve"><value>Brings back the tiles the last stamp overwrote</value></data>
+  <data name="TileClearSelectionTip" xml:space="preserve"><value>Clear the selected rectangle</value></data>
   <data name="TilePreviousTip" xml:space="preserve"><value>Previous tile in the set</value></data>
   <data name="TileNextTip" xml:space="preserve"><value>Next tile in the set</value></data>
 

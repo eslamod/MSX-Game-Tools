@@ -59,14 +59,14 @@ public class CrossTileSetStampTests
     }
 
     /// <summary>
-    /// Lo marcado en el juego de delante manda sobre lo traído.
+    /// Marcar aquí después de llegar con algo en la mano gana: manda lo último que cogiste.
     /// </summary>
     /// <remarks>
-    /// Es lo que deja intacto el comportamiento de siempre: dentro de un juego, lo que cae
-    /// es lo que se está viendo marcado, aunque se venga de otro con algo en la mano.
+    /// Es lo que deja intacto el comportamiento de siempre dentro de un juego: si acabas de
+    /// marcar algo, es lo que se está viendo y es lo que se espera que caiga.
     /// </remarks>
     [AvaloniaFact]
-    public void Lo_de_aqui_manda_sobre_lo_traido()
+    public void Lo_marcado_despues_de_llegar_manda()
     {
         var main = new MainWindowViewModel();
 
@@ -88,6 +88,112 @@ public class CrossTileSetStampTests
         to.StampAt(10, 0);
 
         Assert.Equal(PatternOf(target, 5), PatternOf(target, 10));
+    }
+
+    /// <summary>
+    /// Una marca vieja no impide recibir un trozo de otro juego.
+    /// </summary>
+    /// <remarks>
+    /// Una marca no se va sola: se queda puesta hasta que hagas otra. Cuando lo de aquí mandaba
+    /// siempre, la primera vez que marcabas algo en un juego lo dejabas incapaz de recibir nada
+    /// para el resto de la sesión, y lo que traías caía sin avisar convertido en lo de aquí.
+    /// Ahora manda lo último que se cogió, y lo último es lo que traes.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Una_marca_vieja_no_impide_recibir_de_otro_juego()
+    {
+        var main = new MainWindowViewModel();
+
+        var origin = new TileSet("Bosque");
+        Draw(origin, 3, 0b1010_1010);
+
+        var target = new TileSet("Cueva");
+        Draw(target, 5, 0b1111_0000);
+
+        TileSetEditorViewModel from = main.OpenTileSet(origin);
+        TileSetEditorViewModel to = main.OpenTileSet(target);
+
+        // Se marca algo aquí primero, y se deja puesto: es lo que pasa sin querer.
+        main.SelectedTab = to;
+        to.SelectRegion(5, 0, 1, 1);
+
+        main.SelectedTab = from;
+        from.SelectRegion(3, 0, 1, 1);
+
+        main.SelectedTab = to;
+        to.StampAt(10, 0);
+
+        Assert.Equal(PatternOf(origin, 3), PatternOf(target, 10));
+    }
+
+    /// <summary>
+    /// Volver a un juego no le devuelve su propia copia congelada.
+    /// </summary>
+    /// <remarks>
+    /// Al dejar un juego se congela lo que tuviera marcado. Si al volver se le entregara eso,
+    /// perdería lo que tiene marcado y vivo por una foto de cuando salió, y retocar un tile
+    /// marcado dejaría de verse en lo que cae, que es justo lo que se protege dentro de un
+    /// juego.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Volver_a_un_juego_le_deja_lo_suyo_vivo()
+    {
+        var main = new MainWindowViewModel();
+
+        var origin = new TileSet("Bosque");
+        Draw(origin, 3, 0b1010_1010);
+
+        TileSetEditorViewModel from = main.OpenTileSet(origin);
+        TileSetEditorViewModel other = main.OpenTileSet(new TileSet("Cueva"));
+
+        main.SelectedTab = from;
+        from.SelectRegion(3, 0, 1, 1);
+
+        main.SelectedTab = other;
+        main.SelectedTab = from;
+
+        // Sigue marcado lo suyo, y se retoca después de haber salido y vuelto.
+        Assert.NotNull(from.Selection);
+
+        Draw(origin, 3, 0b0000_1111);
+
+        from.StampAt(10, 0);
+
+        Assert.Equal(PatternOf(origin, 3), PatternOf(origin, 10));
+    }
+
+    /// <summary>Y el botón de quitar la marca deja soltar lo traído sin marcar nada aquí.</summary>
+    [AvaloniaFact]
+    public void Quitar_la_marca_deja_caer_lo_traido()
+    {
+        var main = new MainWindowViewModel();
+
+        var origin = new TileSet("Bosque");
+        Draw(origin, 3, 0b1010_1010);
+
+        var target = new TileSet("Cueva");
+        Draw(target, 5, 0b1111_0000);
+
+        TileSetEditorViewModel from = main.OpenTileSet(origin);
+        TileSetEditorViewModel to = main.OpenTileSet(target);
+
+        main.SelectedTab = from;
+        from.SelectRegion(3, 0, 1, 1);
+
+        main.SelectedTab = to;
+
+        // Se marca algo aquí después de llegar, que es lo que gana.
+        to.SelectRegion(5, 0, 1, 1);
+
+        Assert.True(to.ClearSelectionCommand.CanExecute(null));
+        to.ClearSelectionCommand.Execute(null);
+
+        Assert.Null(to.Selection);
+        Assert.False(to.ClearSelectionCommand.CanExecute(null));
+
+        to.StampAt(10, 0);
+
+        Assert.Equal(PatternOf(origin, 3), PatternOf(target, 10));
     }
 
     /// <summary>

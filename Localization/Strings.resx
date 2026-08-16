@@ -294,6 +294,7 @@
   <data name="TileToolStampTip" xml:space="preserve"><value>Soltar lo marcado, tantas veces como haga falta</value></data>
   <data name="TileUndoStamp" xml:space="preserve"><value>Deshacer el estampado</value></data>
   <data name="TileUndoStampTip" xml:space="preserve"><value>Devuelve los tiles que machacó el último estampado</value></data>
+  <data name="TileClearSelectionTip" xml:space="preserve"><value>Quitar la marca del rectángulo seleccionado</value></data>
   <data name="TilePreviousTip" xml:space="preserve"><value>Tile anterior del conjunto</value></data>
   <data name="TileNextTip" xml:space="preserve"><value>Tile siguiente del conjunto</value></data>
 

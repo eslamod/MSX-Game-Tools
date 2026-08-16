@@ -272,6 +272,7 @@
   <data name="TileToolStampTip" xml:space="preserve"><value>Deixa el que has marcat, tantes vegades com calgui</value></data>
   <data name="TileUndoStamp" xml:space="preserve"><value>Desfés l'estampat</value></data>
   <data name="TileUndoStampTip" xml:space="preserve"><value>Torna els tiles que va matxucar l'últim estampat</value></data>
+  <data name="TileClearSelectionTip" xml:space="preserve"><value>Treu la marca del rectangle seleccionat</value></data>
   <data name="TilePreviousTip" xml:space="preserve"><value>Tile anterior del conjunt</value></data>
   <data name="TileNextTip" xml:space="preserve"><value>Tile següent del conjunt</value></data>
 

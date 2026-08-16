@@ -489,7 +489,15 @@
           </StackPanel>
         </RadioButton>
 
-        <Button Classes="tool" Margin="8,1,1,1"
+        <!-- Quitar la marca. Sin esto, el rectangulo se queda puesto hasta que hagas otro y
+             no hay forma de soltar lo que traes de otro juego sin marcar algo aqui antes. -->
+        <Button x:Name="ClearSelection" Classes="tool" Margin="8,1,1,1"
+                Command="{Binding ClearSelectionCommand}"
+                ToolTip.Tip="{l:Localize TileClearSelectionTip}">
+          <icons:MaterialIcon Kind="SelectionRemove" />
+        </Button>
+
+        <Button Classes="tool" Margin="1"
                 Command="{Binding UndoStampCommand}"
                 ToolTip.Tip="{l:Localize TileUndoStampTip}">
           <icons:MaterialIcon Kind="Undo" />

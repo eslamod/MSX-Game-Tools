@@ -21,7 +21,12 @@ namespace MSX_GameTools.Entities;
 /// copiado no las lleva: la miniatura es del hueco de su juego, no del dibujo.
 /// </param>
 /// <param name="From">De qué juego salió, para poder decirlo.</param>
+/// <param name="Source">
+/// Quién es ese juego. Sirve para no devolverle a un juego lo que salió de él: allí lo marcado
+/// sigue vivo, y una copia congelada de hace tres pestañas sería peor.
+/// </param>
 public sealed record CopiedTiles(
     TileSetPatch Patch,
     IReadOnlyList<ImageMini> Preview,
-    string From);
+    string From,
+    Guid Source);

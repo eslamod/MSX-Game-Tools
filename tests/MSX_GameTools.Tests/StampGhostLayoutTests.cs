@@ -98,7 +98,8 @@ public class StampGhostLayoutTests : IDisposable
         Editor.InHand = new CopiedTiles(
             origin.Copy(0, 0, 3, 1),
             [.. origin.ListOfTiles.Take(3).Select(tile => tile.ImageMini!)],
-            origin.Name);
+            origin.Name,
+            origin.Id);
 
         Hover(10, 3);
 

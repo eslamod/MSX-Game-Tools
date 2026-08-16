@@ -91,6 +91,9 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
     /// <summary>El rectángulo marcado en la rejilla, en celdas.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelection))]
+    [NotifyPropertyChangedFor(nameof(HasStamp))]
+    [NotifyPropertyChangedFor(nameof(StampWidth))]
+    [NotifyCanExecuteChangedFor(nameof(ClearSelectionCommand))]
     private MapRegion? _selection;
 
     /// <param name="palette">
@@ -525,8 +528,44 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
         return new CopiedTiles(
             _tileSet.Copy(region.Left, region.Top, region.Width, region.Height),
             [.. StampPreview],
-            _tileSet.Name);
+            _tileSet.Name,
+            _tileSet.Id);
     }
+
+    /// <summary>
+    /// Recibe un trozo traído de otro juego y lo deja como lo que va a caer.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Manda lo último que se cogió. Antes mandaba siempre lo marcado aquí, y eso dejaba un
+    /// juego incapaz de recibir nada en cuanto hubiera marcado algo alguna vez: la marca no se
+    /// va sola, así que la primera selección que hicieras en un juego se quedaba mandando para
+    /// siempre y lo que traías de fuera no llegaba a caer nunca.
+    /// </para>
+    /// <para>
+    /// Lo que salió de este mismo juego no se le devuelve: aquí lo marcado sigue vivo y se
+    /// puede seguir retocando, y una copia congelada al salir sería lo mismo pero peor.
+    /// </para>
+    /// </remarks>
+    public void Receive(CopiedTiles? brought)
+    {
+        if (brought is null || brought.Source == _tileSet.Id)
+            return;
+
+        InHand = brought;
+
+        // Quitar la marca es lo que hace que lo traído sea lo que cae: mientras haya algo
+        // marcado aquí, es lo de aquí lo que se está viendo y lo que se espera que caiga.
+        Selection = null;
+    }
+
+    /// <summary>Quita la marca sin estampar nada.</summary>
+    /// <remarks>
+    /// Hace falta para poder soltar lo que se trajo de otro juego sin tener que marcar algo
+    /// aquí primero. Y para lo de siempre: dejar de ver el rectángulo cuando ya no hace falta.
+    /// </remarks>
+    [RelayCommand(CanExecute = nameof(HasSelection))]
+    private void ClearSelection() => Selection = null;
 
     /// <summary>Si hay un estampado que devolver.</summary>
     public bool CanUndoStamp => _overwritten is not null;

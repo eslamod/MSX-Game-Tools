@@ -114,10 +114,10 @@ public partial class MainWindowViewModel : ObservableObject
         if (value is IPaletteDocument document)
             Palettes.ActivePalette = document.ColorPalette;
 
-        // Al llegar se le da lo que se traiga. Si este juego tiene marcado algo suyo, eso
-        // manda; esto es para cuando no.
+        // Al llegar se le da lo que se traiga, y eso pasa a ser lo que cae: manda lo último
+        // que se cogió. Lo que salió de este mismo juego no se le devuelve.
         if (value is TileSetEditorViewModel arriving)
-            arriving.InHand = TilesInHand;
+            arriving.Receive(TilesInHand);
 
         // El banco ya mira el mismo portapapeles que los demás; lo que no sabe es que ha
         // cambiado mientras él no estaba delante, y de eso depende que pegar esté encendido.
