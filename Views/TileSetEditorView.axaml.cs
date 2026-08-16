@@ -248,6 +248,22 @@ public partial class TileSetEditorView : UserControl
             main.ShowBlocksCommand.Execute(null);
     }
 
+    /// <summary>
+    /// Las propiedades del juego que se está dibujando.
+    /// </summary>
+    /// <remarks>
+    /// Aquí además de en el menú del nodo del árbol: es donde se definen los atributos, y
+    /// por el árbol no las encontraba nadie.
+    /// </remarks>
+    private void OnShowProperties(object? sender, RoutedEventArgs e)
+    {
+        if (this.FindAncestorOfType<MainWindow>()?.DataContext is MainWindowViewModel main
+            && DataContext is PanelBaseViewModel document)
+        {
+            main.ShowPropertiesOf(document);
+        }
+    }
+
     private void OnPaletteColorClick(object? sender, RoutedEventArgs e)
     {
         if (sender is not Control control || control.FindLogicalAncestorOfType<Popup>() is not { } popup)

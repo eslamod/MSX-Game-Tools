@@ -344,7 +344,23 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void ShowProperties(ItemTree? item)
     {
-        if (item is not { IsPanelNode: true } || GetPanelFromDic(item.Tag) is not { IsDocument: true } panel)
+        if (item is not { IsPanelNode: true } || GetPanelFromDic(item.Tag) is not { } panel)
+            return;
+
+        ShowPropertiesOf(panel);
+    }
+
+    /// <summary>
+    /// Abre las propiedades de un documento, venga del árbol o de su propio editor.
+    /// </summary>
+    /// <remarks>
+    /// Suelto del comando del árbol porque hay dos puertas a lo mismo: el menú del nodo y
+    /// el botón del editor de tiles. Ahí es donde de verdad se buscan las propiedades del
+    /// juego que se está dibujando, y por el árbol no las encontraba nadie.
+    /// </remarks>
+    public void ShowPropertiesOf(PanelBaseViewModel panel)
+    {
+        if (!panel.IsDocument)
             return;
 
         if (RightPanels.OfType<EditPropertiesViewModel>().FirstOrDefault() is { } open)

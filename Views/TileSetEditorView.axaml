@@ -32,12 +32,6 @@
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
-    <!-- Los de recorrer el tileset, abajo: mas grandes porque estan sueltos y sin
-         vecinos que los agrupen. -->
-    <Style Selector="Button.navigate > icons|MaterialIcon">
-      <Setter Property="Width" Value="20" />
-      <Setter Property="Height" Value="20" />
-    </Style>
   </UserControl.Styles>
 
   <UserControl.Resources>
@@ -451,34 +445,45 @@
     <!-- Navegación por los tiles -->
     <StackPanel Grid.Row="3" Grid.Column="0" Orientation="Horizontal"
                 Background="{DynamicResource AppPanelBackground}" Height="48" VerticalAlignment="Top">
-      <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0">
+      <!-- Los cuatro son el mismo boton que los de las barras de arriba: mismo tamaño,
+           mismo icono y mismo aire. Antes estos eran mas grandes -36 de ancho y el icono a
+           20- porque estaban sueltos, y con veinte de icono en treinta y seis de boton el
+           dibujo se comia el hueco y se veia mas grande que lo que lo rodeaba. Ya no estan
+           sueltos: son cuatro en fila. -->
+      <StackPanel x:Name="TileNavStrip"
+                  Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0">
         <TextBlock Text="{Binding TileLabel}" VerticalAlignment="Center"
-                   FontFamily="Consolas" MinWidth="64" />
-        <Button Classes="navigate" Width="36" Margin="6,0,0,0"
-                HorizontalContentAlignment="Center"
+                   FontFamily="Consolas" MinWidth="64" Margin="0,0,8,0" />
+        <Button Classes="tool"
                 Command="{Binding PreviousTileCommand}"
                 ToolTip.Tip="{l:Localize TilePreviousTip}">
           <icons:MaterialIcon Kind="ChevronLeft" />
         </Button>
-        <Button Classes="navigate" Width="36" Margin="4,0,0,0"
-                HorizontalContentAlignment="Center"
+        <Button Classes="tool"
                 Command="{Binding NextTileCommand}"
                 ToolTip.Tip="{l:Localize TileNextTip}">
           <icons:MaterialIcon Kind="ChevronRight" />
         </Button>
 
-        <!-- Los bloques tambien se abren con doble clic en su nodo del arbol, pero eso
-             no lo descubre nadie: aqui estan a la vista mientras se dibujan los tiles,
-             que es cuando hacen falta. Este conserva el rotulo: no es una herramienta de
-             la barra, es la puerta a otro sitio, y el nombre del sitio es la mitad de la
-             informacion. -->
-        <Button Margin="16,0,0,0" Padding="10,2"
+        <!-- Las dos puertas: los bloques y las propiedades del juego. Las dos se abren
+             tambien desde el arbol, pero eso no lo descubre nadie, y las propiedades son
+             donde se definen los atributos.
+
+             Solo icono, y no por gusto: con rotulo la tira acababa en 387 y hasta la
+             rejilla de tiles hay 356, asi que se le metia encima. Entre quitar una puerta o
+             quitar los rotulos se van los rotulos, que el problema era justamente que estas
+             dos no se encontraban. Se apoyan en la ayuda emergente, como el resto. -->
+        <Border Classes="separator" />
+
+        <Button Classes="tool"
                 Click="OnShowBlocks"
                 ToolTip.Tip="{l:Localize BlocksOpenTip}">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <icons:MaterialIcon Kind="ViewGridOutline" Classes="mode" />
-            <TextBlock Text="{l:Localize TreeBlocks}" VerticalAlignment="Center" />
-          </StackPanel>
+          <icons:MaterialIcon Kind="ViewGridOutline" />
+        </Button>
+        <Button Classes="tool"
+                Click="OnShowProperties"
+                ToolTip.Tip="{l:Localize PropertiesOpenTip}">
+          <icons:MaterialIcon Kind="Tune" />
         </Button>
       </StackPanel>
     </StackPanel>

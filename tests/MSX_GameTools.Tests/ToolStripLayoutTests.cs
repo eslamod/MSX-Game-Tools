@@ -356,6 +356,40 @@ public class ToolStripLayoutTests : IDisposable
     private static double Right(Visual control, Visual parent) =>
         control.TranslatePoint(new Point(control.Bounds.Width, 0), parent)!.Value.X;
 
+    /// <summary>
+    /// La tira de abajo del editor de tiles no se sale del panel.
+    /// </summary>
+    /// <remarks>
+    /// Es la que lleva el contador, las dos flechas y las dos puertas —Bloques y
+    /// Propiedades—. Va en la primera columna, que mide 256, pero es un StackPanel y un
+    /// StackPanel no recorta: lo que no cabe sigue dibujándose, y como se declara después
+    /// que la rejilla de tiles, se le pone encima en vez de avisar.
+    ///
+    /// El límite son las dos primeras columnas, que es hasta donde no hay nada debajo. No
+    /// vale medir contra la ventana: sobra ancho de sobra y la comprobación pasaría siempre.
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_tira_de_abajo_del_editor_de_tiles_no_tapa_los_tiles()
+    {
+        using var editor = new MountedTileSet();
+
+        var grid = (Grid)editor.View.GetVisualDescendants().First(v => v is Grid { Name: "EditorGrid" });
+
+        double room = grid.ColumnDefinitions[0].ActualWidth + grid.ColumnDefinitions[1].ActualWidth;
+
+        // Por nombre y no por lo que digan los botones: desde que son sólo iconos, buscarla
+        // por su rótulo encontraba cualquier otra cosa de la vista.
+        var strip = (StackPanel)editor.View.GetVisualDescendants()
+            .First(v => v is StackPanel { Name: "TileNavStrip" });
+
+        double right = strip.TranslatePoint(new Point(strip.Bounds.Width, 0), editor.View)!.Value.X;
+
+        Assert.True(
+            right <= room,
+            $"La tira acaba en {right:0.0} y hasta la rejilla de tiles hay {room:0.0}: "
+            + $"se le mete encima {right - room:0.0} píxeles.");
+    }
+
     /// <summary>Y en el panel de bloques.</summary>
     [AvaloniaFact]
     public void En_el_panel_de_bloques_los_iconos_tambien_se_explican()

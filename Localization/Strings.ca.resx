@@ -28,6 +28,7 @@
   <data name="MenuSaveProjectAs" xml:space="preserve">
     <value>Anomena i desa el projecte...</value>
   </data>
+  <data name="PropertiesOpenTip" xml:space="preserve"><value>Nom, supertiles i atributs d'aquest joc de tiles</value></data>
   <data name="TileAttributes" xml:space="preserve"><value>Atributs</value></data>
   <data name="TileAttributesNote" xml:space="preserve"><value>Un nom per bit, del 0 al 7. Els que es deixin en blanc no s'usen. En exportar surt un byte per tile amb aquestes banderes.</value></data>
   <data name="TileAttributesOfTile" xml:space="preserve"><value>Atributs del tile</value></data>
