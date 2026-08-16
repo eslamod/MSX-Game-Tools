@@ -25,9 +25,9 @@ CC bit, and the composed group is shown on the right.
 ### Tile sets
 
 The tile magnified on the left, all 256 in their 32-column grid, and the set's properties
-on the right with its **attributes**. The eye next to an attribute tints the tiles that
-already have it set — here the two road tiles. Under the canvas, the flags of the tile
-being edited.
+on the right with its **attributes**. An attribute's eye tints the tiles that already have
+it set —here the two marked as collision— to spot them all at once instead of opening them
+one by one. Under the canvas, the flags of the tile being edited.
 
 ![Tile set editor](Screenshots/en_TileEditor.png)
 

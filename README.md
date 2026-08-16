@@ -25,8 +25,9 @@ bit CC del V9938, y a la derecha se ve el grupo compuesto.
 ### Juegos de tiles
 
 El tile ampliado a la izquierda, los 256 en su rejilla de 32 columnas, y a la derecha las
-propiedades del juego con los **atributos** definidos. Abajo del lienzo, las banderas del
-tile que se está editando.
+propiedades del juego con sus **atributos**. El ojo de un atributo tiñe los tiles que ya
+lo tienen puesto —aquí los dos marcados como colisión—, para verlos de golpe en vez de ir
+abriéndolos uno a uno. Abajo del lienzo, las banderas del tile que se está editando.
 
 ![Editor de tiles](Screenshots/TileEditor.png)
 
