@@ -135,6 +135,46 @@ public class Graphic1EditorTests
         Assert.Equal(beforeOff, PixelReader.At(tileSet.ListOfTiles[0].ImageMini!, 1, 0));
     }
 
+    /// <summary>
+    /// Estampar un trozo traído de otro juego refresca la muestra del par.
+    /// </summary>
+    /// <remarks>
+    /// La muestra lee el color del grupo cuando se le pregunta, así que el valor siempre está
+    /// bien; lo que faltaba era el aviso. Sin él, la fila de 32 pares se quedaba con los
+    /// colores de antes hasta que tocaras algo, y lo que se veía abajo no era lo que se veía
+    /// en la rejilla.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Estampar_refresca_la_muestra_del_grupo()
+    {
+        TileSetEditorViewModel editor = Editor(TileSet.GraphicMode.Graphic1);
+
+        var origin = new TileSet("Bosque");
+
+        foreach (TileRow row in origin.ListOfTiles[0].ArrayTileRows)
+        {
+            row.ForeColor = 2;
+            row.BackColor = 3;
+            row.ArrayPattern[0] = true;
+        }
+
+        TileGroupColorViewModel swatch = editor.GroupColors[0];
+
+        int notices = 0;
+        swatch.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(TileGroupColorViewModel.Foreground))
+                notices++;
+        };
+
+        editor.InHand = new CopiedTiles(origin.Copy(0, 0, 1, 1), [], origin.Name);
+        editor.StampAt(0, 0);
+
+        Assert.Equal(2, editor.TileSet.ColorGroups[0].ForeColor);
+        Assert.Equal(editor.ColorPalette[2], swatch.Foreground);
+        Assert.True(notices > 0, "la muestra no se ha enterado de que su grupo ha cambiado de color");
+    }
+
     // ------------------------------------------------------------------ la vista
 
     /// <summary>

@@ -28,6 +28,12 @@ public partial class TileGroupColorViewModel : ObservableObject
         Group = group;
         _palette = palette;
         _onPicked = onPicked;
+
+        // El par no sólo cambia por estas dos muestras: estampar un trozo traído de otro juego
+        // puede dejarle a un grupo sin estrenar el color de lo que le llega, y deshacer ese
+        // estampado lo devuelve. Escuchando al grupo, la muestra se entera de todas esas veces
+        // en vez de sólo de cuando se pulsa aquí, que era lo que la dejaba con el color viejo.
+        Group.PropertyChanged += (_, _) => Refresh();
     }
 
     public TileColorGroup Group { get; }
