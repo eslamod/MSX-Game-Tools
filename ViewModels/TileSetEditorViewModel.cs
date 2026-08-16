@@ -102,6 +102,8 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
         {
             if (tile.ImageMini is not null)
                 Thumbnails.Add(tile.ImageMini);
+
+            TileMarks.Add(new TileMarkViewModel());
         }
 
         _selectedThumbnail = _currentTile.ImageMini;
@@ -209,6 +211,58 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
     /// <summary>Los atributos definidos, con lo que tenga puesto el tile de delante.</summary>
     public ObservableCollection<TileFlagViewModel> TileAttributes { get; } = [];
 
+    /// <summary>Qué huecos de la rejilla van teñidos, uno por tile.</summary>
+    public ObservableCollection<TileMarkViewModel> TileMarks { get; } = [];
+
+    /// <summary>
+    /// El atributo que se está mirando en la rejilla, o ninguno.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Uno solo a la vez: con dos teñidos a la vez habría que distinguirlos por color y
+    /// entonces hay que aprenderse los colores. Lo que se quiere saber es «cuáles tienen
+    /// éste», y para eso basta con uno.
+    /// </para>
+    /// <para>
+    /// Lo enciende el ojo del panel de propiedades. Se apaga solo en cuanto se toca la
+    /// rejilla —elegir un tile, marcar un trozo, estampar— porque a partir de ahí el tinte
+    /// estorba: falsea los colores de justo lo que se ha ido a mirar.
+    /// </para>
+    /// </remarks>
+    public int? HighlightedAttribute
+    {
+        get;
+        set
+        {
+            if (field == value)
+                return;
+
+            field = value;
+
+            RefreshMarks();
+        }
+    }
+
+    /// <summary>Pone el tinte donde toque, o lo quita de todas partes.</summary>
+    private void RefreshMarks()
+    {
+        for (int index = 0; index < TileMarks.Count; index++)
+        {
+            TileMarks[index].IsMarked = HighlightedAttribute is int bit
+                                        && _tileSet.ListOfTiles[index].Has(bit);
+        }
+    }
+
+    /// <summary>
+    /// Cualquier cosa que sea elegir tiles apaga el tinte.
+    /// </summary>
+    /// <remarks>
+    /// Se pone donde se toca la rejilla y no en un solo sitio porque son tres caminos
+    /// distintos —el clic que cambia de tile, marcar un rectángulo y estamparlo— y los tres
+    /// significan que ya se ha dejado de mirar y se ha empezado a trabajar.
+    /// </remarks>
+    private void StopHighlighting() => HighlightedAttribute = null;
+
     /// <summary>
     /// Si este juego usa atributos. Mientras no, el bloque entero no se enseña.
     /// </summary>
@@ -260,6 +314,10 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
         CurrentTile.SetAttribute(bit, on);
 
         Touch();
+
+        // Por si se está mirando justo ese: marcarlo tiene que verse en la rejilla al
+        // momento, no la próxima vez que se encienda el ojo.
+        RefreshMarks();
     }
 
     /// <summary>Pone las casillas como las tenga el tile de delante.</summary>
@@ -289,6 +347,8 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
     {
         if ((uint)index >= (uint)TileCount)
             return;
+
+        StopHighlighting();
 
         CurrentTile = _tileSet.ListOfTiles[index];
         CurrentTilePosition = index + 1;
@@ -361,8 +421,12 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
     public bool CanUndoStamp => _overwritten is not null;
 
     /// <summary>Marca un rectángulo de la rejilla como origen de lo que se va a estampar.</summary>
-    public void SelectRegion(int left, int top, int width, int height) =>
+    public void SelectRegion(int left, int top, int width, int height)
+    {
+        StopHighlighting();
+
         Selection = new MapRegion(left, top, width, height);
+    }
 
     /// <summary>
     /// Suelta lo marcado con su esquina en esa celda.
@@ -384,6 +448,8 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
     {
         if (Selection is not { } source)
             return;
+
+        StopHighlighting();
 
         // La copia sale entera antes de escribir nada, asi que estampar encima de lo
         // marcado, o solapandolo, no se pisa a si mismo.

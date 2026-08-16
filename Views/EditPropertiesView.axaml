@@ -4,10 +4,24 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
              xmlns:l="clr-namespace:MSX_GameTools.Localization"
+             xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="300"
              x:Class="MSX_GameTools.Views.EditPropertiesView"
              x:DataType="vm:EditPropertiesViewModel"
              Background="{DynamicResource AppPanelBackground}">
+
+  <UserControl.Styles>
+    <!-- El mismo boton que en las barras, con :is() porque el ojo es un ToggleButton. -->
+    <Style Selector=":is(Button).tool">
+      <Setter Property="Margin" Value="2" />
+      <Setter Property="Padding" Value="6,4" />
+    </Style>
+
+    <Style Selector=":is(Button).tool > icons|MaterialIcon">
+      <Setter Property="Width" Value="18" />
+      <Setter Property="Height" Value="18" />
+    </Style>
+  </UserControl.Styles>
 
   <!-- El titulo arriba, los botones abajo y lo de en medio con barra: con la seccion de
        supertiles las filas Auto empujaban a Aceptar y Cancelar fuera del panel. -->
@@ -74,11 +88,21 @@
       <ItemsControl ItemsSource="{Binding Attributes}">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:TileAttributeRowViewModel">
-            <Grid ColumnDefinitions="24,*" Margin="0,0,0,4">
+            <Grid ColumnDefinitions="24,*,Auto" Margin="0,0,0,4">
               <TextBlock Grid.Column="0" Text="{Binding Bit}" VerticalAlignment="Center"
                          FontFamily="Consolas"
                          Foreground="{DynamicResource AppTextSecondary}" />
               <TextBox Grid.Column="1" Text="{Binding Name}" />
+
+              <!-- El ojo tiñe en la rejilla los tiles que ya lo tienen puesto, para verlos
+                   de un vistazo en vez de ir tile por tile. Surte efecto en el acto y no
+                   al aceptar: no cambia el juego, cambia como se mira. -->
+              <ToggleButton Grid.Column="2" Classes="tool" Margin="4,0,0,0"
+                            IsChecked="{Binding IsWatched}"
+                            IsEnabled="{Binding Name, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                            ToolTip.Tip="{l:Localize TileAttributeWatchTip}">
+                <icons:MaterialIcon Kind="EyeOutline" />
+              </ToggleButton>
             </Grid>
           </DataTemplate>
         </ItemsControl.ItemTemplate>

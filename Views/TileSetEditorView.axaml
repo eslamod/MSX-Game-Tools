@@ -433,6 +433,32 @@
           </ListBox.ItemTemplate>
         </ListBox>
 
+        <!-- La capa del tinte: un hueco por tile, encima de la rejilla y sin recibir el
+             raton, asi que el ListBox de debajo sigue eligiendo tiles igual. Va aparte y no
+             dentro de la miniatura porque las miniaturas las comparten este editor y el de
+             mapas -son el mismo objeto-, y teñirlas ahi pintaria tambien los tiles del
+             mapa. Se apoya en que los dos usan la misma rejilla de 32 y el mismo tamaño,
+             asi que caen encajados sin calcular nada. -->
+        <ItemsControl x:Name="AttributeMarks"
+                      ItemsSource="{Binding TileMarks}"
+                      HorizontalAlignment="Left" VerticalAlignment="Top"
+                      IsHitTestVisible="False">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Columns="32" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:TileMarkViewModel">
+              <Border Width="{Binding $parent[views:TileSetEditorView].ThumbnailSize}"
+                      Height="{Binding $parent[views:TileSetEditorView].ThumbnailSize}"
+                      Margin="{Binding $parent[views:TileSetEditorView].GridThickness}"
+                      IsVisible="{Binding IsMarked}"
+                      Background="{DynamicResource AppTileMarkTint}" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
         <Canvas x:Name="ToolLayer" Background="Transparent"
                 IsVisible="{Binding !IsEditTool}"
                 PointerPressed="OnToolLayerPressed"

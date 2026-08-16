@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
@@ -279,6 +280,213 @@ public class TileAttributesTests
         editor.GoTo(5);
 
         Assert.False(editor.TileAttributes[0].IsOn);
+    }
+
+    // ------------------------------------------------------------------ el ojo
+
+    /// <summary>
+    /// El ojo tiñe los tiles que ya tienen ese atributo puesto, y sólo esos.
+    /// </summary>
+    /// <remarks>
+    /// Es para lo que existe: saber de un vistazo cuáles están hechos, en vez de recorrer
+    /// los 256 abriéndolos uno a uno.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_ojo_tine_los_que_lo_tienen_puesto()
+    {
+        var main = new MainWindowViewModel();
+        TileSetEditorViewModel editor = main.OpenTileSet(Named("Sólido", "Agua"));
+
+        editor.TileSet.ListOfTiles[3].SetAttribute(0, true);
+        editor.TileSet.ListOfTiles[7].SetAttribute(1, true);
+
+        var properties = new EditPropertiesViewModel(main, editor);
+
+        properties.Attributes[0].IsWatched = true;
+
+        Assert.True(editor.TileMarks[3].IsMarked);
+        Assert.False(editor.TileMarks[7].IsMarked);
+        Assert.False(editor.TileMarks[0].IsMarked);
+    }
+
+    /// <summary>
+    /// De uno en uno: encender un ojo apaga el que estuviera.
+    /// </summary>
+    /// <remarks>
+    /// Con dos teñidos a la vez habría que distinguirlos por color, y entonces hay que
+    /// aprenderse los colores. La pregunta que se responde es «cuáles tienen éste».
+    /// </remarks>
+    [AvaloniaFact]
+    public void Solo_se_mira_un_atributo_a_la_vez()
+    {
+        var main = new MainWindowViewModel();
+        TileSetEditorViewModel editor = main.OpenTileSet(Named("Sólido", "Agua"));
+
+        editor.TileSet.ListOfTiles[3].SetAttribute(0, true);
+        editor.TileSet.ListOfTiles[7].SetAttribute(1, true);
+
+        var properties = new EditPropertiesViewModel(main, editor);
+
+        properties.Attributes[0].IsWatched = true;
+        properties.Attributes[1].IsWatched = true;
+
+        Assert.False(properties.Attributes[0].IsWatched);
+        Assert.False(editor.TileMarks[3].IsMarked);
+        Assert.True(editor.TileMarks[7].IsMarked);
+    }
+
+    /// <summary>Apagar el ojo se lleva el tinte.</summary>
+    [AvaloniaFact]
+    public void Apagar_el_ojo_quita_el_tinte()
+    {
+        var main = new MainWindowViewModel();
+        TileSetEditorViewModel editor = main.OpenTileSet(Named("Sólido"));
+
+        editor.TileSet.ListOfTiles[3].SetAttribute(0, true);
+
+        var properties = new EditPropertiesViewModel(main, editor);
+
+        properties.Attributes[0].IsWatched = true;
+        properties.Attributes[0].IsWatched = false;
+
+        Assert.False(editor.TileMarks[3].IsMarked);
+    }
+
+    /// <summary>
+    /// Cerrar el panel de propiedades también, por los tres caminos.
+    /// </summary>
+    /// <remarks>
+    /// Son distintos: el aspa de la pestaña cierra de verdad y pasa por <c>OnClosed</c>,
+    /// mientras que Aceptar y Cancelar sólo dejan de enseñar el panel. Sin cubrir los tres,
+    /// el tinte se quedaría puesto sin nadie a quien pedirle que se vaya.
+    /// </remarks>
+    [AvaloniaTheory]
+    [InlineData("aceptar")]
+    [InlineData("cancelar")]
+    [InlineData("cerrar")]
+    public void Cerrar_las_propiedades_quita_el_tinte(string how)
+    {
+        var main = new MainWindowViewModel();
+        TileSetEditorViewModel editor = main.OpenTileSet(Named("Sólido"));
+
+        editor.TileSet.ListOfTiles[3].SetAttribute(0, true);
+
+        var properties = new EditPropertiesViewModel(main, editor);
+
+        properties.Attributes[0].IsWatched = true;
+
+        Assert.True(editor.TileMarks[3].IsMarked);
+
+        switch (how)
+        {
+            case "aceptar": properties.AcceptPropertiesCommand.Execute(null); break;
+            case "cancelar": properties.CancelPropertiesCommand.Execute(null); break;
+            default: properties.OnClosed(); break;
+        }
+
+        Assert.False(editor.TileMarks[3].IsMarked);
+    }
+
+    /// <summary>
+    /// Y cualquier cosa que sea elegir tiles.
+    /// </summary>
+    /// <remarks>
+    /// A partir de ahí el tinte estorba: falsea los colores de justo lo que se ha ido a
+    /// mirar. Son tres caminos distintos y los tres significan que ya se ha dejado de
+    /// mirar y se ha empezado a trabajar.
+    /// </remarks>
+    [AvaloniaTheory]
+    [InlineData("elegir")]
+    [InlineData("marcar")]
+    [InlineData("estampar")]
+    public void Tocar_la_rejilla_quita_el_tinte(string what)
+    {
+        var main = new MainWindowViewModel();
+        TileSetEditorViewModel editor = main.OpenTileSet(Named("Sólido"));
+
+        editor.TileSet.ListOfTiles[3].SetAttribute(0, true);
+
+        var properties = new EditPropertiesViewModel(main, editor);
+
+        properties.Attributes[0].IsWatched = true;
+
+        switch (what)
+        {
+            case "elegir":
+                editor.GoTo(10);
+                break;
+
+            case "marcar":
+                editor.SelectRegion(0, 0, 1, 1);
+                break;
+
+            default:
+                editor.SelectRegion(0, 0, 1, 1);
+                editor.StampAt(20, 0);
+                break;
+        }
+
+        Assert.False(editor.TileMarks[3].IsMarked);
+        Assert.Null(editor.HighlightedAttribute);
+    }
+
+    /// <summary>
+    /// El tinte llega a pintarse encima del tile que toca.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Es la mitad que no se ve desde el ViewModel. La capa va encima de la rejilla y se
+    /// apoya en que las dos usan el mismo reparto de 32 columnas y el mismo tamaño de
+    /// miniatura: si eso se desalineara, el tinte saldría sobre el tile de al lado y las
+    /// comprobaciones de arriba seguirían en verde.
+    /// </para>
+    /// <para>
+    /// Se compara contra el hueco de la rejilla y no contra coordenadas escritas a mano,
+    /// que dependerían del zoom de las miniaturas.
+    /// </para>
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_tinte_cae_encima_del_tile_que_toca()
+    {
+        var main = new MainWindowViewModel();
+        TileSetEditorViewModel editor = main.OpenTileSet(Named("Sólido"));
+
+        editor.TileSet.ListOfTiles[35].SetAttribute(0, true);
+
+        var view = new TileSetEditorView { DataContext = editor };
+        var window = new Window { Content = view, Width = 1400, Height = 900 };
+
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        editor.HighlightedAttribute = 0;
+        Dispatcher.UIThread.RunJobs();
+
+        var marks = (ItemsControl)view.GetVisualDescendants()
+            .First(v => v is ItemsControl { Name: "AttributeMarks" });
+
+        Border[] painted = [.. marks.GetVisualDescendants().OfType<Border>()
+            .Where(border => border.IsEffectivelyVisible && border.Background is not null)];
+
+        Border only = Assert.Single(painted);
+
+        // Y encima del tile 35, no de otro. Se elige uno de la segunda fila a proposito: en la primera, repartir en 31 columnas o en 32 da lo mismo y un fallo de reparto pasaria desapercibido. Se compara con el dibujo y no con su celda: la
+        // celda incluye la línea de la rejilla y el tinte va sobre lo dibujado, así que
+        // comparando con la celda salía un píxel de diferencia que es justo la línea.
+        var tiles = (ListBox)view.GetVisualDescendants().First(v => v is ListBox { Name: "TileGrid" });
+
+        Image picture = tiles.GetRealizedContainers()
+            .ElementAt(35)
+            .GetVisualDescendants()
+            .OfType<Image>()
+            .Single();
+
+        Assert.Equal(
+            picture.TranslatePoint(new Point(0, 0), view)!.Value,
+            only.TranslatePoint(new Point(0, 0), view)!.Value);
+
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
     }
 
     /// <summary>

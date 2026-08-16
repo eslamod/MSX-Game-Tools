@@ -47,6 +47,13 @@
       <SolidColorBrush x:Key="AppGlyphAlert" Color="#B00000" />
       <SolidColorBrush x:Key="AppDropTarget" Color="#1565C0" />
 
+      <!-- El tinte de los tiles que tienen puesto el atributo que se esta mirando.
+           Translucido a proposito: tiene que reconocerse el dibujo del tile por debajo, que
+           es lo que se esta buscando; si lo tapara habria que quitar el tinte para ver que
+           hay, y entonces no serviria para nada. Naranja y no rojo, que el rojo ya es el
+           recuadro de la seleccion en esta misma rejilla. -->
+      <SolidColorBrush x:Key="AppTileMarkTint" Color="#FF7A00" Opacity="0.42" />
+
       <!-- Los botones de herramienta: el ControlTheme ToggleRadioButton -->
       <SolidColorBrush x:Key="AppToolButtonBackground" Color="#F0F0F0" />
       <SolidColorBrush x:Key="AppToolButtonBorder" Color="#909090" />
@@ -89,6 +96,10 @@
       <SolidColorBrush x:Key="AppGlyph" Color="#D0D0D0" />
       <SolidColorBrush x:Key="AppGlyphAlert" Color="#FF6B6B" />
       <SolidColorBrush x:Key="AppDropTarget" Color="#4FC3F7" />
+
+      <!-- El tinte, un punto más opaco: los tiles se dibujan sobre negro y encima de un
+           dibujo oscuro el mismo naranja se distingue peor que sobre uno claro. -->
+      <SolidColorBrush x:Key="AppTileMarkTint" Color="#FF8C1A" Opacity="0.5" />
 
       <SolidColorBrush x:Key="AppToolButtonBackground" Color="#3A3A3A" />
       <SolidColorBrush x:Key="AppToolButtonBorder" Color="#5A5A5A" />

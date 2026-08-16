@@ -75,7 +75,10 @@ public partial class EditPropertiesViewModel : PanelBaseViewModel
         if (document is TileSetEditorViewModel editor)
         {
             for (int bit = 0; bit < TileAttributeNames.Count; bit++)
-                Attributes.Add(new TileAttributeRowViewModel(bit, editor.TileSet.AttributeNames[bit]));
+            {
+                Attributes.Add(new TileAttributeRowViewModel(
+                    bit, editor.TileSet.AttributeNames[bit], Watch));
+            }
         }
 
         Header = $"{Localizer.Instance["TreeProperties"]}: {document.DocumentName}";
@@ -204,6 +207,7 @@ public partial class EditPropertiesViewModel : PanelBaseViewModel
 
         ApplySuperTiles();
         ApplyAttributes();
+        StopWatching();
 
         _mainWindowVm.Rename(Document, Name);
         _mainWindowVm.RightPanViewModel = null;
@@ -275,5 +279,57 @@ public partial class EditPropertiesViewModel : PanelBaseViewModel
     }
 
     [RelayCommand]
-    private void CancelProperties() => _mainWindowVm.RightPanViewModel = null;
+    private void CancelProperties()
+    {
+        StopWatching();
+
+        _mainWindowVm.RightPanViewModel = null;
+    }
+
+    /// <summary>
+    /// Enciende el ojo de un atributo y apaga el que estuviera.
+    /// </summary>
+    /// <remarks>
+    /// De uno en uno: con dos teñidos a la vez habría que distinguirlos por color, y
+    /// entonces hay que aprenderse los colores. Lo que se quiere saber es «cuáles tienen
+    /// éste».
+    /// </remarks>
+    private void Watch(int bit, bool on)
+    {
+        if (Document is not TileSetEditorViewModel tiles)
+            return;
+
+        if (on)
+        {
+            foreach (TileAttributeRowViewModel other in Attributes)
+            {
+                if (other.Bit != bit)
+                    other.IsWatched = false;
+            }
+        }
+
+        // Apagar el que ya no está encendido no puede apagar el que acaba de encenderse:
+        // al cambiar de ojo llegan dos avisos y el de apagar puede llegar el último.
+        if (on)
+            tiles.HighlightedAttribute = bit;
+        else if (tiles.HighlightedAttribute == bit)
+            tiles.HighlightedAttribute = null;
+    }
+
+    /// <summary>
+    /// Cerrar el panel se lleva el tinte.
+    /// </summary>
+    /// <remarks>
+    /// Por los tres caminos, que son distintos: el aspa de la pestaña pasa por
+    /// <see cref="OnClosed"/>, y Aceptar y Cancelar sólo dejan de enseñar el panel sin
+    /// cerrarlo. Sin cubrir los tres, el tinte se quedaría puesto sin nadie a quien
+    /// pedirle que se vaya.
+    /// </remarks>
+    public override void OnClosed() => StopWatching();
+
+    private void StopWatching()
+    {
+        if (Document is TileSetEditorViewModel tiles)
+            tiles.HighlightedAttribute = null;
+    }
 }
