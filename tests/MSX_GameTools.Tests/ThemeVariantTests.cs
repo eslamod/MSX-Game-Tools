@@ -559,6 +559,70 @@ public class ThemeVariantTests
         return InScope(slider, variant, mounted => ((Slider)mounted).Foreground);
     }
 
+    /// <summary>
+    /// Cambiar de variante con la ventana abierta repinta también lo que ya estaba pulsado.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// La variante se elige en preferencias y se aplica en caliente: nadie reinicia. Todas
+    /// las demás comprobaciones de este fichero montan el control ya con su variante, que es
+    /// el caso fácil; ninguna cambiaba de una a otra con el control puesto.
+    /// </para>
+    /// <para>
+    /// Importa justo en el pulsado. Fluent resuelve su acento a recursos por control al
+    /// cargar, y esa fue la razón de tener que pisar quince claves a mano: si el fondo del
+    /// marcado se resolviera igual, el botón que estuviera pulsado al cambiar de tema se
+    /// quedaría con el color de la variante anterior mientras sus vecinos ya habrían
+    /// cambiado. Con <c>DynamicResource</c> no pasa, y esto es lo que lo sujeta.
+    /// </para>
+    /// </remarks>
+    [AvaloniaFact]
+    public void Al_cambiar_de_variante_el_boton_ya_pulsado_tambien_cambia()
+    {
+        var button = new RadioButton
+        {
+            Content = "X2",
+            IsChecked = true,
+            Theme = (ControlTheme)Application.Current!.FindResource("ToggleRadioButton")!,
+        };
+
+        var scope = new ThemeVariantScope
+        {
+            RequestedThemeVariant = AppTheme.Orange,
+            Child = button,
+        };
+
+        var window = new Window { Content = scope, Width = 500, Height = 200 };
+
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        Color before = CheckedBackground(button);
+
+        // Sin tocar el botón: sólo cambia la variante, como al elegirla en preferencias.
+        scope.RequestedThemeVariant = AppTheme.Blue;
+        Dispatcher.UIThread.RunJobs();
+
+        Color after = CheckedBackground(button);
+
+        Assert.Equal(Resolve("AppToolButtonCheckedBackground", AppTheme.Orange), before);
+
+        Assert.True(
+            after == Resolve("AppToolButtonCheckedBackground", AppTheme.Blue),
+            $"El botón pulsado se ha quedado en {after} al pasar de naranja a azul: "
+            + $"antes tenía {before} y sus vecinos sin pulsar ya habrían cambiado.");
+
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+    }
+
+    private static Color CheckedBackground(RadioButton button) =>
+        Assert.IsAssignableFrom<ISolidColorBrush>(button
+            .GetVisualDescendants()
+            .OfType<Border>()
+            .First(border => border.Name == "PART_Root")
+            .Background).Color;
+
     /// <summary>Monta el control con la variante pedida, lo mide y lo cierra.</summary>
     private static Color InScope(Control control, ThemeVariant variant, Func<Control, IBrush?> measure)
     {
