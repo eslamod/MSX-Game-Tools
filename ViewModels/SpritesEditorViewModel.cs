@@ -452,9 +452,49 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
         GoTo(Math.Min(index + 1, NumberSprites));
     }
 
-    // Un banco siempre conserva al menos un sprite: si no, el editor se queda sin
-    // nada que dibujar (en WPF se podía vaciar y el lienzo apuntaba a un sprite muerto).
-    private bool CanDeleteSprite() => NumberSprites > 1;
+    /// <summary>
+    /// Sólo se puede eliminar el último, y sólo si queda otro detrás.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Quitar uno de en medio corría un puesto a todos los de atrás. Eso descoloca los
+    /// grupos, que apuntan a sus patrones por índice, pero sobre todo descoloca el juego:
+    /// si el código de la máquina dibuja el sprite 12, después de borrar el 3 el 12 es otro
+    /// dibujo. Y eso el editor no lo puede arreglar por nadie.
+    /// </para>
+    /// <para>
+    /// Para lo demás está vaciar, que deja el hueco donde estaba. Es además la forma que
+    /// tendrá esto el día que el banco pase a ser de 64 fijos, como la tabla del VDP.
+    /// </para>
+    /// <para>
+    /// Y siempre queda al menos uno: si no, el editor se queda sin nada que dibujar (en WPF
+    /// se podía vaciar del todo y el lienzo apuntaba a un sprite muerto).
+    /// </para>
+    /// </remarks>
+    private bool CanDeleteSprite() => NumberSprites > 1 && CurrentSpritePosition == NumberSprites;
+
+    /// <summary>Deja el patrón en blanco sin quitarlo del banco.</summary>
+    [RelayCommand]
+    private async Task ClearSpriteAsync()
+    {
+        // Vaciar tampoco se puede deshacer: en el editor de sprites no hay historia.
+        bool confirmed = await _dialogs.ConfirmAsync(
+            Localizer.Instance["ClearSpriteTitle"],
+            Localizer.Instance.Format("ClearSpriteBody", CurrentSpritePosition),
+            Localizer.Instance["ClearLabel"]);
+
+        if (!confirmed)
+            return;
+
+        CurrentSprite.Clear();
+
+        Touch();
+        RenderThumbnail(CurrentSprite);
+        RefreshRequested?.Invoke(CurrentSprite);
+
+        // Los colores de linea del lienzo cuelgan del sprite, y acaban de cambiar todos.
+        OnPropertyChanged(nameof(SpriteColor));
+    }
 
     [RelayCommand(CanExecute = nameof(CanGoNext))]
     private void NextSprite() => GoTo(CurrentSpritePosition + 1);

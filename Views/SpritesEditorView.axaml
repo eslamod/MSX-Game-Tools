@@ -749,6 +749,12 @@
           <ContextMenu>
             <MenuItem Header="{l:Localize SpritesDuplicate}"
                       Command="{Binding DuplicateSpriteCommand}" />
+            <Separator />
+
+            <!-- Aqui abajo y apagado salvo en el ultimo: es lo raro, y lo unico que puede
+                 mover indices. Lo de todos los dias es vaciar, que esta en la tira. -->
+            <MenuItem Header="{l:Localize SpritesDeleteLast}"
+                      Command="{Binding DeleteSpriteCommand}" />
           </ContextMenu>
         </ListBox.ContextMenu>
         <ListBox.ItemTemplate>
@@ -853,11 +859,13 @@
               ToolTip.Tip="{l:Localize SpritesAddSpriteTip}">
         <icons:MaterialIcon Kind="Plus" />
       </Button>
-      <!-- El unico rojo de la tira: borra el sprite que se esta viendo. -->
-      <Button Classes="navigate" Command="{Binding DeleteSpriteCommand}"
+      <!-- Vaciar y no eliminar: eliminar en medio corre los indices de todo lo de atras y
+           descoloca los grupos y, sobre todo, el codigo del juego. Eliminar sigue estando,
+           en el menu del boton derecho, y solo para el ultimo. -->
+      <Button Classes="navigate" Command="{Binding ClearSpriteCommand}"
               Foreground="{DynamicResource AppTextError}"
-              ToolTip.Tip="{l:Localize SpritesDeleteSpriteTip}">
-        <icons:MaterialIcon Kind="TrashCanOutline" />
+              ToolTip.Tip="{l:Localize SpritesClearSpriteTip}">
+        <icons:MaterialIcon Kind="EraserVariant" />
       </Button>
     </StackPanel>
 

@@ -19,6 +19,27 @@ public class Sprite
     public BackgroundRef Background { get; set; } = BackgroundRef.None;
 
     /// <summary>
+    /// Deja el patron como recien creado, sin borrarlo del banco.
+    /// </summary>
+    /// <remarks>
+    /// Es lo que sustituye a eliminar en medio del banco. Los patrones se referencian por
+    /// indice -los grupos, y sobre todo el codigo del juego-, asi que quitar uno de en
+    /// medio corre todos los de atras y descoloca lo que ya estuviera hecho. Vaciandolo, el
+    /// hueco sigue ahi y ningun numero se mueve.
+    /// </remarks>
+    public void Clear()
+    {
+        foreach (SpriteRow row in ArraySpriteRows)
+        {
+            Array.Clear(row.ArrayColumns);
+
+            row.Color = 15;
+        }
+
+        Background = BackgroundRef.None;
+    }
+
+    /// <summary>
     /// Se queda con el dibujo, los colores de linea y el fondo de calco de otro patron.
     /// </summary>
     /// <remarks>

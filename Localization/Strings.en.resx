@@ -30,6 +30,11 @@
   </data>
   <data name="PropertiesOpenTip" xml:space="preserve"><value>Name, supertiles and attributes of this tile set</value></data>
   <data name="SpritesDuplicate" xml:space="preserve"><value>Duplicate this pattern</value></data>
+  <data name="SpritesDeleteLast" xml:space="preserve"><value>Delete the last pattern</value></data>
+  <data name="SpritesClearSpriteTip" xml:space="preserve"><value>Blank this pattern, without moving the other numbers</value></data>
+  <data name="ClearLabel" xml:space="preserve"><value>Clear</value></data>
+  <data name="ClearSpriteTitle" xml:space="preserve"><value>Clear the pattern</value></data>
+  <data name="ClearSpriteBody" xml:space="preserve"><value>Pattern {0} is about to be blanked. It keeps its slot, so the other numbers do not move. This cannot be undone.</value></data>
   <data name="TileAttributes" xml:space="preserve"><value>Attributes</value></data>
   <data name="TileAttributeWatchTip" xml:space="preserve"><value>Tint the tiles that already have it set</value></data>
   <data name="TileAttributesNote" xml:space="preserve"><value>One name per bit, 0 to 7. The ones left blank are unused. Exporting writes one byte per tile with these flags.</value></data>

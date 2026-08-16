@@ -156,6 +156,96 @@ public class DuplicateSpriteTests
         Assert.True(editor.IsModified);
     }
 
+    // ------------------------------------------------------- vaciar y eliminar el ultimo
+
+    /// <summary>
+    /// Sólo se puede eliminar el último patrón.
+    /// </summary>
+    /// <remarks>
+    /// Quitar uno de en medio corre un puesto a todos los de atrás. Eso descoloca los
+    /// grupos, que apuntan por índice, pero sobre todo descoloca el juego: si el código de
+    /// la máquina dibuja el sprite 12, después de borrar el 3 el 12 es otro dibujo. Y eso
+    /// el editor no lo puede arreglar por nadie.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Solo_se_elimina_el_ultimo()
+    {
+        SpritesEditorViewModel editor = Bank();
+
+        editor.AddSpriteCommand.Execute(null);
+        editor.AddSpriteCommand.Execute(null);
+
+        // Recien añadido, se esta en el ultimo.
+        Assert.True(editor.DeleteSpriteCommand.CanExecute(null));
+
+        editor.PreviousSpriteCommand.Execute(null);
+
+        Assert.False(editor.DeleteSpriteCommand.CanExecute(null));
+    }
+
+    /// <summary>Y nunca el único que queda, que dejaría el lienzo sin nada que dibujar.</summary>
+    [AvaloniaFact]
+    public void El_unico_que_queda_no_se_elimina()
+    {
+        SpritesEditorViewModel editor = Bank();
+
+        Assert.Equal(1, editor.SpritesBank.SpritesList.Count);
+        Assert.False(editor.DeleteSpriteCommand.CanExecute(null));
+    }
+
+    /// <summary>
+    /// Vaciar deja el hueco donde estaba.
+    /// </summary>
+    /// <remarks>
+    /// Es lo que sustituye a eliminar en medio: el patrón se queda en blanco pero sigue
+    /// ocupando su número, así que nada de lo de atrás se mueve.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Vaciar_no_mueve_los_numeros()
+    {
+        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bichos");
+        var editor = new SpritesEditorViewModel(
+            bank, ColorPalette.CreateMsxStandard(), new TestDialogService());
+
+        editor.AddSpriteCommand.Execute(null);
+        editor.AddSpriteCommand.Execute(null);
+
+        Draw(bank.SpritesList[0], color: 7);
+
+        // El de en medio dibujado tambien: si se vacia uno que ya estaba en blanco, «queda
+        // en blanco» se cumple sin que vaciar haga nada.
+        Draw(bank.SpritesList[1], color: 3);
+        Draw(bank.SpritesList[2], color: 5);
+
+        Sprite last = bank.SpritesList[2];
+
+        // Se vacia el de en medio.
+        editor.PreviousSpriteCommand.Execute(null);
+        await editor.ClearSpriteCommand.ExecuteAsync(null);
+
+        Assert.Equal(3, bank.SpritesList.Count);
+        Assert.Same(last, bank.SpritesList[2]);
+
+        // El vaciado queda en blanco y los demas intactos.
+        Assert.True(SameDrawing(bank.SpritesList[1], new SpriteMSX2()));
+        Assert.Equal(7, bank.SpritesList[0].ArraySpriteRows[0].Color);
+    }
+
+    /// <summary>Vaciar pregunta antes: en el editor de sprites no hay deshacer.</summary>
+    [AvaloniaFact]
+    public async Task Vaciar_pregunta_antes()
+    {
+        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bichos");
+        var editor = new SpritesEditorViewModel(
+            bank, ColorPalette.CreateMsxStandard(), new TestDialogService { ConfirmAnswer = false });
+
+        Draw(bank.SpritesList[0], color: 7);
+
+        await editor.ClearSpriteCommand.ExecuteAsync(null);
+
+        Assert.Equal(7, bank.SpritesList[0].ArraySpriteRows[0].Color);
+    }
+
     /// <summary>Con el banco lleno no se puede duplicar, igual que no se puede añadir.</summary>
     [AvaloniaFact]
     public void Con_el_banco_lleno_no_se_duplica()

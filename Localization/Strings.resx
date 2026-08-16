@@ -44,6 +44,11 @@
   </data>
   <data name="PropertiesOpenTip" xml:space="preserve"><value>Nombre, supertiles y atributos de este juego de tiles</value></data>
   <data name="SpritesDuplicate" xml:space="preserve"><value>Duplicar este patrón</value></data>
+  <data name="SpritesDeleteLast" xml:space="preserve"><value>Eliminar el último patrón</value></data>
+  <data name="SpritesClearSpriteTip" xml:space="preserve"><value>Dejar este patrón en blanco, sin mover los números de los demás</value></data>
+  <data name="ClearLabel" xml:space="preserve"><value>Vaciar</value></data>
+  <data name="ClearSpriteTitle" xml:space="preserve"><value>Vaciar el patrón</value></data>
+  <data name="ClearSpriteBody" xml:space="preserve"><value>Se va a dejar en blanco el patrón {0}. Sigue ocupando su sitio, así que los números de los demás no se mueven. No se puede deshacer.</value></data>
   <data name="TileAttributes" xml:space="preserve"><value>Atributos</value></data>
   <data name="TileAttributeWatchTip" xml:space="preserve"><value>Teñir en la rejilla los tiles que ya lo tienen puesto</value></data>
   <data name="TileAttributesNote" xml:space="preserve"><value>Un nombre por bit, del 0 al 7. Los que se dejen en blanco no se usan. Al exportar sale un byte por tile con estas banderas.</value></data>
