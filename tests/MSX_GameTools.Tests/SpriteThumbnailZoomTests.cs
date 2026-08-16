@@ -58,6 +58,6 @@ public class SpriteThumbnailZoomTests
         editor.SetThumbnailZoom(4);
 
         Assert.Equal(0, editor.Thumbnails.SelectedIndex);
-        Assert.Equal(1, editor.ViewModel.CurrentSpritePosition);
+        Assert.Equal(0, editor.ViewModel.CurrentSpriteIndex);
     }
 }

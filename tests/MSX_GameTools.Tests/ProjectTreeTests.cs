@@ -53,7 +53,7 @@ public class ProjectTreeTests
         Assert.Same(editor, main.SelectedTab);
         // El banco tiene siempre 64 huecos, asi que lo que dice que el estado sigue vivo es
         // por cual se habia dejado y el grupo que se creo, no cuantos patrones hay.
-        Assert.Equal(2, editor.CurrentSpritePosition);
+        Assert.Equal(1, editor.CurrentSpriteIndex);
         Assert.Single(editor.SpritesBank.Groups);
     }
 

@@ -16,7 +16,7 @@ public class SpriteThumbnailSelectionTests
         using var editor = new SpriteCanvasHarness(PaintMode.Drag);
 
         Assert.Equal(0, editor.Thumbnails.SelectedIndex);
-        Assert.Equal(1, editor.ViewModel.CurrentSpritePosition);
+        Assert.Equal(0, editor.ViewModel.CurrentSpriteIndex);
         Assert.Same(editor.Bank.SpritesList[0].ImageMini, editor.ViewModel.SelectedThumbnail);
     }
 
@@ -28,7 +28,7 @@ public class SpriteThumbnailSelectionTests
 
         editor.ClickThumbnail(2);
 
-        Assert.Equal(3, editor.ViewModel.CurrentSpritePosition);
+        Assert.Equal(2, editor.ViewModel.CurrentSpriteIndex);
         Assert.Same(editor.Bank.SpritesList[2], editor.ViewModel.CurrentSprite);
         Assert.Equal(2, editor.Thumbnails.SelectedIndex);
     }
@@ -68,7 +68,7 @@ public class SpriteThumbnailSelectionTests
     public void Navegar_con_los_botones_mueve_la_seleccion_de_las_miniaturas()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag);
-        GoToSprite(editor, 2); // 3 sprites, seleccionado el ultimo
+        GoToSprite(editor, 2);
 
         Assert.Equal(2, editor.Thumbnails.SelectedIndex);
 
@@ -114,23 +114,24 @@ public class SpriteThumbnailSelectionTests
         GoToSprite(editor, 2);
 
         editor.ClickThumbnail(1);
-        Assert.Equal(2, editor.ViewModel.CurrentSpritePosition);
+        Assert.Equal(1, editor.ViewModel.CurrentSpriteIndex);
 
         Sprite current = editor.ViewModel.CurrentSprite;
 
         await editor.ViewModel.ClearSpriteCommand.ExecuteAsync(null);
 
-        Assert.Equal(2, editor.ViewModel.CurrentSpritePosition);
+        Assert.Equal(1, editor.ViewModel.CurrentSpriteIndex);
         Assert.Same(current, editor.ViewModel.CurrentSprite);
         Assert.Equal(1, editor.Thumbnails.SelectedIndex);
     }
 
-    private static void GoToSprite(SpriteCanvasHarness editor, int count)
+    /// <summary>Deja el lienzo en el patron <paramref name="index"/>, contando desde 0.</summary>
+    private static void GoToSprite(SpriteCanvasHarness editor, int index)
     {
-        for (int i = 0; i < count; i++)
+        for (int step = 0; step < index; step++)
             editor.ViewModel.NextSpriteCommand.Execute(null);
 
         // Deja que el ListBox realice los contenedores.
-        editor.ThumbnailContainer(count);
+        editor.ThumbnailContainer(index);
     }
 }

@@ -199,7 +199,7 @@ public class DuplicateSpriteTests
 
         editor.DuplicateSpriteCommand.Execute(null);
 
-        Assert.Equal(2, editor.CurrentSpritePosition);
+        Assert.Equal(1, editor.CurrentSpriteIndex);
     }
 
     /// <summary>Y el banco queda marcado como sin guardar.</summary>
@@ -334,13 +334,9 @@ public class DuplicateSpriteTests
     }
 
     /// <summary>Deja el editor en ese hueco, contando desde 0 como cuenta el banco.</summary>
-    /// <remarks>
-    /// La posición que enseña el editor va desde 1, así que el hueco N es la posición N+1.
-    /// Escribirlo aquí una vez evita el desfase de uno en cada prueba.
-    /// </remarks>
     private static void GoToIndex(SpritesEditorViewModel editor, int index)
     {
-        while (editor.CurrentSpritePosition < index + 1)
+        while (editor.CurrentSpriteIndex < index)
             editor.NextSpriteCommand.Execute(null);
     }
 

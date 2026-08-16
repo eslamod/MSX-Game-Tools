@@ -38,18 +38,29 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(NextSpriteCommand))]
     [NotifyCanExecuteChangedFor(nameof(PreviousSpriteCommand))]
-    private int _currentSpritePosition;
+    private int _currentSpriteIndex;
 
     /// <summary>
     /// Cuántos patrones tiene el banco, que ahora son siempre los mismos.
     /// </summary>
     /// <remarks>
-    /// Se queda como propiedad y no como constante porque la vista la enseña en «1 / 64» y
+    /// Se queda como propiedad y no como constante porque la vista la enseña en «0 / 63» y
     /// la navegación la usa de tope.
     /// </remarks>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(NextSpriteCommand))]
+    [NotifyPropertyChangedFor(nameof(LastSpriteIndex))]
     private int _numberSprites;
+
+    /// <summary>
+    /// El número del último patrón, para enseñar «0 / 63» y no «0 / 64».
+    /// </summary>
+    /// <remarks>
+    /// Los patrones se numeran desde 0, como los cuenta el VDP y como los escribe quien
+    /// programa el juego. La cuenta y el último número se diferencian en uno, y el que
+    /// sirve para leer un número de patrón es éste.
+    /// </remarks>
+    public int LastSpriteIndex => NumberSprites - 1;
 
     /// <summary>
     /// Fondo sobre el que se previsualiza el sprite, común al lienzo y a todas las
@@ -108,7 +119,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
         _palette.ColorsChanged += OnPaletteColorsChanged;
 
         _currentSprite = bank.SpritesList[0];
-        _currentSpritePosition = 1;
+        _currentSpriteIndex = 0;
         _numberSprites = bank.SpritesList.Count;
 
         // La versión WPF creaba la lista vacía, así que la miniatura del primer
@@ -173,7 +184,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
         int index = ImagesMiniList.IndexOf(value);
         if (index >= 0)
-            GoTo(index + 1);
+            GoTo(index);
     }
 
     public override bool IsDocument => true;
@@ -253,7 +264,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
     [RelayCommand(CanExecute = nameof(CanAddGroup))]
     private void AddGroup()
     {
-        SpriteGroup? group = _spriteBank.NewGroup(CurrentSpritePosition - 1);
+        SpriteGroup? group = _spriteBank.NewGroup(CurrentSpriteIndex);
         if (group is null)
             return;
 
@@ -327,18 +338,18 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
     /// El lienzo sigue el patrón del miembro que se esté tocando. Estar en modo Grupos
     /// no impide seguir dibujando: es la forma de ver el efecto en la composición.
     /// </summary>
-    private void OnGroupEditTargetChanged(SpriteGroupMember member) => GoTo(member.PatternIndex + 1);
+    private void OnGroupEditTargetChanged(SpriteGroupMember member) => GoTo(member.PatternIndex);
 
     partial void OnSelectedGroupChanged(SpriteGroupViewModel? value)
     {
         if (value?.SelectedMember is not null)
-            GoTo(value.SelectedMember.PatternIndex + 1);
+            GoTo(value.SelectedMember.PatternIndex);
     }
 
     partial void OnThumbnailModeChanged(ThumbnailMode value)
     {
         if (value == ThumbnailMode.Groups && SelectedGroup?.SelectedMember is not null)
-            GoTo(SelectedGroup.SelectedMember.PatternIndex + 1);
+            GoTo(SelectedGroup.SelectedMember.PatternIndex);
     }
 
     private void OnGroupChanged(SpriteGroup group)
@@ -397,7 +408,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
     [RelayCommand(CanExecute = nameof(CanDuplicateSprite))]
     private void DuplicateSprite()
     {
-        int free = _spriteBank.DuplicateSprite(CurrentSpritePosition - 1);
+        int free = _spriteBank.DuplicateSprite(CurrentSpriteIndex);
 
         if (free < 0)
             return;
@@ -406,7 +417,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
         RenderThumbnail(_spriteBank.SpritesList[free]);
 
         // Se va a la copia, que es sobre la que se va a trabajar.
-        GoTo(free + 1);
+        GoTo(free);
     }
 
     private bool CanDuplicateSprite() => _spriteBank.FirstEmpty() >= 0;
@@ -456,7 +467,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
         {
             bool confirmed = await _dialogs.ConfirmAsync(
                 Localizer.Instance["PasteSpriteTitle"],
-                Localizer.Instance.Format("PasteSpriteBody", CurrentSpritePosition),
+                Localizer.Instance.Format("PasteSpriteBody", CurrentSpriteIndex),
                 Localizer.Instance["PasteLabel"]);
 
             if (!confirmed)
@@ -479,7 +490,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
         // Vaciar tampoco se puede deshacer: en el editor de sprites no hay historia.
         bool confirmed = await _dialogs.ConfirmAsync(
             Localizer.Instance["ClearSpriteTitle"],
-            Localizer.Instance.Format("ClearSpriteBody", CurrentSpritePosition),
+            Localizer.Instance.Format("ClearSpriteBody", CurrentSpriteIndex),
             Localizer.Instance["ClearLabel"]);
 
         if (!confirmed)
@@ -496,14 +507,14 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
     }
 
     [RelayCommand(CanExecute = nameof(CanGoNext))]
-    private void NextSprite() => GoTo(CurrentSpritePosition + 1);
+    private void NextSprite() => GoTo(CurrentSpriteIndex + 1);
 
-    private bool CanGoNext() => CurrentSpritePosition < NumberSprites;
+    private bool CanGoNext() => CurrentSpriteIndex < NumberSprites - 1;
 
     [RelayCommand(CanExecute = nameof(CanGoPrevious))]
-    private void PreviousSprite() => GoTo(CurrentSpritePosition - 1);
+    private void PreviousSprite() => GoTo(CurrentSpriteIndex - 1);
 
-    private bool CanGoPrevious() => CurrentSpritePosition > 1;
+    private bool CanGoPrevious() => CurrentSpriteIndex > 0;
 
     /// <summary>MSX1: el color elegido se aplica a las 16 líneas del sprite.</summary>
     [RelayCommand]
@@ -611,21 +622,21 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
             RenderThumbnail(sprite);
     }
 
-    private void GoTo(int position)
+    private void GoTo(int index)
     {
-        if (position < 1 || position > NumberSprites)
+        if (index < 0 || index >= NumberSprites)
             return;
 
-        Sprite target = _spriteBank.SpritesList[position - 1];
+        Sprite target = _spriteBank.SpritesList[index];
 
-        // Comparar también el sprite y no sólo la posición: al borrar, la posición
-        // puede no cambiar pero el sprite que la ocupa sí, y hay que repintar.
+        // Comparar también el sprite y no sólo el índice: al vaciar, el índice
+        // puede no cambiar pero el sprite que lo ocupa sí, y hay que repintar.
         // Y al revés, el enlace bidireccional de la lista de miniaturas reescribe
         // el mismo índice constantemente y no debe provocar repintados.
-        if (CurrentSpritePosition == position && ReferenceEquals(CurrentSprite, target))
+        if (CurrentSpriteIndex == index && ReferenceEquals(CurrentSprite, target))
             return;
 
-        CurrentSpritePosition = position;
+        CurrentSpriteIndex = index;
         CurrentSprite = target;
         SelectedThumbnail = target.ImageMini;
 

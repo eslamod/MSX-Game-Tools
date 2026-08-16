@@ -40,5 +40,5 @@ internal sealed class SpritePixelSurface(SpritesEditorViewModel editor) : IPixel
             : background;
     }
 
-    public void EndStroke() => editor.NotifyPatternEdited(editor.CurrentSpritePosition - 1);
+    public void EndStroke() => editor.NotifyPatternEdited(editor.CurrentSpriteIndex);
 }

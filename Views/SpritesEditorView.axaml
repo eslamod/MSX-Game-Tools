@@ -847,9 +847,10 @@
     <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal"
                 Background="{DynamicResource AppPanelBackground}" Height="48" VerticalAlignment="Top">
       <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0">
-        <TextBlock Text="{Binding CurrentSpritePosition}" VerticalAlignment="Center" />
+        <!-- Desde 0, como los numera el VDP y como los escribe el codigo del juego. -->
+        <TextBlock Text="{Binding CurrentSpriteIndex}" VerticalAlignment="Center" />
         <TextBlock Text=" / " VerticalAlignment="Center" />
-        <TextBlock Text="{Binding NumberSprites}" VerticalAlignment="Center" />
+        <TextBlock Text="{Binding LastSpriteIndex}" VerticalAlignment="Center" />
       </StackPanel>
       <Button Classes="navigate" Command="{Binding PreviousSpriteCommand}"
               ToolTip.Tip="{l:Localize SpritesPreviousTip}">

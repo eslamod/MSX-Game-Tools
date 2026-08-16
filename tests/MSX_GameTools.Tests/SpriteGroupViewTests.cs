@@ -154,10 +154,10 @@ public class SpriteGroupViewTests
         group.Group.Members[1].PatternIndex = 0;
 
         group.SelectedMember = group.Group.Members[0];
-        Assert.Equal(3, editor.ViewModel.CurrentSpritePosition);
+        Assert.Equal(2, editor.ViewModel.CurrentSpriteIndex);
 
         group.SelectedMember = group.Group.Members[1];
-        Assert.Equal(1, editor.ViewModel.CurrentSpritePosition);
+        Assert.Equal(0, editor.ViewModel.CurrentSpriteIndex);
     }
 
     [AvaloniaFact]
@@ -170,12 +170,12 @@ public class SpriteGroupViewTests
         editor.ViewModel.AddGroupCommand.Execute(null);
 
         SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
-        Assert.Equal(2, editor.ViewModel.CurrentSpritePosition);
+        Assert.Equal(1, editor.ViewModel.CurrentSpriteIndex);
 
         group.StepPatternCommand.Execute("-1");
 
         Assert.Equal(0, group.SelectedMember!.PatternIndex);
-        Assert.Equal(1, editor.ViewModel.CurrentSpritePosition);
+        Assert.Equal(0, editor.ViewModel.CurrentSpriteIndex);
     }
 
     [AvaloniaFact]
@@ -191,7 +191,7 @@ public class SpriteGroupViewTests
         editor.SetThumbnailMode(ThumbnailMode.Groups);
 
         // Vuelve al del miembro seleccionado, no se queda donde lo dejaste.
-        Assert.Equal(1, editor.ViewModel.CurrentSpritePosition);
+        Assert.Equal(0, editor.ViewModel.CurrentSpriteIndex);
     }
 
     [AvaloniaFact]
