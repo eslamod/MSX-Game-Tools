@@ -5,7 +5,38 @@
 Graphics and map authoring tools for MSX games: sprites, tile sets, palettes, blocks and
 maps, exporting to the formats the VDP expects.
 
-Written in C# on Avalonia 11.3 and .NET 10. Runs on Windows, Linux and macOS.
+Written in C# on Avalonia 12.1 and .NET 10. Runs on Windows, Linux and macOS.
+
+## What it looks like
+
+### Sprite banks
+
+The 16x16 patterns, with each line's two colours down the right of the canvas and the
+whole bank across the top.
+
+![Sprite pattern editor](Screenshots/en_SpriteBankPatterns.png)
+
+And the **groups**, which place several patterns with offsets to build a figure bigger
+than one plane allows. The `OR` column marks the lines that mix planes through the V9938
+CC bit, and the composed group is shown on the right.
+
+![Sprite groups](Screenshots/en_SpriteBankGroups.png)
+
+### Tile sets
+
+The tile magnified on the left, all 256 in their 32-column grid, and the set's properties
+on the right with its **attributes**. The eye next to an attribute tints the tiles that
+already have it set — here the two road tiles. Under the canvas, the flags of the tile
+being edited.
+
+![Tile set editor](Screenshots/en_TileEditor.png)
+
+### Maps
+
+The map with its layers, the set's blocks on the right —a 3x3 tree here— and the strip of
+tiles and blocks along the bottom to pick what to paint with.
+
+![Map editor](Screenshots/en_MapEditor.png)
 
 ## What it does
 
@@ -29,6 +60,11 @@ Written in C# on Avalonia 11.3 and .NET 10. Runs on Windows, Linux and macOS.
   and says which tile and which line is at fault.
 - **Blocks**: groups of tiles up to 16x16, arranged as they will look on the map: a 3x3
   tree, or a 2x2 supertile. They work as brushes in the map editor.
+- **Per-tile attributes**: eight flags with whatever names you give them —solid, ladder,
+  water— exported as a one-byte-per-tile table, with their masks as `equ` constants so
+  nobody has to translate bits by hand. They are optional: until one is named, they show
+  up nowhere. An eye next to each name tints the tiles that already have it set, to see
+  them all at once.
 
 ### Maps
 
@@ -54,7 +90,9 @@ Written in C# on Avalonia 11.3 and .NET 10. Runs on Windows, Linux and macOS.
 - Menus are grouped **by thing** — Sprites, Tiles, Maps, Palette — like the tree, so what
   you export from tiles sits next to what you import into tiles.
 - **Open** is a single entry: it looks at the file and knows whether it is a bank, a set, a
-  map or a palette.
+  map or a palette. And **Open recent** keeps the last ten, without repeats, so they need
+  not be hunted down again.
+- **Appearance** light or dark, with blue and orange variants of both.
 
 ### The project and its files
 
@@ -119,7 +157,7 @@ rows is only a rectangle if the rows are as wide as they were when it was drawn.
 
 ## How it is checked
 
-Around six hundred automated tests, run with the interface actually mounted (Avalonia
+Over nine hundred automated tests, run with the interface actually mounted (Avalonia
 headless with Skia) whenever the interface is what is under test.
 
 Two habits that have caught a fair number of bugs:
