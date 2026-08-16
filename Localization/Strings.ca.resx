@@ -28,6 +28,10 @@
   <data name="MenuSaveProjectAs" xml:space="preserve">
     <value>Anomena i desa el projecte...</value>
   </data>
+  <data name="MenuRecent" xml:space="preserve"><value>Obre recent</value></data>
+  <data name="MenuRecentClear" xml:space="preserve"><value>Buida la llista</value></data>
+  <data name="RecentMissingTitle" xml:space="preserve"><value>Ja no hi és</value></data>
+  <data name="RecentMissingBody" xml:space="preserve"><value>No es troba {0}. Es treu de la llista de recents.</value></data>
   <data name="MenuOpen" xml:space="preserve">
     <value>Obre...</value>
   </data>

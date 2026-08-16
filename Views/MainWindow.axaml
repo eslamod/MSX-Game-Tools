@@ -61,6 +61,30 @@
         <Separator />
         <!-- Abrir es uno solo: mira el fichero y sabe de que es. -->
         <MenuItem Header="{l:Localize MenuOpen}" Command="{Binding OpenCommand}" />
+
+        <!-- Los recientes salen de una lista, asi que este submenu no puede llevar ademas
+             una entrada suya escrita a mano: ItemsSource sustituye a los hijos. Por eso
+             vaciar la lista va fuera, aqui debajo. -->
+        <MenuItem Header="{l:Localize MenuRecent}"
+                  ItemsSource="{Binding Recent.Items}"
+                  IsEnabled="{Binding !Recent.IsEmpty}">
+          <MenuItem.ItemContainerTheme>
+            <ControlTheme TargetType="MenuItem" x:DataType="entities:RecentItem"
+                          BasedOn="{StaticResource {x:Type MenuItem}}">
+              <!-- El nombre del fichero, que la ruta entera no cabe en un menu; la ruta va
+                   en la ayuda emergente, que es donde se mira cuando hay dos que se llaman
+                   igual en carpetas distintas. -->
+              <Setter Property="Header" Value="{Binding Name}" />
+              <Setter Property="ToolTip.Tip" Value="{Binding Path}" />
+              <Setter Property="Command"
+                      Value="{Binding $parent[Menu].((vm:MainWindowViewModel)DataContext).OpenRecentCommand}" />
+              <Setter Property="CommandParameter" Value="{Binding}" />
+            </ControlTheme>
+          </MenuItem.ItemContainerTheme>
+        </MenuItem>
+        <MenuItem Header="{l:Localize MenuRecentClear}"
+                  IsEnabled="{Binding !Recent.IsEmpty}"
+                  Command="{Binding ClearRecentCommand}" />
         <MenuItem Header="{l:Localize MenuSave}" InputGesture="Ctrl+S"
                   Command="{Binding SaveDocumentCommand}" />
         <MenuItem Header="{l:Localize MenuSaveAs}" InputGesture="Ctrl+Shift+S"

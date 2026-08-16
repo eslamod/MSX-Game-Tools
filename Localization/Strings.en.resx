@@ -28,6 +28,10 @@
   <data name="MenuSaveProjectAs" xml:space="preserve">
     <value>Save project as...</value>
   </data>
+  <data name="MenuRecent" xml:space="preserve"><value>Open recent</value></data>
+  <data name="MenuRecentClear" xml:space="preserve"><value>Clear the list</value></data>
+  <data name="RecentMissingTitle" xml:space="preserve"><value>Not there any more</value></data>
+  <data name="RecentMissingBody" xml:space="preserve"><value>{0} cannot be found. It is being dropped from the recent list.</value></data>
   <data name="MenuOpen" xml:space="preserve">
     <value>Open...</value>
   </data>

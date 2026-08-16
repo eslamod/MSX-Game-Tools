@@ -5,7 +5,10 @@ using MSX_GameTools.Localization;
 namespace MSX_GameTools.Services;
 
 /// <summary>Lo que el programa recuerda de una sesión a la siguiente.</summary>
-public sealed record Settings(string Language, EditorPreferences Preferences);
+public sealed record Settings(
+    string Language,
+    EditorPreferences Preferences,
+    IReadOnlyList<RecentItem> Recent);
 
 /// <summary>
 /// Los ajustes del usuario, guardados fuera del proyecto.
@@ -65,7 +68,13 @@ public sealed class SettingsStore
             if (file is null || file.Version > FormatVersion)
                 return Fresh();
 
-            return new Settings(file.Language ?? string.Empty, file.Zoom ?? new EditorPreferences());
+            // Los recientes llegaron después y la versión no subió: un fichero escrito
+            // antes no los trae, y eso no es motivo para tirar el idioma y el zoom que sí
+            // trae. Sin ellos se arranca con la lista vacía, que es lo que había.
+            return new Settings(
+                file.Language ?? string.Empty,
+                file.Zoom ?? new EditorPreferences(),
+                file.Recent ?? []);
         }
         catch (Exception exception) when (exception is IOException
                                               or UnauthorizedAccessException
@@ -86,7 +95,11 @@ public sealed class SettingsStore
             File.WriteAllText(
                 Path,
                 JsonSerializer.Serialize(
-                    new SettingsFile(FormatVersion, settings.Language, settings.Preferences),
+                    new SettingsFile(
+                        FormatVersion,
+                        settings.Language,
+                        settings.Preferences,
+                        settings.Recent),
                     PaletteSerializer.Options));
 
             return true;
@@ -98,7 +111,11 @@ public sealed class SettingsStore
     }
 
     /// <summary>Sin idioma: que lo decida quien sepa cuál habla la máquina.</summary>
-    private static Settings Fresh() => new(string.Empty, new EditorPreferences());
+    private static Settings Fresh() => new(string.Empty, new EditorPreferences(), []);
 
-    private sealed record SettingsFile(int Version, string? Language, EditorPreferences? Zoom);
+    private sealed record SettingsFile(
+        int Version,
+        string? Language,
+        EditorPreferences? Zoom,
+        IReadOnlyList<RecentItem>? Recent);
 }

@@ -43,7 +43,7 @@ public class SettingsTests : IDisposable
     {
         var zoom = new EditorPreferences { SpriteThumbnailZoom = 4, MapTileZoom = 3 };
 
-        Assert.True(Store.Save(new Settings("ca", zoom)));
+        Assert.True(Store.Save(new Settings("ca", zoom, [])));
 
         Settings read = Store.Load();
 
@@ -113,7 +113,7 @@ public class SettingsTests : IDisposable
             property.SetValue(saved, value);
         }
 
-        Store.Save(new Settings("en", saved));
+        Store.Save(new Settings("en", saved, []));
 
         var main = new MainWindowViewModel(settings: Store);
 
@@ -148,7 +148,7 @@ public class SettingsTests : IDisposable
     [AvaloniaFact]
     public void Cargar_no_cambia_el_objeto_de_ajustes()
     {
-        Store.Save(new Settings("es", new EditorPreferences { MapTileZoom = 4 }));
+        Store.Save(new Settings("es", new EditorPreferences { MapTileZoom = 4 }, []));
 
         var main = new MainWindowViewModel(settings: Store);
         EditorPreferences before = main.Preferences;
@@ -171,7 +171,7 @@ public class SettingsTests : IDisposable
     [AvaloniaFact]
     public void El_arbol_arranca_en_el_idioma_guardado()
     {
-        Store.Save(new Settings("ca", new EditorPreferences()));
+        Store.Save(new Settings("ca", new EditorPreferences(), []));
 
         Store.ApplyLanguage();
 

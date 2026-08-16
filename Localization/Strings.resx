@@ -42,6 +42,10 @@
   <data name="MenuOpen" xml:space="preserve">
     <value>Abrir...</value>
   </data>
+  <data name="MenuRecent" xml:space="preserve"><value>Abrir reciente</value></data>
+  <data name="MenuRecentClear" xml:space="preserve"><value>Vaciar la lista</value></data>
+  <data name="RecentMissingTitle" xml:space="preserve"><value>Ya no está</value></data>
+  <data name="RecentMissingBody" xml:space="preserve"><value>No se encuentra {0}. Se quita de la lista de recientes.</value></data>
   <data name="MenuSave" xml:space="preserve">
     <value>Guardar</value>
   </data>

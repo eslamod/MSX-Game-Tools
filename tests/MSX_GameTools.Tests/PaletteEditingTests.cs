@@ -454,11 +454,17 @@ public class PaletteEditingTests
 
         // Las de primer nivel sólo despliegan, y Salir cierra la ventana desde el
         // code-behind, que no es un comando.
+        //
+        // Y las apagadas tampoco cuentan: lo que persigue esta comprobación es la opción
+        // que no hace nada «sin ningún aviso», y estar en gris es el aviso. Es el caso de
+        // Abrir reciente mientras no se ha abierto nada: no tiene hijos porque no hay
+        // ninguno que enseñar, y por eso mismo no se deja pulsar.
         List<MenuItem> dead =
         [
             .. app.MenuItems.Where(item =>
                 item.ItemCount == 0
                 && item.Command is null
+                && item.IsEffectivelyEnabled
                 && (item.Header as string) != Localizer.Instance["MenuExit"]),
         ];
 

@@ -144,6 +144,9 @@ public partial class MainWindowViewModel : ObservableObject
     /// </summary>
     public EditorPreferences Preferences { get; } = new();
 
+    /// <summary>Lo último que se abrió, para volver a ello sin buscarlo.</summary>
+    public RecentFiles Recent { get; } = new();
+
     /// <summary>Se reparte a los paneles que necesiten confirmar algo destructivo.</summary>
     public IDialogService Dialogs { get; }
 
@@ -478,6 +481,7 @@ public partial class MainWindowViewModel : ObservableObject
             Localization.Localizer.Instance.Language = settings.Language;
 
         Preferences.CopyFrom(settings.Preferences);
+        Recent.Reset(settings.Recent);
 
         // Y a mano además de por el aviso de arriba: si lo guardado coincide con lo que ya
         // había, el setter no avisa de nada y la variante se quedaría sin aplicar.
@@ -486,7 +490,72 @@ public partial class MainWindowViewModel : ObservableObject
 
     /// <summary>Guarda los ajustes. Se llama al aceptar las preferencias y al salir.</summary>
     public void SaveSettings() =>
-        _settings?.Save(new Settings(Localization.Localizer.Instance.Language, Preferences));
+        _settings?.Save(new Settings(
+            Localization.Localizer.Instance.Language,
+            Preferences,
+            [.. Recent.Items]));
+
+    /// <summary>
+    /// Apunta algo recién abierto y lo deja escrito en el acto.
+    /// </summary>
+    /// <remarks>
+    /// Sin esperar a cerrar la ventana. Esta lista existe justo para las sesiones de
+    /// probar y volver a cargar, que son las que acaban a lo bruto: si sólo se guardara al
+    /// salir por la puerta, se perdería en el caso para el que se hizo.
+    /// </remarks>
+    private void Remember(string path, RecentKind kind)
+    {
+        Recent.Add(path, kind);
+        SaveSettings();
+    }
+
+    /// <summary>
+    /// Vuelve a abrir algo de la lista de recientes.
+    /// </summary>
+    /// <remarks>
+    /// Un proyecto sustituye todo lo abierto y por eso avisa antes, igual que si se
+    /// hubiera entrado por Abrir proyecto; un documento se suma a lo que haya.
+    /// </remarks>
+    [RelayCommand]
+    private async Task OpenRecentAsync(RecentItem? item)
+    {
+        if (item is null)
+            return;
+
+        // Se mira antes de intentarlo para poder quitarlo: lo normal es que un reciente
+        // que ya no está sea uno que se movió o se borró, y dejarlo ahí para que vuelva a
+        // fallar mañana no ayuda a nadie.
+        if (!File.Exists(item.Path))
+        {
+            Recent.Remove(item.Path);
+            SaveSettings();
+
+            await Dialogs.ShowMessageAsync(
+                Text["RecentMissingTitle"],
+                Text.Format("RecentMissingBody", item.Path));
+
+            return;
+        }
+
+        if (item.Kind == RecentKind.Project)
+        {
+            if (!await ConfirmDiscardAsync("DiscardOnOpen", "DiscardOnOpenSave", "DiscardOnOpenDrop"))
+                return;
+
+            await OpenProjectPathAsync(item.Path);
+
+            return;
+        }
+
+        await OpenPathAsync(item.Path);
+    }
+
+    [RelayCommand]
+    private void ClearRecent()
+    {
+        Recent.Clear();
+        SaveSettings();
+    }
 
     /// <summary>Abre las preferencias en el lateral.</summary>
     [RelayCommand]
@@ -667,6 +736,16 @@ public partial class MainWindowViewModel : ObservableObject
         if (path is null)
             return;
 
+        await OpenProjectPathAsync(path);
+    }
+
+    /// <summary>Abre un proyecto del que ya se sabe la ruta, sin volver a preguntar.</summary>
+    /// <remarks>
+    /// El aviso de cambios sin guardar lo da quien elige el fichero, que es quien sabe si
+    /// venimos del menú de abrir o del de recientes.
+    /// </remarks>
+    private async Task OpenProjectPathAsync(string path)
+    {
         Project project;
 
         try
@@ -703,6 +782,10 @@ public partial class MainWindowViewModel : ObservableObject
 
         ProjectPath = path;
         _savedProjectText = ProjectSerializer.Serialize(BuildProject(path));
+
+        // Sólo el proyecto, no lo que trae dentro: quien abre un proyecto de veinte piezas
+        // ha abierto una cosa, y apuntar las veinte dejaría la lista inservible de un golpe.
+        Remember(path, RecentKind.Project);
 
         // Se abre lo que se pueda y se dice qué ha faltado: que un fichero se haya movido
         // no es razón para quedarse sin el resto del proyecto.
@@ -1155,6 +1238,19 @@ public partial class MainWindowViewModel : ObservableObject
         if (path is null)
             return;
 
+        await OpenPathAsync(path);
+    }
+
+    /// <summary>
+    /// Abre un documento del que ya se sabe la ruta.
+    /// </summary>
+    /// <remarks>
+    /// Separado de elegirlo para que un reciente entre por aquí. Si el menú de recientes
+    /// tuviera su propia forma de abrir, tendría también sus propios fallos: lo que se
+    /// reabre pasa por el mismo sitio que lo que se abre a mano.
+    /// </remarks>
+    private async Task OpenPathAsync(string path)
+    {
         try
         {
             string json = await File.ReadAllTextAsync(path);
@@ -1163,18 +1259,22 @@ public partial class MainWindowViewModel : ObservableObject
             {
                 case EditorFileKind.SpriteBank:
                     await ReadSpriteBankAsync(json, path);
+                    Remember(path, RecentKind.SpriteBank);
                     break;
 
                 case EditorFileKind.TileSet:
                     ReadTileSet(json, path);
+                    Remember(path, RecentKind.TileSet);
                     break;
 
                 case EditorFileKind.Map:
                     await ReadMapAsync(json, path);
+                    Remember(path, RecentKind.Map);
                     break;
 
                 case EditorFileKind.Palette:
                     Palettes.Import(PaletteSerializer.Deserialize(json));
+                    Remember(path, RecentKind.Palette);
                     break;
 
                 default:
