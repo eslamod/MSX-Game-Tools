@@ -19,8 +19,32 @@ namespace MSX_GameTools.Entities;
 /// </remarks>
 public class TileSet
 {
+    /// <summary>
+    /// En qué modo gráfico se va a usar este juego.
+    /// </summary>
+    /// <remarks>
+    /// Lo que cambia entre uno y otro no es el dibujo —ocho bytes de máscara por tile en los
+    /// dos— sino de quién es el color. Se elige al crear el juego y no se cambia después, como
+    /// el tipo de un banco de sprites: media docena de decisiones del fichero para abajo
+    /// cuelgan de esto.
+    /// </remarks>
+    public enum GraphicMode
+    {
+        /// <summary>Screen 2 y 4: dos colores por línea, ocho bytes de color por tile.</summary>
+        Graphic2,
+
+        /// <summary>Screen 1: dos colores por cada ocho tiles, 32 bytes para todo el juego.</summary>
+        Graphic1,
+    }
+
     /// <summary>Tiles de un juego. Es el tamaño de la tabla en el VDP.</summary>
     public const int TileCount = 256;
+
+    /// <summary>Tiles que comparten par de colores en GRAPHIC 1.</summary>
+    public const int ColorGroupSize = 8;
+
+    /// <summary>Los 32 bytes que mide la tabla de colores de GRAPHIC 1.</summary>
+    public const int ColorGroupCount = TileCount / ColorGroupSize;
 
     /// <summary>
     /// Tiles por fila en la rejilla con la que se enseña el juego.
@@ -49,9 +73,10 @@ public class TileSet
 
     private int _superTileHeight;
 
-    public TileSet(string name = "")
+    public TileSet(string name = "", GraphicMode mode = GraphicMode.Graphic2)
     {
         Name = name;
+        Mode = mode;
 
         var tiles = new Tile[TileCount];
 
@@ -59,6 +84,19 @@ public class TileSet
             tiles[index] = new Tile { ImageMini = new ImageMini(TileRow.Columns, Tile.Rows) };
 
         ListOfTiles = tiles;
+
+        // Los 32 grupos existen siempre, se usen o no: son la tabla de colores de GRAPHIC 1 y
+        // tienen el mismo tamaño fijo que la de patrones. En GRAPHIC 2 están y no pintan nada,
+        // que sale más barato que preguntar por el modo en cada sitio que los mire.
+        var groups = new TileColorGroup[ColorGroupCount];
+
+        for (int index = 0; index < ColorGroupCount; index++)
+        {
+            groups[index] = new TileColorGroup(
+                index, [.. tiles.Skip(index * ColorGroupSize).Take(ColorGroupSize)]);
+        }
+
+        ColorGroups = groups;
     }
 
     /// <summary>
@@ -74,7 +112,27 @@ public class TileSet
 
     public string Name { get; set; }
 
+    /// <inheritdoc cref="GraphicMode"/>
+    public GraphicMode Mode { get; }
+
+    /// <summary>Si el color es de cada ocho tiles y no de cada línea.</summary>
+    public bool IsGraphic1 => Mode == GraphicMode.Graphic1;
+
     public IReadOnlyList<Tile> ListOfTiles { get; }
+
+    /// <summary>
+    /// Los 32 pares de colores de GRAPHIC 1, uno por cada ocho tiles.
+    /// </summary>
+    /// <remarks>
+    /// En GRAPHIC 2 están pero no mandan: allí el color lo lleva cada línea y esto se queda
+    /// como estuviera. Cambiar de modo un juego ya hecho no existe, así que no hay que decidir
+    /// qué pasaría con los colores que ya tuviera.
+    /// </remarks>
+    public IReadOnlyList<TileColorGroup> ColorGroups { get; }
+
+    /// <summary>El par que le toca a un tile por el hueco en el que está.</summary>
+    public TileColorGroup GroupOf(int tileIndex) =>
+        ColorGroups[Math.Clamp(tileIndex, 0, TileCount - 1) / ColorGroupSize];
 
     /// <summary>
     /// Cambia de índice los colores de todos los tiles, para que sigan viéndose igual
@@ -94,6 +152,11 @@ public class TileSet
                 row.BackColor = table[row.BackColor];
             }
         }
+
+        // También los grupos: en GRAPHIC 1 son ellos los que mandan, y dejarlos con los
+        // índices de antes haría que el siguiente repintado devolviera los colores viejos.
+        foreach (TileColorGroup group in ColorGroups)
+            group.Set(table[group.ForeColor], table[group.BackColor]);
     }
 
     /// <summary>
@@ -227,7 +290,23 @@ public class TileSet
                 ListOfTiles[((top + row) * Columns) + left + column].CopyFrom(patch[column, row]);
         }
 
+        // En GRAPHIC 1 el color no viaja con el dibujo: es del hueco donde cae. Lo que se
+        // estampa se queda con el par del grupo de destino, que es lo que la máquina va a
+        // pintar independientemente de con qué colores se dibujó en su juego de origen.
+        if (IsGraphic1)
+            RepaintGroupsOf(left, top, width, height);
+
         return before;
+    }
+
+    /// <summary>Devuelve a su par de colores los grupos que toca un rectángulo de la rejilla.</summary>
+    private void RepaintGroupsOf(int left, int top, int width, int height)
+    {
+        int first = ((top * Columns) + left) / ColorGroupSize;
+        int last = (((top + height - 1) * Columns) + left + width - 1) / ColorGroupSize;
+
+        for (int index = first; index <= last; index++)
+            ColorGroups[index].Repaint();
     }
 
     /// <summary>

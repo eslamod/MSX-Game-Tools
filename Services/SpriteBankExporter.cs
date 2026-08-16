@@ -269,4 +269,7 @@ public static class SpriteBankExporter
     }
 
     private static string Hex(byte value) => $"{HexPrefix}{value:X2}";
+
+    /// <summary>Un byte con el prefijo hexadecimal del ensamblador, para quien lo necesite fuera.</summary>
+    public static string HexOf(byte value) => Hex(value);
 }

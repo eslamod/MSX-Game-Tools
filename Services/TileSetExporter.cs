@@ -34,7 +34,17 @@ public static class TileSetExporter
 
     public static byte[] PatternsToBinary(TileSet tileSet) => ToBinary(tileSet, row => row.PatternByte);
 
-    public static byte[] ColorsToBinary(TileSet tileSet) => ToBinary(tileSet, row => row.ColorByte);
+    /// <summary>
+    /// La tabla de colores: 2048 bytes en GRAPHIC 2 y 32 en GRAPHIC 1.
+    /// </summary>
+    /// <remarks>
+    /// No es la misma tabla más corta, es otra tabla: en GRAPHIC 2 hay un byte por línea de
+    /// cada tile y en GRAPHIC 1 uno por cada ocho tiles. Es la diferencia que define el modo,
+    /// y es lo que hace que un tile de screen 1 no pueda tener dos colores por línea.
+    /// </remarks>
+    public static byte[] ColorsToBinary(TileSet tileSet) => tileSet.IsGraphic1
+        ? [.. tileSet.ColorGroups.Select(group => group.ColorByte)]
+        : ToBinary(tileSet, row => row.ColorByte);
 
     public static string PatternsToAssembler(TileSet tileSet) => ToAssembler(
         tileSet,
@@ -42,11 +52,47 @@ public static class TileSetExporter
         "patterns",
         "; Un byte por linea: la mascara de bits, con la columna 0 en el bit mas alto.");
 
-    public static string ColorsToAssembler(TileSet tileSet) => ToAssembler(
-        tileSet,
-        row => row.ColorByte,
-        "colors",
-        "; Un byte por linea: color de frente en el nibble alto y de fondo en el bajo.");
+    public static string ColorsToAssembler(TileSet tileSet) => tileSet.IsGraphic1
+        ? GroupColorsToAssembler(tileSet)
+        : ToAssembler(
+            tileSet,
+            row => row.ColorByte,
+            "colors",
+            "; Un byte por linea: color de frente en el nibble alto y de fondo en el bajo.");
+
+    /// <summary>
+    /// Los 32 bytes de color de GRAPHIC 1, con el rango de tiles de cada uno al lado.
+    /// </summary>
+    /// <remarks>
+    /// El rango va en el comentario porque es la única forma de leer esta tabla: el byte 3 no
+    /// dice por sí solo que pinta los tiles 24 a 31, y equivocarse de grupo repinta ocho tiles
+    /// que estaban bien.
+    /// </remarks>
+    private static string GroupColorsToAssembler(TileSet tileSet)
+    {
+        var text = new StringBuilder();
+        string label = SpriteBankExporter.LabelOf(tileSet.Name);
+
+        text.AppendLine($"; Tile colour table - {tileSet.Name} (GRAPHIC 1)");
+        text.AppendLine(
+            $"; One byte per group of {TileSet.ColorGroupSize} tiles, {TileSet.ColorGroupCount} bytes.");
+        text.AppendLine("; Foreground in the high nibble, background in the low one.");
+        text.AppendLine("; In GRAPHIC 1 there is a single colour table for the whole screen.");
+        text.AppendLine($"; Size: {label}_colors_end - {label}_colors");
+        text.AppendLine();
+        text.AppendLine($"{label}_colors:");
+
+        foreach (TileColorGroup group in tileSet.ColorGroups)
+        {
+            text.AppendLine(
+                $"    {SpriteBankExporter.DataDirective}  {SpriteBankExporter.HexOf(group.ColorByte)}".PadRight(32)
+                + $"; tiles {group.Range}");
+        }
+
+        text.AppendLine($"{label}_colors_end:");
+
+        return text.ToString();
+    }
 
     /// <summary>
     /// Un byte por tile con sus ocho banderas. 256 bytes, no 2048: esto es del tile, no de
@@ -115,9 +161,21 @@ public static class TileSetExporter
         text.AppendLine($"; Tile {suffix} table - {tileSet.Name}");
         text.AppendLine($"; {TileSet.TileCount} tiles of {Tile.Rows}x{TileRow.Columns}, {TableBytes} bytes");
         text.AppendLine(format);
-        text.AppendLine($"; Copy this table {ScreenThirds} times in VRAM, one per screen third:");
-        text.AppendLine("; in GRAPHIC 2 and 3 each third has its own table, and the same tiles in all");
-        text.AppendLine("; three is what lets a tile look the same wherever the map puts it.");
+
+        // Los tres tercios son de GRAPHIC 2 y 3. En GRAPHIC 1 hay una sola tabla para toda la
+        // pantalla, y decirle a alguien que la copie tres veces son 4 KB de VRAM tirados.
+        if (tileSet.IsGraphic1)
+        {
+            text.AppendLine("; In GRAPHIC 1 there is a single pattern table for the whole screen:");
+            text.AppendLine("; copy it once.");
+        }
+        else
+        {
+            text.AppendLine($"; Copy this table {ScreenThirds} times in VRAM, one per screen third:");
+            text.AppendLine("; in GRAPHIC 2 and 3 each third has its own table, and the same tiles in all");
+            text.AppendLine("; three is what lets a tile look the same wherever the map puts it.");
+        }
+
         text.AppendLine($"; Size: {label}_{suffix}_end - {label}_{suffix}");
         text.AppendLine();
         text.AppendLine($"{label}_{suffix}:");

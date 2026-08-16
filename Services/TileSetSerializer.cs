@@ -33,16 +33,20 @@ namespace MSX_GameTools.Services;
 public static class TileSetSerializer
 {
     /// <summary>
-    /// La 2 añade los bloques, la 3 la identidad del juego, la 4 el tamaño del supertile y
-    /// la 5 los atributos. Los ficheros anteriores se siguen abriendo: sin bloques los de la
-    /// 1, con una identidad recién hecha los de la 2 —que es lo que los mapas antiguos
-    /// esperan porque van por el nombre—, sin supertiles los de la 3 y sin ningún atributo
-    /// definido los de la 4, que es exactamente lo que eran.
+    /// La 2 añade los bloques, la 3 la identidad del juego, la 4 el tamaño del supertile, la
+    /// 5 los atributos y la 6 el modo gráfico con su tabla de colores. Los ficheros anteriores
+    /// se siguen abriendo: sin bloques los de la 1, con una identidad recién hecha los de la 2
+    /// —que es lo que los mapas antiguos esperan porque van por el nombre—, sin supertiles los
+    /// de la 3, sin ningún atributo definido los de la 4 y en GRAPHIC 2 los de la 5, que es el
+    /// único modo que había cuando se escribieron.
     /// </summary>
-    public const int FormatVersion = 5;
+    public const int FormatVersion = 6;
 
     /// <summary>Ocho bytes por tabla y dos dígitos por byte.</summary>
     private const int Digits = Tile.Rows * 2;
+
+    /// <summary>Los 32 bytes de la tabla de colores de GRAPHIC 1, a dos dígitos cada uno.</summary>
+    private const int GroupDigits = TileSet.ColorGroupCount * 2;
 
     public static string Serialize(TileSet tileSet, ColorPalette palette, int borderColorIndex = 1) =>
         JsonSerializer.Serialize(ToFile(tileSet, palette, borderColorIndex), PaletteSerializer.Options);
@@ -73,7 +77,10 @@ public static class TileSetSerializer
         if (file.Palette is null)
             throw new FileFormatException("El fichero no trae la paleta del juego de tiles.");
 
-        var tileSet = new TileSet(string.IsNullOrWhiteSpace(file.Name) ? "Tiles sin nombre" : file.Name);
+        // El modo se decide aquí y ya no se toca: los ficheros de antes de la 6 no lo traen y
+        // son GRAPHIC 2, que era el único que había cuando se escribieron.
+        var tileSet = new TileSet(
+            string.IsNullOrWhiteSpace(file.Name) ? "Tiles sin nombre" : file.Name, file.Mode);
 
         // Los ficheros anteriores a la versión 3 no la traen y se quedan con la que el
         // juego se acaba de hacer al construirse.
@@ -90,6 +97,12 @@ public static class TileSetSerializer
 
         foreach (TileFile tile in file.Tiles ?? [])
             ReadTile(tile, tileSet);
+
+        // Después de los tiles: en GRAPHIC 1 el par del grupo es el que manda, y al ponerlo
+        // baja a las ocho líneas de sus ocho tiles. Leyéndolo antes, cualquier tile que
+        // trajera colores propios —un fichero a mano, o uno de GRAPHIC 2 con el modo
+        // cambiado— los dejaría por encima de los del grupo.
+        ReadColorGroups(file.ColorGroups, tileSet);
 
         // Antes de los bloques: si el juego va de supertiles, sus bloques miden lo que
         // diga esto, y leerlo despues dejaria la comprobacion para nunca.
@@ -114,26 +127,48 @@ public static class TileSetSerializer
         [.. tileSet.Blocks.Select(ToFile)],
         tileSet.SuperTileWidth,
         tileSet.SuperTileHeight,
-        [.. Enumerable.Range(0, TileAttributeNames.Count).Select(bit => tileSet.AttributeNames[bit])]);
+        [.. Enumerable.Range(0, TileAttributeNames.Count).Select(bit => tileSet.AttributeNames[bit])],
+        tileSet.Mode,
+        GroupsHex(tileSet));
+
+    /// <summary>
+    /// Los 32 bytes de la tabla de colores, o nada si el juego no va por grupos.
+    /// </summary>
+    /// <remarks>
+    /// Son los mismos 32 bytes que se exportan, en el mismo orden: lo que se guarda y lo que
+    /// va al VDP son los mismos números y no hay conversión que revisar.
+    /// </remarks>
+    private static string? GroupsHex(TileSet tileSet) => tileSet.IsGraphic1
+        ? string.Concat(tileSet.ColorGroups.Select(group => group.ColorByte.ToString("X2")))
+        : null;
 
     private static BlockFile ToFile(TileBlock block) => new(
         block.Name,
         [.. Enumerable.Range(0, block.Height).Select(row => TileGridText.Row(block.Grid, row))]);
 
     /// <summary>Los tiles que se han tocado, con su número delante.</summary>
+    /// <remarks>
+    /// En GRAPHIC 1 no se escriben los colores de cada tile, y no es por ahorrar: allí no son
+    /// suyos. Son los del grupo, están en la tabla de arriba, y guardarlos aquí sería guardar
+    /// dos veces lo mismo para que un día no coincidieran. Además pintar un grupo cambia sus
+    /// ocho tiles, así que mirarlos para decidir si un tile se ha tocado daría los 256 por
+    /// tocados en cuanto se eligiera un color.
+    /// </remarks>
     private static IEnumerable<TileFile> Drawn(TileSet tileSet)
     {
+        bool ownColors = !tileSet.IsGraphic1;
+
         for (int index = 0; index < tileSet.ListOfTiles.Count; index++)
         {
             Tile tile = tileSet.ListOfTiles[index];
 
-            if (IsEmpty(tile))
+            if (IsEmpty(tile, ownColors))
                 continue;
 
             yield return new TileFile(
                 index,
                 Hex(tile, row => row.PatternByte),
-                Hex(tile, row => row.ColorByte),
+                ownColors ? Hex(tile, row => row.ColorByte) : null,
                 tile.Attributes);
         }
     }
@@ -146,13 +181,17 @@ public static class TileSetSerializer
     /// que es una cosa que se usa; sin mirarlos aquí se daba por no tocado y se perdía al
     /// guardar, sin decir nada.
     /// </remarks>
-    private static bool IsEmpty(Tile tile)
+    /// <param name="ownColors">
+    /// Si los colores de las líneas son de este tile. En GRAPHIC 1 no lo son, así que un tile
+    /// sin dibujar sigue estando sin dibujar por mucho color que le haya bajado su grupo.
+    /// </param>
+    private static bool IsEmpty(Tile tile, bool ownColors)
     {
         var fresh = new TileRow();
 
         return tile.Attributes == 0
                && tile.ArrayTileRows.All(row =>
-                   row.PatternByte == 0 && row.ColorByte == fresh.ColorByte);
+                   row.PatternByte == 0 && (!ownColors || row.ColorByte == fresh.ColorByte));
     }
 
     private static string Hex(Tile tile, Func<TileRow, byte> byteOf) =>
@@ -167,7 +206,13 @@ public static class TileSetSerializer
         }
 
         byte[] pattern = ParseBytes(file.Pattern, file.Index, "la máscara de bits");
-        byte[] colors = ParseBytes(file.Colors, file.Index, "los colores");
+
+        // En GRAPHIC 1 un tile no trae colores porque no son suyos: los pone su grupo, y se
+        // leen después. En GRAPHIC 2 se siguen exigiendo, que allí faltar es que el fichero
+        // está roto.
+        byte[]? colors = tileSet.IsGraphic1 && file.Colors is null
+            ? null
+            : ParseBytes(file.Colors, file.Index, "los colores");
 
         Tile tile = tileSet.ListOfTiles[file.Index];
 
@@ -180,8 +225,40 @@ public static class TileSetSerializer
             for (int column = 0; column < TileRow.Columns; column++)
                 line.ArrayPattern[column] = (pattern[row] & (1 << (TileRow.Columns - 1 - column))) != 0;
 
+            if (colors is null)
+                continue;
+
             line.ForeColor = colors[row] >> 4;
             line.BackColor = colors[row] & 0x0F;
+        }
+    }
+
+    /// <summary>Lee los 32 bytes de la tabla de colores y los baja a los tiles.</summary>
+    /// <exception cref="FileFormatException">La tabla no trae los 32 bytes.</exception>
+    private static void ReadColorGroups(string? hex, TileSet tileSet)
+    {
+        // Un juego de GRAPHIC 2 no la trae, y uno de GRAPHIC 1 recién guardado por una
+        // versión que no la escribiera se queda con los colores de partida.
+        if (hex is null)
+            return;
+
+        if (hex.Length != GroupDigits)
+        {
+            throw new FileFormatException(
+                $"La tabla de colores debe traer {GroupDigits} dígitos hexadecimales; trae {hex.Length}.");
+        }
+
+        for (int index = 0; index < TileSet.ColorGroupCount; index++)
+        {
+            int high = PaletteSerializer.HexDigit(hex[index * 2])
+                       ?? throw new FileFormatException(
+                           $"La tabla de colores tiene un dígito que no es hexadecimal: «{hex[index * 2]}».");
+
+            int low = PaletteSerializer.HexDigit(hex[(index * 2) + 1])
+                      ?? throw new FileFormatException(
+                          $"La tabla de colores tiene un dígito que no es hexadecimal: «{hex[(index * 2) + 1]}».");
+
+            tileSet.ColorGroups[index].Set(high, low);
         }
     }
 
@@ -270,7 +347,9 @@ public static class TileSetSerializer
         IReadOnlyList<BlockFile>? Blocks,
         int SuperTileWidth = 0,
         int SuperTileHeight = 0,
-        IReadOnlyList<string>? AttributeNames = null);
+        IReadOnlyList<string>? AttributeNames = null,
+        TileSet.GraphicMode Mode = TileSet.GraphicMode.Graphic2,
+        string? ColorGroups = null);
 
     /// <param name="Attributes">
     /// Las ocho banderas en un número. Los ficheros de antes de la 5 no lo traen y se leen
