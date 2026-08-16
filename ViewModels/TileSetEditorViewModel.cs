@@ -417,6 +417,85 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
     public bool HasSelection => Selection is not null;
 
+    /// <summary>
+    /// El trozo traído de otro juego, si se trae alguno.
+    /// </summary>
+    /// <remarks>
+    /// Lo pone el espacio de trabajo al llegar a esta pestaña. El editor no sabe de dónde
+    /// sale ni quién más hay abierto: sólo que tiene algo en la mano.
+    /// </remarks>
+    public CopiedTiles? InHand
+    {
+        get;
+        set
+        {
+            field = value;
+
+            OnPropertyChanged(nameof(HasStamp));
+            OnPropertyChanged(nameof(StampWidth));
+        }
+    }
+
+    /// <summary>Si hay algo que estampar, sea de aquí o de otro juego.</summary>
+    public bool HasStamp => Selection is not null || InHand is not null;
+
+    /// <summary>Cuántos tiles de ancho mide lo que se va a estampar.</summary>
+    public int StampWidth => Selection?.Width ?? InHand?.Patch.Width ?? 0;
+
+    /// <summary>
+    /// Las miniaturas de lo que se va a estampar, por filas.
+    /// </summary>
+    /// <remarks>
+    /// Lo de aquí sale de las miniaturas vivas del juego, para que retocar un tile marcado
+    /// se vea en el fantasma; lo traído sale de la copia que se hizo al cambiar de pestaña,
+    /// que es lo último que se vio del otro juego.
+    /// </remarks>
+    public IReadOnlyList<ImageMini> StampPreview
+    {
+        get
+        {
+            if (InHand is { } hand && Selection is null)
+                return hand.Preview;
+
+            if (Selection is not { } region)
+                return [];
+
+            var tiles = new List<ImageMini>(region.Width * region.Height);
+
+            for (int row = 0; row < region.Height; row++)
+            {
+                for (int column = 0; column < region.Width; column++)
+                {
+                    int index = ((region.Top + row) * TileSet.Columns) + region.Left + column;
+
+                    if ((uint)index < (uint)Thumbnails.Count)
+                        tiles.Add(Thumbnails[index]);
+                }
+            }
+
+            return tiles;
+        }
+    }
+
+    /// <summary>
+    /// Congela lo marcado para poder llevárselo, o nada si no hay nada marcado.
+    /// </summary>
+    /// <remarks>
+    /// Lo llama el espacio de trabajo al dejar esta pestaña. Copiar aquí y no al marcar es
+    /// lo que deja intacto el comportamiento de dentro de un juego: mientras el origen está
+    /// delante manda lo que se ve, y se guarda justo cuando deja de verse.
+    /// </remarks>
+    public CopiedTiles? TakeSelection()
+    {
+        if (Selection is not { } region)
+            return null;
+
+        return new CopiedTiles(
+            _tileSet.Copy(region.Left, region.Top, region.Width, region.Height),
+            [.. StampPreview],
+            _tileSet.Name);
+    }
+
     /// <summary>Si hay un estampado que devolver.</summary>
     public bool CanUndoStamp => _overwritten is not null;
 
@@ -446,14 +525,19 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
     /// </remarks>
     public void StampAt(int column, int row)
     {
-        if (Selection is not { } source)
+        // Lo de aquí manda sobre lo traído: si hay algo marcado en este juego, es lo que se
+        // está mirando y lo que se espera que caiga.
+        TileSetPatch? copied = Selection is { } source
+
+            // La copia sale entera antes de escribir nada, asi que estampar encima de lo
+            // marcado, o solapandolo, no se pisa a si mismo.
+            ? _tileSet.Copy(source.Left, source.Top, source.Width, source.Height)
+            : InHand?.Patch;
+
+        if (copied is null)
             return;
 
         StopHighlighting();
-
-        // La copia sale entera antes de escribir nada, asi que estampar encima de lo
-        // marcado, o solapandolo, no se pisa a si mismo.
-        TileSetPatch copied = _tileSet.Copy(source.Left, source.Top, source.Width, source.Height);
 
         _overwrittenLeft = Math.Clamp(column, 0, TileSet.Columns - 1);
         _overwrittenTop = Math.Clamp(row, 0, TileSet.GridRows - 1);

@@ -302,6 +302,8 @@ public partial class TileSetEditorView : UserControl
         _anchor = null;
 
         StampGhost.IsVisible = false;
+        // El recuadro rojo sí es de lo marcado aquí: señala de dónde se copia, y un trozo
+        // traído de otro juego no tiene dónde señalarse en esta rejilla.
         SelectionMark.IsVisible = editor.HasSelection && tool != TileTool.Edit;
 
         if (SelectionMark.IsVisible)
@@ -382,29 +384,18 @@ public partial class TileSetEditorView : UserControl
     /// </remarks>
     private void ShowGhost((int Column, int Row) cell)
     {
-        if (Editor is not { } editor || editor.Selection is not { } region
+        // Lo que se va a estampar y no lo que está marcado: dentro de un juego son lo mismo,
+        // pero con un trozo traído de otro no hay nada marcado aquí y hay algo que enseñar.
+        if (Editor is not { StampWidth: > 0 } editor
             || !TryGeometry(out Point origin, out double size))
         {
             return;
         }
 
-        var tiles = new List<ImageMini>(region.Width * region.Height);
-
-        for (int row = 0; row < region.Height; row++)
-        {
-            for (int column = 0; column < region.Width; column++)
-            {
-                int index = ((region.Top + row) * TileSet.Columns) + region.Left + column;
-
-                if ((uint)index < (uint)editor.Thumbnails.Count)
-                    tiles.Add(editor.Thumbnails[index]);
-            }
-        }
-
         if (GhostGrid is { } grid)
-            grid.Columns = region.Width;
+            grid.Columns = editor.StampWidth;
 
-        StampGhost.ItemsSource = tiles;
+        StampGhost.ItemsSource = editor.StampPreview;
 
         Canvas.SetLeft(StampGhost, origin.X + (cell.Column * size));
         Canvas.SetTop(StampGhost, origin.Y + (cell.Row * size));

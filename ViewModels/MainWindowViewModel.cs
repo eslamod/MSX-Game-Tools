@@ -95,10 +95,29 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     /// <summary>La barra de paletas enseña la del documento que pasa a estar delante.</summary>
+    /// <summary>
+    /// Al dejar un juego de tiles se guarda lo que tuviera marcado.
+    /// </summary>
+    /// <remarks>
+    /// Aquí y no al marcar: mientras el juego sigue delante, lo que cae al estampar se copia
+    /// en ese momento, para que retocar un tile marcado se vea en lo que se suelta. Eso deja
+    /// de poder hacerse justo cuando el juego deja de verse, y es ahí donde se congela.
+    /// </remarks>
+    partial void OnSelectedTabChanging(PanelBaseViewModel? oldValue, PanelBaseViewModel? newValue)
+    {
+        if (oldValue is TileSetEditorViewModel leaving && leaving.TakeSelection() is { } taken)
+            TilesInHand = taken;
+    }
+
     partial void OnSelectedTabChanged(PanelBaseViewModel? value)
     {
         if (value is IPaletteDocument document)
             Palettes.ActivePalette = document.ColorPalette;
+
+        // Al llegar se le da lo que se traiga. Si este juego tiene marcado algo suyo, eso
+        // manda; esto es para cuando no.
+        if (value is TileSetEditorViewModel arriving)
+            arriving.InHand = TilesInHand;
     }
 
     /// <summary>
@@ -146,6 +165,23 @@ public partial class MainWindowViewModel : ObservableObject
 
     /// <summary>Lo último que se abrió, para volver a ello sin buscarlo.</summary>
     public RecentFiles Recent { get; } = new();
+
+    /// <summary>
+    /// El trozo de tiles que se está llevando de un juego a otro.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Vive aquí y no en el editor porque el editor se queda atrás: lo que se marcó en un
+    /// juego tiene que sobrevivir a irse a otro, que es justamente lo que se quiere hacer.
+    /// </para>
+    /// <para>
+    /// Sin botón nuevo y sin menú: el gesto ya existía —marcar aquí, estampar allí— y lo
+    /// único que le faltaba era cruzar la pestaña. Un «copiar de...» habría dejado la
+    /// selección del origen invisible desde donde se pega; así, lo que se lleva en la mano
+    /// se ve bajo el ratón antes de soltarlo.
+    /// </para>
+    /// </remarks>
+    public CopiedTiles? TilesInHand { get; private set; }
 
     /// <summary>Se reparte a los paneles que necesiten confirmar algo destructivo.</summary>
     public IDialogService Dialogs { get; }
