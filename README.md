@@ -5,7 +5,37 @@
 Herramientas de creación de gráficos y mapas para juegos de MSX: sprites, juegos de
 tiles, paletas, bloques y mapas, con exportación a los formatos que espera el VDP.
 
-Escrito en C# sobre Avalonia 11.3 y .NET 10. Funciona en Windows, Linux y macOS.
+Escrito en C# sobre Avalonia 12.1 y .NET 10. Funciona en Windows, Linux y macOS.
+
+## Cómo se ve
+
+### Bancos de sprites
+
+Los patrones de 16x16, con los dos colores de cada línea a la derecha del lienzo y el
+banco entero arriba.
+
+![Editor de patrones de sprites](Screenshots/SpriteBankPatterns.png)
+
+Y los **grupos**, que colocan varios patrones con desplazamiento para formar una figura
+mayor de lo que da un plano. La columna `OR` marca las líneas que mezclan planos con el
+bit CC del V9938, y a la derecha se ve el grupo compuesto.
+
+![Grupos de sprites](Screenshots/SpriteBankGroups.png)
+
+### Juegos de tiles
+
+El tile ampliado a la izquierda, los 256 en su rejilla de 32 columnas, y a la derecha las
+propiedades del juego con los **atributos** definidos. Abajo del lienzo, las banderas del
+tile que se está editando.
+
+![Editor de tiles](Screenshots/TileEditor.png)
+
+### Mapas
+
+El mapa con sus capas, los bloques del juego a la derecha —aquí un árbol de 3x3— y la
+tira de tiles y bloques abajo para coger con qué pintar.
+
+![Editor de mapas](Screenshots/MapEditor.png)
 
 ## Qué hace
 
@@ -29,6 +59,11 @@ Escrito en C# sobre Avalonia 11.3 y .NET 10. Funciona en Windows, Linux y macOS.
   píxeles— y dice en qué tile y en qué línea está el problema.
 - **Bloques**: grupos de tiles de hasta 16x16 colocados como van a quedar en el mapa, un
   árbol de 3x3 o un supertile de 2x2. Sirven de brocha en el editor de mapas.
+- **Atributos por tile**: ocho banderas con el nombre que se les quiera dar —sólido,
+  escalera, agua— que salen en una tabla de un byte por tile, con sus máscaras como
+  constantes `equ` para no traducir bits a mano. Son opcionales: mientras no se defina
+  ninguno no aparecen por ninguna parte. Un ojo al lado de cada nombre tiñe en la rejilla
+  los tiles que ya lo tienen puesto, para verlos de golpe.
 
 ### Mapas
 
@@ -55,7 +90,9 @@ Escrito en C# sobre Avalonia 11.3 y .NET 10. Funciona en Windows, Linux y macOS.
 - Los menús van **por cosa** —Sprites, Tiles, Mapas, Paleta— igual que el árbol, así que lo
   que se exporta de tiles está al lado de lo que se importa de tiles.
 - **Abrir** es uno solo: mira el fichero y sabe si es un banco, un juego, un mapa o una
-  paleta.
+  paleta. Y **Abrir reciente** guarda los diez últimos, sin repetidos, para no volver a
+  buscarlos.
+- **Aspecto** claro u oscuro, con variantes azuladas y anaranjadas de los dos.
 
 ### El proyecto y sus ficheros
 
@@ -122,7 +159,7 @@ filas sólo es un rectángulo si las filas miden lo que medían al dibujarlo.
 
 ## Cómo se comprueba
 
-Unas seiscientas pruebas automáticas, que se ejecutan con la interfaz montada de verdad
+Más de novecientas pruebas automáticas, que se ejecutan con la interfaz montada de verdad
 (Avalonia headless con Skia) cuando lo que se prueba es la interfaz.
 
 Dos costumbres que han salvado bastantes fallos:
