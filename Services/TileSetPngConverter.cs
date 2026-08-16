@@ -131,7 +131,17 @@ public static class TileSetPngConverter
     /// <summary>
     /// Analiza una imagen y devuelve el juego de tiles, o lo que impide traerlo.
     /// </summary>
-    public static TileSetImportResult Analyse(int[] pixels, PixelSize size, ColorPalette palette, string name)
+    /// <param name="mode">
+    /// En qué modo se va a usar el juego, que decide qué reglas tiene que cumplir la imagen.
+    /// En GRAPHIC 2 son dos colores por línea de ocho pixeles; en GRAPHIC 1 son dos por cada
+    /// ocho tiles, o sea por cada 512 pixeles, que es mucho más duro.
+    /// </param>
+    public static TileSetImportResult Analyse(
+        int[] pixels,
+        PixelSize size,
+        ColorPalette palette,
+        string name,
+        TileSet.GraphicMode mode = TileSet.GraphicMode.Graphic2)
     {
         var problems = new List<TileSetImportProblem>();
 
@@ -156,22 +166,149 @@ public static class TileSetPngConverter
             return new TileSetImportResult(null, problems);
         }
 
-        var tileSet = new TileSet(name);
+        var tileSet = new TileSet(name, mode);
 
-        for (int index = 0; index < count; index++)
+        if (tileSet.IsGraphic1)
         {
-            int left = (index % columns) * TileRow.Columns;
-            int top = (index / columns) * Tile.Rows;
+            ReadGroups(pixels, size.Width, columns, count, palette, tileSet, problems);
+        }
+        else
+        {
+            for (int index = 0; index < count; index++)
+            {
+                int left = (index % columns) * TileRow.Columns;
+                int top = (index / columns) * Tile.Rows;
 
-            ReadTile(pixels, size.Width, left, top, palette, tileSet.ListOfTiles[index], index, problems);
+                ReadTile(pixels, size.Width, left, top, palette, tileSet.ListOfTiles[index], index, problems);
 
-            if (problems.Count > MaxReportedProblems)
-                break;
+                if (problems.Count > MaxReportedProblems)
+                    break;
+            }
         }
 
         return problems.Count > 0
             ? new TileSetImportResult(null, problems)
             : new TileSetImportResult(tileSet, problems);
+    }
+
+    /// <summary>
+    /// Lee la imagen por grupos de ocho tiles, que es como manda el color en GRAPHIC 1.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// La regla es mucho más dura que en GRAPHIC 2 —dos colores por cada 512 pixeles en vez
+    /// de por cada ocho— pero a cambio no hay nada que adivinar: si un grupo trae exactamente
+    /// dos colores, esos dos <b>son</b> su par, y la imagen acaba de rellenar la tabla de
+    /// colores del juego. En GRAPHIC 2 hay que decidir por cada línea cuál de los dos es el
+    /// frente, y de ahí viene que un mismo tile salga con unas líneas escritas de una forma y
+    /// otras de la otra.
+    /// </para>
+    /// <para>
+    /// Se rechaza en vez de reducir a dos colores: aquí una hoja entera viene de fuera, y una
+    /// reducción silenciosa estropearía el trabajo de horas sin decir dónde. El problema dice
+    /// qué franja de la imagen hay que retocar.
+    /// </para>
+    /// </remarks>
+    private static void ReadGroups(
+        int[] pixels,
+        int stride,
+        int columns,
+        int count,
+        ColorPalette palette,
+        TileSet tileSet,
+        List<TileSetImportProblem> problems)
+    {
+        for (int group = 0; group < TileSet.ColorGroupCount; group++)
+        {
+            int first = group * TileSet.ColorGroupSize;
+
+            // La imagen puede traer menos de 256 tiles: los grupos de más se quedan vacíos.
+            if (first >= count)
+                return;
+
+            int last = Math.Min(first + TileSet.ColorGroupSize, count) - 1;
+
+            var indices = new List<int[]>();
+            var uses = new List<(int Index, int Times)>();
+
+            for (int tile = first; tile <= last; tile++)
+            {
+                int[] read = ReadIndices(pixels, stride, columns, tile, palette);
+
+                indices.Add(read);
+
+                foreach (int index in read)
+                {
+                    int at = uses.FindIndex(use => use.Index == index);
+
+                    if (at < 0)
+                        uses.Add((index, 1));
+                    else
+                        uses[at] = uses[at] with { Times = uses[at].Times + 1 };
+                }
+            }
+
+            if (uses.Count > ColorsPerLine)
+            {
+                problems.Add(new TileSetImportProblem(
+                    $"Los tiles {first}-{last} usan {uses.Count} colores, y en screen 1 cada "
+                    + $"{TileSet.ColorGroupSize} tiles comparten {ColorsPerLine}.",
+                    first));
+
+                if (problems.Count > MaxReportedProblems)
+                    return;
+
+                continue;
+            }
+
+            // El que más pixeles ocupa es el fondo: en un dibujo normal el fondo es lo que hay
+            // detrás y el frente es el trazo, que ocupa menos.
+            List<int> ordered = [.. uses.OrderByDescending(use => use.Times).Select(use => use.Index)];
+
+            int background = ordered[0];
+            int foreground = ordered.Count > 1 ? ordered[1] : background;
+
+            tileSet.ColorGroups[group].Set(foreground, background);
+
+            for (int tile = first; tile <= last; tile++)
+            {
+                Tile target = tileSet.ListOfTiles[tile];
+                int[] read = indices[tile - first];
+
+                for (int row = 0; row < Tile.Rows; row++)
+                {
+                    for (int column = 0; column < TileRow.Columns; column++)
+                    {
+                        // Con un solo color no se enciende ningún bit: todo es fondo.
+                        target.ArrayTileRows[row].ArrayPattern[column] =
+                            ordered.Count > 1 && read[(row * TileRow.Columns) + column] == foreground;
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>Los 64 índices de paleta de un tile, en el orden de sus líneas.</summary>
+    private static int[] ReadIndices(int[] pixels, int stride, int columns, int tile, ColorPalette palette)
+    {
+        int left = (tile % columns) * TileRow.Columns;
+        int top = (tile / columns) * Tile.Rows;
+
+        int[] read = new int[Tile.Rows * TileRow.Columns];
+
+        for (int row = 0; row < Tile.Rows; row++)
+        {
+            for (int column = 0; column < TileRow.Columns; column++)
+            {
+                int pixel = pixels[((top + row) * stride) + left + column];
+
+                // El transparente del png es el codigo 0, que en la maquina es justo eso.
+                read[(row * TileRow.Columns) + column] =
+                    IsTransparent(pixel) ? 0 : NearestIndex(palette, FromBgra(pixel));
+            }
+        }
+
+        return read;
     }
 
     private static void ReadTile(

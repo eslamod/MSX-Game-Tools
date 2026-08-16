@@ -170,6 +170,8 @@
   <data name="NewTileSetHint" xml:space="preserve"><value>Set 1</value></data>
   <data name="NewTileSetNote" xml:space="preserve"><value>256 tiles of 8x8, empty.</value></data>
   <data name="NewTileSetMode" xml:space="preserve"><value>Mode</value></data>
+  <data name="ImportTileSetModeTitle" xml:space="preserve"><value>Tile set mode</value></data>
+  <data name="ImportTileSetModeBody" xml:space="preserve"><value>Which mode the tile set is for. It decides what rules the image must meet: in screen 2 it is two colours per line of 8 pixels, and in screen 1 two per group of 8 tiles.</value></data>
   <data name="TileGroupColors" xml:space="preserve"><value>Colours per group of 8 tiles</value></data>
   <data name="TileSwapGroupColors" xml:space="preserve"><value>Swap the group foreground and background</value></data>
   <data name="NewTileSetModeGraphic2" xml:space="preserve"><value>Screen 2 and 4 (GRAPHIC 2 and 3)</value></data>

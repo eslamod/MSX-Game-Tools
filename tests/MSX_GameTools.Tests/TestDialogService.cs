@@ -24,6 +24,16 @@ internal sealed class TestDialogService : IDialogService
     /// <summary>Que contesta a una eleccion entre dos: null es cancelar.</summary>
     public bool? ChooseAnswer { get; init; } = false;
 
+    /// <summary>
+    /// Respuestas por orden cuando en un mismo flujo se pregunta mas de una vez.
+    /// </summary>
+    /// <remarks>
+    /// Importar un png pregunta dos cosas seguidas -con que paleta y en que modo- y las dos
+    /// pasan por aqui. Con una sola respuesta para las dos no se puede escribir una prueba
+    /// que conteste distinto a cada una, que es justo lo que hace falta comprobar.
+    /// </remarks>
+    public Queue<bool?> ChooseAnswers { get; } = new();
+
     public int ChooseCalls { get; private set; }
 
     public string LastChooseMessage { get; private set; } = string.Empty;
@@ -119,6 +129,8 @@ internal sealed class TestDialogService : IDialogService
         ChooseCalls++;
         LastChooseMessage = message;
 
-        return Task.FromResult(ChooseAnswer);
+        // La cola manda mientras quede algo; cuando se acaba se vuelve a la respuesta fija,
+        // que es lo que usan las pruebas donde solo se pregunta una vez.
+        return Task.FromResult(ChooseAnswers.Count > 0 ? ChooseAnswers.Dequeue() : ChooseAnswer);
     }
 }

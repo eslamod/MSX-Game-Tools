@@ -187,6 +187,8 @@
   <data name="NewTileSetHint" xml:space="preserve"><value>Juego 1</value></data>
   <data name="NewTileSetNote" xml:space="preserve"><value>256 tiles de 8x8, vacíos.</value></data>
   <data name="NewTileSetMode" xml:space="preserve"><value>Modo</value></data>
+  <data name="ImportTileSetModeTitle" xml:space="preserve"><value>Modo del juego</value></data>
+  <data name="ImportTileSetModeBody" xml:space="preserve"><value>En qué modo se va a usar el juego. Decide qué reglas tiene que cumplir la imagen: en screen 2 son dos colores por línea de 8 pixeles, y en screen 1 dos por cada 8 tiles.</value></data>
   <data name="TileGroupColors" xml:space="preserve"><value>Colores por grupo de 8 tiles</value></data>
   <data name="TileSwapGroupColors" xml:space="preserve"><value>Intercambiar frente y fondo del grupo</value></data>
   <data name="NewTileSetModeGraphic2" xml:space="preserve"><value>Screen 2 y 4 (GRAPHIC 2 y 3)</value></data>

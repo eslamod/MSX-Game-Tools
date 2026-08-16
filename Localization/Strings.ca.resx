@@ -171,6 +171,8 @@
   <data name="NewTileSetHint" xml:space="preserve"><value>Joc 1</value></data>
   <data name="NewTileSetNote" xml:space="preserve"><value>256 tiles de 8x8, buits.</value></data>
   <data name="NewTileSetMode" xml:space="preserve"><value>Mode</value></data>
+  <data name="ImportTileSetModeTitle" xml:space="preserve"><value>Mode del joc</value></data>
+  <data name="ImportTileSetModeBody" xml:space="preserve"><value>En quin mode s'usarà el joc. Decideix quines regles ha de complir la imatge: en screen 2 son dos colors per línia de 8 pixels, i en screen 1 dos per cada 8 tiles.</value></data>
   <data name="TileGroupColors" xml:space="preserve"><value>Colors per grup de 8 tiles</value></data>
   <data name="TileSwapGroupColors" xml:space="preserve"><value>Intercanvia front i fons del grup</value></data>
   <data name="NewTileSetModeGraphic2" xml:space="preserve"><value>Screen 2 i 4 (GRAPHIC 2 i 3)</value></data>

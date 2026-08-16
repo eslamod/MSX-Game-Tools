@@ -284,29 +284,62 @@ public class TileSet
 
         TileSetPatch before = Copy(left, top, width, height);
 
+        // Antes de soltar nada: qué grupos estaban sin estrenar. Después ya no se sabría,
+        // porque lo que se acaba de estampar los deja con dibujo.
+        List<TileColorGroup> untouched = IsGraphic1
+            ? [.. GroupsOf(left, top, width, height).Where(group => group.IsUntouched)]
+            : [];
+
+        var arrived = new Dictionary<int, List<TileRow>>();
+
         for (int row = 0; row < height; row++)
         {
             for (int column = 0; column < width; column++)
-                ListOfTiles[((top + row) * Columns) + left + column].CopyFrom(patch[column, row]);
+            {
+                int index = ((top + row) * Columns) + left + column;
+                Tile incoming = patch[column, row];
+
+                ListOfTiles[index].CopyFrom(incoming);
+
+                if (!IsGraphic1)
+                    continue;
+
+                // Los colores con los que venía dibujado, para que un grupo sin estrenar
+                // pueda quedárselos. Se leen del trozo y no del destino, que el destino los
+                // va a perder en cuanto se repinte.
+                if (!arrived.TryGetValue(GroupOf(index).Index, out List<TileRow>? rows))
+                    arrived[GroupOf(index).Index] = rows = [];
+
+                rows.AddRange(incoming.ArrayTileRows);
+            }
         }
 
-        // En GRAPHIC 1 el color no viaja con el dibujo: es del hueco donde cae. Lo que se
-        // estampa se queda con el par del grupo de destino, que es lo que la máquina va a
-        // pintar independientemente de con qué colores se dibujó en su juego de origen.
+        // En GRAPHIC 1 el color no viaja con el dibujo: es del hueco donde cae. Un grupo que
+        // ya se estaba usando no se toca -recolorearlo cambiaría hasta ocho tiles que estaban
+        // bien-, y uno sin estrenar se queda con el color de lo que le llega, que es lo que
+        // hace que traerse un trozo a un juego nuevo no salga en blanco y negro.
         if (IsGraphic1)
-            RepaintGroupsOf(left, top, width, height);
+        {
+            foreach (TileColorGroup group in GroupsOf(left, top, width, height))
+            {
+                if (untouched.Contains(group) && arrived.TryGetValue(group.Index, out List<TileRow>? rows))
+                    group.AdoptFrom(rows);
+                else
+                    group.Repaint();
+            }
+        }
 
         return before;
     }
 
-    /// <summary>Devuelve a su par de colores los grupos que toca un rectángulo de la rejilla.</summary>
-    private void RepaintGroupsOf(int left, int top, int width, int height)
+    /// <summary>Los grupos de color a los que toca un rectángulo de la rejilla.</summary>
+    private IEnumerable<TileColorGroup> GroupsOf(int left, int top, int width, int height)
     {
         int first = ((top * Columns) + left) / ColorGroupSize;
         int last = (((top + height - 1) * Columns) + left + width - 1) / ColorGroupSize;
 
         for (int index = first; index <= last; index++)
-            ColorGroups[index].Repaint();
+            yield return ColorGroups[index];
     }
 
     /// <summary>

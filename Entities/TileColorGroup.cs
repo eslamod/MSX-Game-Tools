@@ -48,6 +48,57 @@ public partial class TileColorGroup : ObservableObject
     /// <summary>Los ocho tiles que pinta.</summary>
     public IReadOnlyList<Tile> Tiles => _tiles;
 
+    /// <summary>El par con el que nace un grupo, el mismo con el que nace una línea.</summary>
+    private const int DefaultFore = 15;
+
+    private const int DefaultBack = 0;
+
+    /// <summary>
+    /// Si a este grupo no lo ha tocado nadie: ni dibujo en sus ocho tiles, ni par elegido.
+    /// </summary>
+    /// <remarks>
+    /// Las dos cosas y no sólo el dibujo. Mirar sólo el dibujo daba por sin estrenar un grupo
+    /// al que le acababas de elegir el color a mano y todavía no habías dibujado, que es
+    /// justo el orden natural de trabajo: primero eliges los dos colores de la franja y
+    /// después traes los dibujos. Con eso, lo que llegaba pisaba una decisión deliberada.
+    /// </remarks>
+    public bool IsUntouched =>
+        ForeColor == DefaultFore
+        && BackColor == DefaultBack
+        && _tiles.All(tile => tile.ArrayTileRows.All(row => row.PatternByte == 0));
+
+    /// <summary>
+    /// Se queda con el par que más se repite entre unas líneas que vienen de fuera.
+    /// </summary>
+    /// <remarks>
+    /// Para cuando cae aquí un trozo de un juego de GRAPHIC 2, donde cada línea trae su par.
+    /// El que más se repite y no el de la primera línea: un dibujo suele tener un par
+    /// dominante y alguna línea suelta con otro, y quedarse con el de la primera línea daría
+    /// el color de una esquina.
+    /// </remarks>
+    public void AdoptFrom(IEnumerable<TileRow> rows)
+    {
+        var seen = new List<(int Fore, int Back, int Times)>();
+
+        foreach (TileRow row in rows)
+        {
+            int at = seen.FindIndex(pair => pair.Fore == row.ForeColor && pair.Back == row.BackColor);
+
+            if (at < 0)
+                seen.Add((row.ForeColor, row.BackColor, 1));
+            else
+                seen[at] = seen[at] with { Times = seen[at].Times + 1 };
+        }
+
+        if (seen.Count == 0)
+            return;
+
+        // Al empatar gana el que se vio antes, que es el de más arriba y más a la izquierda.
+        (int fore, int back, _) = seen.OrderByDescending(pair => pair.Times).First();
+
+        Set(fore, back);
+    }
+
     public int FirstTile => Index * TileSet.ColorGroupSize;
 
     public int LastTile => FirstTile + TileSet.ColorGroupSize - 1;

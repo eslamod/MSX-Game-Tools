@@ -1884,7 +1884,23 @@ public partial class MainWindowViewModel : ObservableObject
         if (palette is null)
             return;
 
-        TileSetImportResult result = TileSetPngConverter.Analyse(pixels, size, palette, name);
+        // Después de la paleta y no antes: si la imagen trae más colores de los que caben, ahí
+        // ya se ha rechazado, y no hay por qué preguntar el modo de un juego que no va a
+        // existir. Se pregunta por lo mismo que al crearlo a mano: no se puede cambiar después.
+        bool? graphic2 = await Dialogs.ChooseAsync(
+            Text["ImportTileSetModeTitle"],
+            Text["ImportTileSetModeBody"],
+            Text["NewTileSetModeGraphic2"],
+            Text["NewTileSetModeGraphic1"]);
+
+        if (graphic2 is not bool chosen)
+            return;
+
+        TileSet.GraphicMode mode = chosen
+            ? TileSet.GraphicMode.Graphic2
+            : TileSet.GraphicMode.Graphic1;
+
+        TileSetImportResult result = TileSetPngConverter.Analyse(pixels, size, palette, name, mode);
 
         if (!result.Ok)
         {

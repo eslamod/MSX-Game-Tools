@@ -44,6 +44,12 @@ public class TileSetPngCommandsTests : IDisposable
     {
         string path = Path.Combine(_folder, "bosque.png");
         var dialogs = new TestDialogService { SavePath = path, OpenPath = path, ChooseAnswer = false };
+
+        // Importar pregunta dos cosas seguidas: la paleta -la de siempre- y el modo, que aquí
+        // tiene que ser screen 2 para que el color siga siendo de cada línea.
+        dialogs.ChooseAnswers.Enqueue(false);
+        dialogs.ChooseAnswers.Enqueue(true);
+
         var main = new MainWindowViewModel(dialogs);
 
         TileSetEditorViewModel editor = main.OpenTileSet(new TileSet("Bosque"));
