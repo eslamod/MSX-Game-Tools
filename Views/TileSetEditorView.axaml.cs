@@ -28,6 +28,19 @@ public partial class TileSetEditorView : UserControl
             defaultValue: TileRow.Columns * ThumbnailBaseScale);
 
     /// <summary>
+    /// Cuántas columnas tiene el fantasma de lo que se va a estampar.
+    /// </summary>
+    /// <remarks>
+    /// Vive aquí y se enlaza desde la plantilla, en vez de buscar el panel por su nombre: un
+    /// <c>x:Name</c> dentro de un <c>ItemsPanelTemplate</c> está en otro ámbito de nombres y
+    /// no genera campo, así que el que había era siempre nulo y las columnas no se ponían
+    /// nunca. Un UniformGrid sin columnas se reparte solo lo más cuadrado que puede, y una
+    /// tira de tres salía en dos filas.
+    /// </remarks>
+    public static readonly StyledProperty<int> StampColumnsProperty =
+        AvaloniaProperty.Register<TileSetEditorView, int>(nameof(StampColumns), defaultValue: 1);
+
+    /// <summary>
     /// Alto de una fila del lienzo. La tira de colores lo lee para quedar alineada con
     /// las líneas del tile sea cual sea el zoom.
     /// </summary>
@@ -91,6 +104,13 @@ public partial class TileSetEditorView : UserControl
     {
         get => GetValue(ThumbnailSizeProperty);
         set => SetValue(ThumbnailSizeProperty, value);
+    }
+
+    /// <inheritdoc cref="StampColumnsProperty"/>
+    public int StampColumns
+    {
+        get => GetValue(StampColumnsProperty);
+        set => SetValue(StampColumnsProperty, value);
     }
 
     public double CellSize
@@ -392,8 +412,7 @@ public partial class TileSetEditorView : UserControl
             return;
         }
 
-        if (GhostGrid is { } grid)
-            grid.Columns = editor.StampWidth;
+        StampColumns = editor.StampWidth;
 
         StampGhost.ItemsSource = editor.StampPreview;
 

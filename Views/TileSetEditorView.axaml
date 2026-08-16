@@ -592,7 +592,10 @@
           <ItemsControl x:Name="StampGhost" IsVisible="False" Opacity="0.55">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
-                <UniformGrid x:Name="GhostGrid" />
+                <!-- Enlazado y no puesto por codigo: un x:Name aqui dentro esta en otro
+                     ambito de nombres y no genera campo, asi que el codigo escribia sobre un
+                     nulo y las columnas se quedaban sin poner. -->
+                <UniformGrid Columns="{Binding $parent[views:TileSetEditorView].StampColumns}" />
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
