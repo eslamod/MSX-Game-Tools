@@ -35,6 +35,7 @@
   <data name="PasteLabel" xml:space="preserve"><value>Enganxa</value></data>
   <data name="PasteSpriteTitle" xml:space="preserve"><value>Enganxar a sobre</value></data>
   <data name="PasteSpriteBody" xml:space="preserve"><value>El patró {0} té dibuix i es matxucarà amb el que s'ha copiat. No es pot desfer.</value></data>
+  <data name="PasteSpriteFlattenBody" xml:space="preserve"><value>El que s'ha copiat ve d'un banc MSX2 i porta un color per línia. Aquest banc és MSX1, on el patró sencer va d'un sol color, així que es quedarà tot del color de la primera línia.</value></data>
   <data name="SpritesClearSpriteTip" xml:space="preserve"><value>Deixa aquest patró en blanc, sense moure els números dels altres</value></data>
   <data name="ClearLabel" xml:space="preserve"><value>Buida</value></data>
   <data name="ClearSpriteTitle" xml:space="preserve"><value>Buidar el patró</value></data>

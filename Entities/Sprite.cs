@@ -88,6 +88,28 @@ public class Sprite
         return copy;
     }
 
+    /// <summary>Si las lineas no van todas del mismo color, que es lo que MSX1 no puede.</summary>
+    public bool HasSeveralColors =>
+        ArraySpriteRows.Any(row => row.Color != ArraySpriteRows[0].Color);
+
+    /// <summary>
+    /// Deja las 16 lineas del color de la primera.
+    /// </summary>
+    /// <remarks>
+    /// Es lo que hace un banco MSX1 con cualquier patron que le llegue: alli el color va en
+    /// el byte de atributo del sprite, uno para todo el patron, y el que se escribe es el de
+    /// la primera linea. Aplanarlo al entrar hace que el lienzo enseñe lo que la maquina va
+    /// a pintar; sin aplanarlo se veria un patron de 16 colores dentro de un banco que solo
+    /// sabe pintar uno.
+    /// </remarks>
+    public void FlattenColor()
+    {
+        int color = ArraySpriteRows[0].Color;
+
+        foreach (SpriteRow row in ArraySpriteRows)
+            row.Color = color;
+    }
+
     public void CopyFrom(Sprite other)
     {
         for (int row = 0; row < Rows; row++)

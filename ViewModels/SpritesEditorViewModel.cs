@@ -13,6 +13,9 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
     private readonly IDialogService _dialogs;
     private readonly ReferenceImageLibrary _backgrounds;
 
+    /// <summary>El patrón copiado, que es de la ventana y no de este banco.</summary>
+    private readonly SpriteClipboard _clipboard;
+
     /// <summary>La paleta del banco, a cuyos cambios de color estamos suscritos.</summary>
     private ColorPalette _palette;
 
@@ -90,19 +93,25 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
     /// Imágenes de referencia del espacio de trabajo. Sin ellas el editor funciona
     /// igual, simplemente no hay fondos que elegir.
     /// </param>
+    /// <param name="clipboard">
+    /// El patrón copiado, común a todos los bancos abiertos. Sin él, el editor tiene el suyo
+    /// y copiar y pegar siguen funcionando dentro de este banco.
+    /// </param>
     /// <inheritdoc cref="TileSetEditorViewModel(TileSet, ColorPalette, EditorPreferences)" path="/param[@name='palette']"/>
     public SpritesEditorViewModel(
         SpriteBank bank,
         ColorPalette palette,
         IDialogService? dialogs = null,
         ReferenceImageLibrary? backgrounds = null,
-        EditorPreferences? preferences = null)
+        EditorPreferences? preferences = null,
+        SpriteClipboard? clipboard = null)
     {
         Preferences = preferences ?? new EditorPreferences();
 
         _spriteBank = bank;
         _dialogs = dialogs ?? new SilentDialogService();
         _backgrounds = backgrounds ?? new ReferenceImageLibrary();
+        _clipboard = clipboard ?? new SpriteClipboard();
         _palette = palette;
         _backgroundColorIndex = palette.DefaultBackgroundIndex;
 
@@ -422,16 +431,20 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
     private bool CanDuplicateSprite() => _spriteBank.FirstEmpty() >= 0;
 
+    public bool HasCopiedSprite => _clipboard.Content is not null;
+
     /// <summary>
-    /// El patrón copiado, esperando a que se elija dónde va.
+    /// Vuelve a mirar el portapapeles, que es de la ventana y lo puede haber llenado otro banco.
     /// </summary>
     /// <remarks>
-    /// Una copia suelta y no una referencia: retocar el original después de copiarlo no
-    /// puede cambiar lo que se acabe pegando.
+    /// Lo llama la ventana al poner este banco delante. Sin esto, copiar en un banco dejaba el
+    /// botón de pegar apagado en los demás hasta cerrarlos y volverlos a abrir.
     /// </remarks>
-    private Sprite? _inHand;
-
-    public bool HasCopiedSprite => _inHand is not null;
+    public void RefreshClipboardState()
+    {
+        OnPropertyChanged(nameof(HasCopiedSprite));
+        PasteSpriteCommand.NotifyCanExecuteChanged();
+    }
 
     /// <summary>Se lleva el patrón que se está editando.</summary>
     /// <remarks>
@@ -442,32 +455,50 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
     [RelayCommand]
     private void CopySprite()
     {
-        _inHand = CurrentSprite.Copy();
+        _clipboard.Put(CurrentSprite, _spriteBank.Type);
 
-        OnPropertyChanged(nameof(HasCopiedSprite));
-        PasteSpriteCommand.NotifyCanExecuteChanged();
+        RefreshClipboardState();
     }
 
     /// <summary>
-    /// Suelta lo copiado en el patrón que se está viendo.
+    /// Suelta lo copiado en el patrón que se está viendo, venga del banco que venga.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// Si el destino tiene algo, se pregunta antes en vez de no dejar: machacar un patrón a
     /// veces es justo lo que se quiere, y obligar a vaciarlo primero son dos pasos para el
     /// mismo resultado. Preguntar impide que pase sin querer, que es el riesgo de verdad
     /// cuando no hay deshacer.
+    /// </para>
+    /// <para>
+    /// Y si lo copiado trae varios colores de línea y este banco es MSX1, se avisa de que se
+    /// queda de uno solo. Se avisa antes de perderlo y no después, y sólo cuando de verdad se
+    /// pierde algo: un patrón que ya iba de un color entra igual en los dos bancos.
+    /// </para>
     /// </remarks>
     [RelayCommand(CanExecute = nameof(HasCopiedSprite))]
     private async Task PasteSpriteAsync()
     {
-        if (_inHand is not { } copied)
+        if (_clipboard.Content is not { } copied)
             return;
 
-        if (!CurrentSprite.IsEmpty)
+        bool loses = IsMsx1 && copied.HasSeveralColors;
+
+        if (!CurrentSprite.IsEmpty || loses)
         {
+            // Los dos motivos caben en un aviso: preguntar dos veces seguidas por la misma
+            // pulsación se contesta que sí sin leer, que es justo lo que el aviso evita.
+            var body = new List<string>();
+
+            if (loses)
+                body.Add(Localizer.Instance["PasteSpriteFlattenBody"]);
+
+            if (!CurrentSprite.IsEmpty)
+                body.Add(Localizer.Instance.Format("PasteSpriteBody", CurrentSpriteIndex));
+
             bool confirmed = await _dialogs.ConfirmAsync(
                 Localizer.Instance["PasteSpriteTitle"],
-                Localizer.Instance.Format("PasteSpriteBody", CurrentSpriteIndex),
+                string.Join("\n\n", body),
                 Localizer.Instance["PasteLabel"]);
 
             if (!confirmed)
@@ -476,9 +507,19 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
         CurrentSprite.CopyFrom(copied);
 
+        // En un banco MSX1 el patrón va de un color, así que el lienzo tiene que enseñarlo de
+        // uno: dejarlo de 16 pintaría algo que la máquina no puede.
+        if (IsMsx1)
+            CurrentSprite.FlattenColor();
+
         Touch();
         RenderThumbnail(CurrentSprite);
         RefreshRequested?.Invoke(CurrentSprite);
+
+        // Acaban de cambiar los 16 colores de línea, y las casillas de la columna los tienen
+        // leídos de antes.
+        foreach (SpriteRowColorViewModel cell in RowColors)
+            cell.Refresh();
 
         OnPropertyChanged(nameof(SpriteColor));
     }

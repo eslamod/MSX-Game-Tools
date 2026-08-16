@@ -118,6 +118,11 @@ public partial class MainWindowViewModel : ObservableObject
         // manda; esto es para cuando no.
         if (value is TileSetEditorViewModel arriving)
             arriving.InHand = TilesInHand;
+
+        // El banco ya mira el mismo portapapeles que los demás; lo que no sabe es que ha
+        // cambiado mientras él no estaba delante, y de eso depende que pegar esté encendido.
+        if (value is SpritesEditorViewModel bank)
+            bank.RefreshClipboardState();
     }
 
     /// <summary>
@@ -182,6 +187,16 @@ public partial class MainWindowViewModel : ObservableObject
     /// </para>
     /// </remarks>
     public CopiedTiles? TilesInHand { get; private set; }
+
+    /// <summary>
+    /// El patrón de sprite copiado, uno para todos los bancos abiertos.
+    /// </summary>
+    /// <remarks>
+    /// Lo mismo que <see cref="TilesInHand"/> y por lo mismo, pero más sencillo: lo que se
+    /// copia ya es una copia suelta desde el momento de copiarlo, así que no hay nada que
+    /// congelar al dejar el banco. Basta con que el sitio donde se guarda no sea el banco.
+    /// </remarks>
+    public SpriteClipboard SpritesInHand { get; } = new();
 
     /// <summary>Se reparte a los paneles que necesiten confirmar algo destructivo.</summary>
     public IDialogService Dialogs { get; }
@@ -493,7 +508,7 @@ public partial class MainWindowViewModel : ObservableObject
         SpriteBank bank, ColorPalette? palette = null, int? backgroundColorIndex = null)
     {
         var panel = new SpritesEditorViewModel(
-            bank, palette ?? Palettes.ActivePalette, Dialogs, Backgrounds, Preferences)
+            bank, palette ?? Palettes.ActivePalette, Dialogs, Backgrounds, Preferences, SpritesInHand)
         {
             TagId = $"spb{CurrentSpriteBankCounter}",
         };
