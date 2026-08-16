@@ -11,14 +11,39 @@ namespace MSX_GameTools.Tests;
 /// </summary>
 public class SpriteBankExporterTests
 {
+    /// <summary>
+    /// La tabla llega hasta el último dibujado, y cada patrón ocupa sus 32 bytes.
+    /// </summary>
+    /// <remarks>
+    /// Hasta el último y no los 64 siempre: son 2 KB aunque se usen tres, y eso pesa en una
+    /// ROM de 32K. Y hasta el último y no «los que tengan algo», que dejaría fuera los
+    /// huecos vacíos de en medio y correría todo lo de atrás: se corta por el final, que es
+    /// lo único que no mueve ningún índice.
+    /// </remarks>
     [AvaloniaFact]
-    public void Cada_patron_ocupa_32_bytes()
+    public void La_tabla_llega_hasta_el_ultimo_dibujado()
     {
         var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho");
-        bank.NewSprite();
-        bank.NewSprite();
+
+        // El 1 se queda en blanco a proposito: es el hueco de en medio que tiene que salir
+        // igualmente, para que el 2 siga siendo el 2.
+        bank.SpritesList[0].ArraySpriteRows[0].ArrayColumns[0] = true;
+        bank.SpritesList[2].ArraySpriteRows[0].ArrayColumns[0] = true;
 
         Assert.Equal(3 * SpriteBankExporter.PatternBytes, SpriteBankExporter.PatternsToBinary(bank).Length);
+    }
+
+    /// <summary>Un banco entero en blanco exporta un patrón, no cero.</summary>
+    /// <remarks>
+    /// Una tabla vacía no se puede cargar en el VDP, y un fichero de cero bytes parece un
+    /// error de la exportación más que un banco sin dibujar.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Un_banco_en_blanco_exporta_un_patron()
+    {
+        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho");
+
+        Assert.Equal(SpriteBankExporter.PatternBytes, SpriteBankExporter.PatternsToBinary(bank).Length);
     }
 
     [AvaloniaFact]
@@ -89,8 +114,6 @@ public class SpriteBankExporterTests
     public void Un_miembro_msx2_son_16_bytes_de_color_mas_Y_X_y_patron()
     {
         var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho");
-        bank.NewSprite();
-        bank.NewSprite();
 
         SpriteGroup group = bank.NewGroup(2)!;
         group.Members[0].OffsetY = -4;
@@ -108,7 +131,6 @@ public class SpriteBankExporterTests
     public void Un_miembro_msx1_son_Y_X_patron_y_color()
     {
         var bank = new SpriteBank(SpriteBank.SpriteType.MSX, "Bicho");
-        bank.NewSprite();
 
         SpriteGroup group = bank.NewGroup(1)!;
         group.Members[0].OffsetY = 2;

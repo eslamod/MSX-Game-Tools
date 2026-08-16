@@ -40,10 +40,15 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
     [NotifyCanExecuteChangedFor(nameof(PreviousSpriteCommand))]
     private int _currentSpritePosition;
 
+    /// <summary>
+    /// Cuántos patrones tiene el banco, que ahora son siempre los mismos.
+    /// </summary>
+    /// <remarks>
+    /// Se queda como propiedad y no como constante porque la vista la enseña en «1 / 64» y
+    /// la navegación la usa de tope.
+    /// </remarks>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(NextSpriteCommand))]
-    [NotifyCanExecuteChangedFor(nameof(AddSpriteCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DeleteSpriteCommand))]
     private int _numberSprites;
 
     /// <summary>
@@ -380,98 +385,31 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
             RenderGroup(group);
     }
 
-    [RelayCommand(CanExecute = nameof(CanAddSprite))]
-    private void AddSprite()
-    {
-        Sprite? sprite = _spriteBank.NewSprite();
-        if (sprite?.ImageMini is null)
-            return;
-
-        ImagesMiniList.Add(sprite.ImageMini);
-        NumberSprites = _spriteBank.SpritesList.Count;
-
-        Touch();
-        RenderThumbnail(sprite);
-
-        // El sprite recién creado pasa a ser el que se edita.
-        GoTo(NumberSprites);
-    }
-
-    private bool CanAddSprite() => NumberSprites < SpriteBank.MaxSprites;
-
     /// <summary>
-    /// Añade una copia del patrón que se está editando.
+    /// Copia el patrón que se está editando en el primer hueco libre.
     /// </summary>
     /// <remarks>
     /// Hacer una variación de un sprite —el mismo bicho mirando al otro lado— obligaba a
-    /// redibujarlo entero. La copia va al final del banco, no detrás del original: los
-    /// grupos apuntan a sus patrones por índice y meter uno en medio los descolocaría.
+    /// redibujarlo entero. En el primer hueco libre y no detrás del original, porque detrás
+    /// habría que correr los de atrás y correr un índice es justo lo que este banco ya no
+    /// hace.
     /// </remarks>
-    [RelayCommand(CanExecute = nameof(CanAddSprite))]
+    [RelayCommand(CanExecute = nameof(CanDuplicateSprite))]
     private void DuplicateSprite()
     {
-        Sprite? copy = _spriteBank.DuplicateSprite(CurrentSpritePosition - 1);
+        int free = _spriteBank.DuplicateSprite(CurrentSpritePosition - 1);
 
-        if (copy?.ImageMini is null)
+        if (free < 0)
             return;
 
-        ImagesMiniList.Add(copy.ImageMini);
-        NumberSprites = _spriteBank.SpritesList.Count;
-
         Touch();
-        RenderThumbnail(copy);
+        RenderThumbnail(_spriteBank.SpritesList[free]);
 
         // Se va a la copia, que es sobre la que se va a trabajar.
-        GoTo(NumberSprites);
+        GoTo(free + 1);
     }
 
-    [RelayCommand(CanExecute = nameof(CanDeleteSprite))]
-    private async Task DeleteSpriteAsync()
-    {
-        int index = CurrentSpritePosition - 1;
-
-        // Borrar un sprite tampoco se puede deshacer.
-        bool confirmed = await _dialogs.ConfirmAsync(
-            Localizer.Instance["DeleteSpriteTitle"],
-            Localizer.Instance.Format("DeleteSpriteBody", CurrentSpritePosition, NumberSprites),
-            Localizer.Instance["DeleteLabel"]);
-
-        if (!confirmed)
-            return;
-
-        _spriteBank.DeleteSprite(index);
-        if ((uint)index < (uint)ImagesMiniList.Count)
-            ImagesMiniList.RemoveAt(index);
-
-        NumberSprites = _spriteBank.SpritesList.Count;
-
-        Touch();
-
-        // Se queda en la misma posición, que ahora ocupa el sprite siguiente,
-        // salvo que se hubiera borrado el último.
-        GoTo(Math.Min(index + 1, NumberSprites));
-    }
-
-    /// <summary>
-    /// Sólo se puede eliminar el último, y sólo si queda otro detrás.
-    /// </summary>
-    /// <remarks>
-    /// <para>
-    /// Quitar uno de en medio corría un puesto a todos los de atrás. Eso descoloca los
-    /// grupos, que apuntan a sus patrones por índice, pero sobre todo descoloca el juego:
-    /// si el código de la máquina dibuja el sprite 12, después de borrar el 3 el 12 es otro
-    /// dibujo. Y eso el editor no lo puede arreglar por nadie.
-    /// </para>
-    /// <para>
-    /// Para lo demás está vaciar, que deja el hueco donde estaba. Es además la forma que
-    /// tendrá esto el día que el banco pase a ser de 64 fijos, como la tabla del VDP.
-    /// </para>
-    /// <para>
-    /// Y siempre queda al menos uno: si no, el editor se queda sin nada que dibujar (en WPF
-    /// se podía vaciar del todo y el lienzo apuntaba a un sprite muerto).
-    /// </para>
-    /// </remarks>
-    private bool CanDeleteSprite() => NumberSprites > 1 && CurrentSpritePosition == NumberSprites;
+    private bool CanDuplicateSprite() => _spriteBank.FirstEmpty() >= 0;
 
     /// <summary>Deja el patrón en blanco sin quitarlo del banco.</summary>
     [RelayCommand]

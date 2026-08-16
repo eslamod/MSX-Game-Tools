@@ -40,7 +40,7 @@ public class ProjectTreeTests
         var main = new MainWindowViewModel();
         SpritesEditorViewModel editor = main.OpenSpriteBank(new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"));
 
-        editor.AddSpriteCommand.Execute(null);
+        editor.NextSpriteCommand.Execute(null);
         editor.AddGroupCommand.Execute(null);
 
         main.CloseTabCommand.Execute(editor);
@@ -51,7 +51,9 @@ public class ProjectTreeTests
         // El mismo objeto, no uno nuevo: cerrar no reconstruye nada.
         Assert.Same(editor, main.Tabs[0]);
         Assert.Same(editor, main.SelectedTab);
-        Assert.Equal(2, editor.SpritesBank.SpritesList.Count);
+        // El banco tiene siempre 64 huecos, asi que lo que dice que el estado sigue vivo es
+        // por cual se habia dejado y el grupo que se creo, no cuantos patrones hay.
+        Assert.Equal(2, editor.CurrentSpritePosition);
         Assert.Single(editor.SpritesBank.Groups);
     }
 

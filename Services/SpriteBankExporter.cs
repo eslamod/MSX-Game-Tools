@@ -54,12 +54,30 @@ public static class SpriteBankExporter
 
     private const int BytesPerLine = 8;
 
+    /// <summary>
+    /// Cuántos patrones entran en la tabla: hasta el último dibujado, ése incluido.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// No los 64 siempre: son 2 KB de tabla aunque se usen cuatro sprites, y eso pesa en
+    /// una ROM de 32K. Y no «los que tengan algo», que dejaría fuera los huecos vacíos de
+    /// en medio y correría todo lo de atrás: se corta por el final, que es lo único que no
+    /// mueve ningún índice.
+    /// </para>
+    /// <para>
+    /// Un banco entero en blanco exporta un patrón, no cero: una tabla vacía no se puede
+    /// cargar en el VDP y un fichero de cero bytes parece un error de la exportación.
+    /// </para>
+    /// </remarks>
+    public static int TableLength(SpriteBank bank) => Math.Max(1, bank.LastDrawn() + 1);
+
     public static byte[] PatternsToBinary(SpriteBank bank)
     {
-        var bytes = new List<byte>(bank.SpritesList.Count * PatternBytes);
+        int count = TableLength(bank);
+        var bytes = new List<byte>(count * PatternBytes);
 
-        foreach (Sprite pattern in bank.SpritesList)
-            bytes.AddRange(PatternBytesOf(pattern));
+        for (int index = 0; index < count; index++)
+            bytes.AddRange(PatternBytesOf(bank.SpritesList[index]));
 
         return [.. bytes];
     }
@@ -84,14 +102,18 @@ public static class SpriteBankExporter
         var text = new StringBuilder();
         string label = LabelOf(bank.Name);
 
+        int count = TableLength(bank);
+
         text.AppendLine($"; Sprite pattern table - {bank.Name}");
-        text.AppendLine($"; {bank.SpritesList.Count} patterns, {PatternBytes} bytes each");
+        text.AppendLine($"; {count} patterns, {PatternBytes} bytes each");
+        text.AppendLine($"; The bank holds {SpriteBank.MaxSprites} slots; the table stops at the last one drawn,");
+        text.AppendLine("; so pattern N is always at N * 32 bytes, blank slots included.");
         text.AppendLine("; 16x16 layout: left half rows 0-15, then right half rows 0-15");
         text.AppendLine($"; Size: {label}_patterns_end - {label}_patterns");
         text.AppendLine();
         text.AppendLine($"{label}_patterns:");
 
-        for (int index = 0; index < bank.SpritesList.Count; index++)
+        for (int index = 0; index < count; index++)
         {
             text.AppendLine($"{label}_pattern_{index}:");
             AppendBytes(text, PatternBytesOf(bank.SpritesList[index]));

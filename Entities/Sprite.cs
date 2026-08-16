@@ -8,7 +8,7 @@ public class Sprite
     {
         ArraySpriteRows = new SpriteRow[Rows];
         for (int i = 0; i < Rows; i++)
-            ArraySpriteRows[i] = new SpriteRow { Color = 15 };
+            ArraySpriteRows[i] = new SpriteRow { Color = EmptyColor };
     }
 
     public SpriteRow[] ArraySpriteRows { get; }
@@ -17,6 +17,27 @@ public class Sprite
 
     /// <summary>Imagen de referencia que se ve detras del lienzo al editar este patron.</summary>
     public BackgroundRef Background { get; set; } = BackgroundRef.None;
+
+    /// <summary>
+    /// Un patron sin tocar: sin pixeles, con el color de partida y sin calco.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Con los 64 huecos siempre puestos, esto es lo que distingue un patron que se usa de
+    /// uno que solo esta ahi. Decide que se guarda en el fichero y hasta donde llega la
+    /// tabla que se exporta.
+    /// </para>
+    /// <para>
+    /// Tambien cuenta la imagen de calco, y no es un adorno: alguien puede dejar puesta la
+    /// referencia sobre la que va a dibujar y guardar antes de empezar. Sin mirarla, ese
+    /// patron se daba por sin tocar y la referencia se perdia al guardar.
+    /// </para>
+    /// </remarks>
+    public bool IsEmpty => !Background.HasValue
+        && ArraySpriteRows.All(row => row.Color == EmptyColor && row.ArrayColumns.All(on => !on));
+
+    /// <summary>El color con el que nace una linea, y al que vuelve al vaciarla.</summary>
+    private const int EmptyColor = 15;
 
     /// <summary>
     /// Deja el patron como recien creado, sin borrarlo del banco.
@@ -33,7 +54,7 @@ public class Sprite
         {
             Array.Clear(row.ArrayColumns);
 
-            row.Color = 15;
+            row.Color = EmptyColor;
         }
 
         Background = BackgroundRef.None;

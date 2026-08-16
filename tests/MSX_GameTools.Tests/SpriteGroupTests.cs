@@ -25,7 +25,6 @@ public class SpriteGroupTests
     public void Un_grupo_nuevo_arranca_con_el_patron_indicado()
     {
         var bank = new SpriteBank();
-        bank.NewSprite();
 
         SpriteGroup? group = bank.NewGroup(1);
 

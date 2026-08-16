@@ -30,7 +30,6 @@
   </data>
   <data name="PropertiesOpenTip" xml:space="preserve"><value>Nom, supertiles i atributs d'aquest joc de tiles</value></data>
   <data name="SpritesDuplicate" xml:space="preserve"><value>Duplica aquest patró</value></data>
-  <data name="SpritesDeleteLast" xml:space="preserve"><value>Elimina l'últim patró</value></data>
   <data name="SpritesClearSpriteTip" xml:space="preserve"><value>Deixa aquest patró en blanc, sense moure els números dels altres</value></data>
   <data name="ClearLabel" xml:space="preserve"><value>Buida</value></data>
   <data name="ClearSpriteTitle" xml:space="preserve"><value>Buidar el patró</value></data>
@@ -201,8 +200,6 @@
   <data name="SpritesOffsetDownTip" xml:space="preserve"><value>Desplaça el membre un píxel avall</value></data>
   <data name="SpritesPreviousTip" xml:space="preserve"><value>Sprite anterior del banc</value></data>
   <data name="SpritesNextTip" xml:space="preserve"><value>Sprite següent del banc</value></data>
-  <data name="SpritesAddSpriteTip" xml:space="preserve"><value>Afegeix un sprite al final del banc</value></data>
-  <data name="SpritesDeleteSpriteTip" xml:space="preserve"><value>Elimina l'sprite que s'està veient</value></data>
   <data name="PreferencesZoom" xml:space="preserve"><value>Zoom de partida</value></data>
   <data name="PreferencesSpriteCanvas" xml:space="preserve"><value>Llenç de sprites</value></data>
   <data name="PreferencesSpriteThumbnails" xml:space="preserve"><value>Miniatures de sprites</value></data>
@@ -429,8 +426,6 @@ Es veuran igual que abans, però amb els colors als seus índexs nous. Quedaran 
   <data name="DeleteItemTitle" xml:space="preserve"><value>Elimina del projecte</value></data>
   <data name="DeleteItemBody" xml:space="preserve"><value>S'eliminarà «{0}» i es tancarà la seva pestanya.</value></data>
   <data name="DeleteItemBodyUnsaved" xml:space="preserve"><value>S'eliminarà «{0}» i es tancarà la seva pestanya. Té canvis sense desar i es perdran.</value></data>
-  <data name="DeleteSpriteTitle" xml:space="preserve"><value>Elimina l'sprite</value></data>
-  <data name="DeleteSpriteBody" xml:space="preserve"><value>S'eliminarà l'sprite {0} de {1}. Aquesta acció no es pot desfer.</value></data>
   <data name="DeleteGroupTitle" xml:space="preserve"><value>Elimina el grup</value></data>
   <data name="DeleteGroupBody" xml:space="preserve"><value>S'eliminarà el grup «{0}». Aquesta acció no es pot desfer.</value></data>
 

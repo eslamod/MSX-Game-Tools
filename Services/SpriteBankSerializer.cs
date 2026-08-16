@@ -22,7 +22,15 @@ namespace MSX_GameTools.Services;
 /// </remarks>
 public static class SpriteBankSerializer
 {
-    public const int FormatVersion = 1;
+    /// <summary>
+    /// La 2 numera los patrones y guarda sólo los dibujados.
+    /// </summary>
+    /// <remarks>
+    /// Un fichero de la 1 se sigue abriendo, y sale igual que estaba: allí los patrones iban
+    /// seguidos desde el 0, así que su posición en el fichero <b>era</b> su índice, y
+    /// leyéndolos por posición caen exactamente donde estaban. Ni un número se mueve.
+    /// </remarks>
+    public const int FormatVersion = 2;
 
     private const int PatternDigits = 4; // 16 columnas, cuatro dígitos hexadecimales
 
@@ -90,14 +98,31 @@ public static class SpriteBankSerializer
         bank.Type.ToString(),
         backgroundColorIndex,
         PaletteSerializer.ToFile(palette),
-        [.. bank.SpritesList.Select(ToFile)],
+        [.. Drawn(bank)],
         [.. bank.Groups.Select(ToFile)],
         [.. backgrounds.Select(image => new ReferenceFile(image.Path, image.CellSize))]);
 
-    private static PatternFile ToFile(Sprite pattern) => new(
+    /// <summary>Los patrones que se han tocado, con su número delante.</summary>
+    /// <remarks>
+    /// Igual que en el juego de tiles: escribir los 64 siempre metería sesenta entradas
+    /// idénticas en cada fichero de un banco con cuatro sprites.
+    /// </remarks>
+    private static IEnumerable<PatternFile> Drawn(SpriteBank bank)
+    {
+        for (int index = 0; index < bank.SpritesList.Count; index++)
+        {
+            Sprite pattern = bank.SpritesList[index];
+
+            if (!pattern.IsEmpty)
+                yield return ToFile(pattern, index);
+        }
+    }
+
+    private static PatternFile ToFile(Sprite pattern, int index) => new(
         [.. pattern.ArraySpriteRows.Select(row => RowToHex(row.ArrayColumns))],
         string.Concat(pattern.ArraySpriteRows.Select(row => row.Color.ToString("X1"))),
-        ToFile(pattern.Background));
+        ToFile(pattern.Background),
+        index);
 
     private static GroupFile ToFile(SpriteGroup group) => new(
         group.Name,
@@ -128,20 +153,33 @@ public static class SpriteBankSerializer
         SpriteBank.SpriteType type = ParseType(file.Type);
 
         int patternCount = file.Patterns?.Count ?? 0;
-        if (patternCount is 0 or > SpriteBank.MaxSprites)
+        if (patternCount > SpriteBank.MaxSprites)
         {
             throw new FileFormatException(
-                $"Un banco tiene entre 1 y {SpriteBank.MaxSprites} patrones, y el fichero trae {patternCount}.");
+                $"Un banco tiene {SpriteBank.MaxSprites} patrones, y el fichero trae {patternCount}.");
         }
 
         var bank = new SpriteBank(type, string.IsNullOrWhiteSpace(file.Name) ? "Banco sin nombre" : file.Name);
 
-        // El constructor ya deja uno creado.
-        while (bank.SpritesList.Count < patternCount)
-            bank.NewSprite();
+        // El banco ya viene con sus 64 huecos hechos: aqui solo se rellenan los que traiga
+        // el fichero, cada uno en el suyo.
+        for (int position = 0; position < patternCount; position++)
+        {
+            PatternFile pattern = file.Patterns![position];
 
-        for (int index = 0; index < patternCount; index++)
-            ReadPattern(file.Patterns![index], bank.SpritesList[index], index);
+            // Los ficheros de la version 1 guardaban los patrones seguidos y sin numero, asi
+            // que su posicion en la lista era su indice. Leyendolos por posicion salen
+            // exactamente donde estaban: ni un solo numero se mueve al abrir un banco viejo.
+            int index = pattern.Index ?? position;
+
+            if ((uint)index >= (uint)SpriteBank.MaxSprites)
+            {
+                throw new FileFormatException(
+                    $"El fichero trae el patrón {index}, y un banco sólo tiene {SpriteBank.MaxSprites}.");
+            }
+
+            ReadPattern(pattern, bank.SpritesList[index], index);
+        }
 
         foreach (GroupFile group in file.Groups ?? [])
             ReadGroup(group, bank);
@@ -294,10 +332,15 @@ public static class SpriteBankSerializer
     /// <summary>Una imagen de referencia: dónde estaba y cómo se troceó.</summary>
     private sealed record ReferenceFile(string? Path, int CellSize);
 
+    /// <param name="Index">
+    /// Qué hueco de los 64 ocupa. Los ficheros de la versión 1 no lo traen y se leen por
+    /// posición, que allí era lo mismo: los patrones iban seguidos desde el 0.
+    /// </param>
     private sealed record PatternFile(
         IReadOnlyList<string>? Rows,
         string? Colors,
-        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] BackgroundFile? Background);
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] BackgroundFile? Background,
+        int? Index = null);
 
     private sealed record GroupFile(
         string? Name,

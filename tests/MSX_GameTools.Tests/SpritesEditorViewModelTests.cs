@@ -1,5 +1,4 @@
 using MSX_GameTools.Entities;
-using MSX_GameTools.Services;
 using MSX_GameTools.ViewModels;
 using Xunit;
 using Avalonia.Headless.XUnit;
@@ -10,6 +9,11 @@ namespace MSX_GameTools.Tests;
 /// Lógica del banco de sprites. No necesita plataforma gráfica: ImageMini sólo
 /// construye el bitmap cuando alguien lee SpritePreview.
 /// </summary>
+/// <remarks>
+/// El banco tiene 64 huecos fijos, como la tabla de patrones del VDP, así que aquí no hay
+/// nada que añadir ni que quitar: sólo recorrerlos. Lo de vaciar y duplicar está en
+/// <see cref="DuplicateSpriteTests" />.
+/// </remarks>
 public class SpritesEditorViewModelTests
 {
     [AvaloniaFact]
@@ -18,104 +22,66 @@ public class SpritesEditorViewModelTests
         SpritesEditorViewModel vm = NewEditor();
 
         // En WPF la lista se creaba vacía y esta miniatura no aparecía nunca.
-        Assert.Single(vm.ImagesMiniList);
-        Assert.Equal(1, vm.NumberSprites);
+        Assert.Equal(SpriteBank.MaxSprites, vm.ImagesMiniList.Count);
+        Assert.Equal(SpriteBank.MaxSprites, vm.NumberSprites);
         Assert.Equal(1, vm.CurrentSpritePosition);
+        Assert.Same(vm.SpritesBank.SpritesList[0].ImageMini, vm.SelectedThumbnail);
     }
 
+    /// <summary>
+    /// Los 64 huecos están desde el principio, con su miniatura cada uno.
+    /// </summary>
+    /// <remarks>
+    /// Antes el banco arrancaba con uno y se iban añadiendo. Que estén todos desde el
+    /// principio es lo que hace que ningún índice se pueda mover nunca.
+    /// </remarks>
     [AvaloniaFact]
-    public void Anadir_sprite_actualiza_contador_y_miniaturas()
+    public void Los_sesenta_y_cuatro_huecos_estan_desde_el_principio()
     {
         SpritesEditorViewModel vm = NewEditor();
 
-        vm.AddSpriteCommand.Execute(null);
-
-        Assert.Equal(2, vm.NumberSprites);
-        Assert.Equal(2, vm.ImagesMiniList.Count);
+        Assert.Equal(SpriteBank.MaxSprites, vm.SpritesBank.SpritesList.Count);
+        Assert.All(vm.SpritesBank.SpritesList, sprite => Assert.NotNull(sprite.ImageMini));
     }
 
     [AvaloniaFact]
-    public void El_sprite_recien_anadido_queda_seleccionado()
+    public void Avanzar_deja_seleccionado_el_siguiente()
     {
         SpritesEditorViewModel vm = NewEditor();
 
-        vm.AddSpriteCommand.Execute(null);
+        vm.NextSpriteCommand.Execute(null);
 
         Assert.Equal(2, vm.CurrentSpritePosition);
         Assert.Same(vm.SpritesBank.SpritesList[1], vm.CurrentSprite);
         Assert.Same(vm.SpritesBank.SpritesList[1].ImageMini, vm.SelectedThumbnail);
     }
 
-    [AvaloniaFact]
-    public async Task Borrar_sprite_elimina_tambien_su_miniatura()
-    {
-        SpritesEditorViewModel vm = NewEditor();
-        vm.AddSpriteCommand.Execute(null);
-        vm.AddSpriteCommand.Execute(null);
-        Assert.Equal(3, vm.ImagesMiniList.Count);
-
-        await vm.DeleteSpriteCommand.ExecuteAsync(null);
-
-        // En WPF se borraba del banco pero no de la lista, y se desincronizaban.
-        Assert.Equal(2, vm.NumberSprites);
-        Assert.Equal(2, vm.ImagesMiniList.Count);
-    }
-
-    [AvaloniaFact]
-    public void No_se_puede_borrar_el_ultimo_sprite()
-    {
-        SpritesEditorViewModel vm = NewEditor();
-
-        Assert.False(vm.DeleteSpriteCommand.CanExecute(null));
-
-        vm.AddSpriteCommand.Execute(null);
-        Assert.True(vm.DeleteSpriteCommand.CanExecute(null));
-    }
-
-    [AvaloniaFact]
-    public void No_se_pueden_anadir_mas_sprites_de_los_que_admite_el_banco()
-    {
-        SpritesEditorViewModel vm = NewEditor();
-
-        for (int i = 1; i < SpriteBank.MaxSprites; i++)
-            vm.AddSpriteCommand.Execute(null);
-
-        Assert.Equal(SpriteBank.MaxSprites, vm.NumberSprites);
-        Assert.False(vm.AddSpriteCommand.CanExecute(null));
-
-        // En WPF esto lanzaba NullReferenceException: NewSprite devolvía null.
-        vm.AddSpriteCommand.Execute(null);
-
-        Assert.Equal(SpriteBank.MaxSprites, vm.NumberSprites);
-        Assert.Equal(SpriteBank.MaxSprites, vm.ImagesMiniList.Count);
-    }
-
+    /// <summary>La navegación se para en el primero y en el último de los 64.</summary>
     [AvaloniaFact]
     public void La_navegacion_respeta_los_extremos()
     {
         SpritesEditorViewModel vm = NewEditor();
-        vm.AddSpriteCommand.Execute(null); // deja seleccionado el 2 de 2
 
-        Assert.Equal(2, vm.CurrentSpritePosition);
-        Assert.False(vm.NextSpriteCommand.CanExecute(null));
-        Assert.True(vm.PreviousSpriteCommand.CanExecute(null));
-
-        vm.PreviousSpriteCommand.Execute(null);
-
-        Assert.Equal(1, vm.CurrentSpritePosition);
         Assert.False(vm.PreviousSpriteCommand.CanExecute(null));
         Assert.True(vm.NextSpriteCommand.CanExecute(null));
 
+        for (int position = 1; position < SpriteBank.MaxSprites; position++)
+            vm.NextSpriteCommand.Execute(null);
+
+        Assert.Equal(SpriteBank.MaxSprites, vm.CurrentSpritePosition);
+        Assert.False(vm.NextSpriteCommand.CanExecute(null));
+
+        // Y pasado el último no se sale: en WPF esto lanzaba NullReferenceException.
         vm.NextSpriteCommand.Execute(null);
 
-        Assert.Equal(2, vm.CurrentSpritePosition);
+        Assert.Equal(SpriteBank.MaxSprites, vm.CurrentSpritePosition);
     }
 
     [AvaloniaFact]
     public void Cambiar_de_sprite_avisa_a_la_vista()
     {
         SpritesEditorViewModel vm = NewEditor();
-        vm.AddSpriteCommand.Execute(null);
+        vm.NextSpriteCommand.Execute(null);
 
         int notifications = 0;
         vm.RefreshRequested += _ => notifications++;
@@ -125,37 +91,6 @@ public class SpritesEditorViewModelTests
 
         Assert.Equal(2, notifications);
         Assert.Same(vm.SpritesBank.SpritesList[1], vm.CurrentSprite);
-    }
-
-    [AvaloniaFact]
-    public async Task Borrar_pide_confirmacion_diciendo_que_sprite_es()
-    {
-        var dialogs = new TestDialogService { ConfirmAnswer = true };
-        SpritesEditorViewModel vm = new(new SpriteBank(), ColorPalette.CreateMsxStandard(), dialogs);
-        vm.AddSpriteCommand.Execute(null); // quedan 2, seleccionado el 2
-
-        await vm.DeleteSpriteCommand.ExecuteAsync(null);
-
-        Assert.Equal(1, dialogs.ConfirmCalls);
-        Assert.Contains("sprite 2 de 2", dialogs.LastConfirmMessage);
-        Assert.Equal(1, vm.NumberSprites);
-    }
-
-    [AvaloniaFact]
-    public async Task Cancelar_la_confirmacion_no_borra_el_sprite()
-    {
-        var dialogs = new TestDialogService { ConfirmAnswer = false };
-        SpritesEditorViewModel vm = new(new SpriteBank(), ColorPalette.CreateMsxStandard(), dialogs);
-        vm.AddSpriteCommand.Execute(null);
-        Sprite current = vm.CurrentSprite;
-
-        await vm.DeleteSpriteCommand.ExecuteAsync(null);
-
-        Assert.Equal(1, dialogs.ConfirmCalls);
-        Assert.Equal(2, vm.NumberSprites);
-        Assert.Equal(2, vm.ImagesMiniList.Count);
-        Assert.Same(current, vm.CurrentSprite);
-        Assert.Equal(2, vm.CurrentSpritePosition);
     }
 
     private static SpritesEditorViewModel NewEditor() =>

@@ -30,7 +30,6 @@
   </data>
   <data name="PropertiesOpenTip" xml:space="preserve"><value>Name, supertiles and attributes of this tile set</value></data>
   <data name="SpritesDuplicate" xml:space="preserve"><value>Duplicate this pattern</value></data>
-  <data name="SpritesDeleteLast" xml:space="preserve"><value>Delete the last pattern</value></data>
   <data name="SpritesClearSpriteTip" xml:space="preserve"><value>Blank this pattern, without moving the other numbers</value></data>
   <data name="ClearLabel" xml:space="preserve"><value>Clear</value></data>
   <data name="ClearSpriteTitle" xml:space="preserve"><value>Clear the pattern</value></data>
@@ -200,8 +199,6 @@
   <data name="SpritesOffsetDownTip" xml:space="preserve"><value>Nudge the member one pixel down</value></data>
   <data name="SpritesPreviousTip" xml:space="preserve"><value>Previous sprite in the bank</value></data>
   <data name="SpritesNextTip" xml:space="preserve"><value>Next sprite in the bank</value></data>
-  <data name="SpritesAddSpriteTip" xml:space="preserve"><value>Add a sprite at the end of the bank</value></data>
-  <data name="SpritesDeleteSpriteTip" xml:space="preserve"><value>Delete the sprite on screen</value></data>
   <data name="PreferencesZoom" xml:space="preserve"><value>Starting zoom</value></data>
   <data name="PreferencesSpriteCanvas" xml:space="preserve"><value>Sprite canvas</value></data>
   <data name="PreferencesSpriteThumbnails" xml:space="preserve"><value>Sprite thumbnails</value></data>
@@ -428,8 +425,6 @@ They will look just like before, but with the colours at their new indices. They
   <data name="DeleteItemTitle" xml:space="preserve"><value>Delete from the project</value></data>
   <data name="DeleteItemBody" xml:space="preserve"><value>«{0}» is about to be deleted and its tab will be closed.</value></data>
   <data name="DeleteItemBodyUnsaved" xml:space="preserve"><value>«{0}» is about to be deleted and its tab will be closed. It has unsaved changes and they will be lost.</value></data>
-  <data name="DeleteSpriteTitle" xml:space="preserve"><value>Delete the sprite</value></data>
-  <data name="DeleteSpriteBody" xml:space="preserve"><value>Sprite {0} of {1} is about to be deleted. This cannot be undone.</value></data>
   <data name="DeleteGroupTitle" xml:space="preserve"><value>Delete the group</value></data>
   <data name="DeleteGroupBody" xml:space="preserve"><value>The group «{0}» is about to be deleted. This cannot be undone.</value></data>
 

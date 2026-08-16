@@ -81,8 +81,6 @@ public class SpriteBankSerializerTests
     public void Una_ida_y_vuelta_conserva_el_banco_entero()
     {
         SpriteBank original = new(SpriteBank.SpriteType.MSX2, "Prueba");
-        original.NewSprite();
-        original.NewSprite();
 
         original.SpritesList[1].ArraySpriteRows[5].ArrayColumns[3] = true;
         original.SpritesList[1].ArraySpriteRows[5].ArrayColumns[12] = true;
@@ -109,7 +107,7 @@ public class SpriteBankSerializerTests
         Assert.Equal("Prueba", loaded.Bank.Name);
         Assert.Equal(SpriteBank.SpriteType.MSX2, loaded.Bank.Type);
         Assert.Equal(4, loaded.BackgroundColorIndex);
-        Assert.Equal(3, loaded.Bank.SpritesList.Count);
+        Assert.Equal(SpriteBank.MaxSprites, loaded.Bank.SpritesList.Count);
 
         Assert.True(loaded.Bank.SpritesList[1].ArraySpriteRows[5].ArrayColumns[3]);
         Assert.True(loaded.Bank.SpritesList[1].ArraySpriteRows[5].ArrayColumns[12]);
@@ -167,7 +165,13 @@ public class SpriteBankSerializerTests
     [AvaloniaFact]
     public void Una_linea_de_patron_con_digitos_de_mas_se_rechaza()
     {
-        string json = Serialize(new SpriteBank(SpriteBank.SpriteType.MSX2, "Prueba"))
+        SpriteBank bank = new(SpriteBank.SpriteType.MSX2, "Prueba");
+
+        // Con algo dibujado: un banco entero en blanco ya no escribe ningun patron, asi que
+        // no habria ninguna linea que estropear.
+        bank.SpritesList[0].ArraySpriteRows[0].ArrayColumns[0] = true;
+
+        string json = Serialize(bank)
             .Replace("\"0000\"", "\"00000\"", StringComparison.Ordinal);
 
         var exception = Assert.Throws<FileFormatException>(() => SpriteBankSerializer.Deserialize(json));
@@ -181,11 +185,12 @@ public class SpriteBankSerializerTests
         SpriteBank bank = new(SpriteBank.SpriteType.MSX2, "Prueba");
         bank.NewGroup(0);
 
-        string json = Serialize(bank).Replace("\"pattern\": 0", "\"pattern\": 40", StringComparison.Ordinal);
+        // Fuera de los 64, que ahora existen todos: el 40 es un patron perfectamente valido.
+        string json = Serialize(bank).Replace("\"pattern\": 0", "\"pattern\": 70", StringComparison.Ordinal);
 
         var exception = Assert.Throws<FileFormatException>(() => SpriteBankSerializer.Deserialize(json));
 
-        Assert.Contains("patrón 40", exception.Message);
+        Assert.Contains("patrón 70", exception.Message);
     }
 
     [AvaloniaFact]
@@ -197,6 +202,75 @@ public class SpriteBankSerializerTests
         var exception = Assert.Throws<FileFormatException>(() => SpriteBankSerializer.Deserialize(json));
 
         Assert.Contains("versión", exception.Message);
+    }
+
+    /// <summary>
+    /// Un banco de la versión 1 se abre con cada patrón donde estaba.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Es la propiedad que hace aceptable el cambio a 64 huecos fijos. En la versión 1 los
+    /// patrones iban seguidos desde el 0 y sin número, así que su posición en el fichero
+    /// <b>era</b> su índice: leyéndolos por posición caen exactamente donde estaban. Ni el
+    /// banco ni el código Z80 de quien lo usa se enteran de que el formato ha cambiado.
+    /// </para>
+    /// <para>
+    /// El fichero de prueba sale del de ahora quitándole los números y bajando la versión,
+    /// que es exactamente la forma que tenía el de antes.
+    /// </para>
+    /// </remarks>
+    [AvaloniaFact]
+    public void Un_banco_de_la_version_anterior_conserva_sus_indices()
+    {
+        SpriteBank original = new(SpriteBank.SpriteType.MSX2, "Prueba");
+
+        // Tres seguidos desde el 0, que es lo unico que podia haber en la version 1.
+        original.SpritesList[0].ArraySpriteRows[0].ArrayColumns[1] = true;
+        original.SpritesList[1].ArraySpriteRows[0].ArrayColumns[2] = true;
+        original.SpritesList[2].ArraySpriteRows[0].ArrayColumns[3] = true;
+
+        string old = System.Text.RegularExpressions.Regex.Replace(
+            Serialize(original), @",\s*""index"":\s*\d+", string.Empty)
+            .Replace("\"version\": 2", "\"version\": 1", StringComparison.Ordinal);
+
+        Assert.DoesNotContain("index", old, StringComparison.Ordinal);
+
+        LoadedSpriteBank loaded = SpriteBankSerializer.Deserialize(old);
+
+        Assert.True(loaded.Bank.SpritesList[0].ArraySpriteRows[0].ArrayColumns[1]);
+        Assert.True(loaded.Bank.SpritesList[1].ArraySpriteRows[0].ArrayColumns[2]);
+        Assert.True(loaded.Bank.SpritesList[2].ArraySpriteRows[0].ArrayColumns[3]);
+
+        // Y el banco viejo se completa hasta los 64, con el resto en blanco.
+        Assert.Equal(SpriteBank.MaxSprites, loaded.Bank.SpritesList.Count);
+        Assert.True(loaded.Bank.SpritesList[3].IsEmpty);
+    }
+
+    /// <summary>
+    /// Un patrón dibujado lejos vuelve a su hueco, y los de en medio siguen vacíos.
+    /// </summary>
+    /// <remarks>
+    /// Sólo se escriben los dibujados, así que entre el 0 y el 40 no hay nada en el
+    /// fichero. Lo que los devuelve a su sitio es el número que lleva cada uno.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Los_huecos_vacios_no_se_escriben_y_los_indices_se_respetan()
+    {
+        SpriteBank original = new(SpriteBank.SpriteType.MSX2, "Prueba");
+
+        original.SpritesList[40].ArraySpriteRows[7].ArrayColumns[5] = true;
+
+        string json = Serialize(original);
+
+        LoadedSpriteBank loaded = SpriteBankSerializer.Deserialize(json);
+
+        Assert.True(loaded.Bank.SpritesList[40].ArraySpriteRows[7].ArrayColumns[5]);
+        Assert.True(loaded.Bank.SpritesList[0].IsEmpty);
+        Assert.True(loaded.Bank.SpritesList[39].IsEmpty);
+
+        // Y el fichero no lleva sesenta y tres patrones en blanco.
+        Assert.Single(
+            System.Text.Json.JsonDocument.Parse(json).RootElement.GetProperty("patterns").EnumerateArray());
     }
 
     private static string Serialize(SpriteBank bank) =>

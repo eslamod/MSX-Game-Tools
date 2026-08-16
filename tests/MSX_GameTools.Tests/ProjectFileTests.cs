@@ -215,7 +215,7 @@ public class ProjectFileTests : IDisposable
 
         // Con lo que se pintó, no sólo con los nombres.
         Assert.True(tiles.TileSet.ListOfTiles[0].ArrayTileRows[4].ArrayPattern[3]);
-        Assert.Equal(2, bank.SpritesBank.SpritesList.Count);
+        Assert.Equal(SpriteBank.MaxSprites, bank.SpritesBank.SpritesList.Count);
         Assert.Equal(7, map.Map.Layers[0].Grid[1, 1]);
 
         // El mapa se ha enganchado a su juego de tiles, que es lo que lo hace dibujable.
@@ -416,7 +416,7 @@ public class ProjectFileTests : IDisposable
         bankForm.Name = "Bichos";
         bankForm.AcceptSpriteBankCommand.Execute(null);
 
-        ((SpritesEditorViewModel)main.SelectedTab!).AddSpriteCommand.Execute(null);
+        ((SpritesEditorViewModel)main.SelectedTab!).NextSpriteCommand.Execute(null);
 
         main.AddMapCommand.Execute(null);
 

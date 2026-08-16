@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.VisualTree;
@@ -43,7 +43,7 @@ public class SpriteGroupViewTests
     public void Crear_un_grupo_usa_el_sprite_actual_y_lo_deja_seleccionado()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
-        editor.ViewModel.AddSpriteCommand.Execute(null); // el 2 pasa a ser el actual
+        editor.ViewModel.NextSpriteCommand.Execute(null); // el 2 pasa a ser el actual
         editor.SetThumbnailMode(ThumbnailMode.Groups);
 
         editor.ViewModel.AddGroupCommand.Execute(null);
@@ -75,7 +75,7 @@ public class SpriteGroupViewTests
     public void Anadir_un_miembro_repite_el_patron_del_seleccionado()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
-        editor.ViewModel.AddSpriteCommand.Execute(null);
+        editor.ViewModel.NextSpriteCommand.Execute(null);
         editor.SetThumbnailMode(ThumbnailMode.Groups);
         editor.ViewModel.AddGroupCommand.Execute(null);
 
@@ -143,8 +143,8 @@ public class SpriteGroupViewTests
     public void Seleccionar_un_miembro_lleva_el_lienzo_a_su_patron()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
-        editor.ViewModel.AddSpriteCommand.Execute(null);
-        editor.ViewModel.AddSpriteCommand.Execute(null); // 3 patrones
+        editor.ViewModel.NextSpriteCommand.Execute(null);
+        editor.ViewModel.NextSpriteCommand.Execute(null); // 3 patrones
 
         editor.SetThumbnailMode(ThumbnailMode.Groups);
         editor.ViewModel.AddGroupCommand.Execute(null);  // miembro sobre el patron 2
@@ -164,7 +164,7 @@ public class SpriteGroupViewTests
     public void Cambiar_el_patron_del_miembro_lleva_el_lienzo_a_ese_patron()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
-        editor.ViewModel.AddSpriteCommand.Execute(null);
+        editor.ViewModel.NextSpriteCommand.Execute(null);
 
         editor.SetThumbnailMode(ThumbnailMode.Groups);
         editor.ViewModel.AddGroupCommand.Execute(null);
@@ -186,7 +186,7 @@ public class SpriteGroupViewTests
         editor.ViewModel.AddGroupCommand.Execute(null);
 
         editor.SetThumbnailMode(ThumbnailMode.Patterns);
-        editor.ViewModel.AddSpriteCommand.Execute(null); // el lienzo se va al patron 2
+        editor.ViewModel.NextSpriteCommand.Execute(null); // el lienzo se va al patron 2
 
         editor.SetThumbnailMode(ThumbnailMode.Groups);
 

@@ -36,7 +36,7 @@ public class SpriteBankFileCommandsTests : IDisposable
         var main = new MainWindowViewModel(dialogs);
 
         SpritesEditorViewModel editor = main.OpenSpriteBank(new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"));
-        editor.AddSpriteCommand.Execute(null);
+        editor.NextSpriteCommand.Execute(null);
         editor.CurrentSprite.ArraySpriteRows[4].ArrayColumns[9] = true;
         editor.AddGroupCommand.Execute(null);
         editor.SelectedGroup!.NudgeOffsetCommand.Execute("right");
@@ -51,8 +51,10 @@ public class SpriteBankFileCommandsTests : IDisposable
 
         Assert.Equal("Bicho", loaded.SpritesBank.Name);
         Assert.Equal("Bicho (SP)", loaded.Header);
-        Assert.Equal(2, loaded.SpritesBank.SpritesList.Count);
+        // Lo que dice que ha vuelto entero es el pixel donde se pinto, no la cuenta de
+        // patrones: esos son siempre 64.
         Assert.True(loaded.SpritesBank.SpritesList[1].ArraySpriteRows[4].ArrayColumns[9]);
+        Assert.True(loaded.SpritesBank.SpritesList[0].IsEmpty);
         Assert.Single(loaded.SpritesBank.Groups);
         Assert.Equal(1, loaded.SpritesBank.Groups[0].Members[0].OffsetX);
     }

@@ -24,7 +24,7 @@ public class SpriteThumbnailSelectionTests
     public void Pulsar_una_miniatura_lleva_ese_sprite_al_lienzo_de_edicion()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag);
-        AddSprites(editor, 3);
+        GoToSprite(editor, 3);
 
         editor.ClickThumbnail(2);
 
@@ -37,7 +37,7 @@ public class SpriteThumbnailSelectionTests
     public void Pulsar_una_miniatura_repinta_el_lienzo()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag);
-        AddSprites(editor, 2);
+        GoToSprite(editor, 2);
 
         // Pintamos en el sprite 3 y volvemos al 1: el lienzo debe reflejar el sprite 1.
         editor.ClickThumbnail(2);
@@ -57,7 +57,7 @@ public class SpriteThumbnailSelectionTests
         using var editor = new SpriteCanvasHarness(PaintMode.Drag);
         Assert.Equal(0, editor.Thumbnails.SelectedIndex);
 
-        editor.ViewModel.AddSpriteCommand.Execute(null);
+        editor.ViewModel.NextSpriteCommand.Execute(null);
         editor.ThumbnailContainer(1);
 
         Assert.Equal(1, editor.Thumbnails.SelectedIndex);
@@ -68,7 +68,7 @@ public class SpriteThumbnailSelectionTests
     public void Navegar_con_los_botones_mueve_la_seleccion_de_las_miniaturas()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag);
-        AddSprites(editor, 2); // 3 sprites, seleccionado el ultimo
+        GoToSprite(editor, 2); // 3 sprites, seleccionado el ultimo
 
         Assert.Equal(2, editor.Thumbnails.SelectedIndex);
 
@@ -86,7 +86,7 @@ public class SpriteThumbnailSelectionTests
     public void Pasar_el_raton_por_encima_marca_la_miniatura()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag);
-        AddSprites(editor, 2);
+        GoToSprite(editor, 2);
 
         editor.HoverThumbnail(1);
 
@@ -99,45 +99,38 @@ public class SpriteThumbnailSelectionTests
         Assert.False(editor.ThumbnailContainer(1).IsPointerOver);
     }
 
+    /// <summary>
+    /// Vaciar un patrón no mueve la selección: sigue siendo el mismo hueco.
+    /// </summary>
+    /// <remarks>
+    /// Aquí había dos comprobaciones de a dónde saltaba la selección al borrar —una para
+    /// el de en medio y otra para el último—. Ya no hay borrar: los 64 huecos están
+    /// siempre, y vaciar deja el que estabas mirando donde estaba.
+    /// </remarks>
     [AvaloniaFact]
-    public async Task Al_borrar_la_seleccion_pasa_al_sprite_que_ocupa_esa_posicion()
+    public async Task Al_vaciar_la_seleccion_se_queda_donde_estaba()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag);
-        AddSprites(editor, 2);
+        GoToSprite(editor, 2);
 
-        Sprite tercero = editor.Bank.SpritesList[2];
         editor.ClickThumbnail(1);
         Assert.Equal(2, editor.ViewModel.CurrentSpritePosition);
 
-        await editor.ViewModel.DeleteSpriteCommand.ExecuteAsync(null);
+        Sprite current = editor.ViewModel.CurrentSprite;
 
-        Assert.Equal(2, editor.ViewModel.NumberSprites);
-        Assert.Equal(2, editor.Thumbnails.ItemCount);
+        await editor.ViewModel.ClearSpriteCommand.ExecuteAsync(null);
+
         Assert.Equal(2, editor.ViewModel.CurrentSpritePosition);
-        Assert.Same(tercero, editor.ViewModel.CurrentSprite);
+        Assert.Same(current, editor.ViewModel.CurrentSprite);
         Assert.Equal(1, editor.Thumbnails.SelectedIndex);
     }
 
-    [AvaloniaFact]
-    public async Task Al_borrar_el_ultimo_la_seleccion_retrocede()
-    {
-        using var editor = new SpriteCanvasHarness(PaintMode.Drag);
-        AddSprites(editor, 2);
-
-        editor.ClickThumbnail(2);
-        await editor.ViewModel.DeleteSpriteCommand.ExecuteAsync(null);
-
-        Assert.Equal(2, editor.ViewModel.CurrentSpritePosition);
-        Assert.Equal(1, editor.Thumbnails.SelectedIndex);
-        Assert.Same(editor.Bank.SpritesList[1], editor.ViewModel.CurrentSprite);
-    }
-
-    private static void AddSprites(SpriteCanvasHarness editor, int count)
+    private static void GoToSprite(SpriteCanvasHarness editor, int count)
     {
         for (int i = 0; i < count; i++)
-            editor.ViewModel.AddSpriteCommand.Execute(null);
+            editor.ViewModel.NextSpriteCommand.Execute(null);
 
-        // Deja que el ListBox realice los contenedores nuevos.
+        // Deja que el ListBox realice los contenedores.
         editor.ThumbnailContainer(count);
     }
 }

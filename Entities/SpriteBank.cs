@@ -10,7 +10,23 @@ public class SpriteBank
         MSX2,
     }
 
-    /// <summary>Límite de sprites de un banco en el VDP.</summary>
+    /// <summary>
+    /// Patrones de un banco. Son siempre estos, ni uno más ni uno menos.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// La tabla de patrones de sprites del VDP es una región de tamaño fijo —64 de 32
+    /// bytes— y el patrón N vive en un sitio fijo dentro de ella, igual que los tiles. Por
+    /// eso el banco no es una lista que crece y encoge: es la tabla.
+    /// </para>
+    /// <para>
+    /// Antes se añadían y se quitaban, y quitar uno de en medio corría un puesto a todos
+    /// los de atrás. Eso descolocaba los grupos, que apuntan por índice, y sobre todo el
+    /// juego: si el código de la máquina dibuja el sprite 12, tras borrar el 3 el 12 es
+    /// otro dibujo, y eso el editor no lo puede arreglar por nadie. Con los 64 siempre
+    /// puestos no hay ningún número que se pueda mover.
+    /// </para>
+    /// </remarks>
     public const int MaxSprites = 64;
 
     /// <summary>
@@ -29,7 +45,15 @@ public class SpriteBank
     {
         _spriteType = spriteType;
         Name = name;
-        NewSprite();
+
+        for (int index = 0; index < MaxSprites; index++)
+        {
+            Sprite sprite = _spriteType == SpriteType.MSX ? new SpriteMSX() : new SpriteMSX2();
+
+            sprite.ImageMini = new ImageMini(ImageMini.ImagePreviewType.ImagePreview16x16);
+
+            _sprites.Add(sprite);
+        }
     }
 
     /// <summary>
@@ -98,42 +122,57 @@ public class SpriteBank
 
     public SpriteType Type => _spriteType;
 
-    /// <summary>Añade un sprite al banco. Devuelve <c>null</c> si el banco está lleno.</summary>
-    public Sprite? NewSprite()
+    /// <summary>El primer patrón sin dibujar, o -1 si están todos ocupados.</summary>
+    public int FirstEmpty()
     {
-        if (_sprites.Count >= MaxSprites)
-            return null;
+        for (int index = 0; index < _sprites.Count; index++)
+        {
+            if (_sprites[index].IsEmpty)
+                return index;
+        }
 
-        Sprite sprite = _spriteType == SpriteType.MSX ? new SpriteMSX() : new SpriteMSX2();
-        sprite.ImageMini = new ImageMini(ImageMini.ImagePreviewType.ImagePreview16x16);
-        _sprites.Add(sprite);
-        return sprite;
+        return -1;
     }
 
     /// <summary>
-    /// Añade una copia de ese patron al final del banco.
+    /// El último patrón con algo dentro, o -1 si el banco está entero en blanco.
     /// </summary>
     /// <remarks>
-    /// Al final y no justo detras del original, que seria lo natural de leer: los grupos
-    /// apuntan a sus patrones <b>por indice</b>, y meter uno en medio correria todos los de
-    /// atras sin que los grupos se enteren. Al final no se mueve ninguno.
+    /// Es hasta donde llega la tabla que se exporta: escribir los 64 siempre son 2 KB
+    /// aunque se usen cuatro, y eso pesa en una ROM de 32K. Los índices siguen siendo los
+    /// mismos porque se corta por el final, no por el principio.
     /// </remarks>
-    /// <returns>La copia, o <c>null</c> si el banco esta lleno o el patron no existe.</returns>
-    public Sprite? DuplicateSprite(int pos)
+    public int LastDrawn()
     {
-        if ((uint)pos >= (uint)_sprites.Count)
-            return null;
+        for (int index = _sprites.Count - 1; index >= 0; index--)
+        {
+            if (!_sprites[index].IsEmpty)
+                return index;
+        }
 
-        Sprite? copy = NewSprite();
-
-        copy?.CopyFrom(_sprites[pos]);
-
-        return copy;
+        return -1;
     }
 
-    public void DeleteSprite(int pos)
+    /// <summary>
+    /// Copia un patrón en el primer hueco libre.
+    /// </summary>
+    /// <remarks>
+    /// En el primero libre y no justo detrás del original: detrás habría que correr los de
+    /// atrás, y correr un índice es exactamente lo que este banco ya no hace.
+    /// </remarks>
+    /// <returns>Dónde ha caído la copia, o -1 si no queda ningún hueco.</returns>
+    public int DuplicateSprite(int pos)
     {
-        if ((uint)pos < (uint)_sprites.Count)
-            _sprites.RemoveAt(pos);
+        if ((uint)pos >= (uint)_sprites.Count)
+            return -1;
+
+        int free = FirstEmpty();
+
+        if (free < 0)
+            return -1;
+
+        _sprites[free].CopyFrom(_sprites[pos]);
+
+        return free;
     }
 }

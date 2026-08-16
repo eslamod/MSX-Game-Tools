@@ -67,7 +67,7 @@ public class SpriteColorTests
         SpritesEditorViewModel vm = NewEditor(SpriteBank.SpriteType.MSX2);
         vm.RowColors[3].PickCommand.Execute(vm.ColorPalette[6]);
 
-        vm.AddSpriteCommand.Execute(null); // el nuevo queda seleccionado
+        vm.NextSpriteCommand.Execute(null); // el nuevo queda seleccionado
 
         Assert.Equal(15, vm.RowColors[3].Color.Index);
 
@@ -119,8 +119,8 @@ public class SpriteColorTests
     public void Cambiar_el_fondo_repinta_todas_las_miniaturas_del_banco()
     {
         SpritesEditorViewModel vm = NewEditor(SpriteBank.SpriteType.MSX2);
-        vm.AddSpriteCommand.Execute(null);
-        vm.AddSpriteCommand.Execute(null);
+        vm.NextSpriteCommand.Execute(null);
+        vm.NextSpriteCommand.Execute(null);
 
         vm.PickBackgroundColorCommand.Execute(vm.ColorPalette[7]); // cian
 

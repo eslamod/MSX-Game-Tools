@@ -36,14 +36,14 @@ public class SpriteThumbnailZoomTests
     public void El_zoom_se_aplica_a_todas_las_miniaturas_y_a_las_que_se_anadan_despues()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag);
-        editor.ViewModel.AddSpriteCommand.Execute(null);
+        editor.ViewModel.NextSpriteCommand.Execute(null);
 
         editor.SetThumbnailZoom(4);
 
         Assert.Equal(256, editor.ThumbnailImageSize(0));
         Assert.Equal(256, editor.ThumbnailImageSize(1));
 
-        editor.ViewModel.AddSpriteCommand.Execute(null);
+        editor.ViewModel.NextSpriteCommand.Execute(null);
 
         Assert.Equal(256, editor.ThumbnailImageSize(2));
     }
@@ -52,7 +52,7 @@ public class SpriteThumbnailZoomTests
     public void Cambiar_el_zoom_no_altera_la_seleccion()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag);
-        editor.ViewModel.AddSpriteCommand.Execute(null);
+        editor.ViewModel.NextSpriteCommand.Execute(null);
         editor.ClickThumbnail(0);
 
         editor.SetThumbnailZoom(4);

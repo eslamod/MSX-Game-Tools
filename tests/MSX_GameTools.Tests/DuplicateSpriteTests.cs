@@ -6,20 +6,26 @@ using Xunit;
 namespace MSX_GameTools.Tests;
 
 /// <summary>
-/// Duplicar un patrón dentro de su banco.
+/// El banco de 64 huecos fijos: duplicar en el primero libre y vaciar sin mover nada.
 /// </summary>
 /// <remarks>
-/// Hacer una variación de un sprite —el mismo bicho mirando al otro lado— obligaba a
-/// redibujarlo entero: no había copiar ni pegar en ninguna parte del editor de sprites.
+/// La tabla de patrones del VDP es una región de tamaño fijo y el patrón N vive en un sitio
+/// fijo. Por eso el banco no es una lista que crece y encoge: no hay ninguna operación que
+/// pueda mover el número de un patrón, que es lo que descolocaba los grupos y, sobre todo,
+/// el código del juego.
 /// </remarks>
 public class DuplicateSpriteTests
 {
-    private static SpritesEditorViewModel Bank(SpriteBank.SpriteType type = SpriteBank.SpriteType.MSX2)
+    private static SpritesEditorViewModel Bank(IDialogAnswers? dialogs = null)
     {
-        var bank = new SpriteBank(type, "Bichos");
+        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bichos");
 
-        return new SpritesEditorViewModel(bank, ColorPalette.CreateMsxStandard());
+        return new SpritesEditorViewModel(
+            bank, ColorPalette.CreateMsxStandard(), dialogs?.Service);
     }
+
+    /// <summary>Envoltorio para poder pasar el servicio de diálogos sólo cuando hace falta.</summary>
+    internal sealed record IDialogAnswers(TestDialogService Service);
 
     /// <summary>Pinta un aspa reconocible y le da color a la línea, para saber qué ha llegado.</summary>
     private static void Draw(Sprite sprite, int color)
@@ -51,6 +57,42 @@ public class DuplicateSpriteTests
         return true;
     }
 
+    // ------------------------------------------------------------------ los 64 huecos
+
+    /// <summary>
+    /// Un banco tiene 64 patrones desde que nace, y ninguna operación cambia esa cuenta.
+    /// </summary>
+    /// <remarks>
+    /// Es la propiedad de la que sale todo lo demás: si el número de patrones no cambia
+    /// nunca, ningún índice se puede mover.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_banco_tiene_siempre_sesenta_y_cuatro()
+    {
+        SpritesEditorViewModel editor = Bank();
+
+        Assert.Equal(SpriteBank.MaxSprites, editor.SpritesBank.SpritesList.Count);
+
+        editor.DuplicateSpriteCommand.Execute(null);
+
+        Assert.Equal(SpriteBank.MaxSprites, editor.SpritesBank.SpritesList.Count);
+    }
+
+    /// <summary>Y nacen todos en blanco, que es lo que los distingue de los que se usan.</summary>
+    [AvaloniaFact]
+    public void Nacen_todos_en_blanco()
+    {
+        SpritesEditorViewModel editor = Bank();
+
+        Assert.All(editor.SpritesBank.SpritesList, sprite => Assert.True(sprite.IsEmpty));
+
+        Draw(editor.SpritesBank.SpritesList[3], color: 7);
+
+        Assert.False(editor.SpritesBank.SpritesList[3].IsEmpty);
+    }
+
+    // ------------------------------------------------------------------ duplicar
+
     [AvaloniaFact]
     public void La_copia_lleva_el_dibujo_y_los_colores()
     {
@@ -61,7 +103,6 @@ public class DuplicateSpriteTests
 
         editor.DuplicateSpriteCommand.Execute(null);
 
-        Assert.Equal(2, bank.SpritesList.Count);
         Assert.True(SameDrawing(bank.SpritesList[0], bank.SpritesList[1]));
     }
 
@@ -90,25 +131,49 @@ public class DuplicateSpriteTests
     }
 
     /// <summary>
-    /// La copia va al final, no detrás del original.
+    /// La copia cae en el primer hueco libre, saltándose los que ya se usan.
     /// </summary>
     /// <remarks>
-    /// Los grupos apuntan a sus patrones por índice. Metiendo la copia en medio, todos los
-    /// de atrás correrían un puesto y los grupos seguirían apuntando al número de antes:
-    /// un grupo compuesto se rompería sin tocarlo.
+    /// No detrás del original: detrás habría que correr los de atrás, y correr un índice es
+    /// justo lo que este banco ya no hace.
     /// </remarks>
     [AvaloniaFact]
-    public void La_copia_va_al_final_y_no_descoloca_los_grupos()
+    public void La_copia_cae_en_el_primer_hueco_libre()
     {
         SpritesEditorViewModel editor = Bank();
         SpriteBank bank = editor.SpritesBank;
 
-        editor.AddSpriteCommand.Execute(null);
-        editor.AddSpriteCommand.Execute(null);
-
+        Draw(bank.SpritesList[0], color: 7);
+        Draw(bank.SpritesList[1], color: 4);
         Draw(bank.SpritesList[2], color: 5);
 
-        // Un grupo que señala al tercero.
+        editor.DuplicateSpriteCommand.Execute(null);
+
+        Assert.True(SameDrawing(bank.SpritesList[0], bank.SpritesList[3]));
+
+        // Y los que ya estaban puestos siguen donde estaban.
+        Assert.Equal(4, bank.SpritesList[1].ArraySpriteRows[0].Color);
+        Assert.Equal(5, bank.SpritesList[2].ArraySpriteRows[0].Color);
+    }
+
+    /// <summary>
+    /// Duplicar no descoloca un grupo, apunte a donde apunte.
+    /// </summary>
+    /// <remarks>
+    /// Los grupos señalan a sus patrones por índice. Se guarda el patrón concreto al que
+    /// apunta y se comprueba que sigue resolviendo a ése: comparar el dibujo de una
+    /// posición con el de la posición a la que apunta el grupo sería compararlo consigo
+    /// mismo, y eso se cumple se mueva lo que se mueva.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Duplicar_no_descoloca_los_grupos()
+    {
+        SpritesEditorViewModel editor = Bank();
+        SpriteBank bank = editor.SpritesBank;
+
+        Draw(bank.SpritesList[0], color: 7);
+        Draw(bank.SpritesList[2], color: 5);
+
         editor.AddGroupCommand.Execute(null);
 
         SpriteGroupViewModel group = editor.Groups[0];
@@ -116,19 +181,11 @@ public class DuplicateSpriteTests
         group.AddMemberCommand.Execute(null);
         group.SelectedMember!.PatternIndex = 2;
 
-        // El patrón concreto al que apunta el grupo, antes de duplicar nada.
-        Sprite pointed = bank.SpritesList[group.SelectedMember!.PatternIndex];
+        Sprite pointed = bank.SpritesList[group.SelectedMember.PatternIndex];
 
-        // Se duplica el primero, que es el que tiene delante todo lo demas.
-        editor.PreviousSpriteCommand.Execute(null);
         editor.DuplicateSpriteCommand.Execute(null);
 
-        Assert.Equal(4, bank.SpritesList.Count);
-
-        // El grupo sigue resolviendo al mismo patrón, no a otro que se haya corrido un
-        // puesto. Se compara el objeto y no el dibujo: comparar el dibujo de la posición 2
-        // con el de la posición a la que apunta el grupo es compararlo consigo mismo, y eso
-        // se cumple se corra lo que se corra.
+        Assert.Equal(2, group.SelectedMember!.PatternIndex);
         Assert.Same(pointed, bank.SpritesList[group.SelectedMember.PatternIndex]);
     }
 
@@ -138,10 +195,11 @@ public class DuplicateSpriteTests
     {
         SpritesEditorViewModel editor = Bank();
 
+        Draw(editor.SpritesBank.SpritesList[0], color: 7);
+
         editor.DuplicateSpriteCommand.Execute(null);
 
         Assert.Equal(2, editor.CurrentSpritePosition);
-        Assert.Equal(2, editor.ImagesMiniList.Count);
     }
 
     /// <summary>Y el banco queda marcado como sin guardar.</summary>
@@ -156,59 +214,32 @@ public class DuplicateSpriteTests
         Assert.True(editor.IsModified);
     }
 
-    // ------------------------------------------------------- vaciar y eliminar el ultimo
-
-    /// <summary>
-    /// Sólo se puede eliminar el último patrón.
-    /// </summary>
-    /// <remarks>
-    /// Quitar uno de en medio corre un puesto a todos los de atrás. Eso descoloca los
-    /// grupos, que apuntan por índice, pero sobre todo descoloca el juego: si el código de
-    /// la máquina dibuja el sprite 12, después de borrar el 3 el 12 es otro dibujo. Y eso
-    /// el editor no lo puede arreglar por nadie.
-    /// </remarks>
+    /// <summary>Sin ningún hueco libre no se puede duplicar.</summary>
     [AvaloniaFact]
-    public void Solo_se_elimina_el_ultimo()
+    public void Con_los_sesenta_y_cuatro_ocupados_no_se_duplica()
     {
         SpritesEditorViewModel editor = Bank();
 
-        editor.AddSpriteCommand.Execute(null);
-        editor.AddSpriteCommand.Execute(null);
+        foreach (Sprite sprite in editor.SpritesBank.SpritesList)
+            Draw(sprite, color: 7);
 
-        // Recien añadido, se esta en el ultimo.
-        Assert.True(editor.DeleteSpriteCommand.CanExecute(null));
-
-        editor.PreviousSpriteCommand.Execute(null);
-
-        Assert.False(editor.DeleteSpriteCommand.CanExecute(null));
+        Assert.False(editor.DuplicateSpriteCommand.CanExecute(null));
     }
 
-    /// <summary>Y nunca el único que queda, que dejaría el lienzo sin nada que dibujar.</summary>
-    [AvaloniaFact]
-    public void El_unico_que_queda_no_se_elimina()
-    {
-        SpritesEditorViewModel editor = Bank();
-
-        Assert.Equal(1, editor.SpritesBank.SpritesList.Count);
-        Assert.False(editor.DeleteSpriteCommand.CanExecute(null));
-    }
+    // ------------------------------------------------------------------ vaciar
 
     /// <summary>
     /// Vaciar deja el hueco donde estaba.
     /// </summary>
     /// <remarks>
-    /// Es lo que sustituye a eliminar en medio: el patrón se queda en blanco pero sigue
-    /// ocupando su número, así que nada de lo de atrás se mueve.
+    /// Es lo que sustituye a eliminar: el patrón se queda en blanco pero sigue ocupando su
+    /// número, así que nada de lo de atrás se mueve.
     /// </remarks>
     [AvaloniaFact]
     public async Task Vaciar_no_mueve_los_numeros()
     {
-        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bichos");
-        var editor = new SpritesEditorViewModel(
-            bank, ColorPalette.CreateMsxStandard(), new TestDialogService());
-
-        editor.AddSpriteCommand.Execute(null);
-        editor.AddSpriteCommand.Execute(null);
+        SpritesEditorViewModel editor = Bank(new IDialogAnswers(new TestDialogService()));
+        SpriteBank bank = editor.SpritesBank;
 
         Draw(bank.SpritesList[0], color: 7);
 
@@ -217,45 +248,31 @@ public class DuplicateSpriteTests
         Draw(bank.SpritesList[1], color: 3);
         Draw(bank.SpritesList[2], color: 5);
 
-        Sprite last = bank.SpritesList[2];
+        Sprite third = bank.SpritesList[2];
 
-        // Se vacia el de en medio.
-        editor.PreviousSpriteCommand.Execute(null);
+        editor.NextSpriteCommand.Execute(null);
+
         await editor.ClearSpriteCommand.ExecuteAsync(null);
 
-        Assert.Equal(3, bank.SpritesList.Count);
-        Assert.Same(last, bank.SpritesList[2]);
+        Assert.Equal(SpriteBank.MaxSprites, bank.SpritesList.Count);
+        Assert.Same(third, bank.SpritesList[2]);
 
-        // El vaciado queda en blanco y los demas intactos.
-        Assert.True(SameDrawing(bank.SpritesList[1], new SpriteMSX2()));
+        Assert.True(bank.SpritesList[1].IsEmpty);
         Assert.Equal(7, bank.SpritesList[0].ArraySpriteRows[0].Color);
+        Assert.Equal(5, bank.SpritesList[2].ArraySpriteRows[0].Color);
     }
 
     /// <summary>Vaciar pregunta antes: en el editor de sprites no hay deshacer.</summary>
     [AvaloniaFact]
     public async Task Vaciar_pregunta_antes()
     {
-        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bichos");
-        var editor = new SpritesEditorViewModel(
-            bank, ColorPalette.CreateMsxStandard(), new TestDialogService { ConfirmAnswer = false });
+        SpritesEditorViewModel editor =
+            Bank(new IDialogAnswers(new TestDialogService { ConfirmAnswer = false }));
 
-        Draw(bank.SpritesList[0], color: 7);
+        Draw(editor.SpritesBank.SpritesList[0], color: 7);
 
         await editor.ClearSpriteCommand.ExecuteAsync(null);
 
-        Assert.Equal(7, bank.SpritesList[0].ArraySpriteRows[0].Color);
-    }
-
-    /// <summary>Con el banco lleno no se puede duplicar, igual que no se puede añadir.</summary>
-    [AvaloniaFact]
-    public void Con_el_banco_lleno_no_se_duplica()
-    {
-        SpritesEditorViewModel editor = Bank();
-
-        while (editor.AddSpriteCommand.CanExecute(null))
-            editor.AddSpriteCommand.Execute(null);
-
-        Assert.Equal(SpriteBank.MaxSprites, editor.SpritesBank.SpritesList.Count);
-        Assert.False(editor.DuplicateSpriteCommand.CanExecute(null));
+        Assert.Equal(7, editor.SpritesBank.SpritesList[0].ArraySpriteRows[0].Color);
     }
 }

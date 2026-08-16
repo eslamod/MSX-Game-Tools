@@ -44,7 +44,6 @@
   </data>
   <data name="PropertiesOpenTip" xml:space="preserve"><value>Nombre, supertiles y atributos de este juego de tiles</value></data>
   <data name="SpritesDuplicate" xml:space="preserve"><value>Duplicar este patrón</value></data>
-  <data name="SpritesDeleteLast" xml:space="preserve"><value>Eliminar el último patrón</value></data>
   <data name="SpritesClearSpriteTip" xml:space="preserve"><value>Dejar este patrón en blanco, sin mover los números de los demás</value></data>
   <data name="ClearLabel" xml:space="preserve"><value>Vaciar</value></data>
   <data name="ClearSpriteTitle" xml:space="preserve"><value>Vaciar el patrón</value></data>
@@ -219,8 +218,6 @@
   <data name="SpritesOffsetDownTip" xml:space="preserve"><value>Correr el miembro un pixel hacia abajo</value></data>
   <data name="SpritesPreviousTip" xml:space="preserve"><value>Sprite anterior del banco</value></data>
   <data name="SpritesNextTip" xml:space="preserve"><value>Sprite siguiente del banco</value></data>
-  <data name="SpritesAddSpriteTip" xml:space="preserve"><value>Añadir un sprite al final del banco</value></data>
-  <data name="SpritesDeleteSpriteTip" xml:space="preserve"><value>Eliminar el sprite que se está viendo</value></data>
   <data name="PreferencesZoom" xml:space="preserve"><value>Zoom de partida</value></data>
   <data name="PreferencesSpriteCanvas" xml:space="preserve"><value>Lienzo de sprites</value></data>
   <data name="PreferencesSpriteThumbnails" xml:space="preserve"><value>Miniaturas de sprites</value></data>
@@ -466,8 +463,6 @@ Se verán igual que antes, pero con los colores en sus índices nuevos. Quedará
   <data name="DeleteItemTitle" xml:space="preserve"><value>Eliminar del proyecto</value></data>
   <data name="DeleteItemBody" xml:space="preserve"><value>Se va a eliminar «{0}» y se cerrará su pestaña.</value></data>
   <data name="DeleteItemBodyUnsaved" xml:space="preserve"><value>Se va a eliminar «{0}» y se cerrará su pestaña. Tiene cambios sin guardar y se perderán.</value></data>
-  <data name="DeleteSpriteTitle" xml:space="preserve"><value>Eliminar el sprite</value></data>
-  <data name="DeleteSpriteBody" xml:space="preserve"><value>Se va a eliminar el sprite {0} de {1}. Esta acción no se puede deshacer.</value></data>
   <data name="DeleteGroupTitle" xml:space="preserve"><value>Eliminar el grupo</value></data>
   <data name="DeleteGroupBody" xml:space="preserve"><value>Se va a eliminar el grupo «{0}». Esta acción no se puede deshacer.</value></data>
 

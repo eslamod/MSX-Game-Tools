@@ -74,7 +74,6 @@ public class GroupMemberVisibilityTests
     private static (SpriteBank Bank, SpriteGroup Group) TwoMemberGroup()
     {
         var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho");
-        bank.NewSprite();
 
         foreach (Sprite pattern in bank.SpritesList)
         {
