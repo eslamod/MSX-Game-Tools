@@ -135,6 +135,73 @@ public class Graphic1CrossModeTests
         Assert.Equal(3, target.ColorGroups[1].BackColor);
     }
 
+    /// <summary>
+    /// Las líneas que no dibujan nada no votan el color.
+    /// </summary>
+    /// <remarks>
+    /// Es el caso de un árbol con cielo encima. Las líneas de cielo van a cero y suelen
+    /// llevar el fondo en los dos colores; siendo mayoría, le ganaban la votación a las pocas
+    /// líneas que pintan hojas y el trozo llegaba con el frente igual que el fondo. Los bits
+    /// estaban todos puestos, pero el dibujo se veía en blanco hasta que cambiabas el par a
+    /// mano.
+    /// </remarks>
+    [Fact]
+    public void Las_lineas_vacias_no_votan_el_color()
+    {
+        var origin = new TileSet("Bosque");
+        Tile tree = origin.ListOfTiles[0];
+
+        // Seis líneas de cielo: nada encendido y verde sobre verde.
+        for (int row = 0; row < 6; row++)
+        {
+            tree.ArrayTileRows[row].ForeColor = 12;
+            tree.ArrayTileRows[row].BackColor = 12;
+        }
+
+        // Y dos de hojas, que son las que de verdad dibujan.
+        for (int row = 6; row < Tile.Rows; row++)
+        {
+            tree.ArrayTileRows[row].ForeColor = 1;
+            tree.ArrayTileRows[row].BackColor = 12;
+            tree.ArrayTileRows[row].ArrayPattern[0] = true;
+        }
+
+        TileSet target = Graphic1();
+
+        target.Stamp(0, 0, origin.Copy(0, 0, 1, 1));
+
+        Assert.Equal(1, target.ColorGroups[0].ForeColor);
+        Assert.Equal(12, target.ColorGroups[0].BackColor);
+
+        // Y con eso el dibujo se ve: el frente no es el mismo color que el fondo.
+        Assert.NotEqual(
+            target.ColorGroups[0].ForeColor,
+            target.ColorGroups[0].BackColor);
+    }
+
+    /// <summary>Si no dibuja nada ninguna línea, votan todas y el fondo es el bueno.</summary>
+    /// <remarks>
+    /// Lo que llega es fondo liso, así que el par que salga da igual mientras el fondo sea el
+    /// que se veía. Sin esta salida, un trozo en blanco dejaba el grupo sin tocar.
+    /// </remarks>
+    [Fact]
+    public void Un_trozo_en_blanco_deja_el_fondo_que_traia()
+    {
+        var origin = new TileSet("Bosque");
+
+        foreach (TileRow row in origin.ListOfTiles[0].ArrayTileRows)
+        {
+            row.ForeColor = 12;
+            row.BackColor = 12;
+        }
+
+        TileSet target = Graphic1();
+
+        target.Stamp(0, 0, origin.Copy(0, 0, 1, 1));
+
+        Assert.Equal(12, target.ColorGroups[0].BackColor);
+    }
+
     /// <summary>De screen 1 a screen 2 no se pierde nada: allí cabe todo.</summary>
     [Fact]
     public void De_screen_1_a_screen_2_llega_dibujo_y_color()

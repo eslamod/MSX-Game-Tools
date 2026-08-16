@@ -71,12 +71,31 @@ public partial class TileColorGroup : ObservableObject
     /// Se queda con el par que más se repite entre unas líneas que vienen de fuera.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// Para cuando cae aquí un trozo de un juego de GRAPHIC 2, donde cada línea trae su par.
     /// El que más se repite y no el de la primera línea: un dibujo suele tener un par
     /// dominante y alguna línea suelta con otro, y quedarse con el de la primera línea daría
     /// el color de una esquina.
+    /// </para>
+    /// <para>
+    /// Sólo votan las líneas que encienden algún pixel. Una línea a cero no enseña su color de
+    /// frente —ese color no se ve y puede ser cualquiera—, y dejarla votar hacía que el cielo
+    /// vacío de encima de un dibujo, que suele ir fondo sobre fondo, le ganara por mayoría a
+    /// las pocas líneas que pintan de verdad. El trozo llegaba con el frente igual que el
+    /// fondo y se veía en blanco, aunque los bits estuvieran todos puestos.
+    /// </para>
     /// </remarks>
     public void AdoptFrom(IEnumerable<TileRow> rows)
+    {
+        TileRow[] all = [.. rows];
+        TileRow[] drawn = [.. all.Where(row => row.PatternByte != 0)];
+
+        // Si no dibuja nada ninguna, votan todas: lo que llega es fondo liso y el par que
+        // salga da igual mientras el fondo sea el bueno.
+        Vote(drawn.Length > 0 ? drawn : all);
+    }
+
+    private void Vote(IReadOnlyList<TileRow> rows)
     {
         var seen = new List<(int Fore, int Back, int Times)>();
 
