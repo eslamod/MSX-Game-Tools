@@ -43,6 +43,7 @@
     <value>Abrir...</value>
   </data>
   <data name="PropertiesOpenTip" xml:space="preserve"><value>Nombre, supertiles y atributos de este juego de tiles</value></data>
+  <data name="SpritesDuplicate" xml:space="preserve"><value>Duplicar este patrón</value></data>
   <data name="TileAttributes" xml:space="preserve"><value>Atributos</value></data>
   <data name="TileAttributeWatchTip" xml:space="preserve"><value>Teñir en la rejilla los tiles que ya lo tienen puesto</value></data>
   <data name="TileAttributesNote" xml:space="preserve"><value>Un nombre por bit, del 0 al 7. Los que se dejen en blanco no se usan. Al exportar sale un byte por tile con estas banderas.</value></data>

@@ -110,6 +110,27 @@ public class SpriteBank
         return sprite;
     }
 
+    /// <summary>
+    /// Añade una copia de ese patron al final del banco.
+    /// </summary>
+    /// <remarks>
+    /// Al final y no justo detras del original, que seria lo natural de leer: los grupos
+    /// apuntan a sus patrones <b>por indice</b>, y meter uno en medio correria todos los de
+    /// atras sin que los grupos se enteren. Al final no se mueve ninguno.
+    /// </remarks>
+    /// <returns>La copia, o <c>null</c> si el banco esta lleno o el patron no existe.</returns>
+    public Sprite? DuplicateSprite(int pos)
+    {
+        if ((uint)pos >= (uint)_sprites.Count)
+            return null;
+
+        Sprite? copy = NewSprite();
+
+        copy?.CopyFrom(_sprites[pos]);
+
+        return copy;
+    }
+
     public void DeleteSprite(int pos)
     {
         if ((uint)pos < (uint)_sprites.Count)

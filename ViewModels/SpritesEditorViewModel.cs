@@ -399,6 +399,32 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
     private bool CanAddSprite() => NumberSprites < SpriteBank.MaxSprites;
 
+    /// <summary>
+    /// Añade una copia del patrón que se está editando.
+    /// </summary>
+    /// <remarks>
+    /// Hacer una variación de un sprite —el mismo bicho mirando al otro lado— obligaba a
+    /// redibujarlo entero. La copia va al final del banco, no detrás del original: los
+    /// grupos apuntan a sus patrones por índice y meter uno en medio los descolocaría.
+    /// </remarks>
+    [RelayCommand(CanExecute = nameof(CanAddSprite))]
+    private void DuplicateSprite()
+    {
+        Sprite? copy = _spriteBank.DuplicateSprite(CurrentSpritePosition - 1);
+
+        if (copy?.ImageMini is null)
+            return;
+
+        ImagesMiniList.Add(copy.ImageMini);
+        NumberSprites = _spriteBank.SpritesList.Count;
+
+        Touch();
+        RenderThumbnail(copy);
+
+        // Se va a la copia, que es sobre la que se va a trabajar.
+        GoTo(NumberSprites);
+    }
+
     [RelayCommand(CanExecute = nameof(CanDeleteSprite))]
     private async Task DeleteSpriteAsync()
     {

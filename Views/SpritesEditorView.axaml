@@ -742,6 +742,15 @@
             <WrapPanel />
           </ItemsPanelTemplate>
         </ListBox.ItemsPanel>
+        <!-- Duplicar va en el menu del boton derecho y no en un boton de la tira: es lo que
+             se hace de vez en cuando, y la tira de abajo ya esta llena. Sobre la miniatura
+             porque es donde se piensa "este, otra vez". -->
+        <ListBox.ContextMenu>
+          <ContextMenu>
+            <MenuItem Header="{l:Localize SpritesDuplicate}"
+                      Command="{Binding DuplicateSpriteCommand}" />
+          </ContextMenu>
+        </ListBox.ContextMenu>
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="entities:ImageMini">
             <!-- El tamaño vive en la vista, no en el ViewModel: es presentacion pura.
