@@ -99,7 +99,7 @@ public class TileCopyViewTests : IDisposable
 
         Click(From(3, 0));
 
-        Assert.Equal(4, Editor.CurrentTilePosition);
+        Assert.Equal(3, Editor.CurrentTileIndex);
         Assert.Null(Editor.Selection);
     }
 

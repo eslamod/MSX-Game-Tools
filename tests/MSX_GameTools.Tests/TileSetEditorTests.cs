@@ -20,10 +20,32 @@ public class TileSetEditorTests
         TileSetEditorViewModel editor = NewEditor();
 
         Assert.Equal(256, editor.Thumbnails.Count);
-        Assert.Equal(1, editor.CurrentTilePosition);
-        Assert.Equal("1 / 256", editor.TileLabel);
+        Assert.Equal(0, editor.CurrentTileIndex);
+        Assert.Equal("0 / 255", editor.TileLabel);
         Assert.False(editor.PreviousTileCommand.CanExecute(null));
         Assert.True(editor.NextTileCommand.CanExecute(null));
+    }
+
+    /// <summary>
+    /// Los tiles se numeran de 0 a 255, que es el número con el que se les llama fuera.
+    /// </summary>
+    /// <remarks>
+    /// El mapa guarda el tile 0 como 0 y el exportador escribe ese mismo 0. El editor
+    /// enseñaba «1 / 256» y era el único sitio de todo el programa que contaba desde 1,
+    /// así que el número que se leía dibujando no era el que había que escribir.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Los_tiles_se_numeran_desde_cero()
+    {
+        TileSetEditorViewModel editor = NewEditor();
+
+        editor.GoTo(7);
+
+        Assert.Equal(7, editor.CurrentTileIndex);
+        Assert.Equal("7 / 255", editor.TileLabel);
+
+        // Y ese número es el hueco del juego, sin desfase.
+        Assert.Same(editor.TileSet.ListOfTiles[editor.CurrentTileIndex], editor.CurrentTile);
     }
 
     [AvaloniaFact]
@@ -33,16 +55,16 @@ public class TileSetEditorTests
 
         editor.NextTileCommand.Execute(null);
 
-        Assert.Equal(2, editor.CurrentTilePosition);
+        Assert.Equal(1, editor.CurrentTileIndex);
         Assert.Same(editor.TileSet.ListOfTiles[1], editor.CurrentTile);
 
         editor.PreviousTileCommand.Execute(null);
 
-        Assert.Equal(1, editor.CurrentTilePosition);
+        Assert.Equal(0, editor.CurrentTileIndex);
 
         editor.GoTo(255);
 
-        Assert.Equal("256 / 256", editor.TileLabel);
+        Assert.Equal("255 / 255", editor.TileLabel);
         Assert.False(editor.NextTileCommand.CanExecute(null));
     }
 
@@ -53,7 +75,7 @@ public class TileSetEditorTests
 
         editor.SelectedThumbnail = editor.Thumbnails[42];
 
-        Assert.Equal(43, editor.CurrentTilePosition);
+        Assert.Equal(42, editor.CurrentTileIndex);
         Assert.Same(editor.TileSet.ListOfTiles[42], editor.CurrentTile);
     }
 

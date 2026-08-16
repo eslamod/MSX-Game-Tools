@@ -57,10 +57,18 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
     [ObservableProperty]
     private ImageMini? _selectedThumbnail;
 
+    /// <summary>
+    /// Qué tile está en el lienzo, de 0 a 255.
+    /// </summary>
+    /// <remarks>
+    /// Desde 0 porque es el número que gastan los mapas, los bloques y el código del juego:
+    /// el tile 0 del mapa es este 0. Enseñar «1 / 256» obligaba a restar uno de cabeza cada
+    /// vez que se miraba un número de tile fuera del editor.
+    /// </remarks>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(NextTileCommand))]
     [NotifyCanExecuteChangedFor(nameof(PreviousTileCommand))]
-    private int _currentTilePosition = 1;
+    private int _currentTileIndex;
 
     /// <summary>
     /// Color del borde, que es lo que se ve donde un tile use el código 0.
@@ -329,18 +337,18 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
     public int TileCount => TileSet.TileCount;
 
-    /// <summary>Lo que se lee al lado de las flechas: «12 / 256».</summary>
-    public string TileLabel => $"{CurrentTilePosition} / {TileCount}";
+    /// <summary>Lo que se lee al lado de las flechas: «12 / 255».</summary>
+    public string TileLabel => $"{CurrentTileIndex} / {TileCount - 1}";
 
     [RelayCommand(CanExecute = nameof(CanGoNext))]
-    private void NextTile() => GoTo(CurrentTilePosition);
+    private void NextTile() => GoTo(CurrentTileIndex + 1);
 
-    private bool CanGoNext() => CurrentTilePosition < TileCount;
+    private bool CanGoNext() => CurrentTileIndex < TileCount - 1;
 
     [RelayCommand(CanExecute = nameof(CanGoPrevious))]
-    private void PreviousTile() => GoTo(CurrentTilePosition - 2);
+    private void PreviousTile() => GoTo(CurrentTileIndex - 1);
 
-    private bool CanGoPrevious() => CurrentTilePosition > 1;
+    private bool CanGoPrevious() => CurrentTileIndex > 0;
 
     /// <summary>Lleva el lienzo al tile de esa posición, 0-255.</summary>
     public void GoTo(int index)
@@ -351,7 +359,7 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
         StopHighlighting();
 
         CurrentTile = _tileSet.ListOfTiles[index];
-        CurrentTilePosition = index + 1;
+        CurrentTileIndex = index;
         SelectedThumbnail = CurrentTile.ImageMini;
 
         for (int row = 0; row < RowColors.Count; row++)
@@ -379,7 +387,7 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
             GoTo(index);
     }
 
-    partial void OnCurrentTilePositionChanged(int value) => OnPropertyChanged(nameof(TileLabel));
+    partial void OnCurrentTileIndexChanged(int value) => OnPropertyChanged(nameof(TileLabel));
 
     /// <summary>El borde se ve en todos los tiles que usen el 0, no sólo en el actual.</summary>
     partial void OnBorderColorIndexChanged(int value)
