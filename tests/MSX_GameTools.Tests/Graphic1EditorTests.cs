@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
@@ -148,8 +149,82 @@ public class Graphic1EditorTests
     [InlineData(TileSet.GraphicMode.Graphic2, true)]
     public void La_columna_de_lineas_solo_se_ve_en_screen_2(TileSet.GraphicMode mode, bool visible)
     {
-        var editor = Editor(mode);
-        var view = new TileSetEditorView { DataContext = editor };
+        Mounted(mode, (view, _) =>
+        {
+            Control strip = Named<ItemsControl>(view, "RowColorStrip");
+
+            Assert.Equal(visible, strip.IsEffectivelyVisible);
+        });
+    }
+
+    /// <summary>
+    /// Los 32 pares salen debajo de la rejilla de tiles, no al lado del lienzo.
+    /// </summary>
+    /// <remarks>
+    /// Debajo de los tiles a los que pintan, que es donde se mira para decidir en qué grupo
+    /// cae un dibujo. Se comprueba con las posiciones en pantalla y no con la fila y la
+    /// columna del markup: lo que importa es dónde acaba viéndose, y la rejilla ocupa varias
+    /// filas, así que el número de fila por sí solo no dice si queda encima o debajo.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Los_pares_salen_debajo_de_la_rejilla_de_tiles()
+    {
+        Mounted(TileSet.GraphicMode.Graphic1, (view, window) =>
+        {
+            Control pairs = Named<StackPanel>(view, "GroupColorStrip");
+
+            Assert.True(pairs.IsEffectivelyVisible);
+
+            Rect grid = Bounds(TileGrid(view), window);
+            Rect strip = Bounds(pairs, window);
+
+            Assert.True(
+                strip.Top >= grid.Bottom - 1,
+                $"los pares empiezan en {strip.Top} y la rejilla acaba en {grid.Bottom}");
+
+            // Y a lo ancho van con la rejilla, que es de donde sale el sitio para ponerlos.
+            Assert.True(
+                strip.Left >= grid.Left - 8,
+                $"los pares empiezan en x={strip.Left} y la rejilla en x={grid.Left}");
+        });
+    }
+
+    /// <summary>Y en screen 2 no están, ni ocupan sitio.</summary>
+    [AvaloniaFact]
+    public void En_screen_2_los_pares_no_estan()
+    {
+        Mounted(TileSet.GraphicMode.Graphic2, (view, _) =>
+            Assert.False(Named<StackPanel>(view, "GroupColorStrip").IsEffectivelyVisible));
+    }
+
+    /// <summary>
+    /// El recuadro de la rejilla, no el ListBox de dentro.
+    /// </summary>
+    /// <remarks>
+    /// El ListBox se dimensiona a sus 256 tiles y a zoom x1 son 64 pixeles de alto, así que
+    /// cabe de sobra en el hueco y su borde inferior no dice nada de hasta dónde llega la
+    /// rejilla. Lo que reserva el sitio es este recuadro, y es con lo que hay que comparar:
+    /// midiendo el ListBox, devolverle a la rejilla la fila de abajo pasaba desapercibido.
+    /// </remarks>
+    private static Control TileGrid(TileSetEditorView view) =>
+        Named<Border>(view, "TileGridPanel");
+
+    private static T Named<T>(TileSetEditorView view, string name)
+        where T : Control =>
+        view.GetVisualDescendants().OfType<T>().First(control => control.Name == name);
+
+    /// <summary>Dónde cae un control dentro de la ventana, ya con todo colocado.</summary>
+    private static Rect Bounds(Control control, Window window)
+    {
+        Point origin = control.TranslatePoint(default, window)
+                       ?? throw new InvalidOperationException("el control no está en la ventana");
+
+        return new Rect(origin, control.Bounds.Size);
+    }
+
+    private static void Mounted(TileSet.GraphicMode mode, Action<TileSetEditorView, Window> check)
+    {
+        var view = new TileSetEditorView { DataContext = Editor(mode) };
         var window = new Window { Content = view, Width = 1400, Height = 900 };
 
         window.Show();
@@ -157,11 +232,7 @@ public class Graphic1EditorTests
 
         try
         {
-            Control strip = view.GetVisualDescendants()
-                .OfType<ItemsControl>()
-                .First(control => control.Name == "RowColorStrip");
-
-            Assert.Equal(visible, strip.IsEffectivelyVisible);
+            check(view, window);
         }
         finally
         {

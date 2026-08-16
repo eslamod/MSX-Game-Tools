@@ -241,16 +241,15 @@
 
          El bloque entero desaparece si el juego no define ninguno, que es la premisa: quien
          no los use no tiene que enterarse de que existen. -->
-    <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
-
-    <!-- Los 32 pares de screen 1, donde en el otro modo va la columna de colores por linea.
-         Aqui y no en el panel de la derecha por lo mismo que los atributos: se tocan
-         mientras se dibuja.
+    <!-- Los 32 pares de screen 1, debajo de la rejilla y no debajo del lienzo: quedan bajo
+         los tiles a los que pintan, que es donde se mira para decidir en que grupo cae un
+         dibujo. Ahi hay mas ancho que junto al lienzo, asi que caben mas por fila.
 
          Envolviendo y no en columnas fijas, igual que los atributos: cuantos mas quepan a lo
-         ancho menos alto le quitan al lienzo. Con tope y barra propia, que 32 pares no caben
-         de ninguna manera sin comerse el lienzo entero. -->
-    <StackPanel Margin="6,10,6,4" IsVisible="{Binding IsGraphic1}">
+         ancho, menos alto le quitan a la rejilla. Con tope y barra propia, que 32 pares no
+         caben de ninguna manera sin comerse media pantalla. -->
+    <StackPanel x:Name="GroupColorStrip"
+                Grid.Row="3" Grid.Column="2" Margin="4,6,4,4" IsVisible="{Binding IsGraphic1}">
 
       <TextBlock Text="{l:Localize TileGroupColors}" FontWeight="Bold" Margin="0,0,0,6" />
 
@@ -349,7 +348,8 @@
 
     </StackPanel>
 
-    <StackPanel Margin="6,10,6,4" IsVisible="{Binding HasAttributes}">
+    <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                Margin="6,10,6,4" IsVisible="{Binding HasAttributes}">
 
       <TextBlock Text="{l:Localize TileAttributesOfTile}" FontWeight="Bold" Margin="0,0,0,6" />
 
@@ -378,8 +378,6 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
       </ScrollViewer>
-
-    </StackPanel>
 
     </StackPanel>
 
@@ -504,7 +502,11 @@
     <!-- Sin alineacion a Left/Top a proposito: con ellas el Border se dimensiona al
          contenido, el ScrollViewer de dentro nunca recibe un limite y no aparece
          ninguna barra por mucho que la rejilla se salga de la pantalla. -->
-    <Border Grid.Row="1" Grid.RowSpan="3" Grid.Column="2"
+    <!-- Hasta la fila 2 y no hasta la 3: debajo van los 32 pares de screen 1, que asi quedan
+         justo bajo los tiles a los que pintan. En screen 2 esa fila no lleva nada y la
+         rejilla ocupa lo mismo que antes, porque la fila es Auto. -->
+    <Border x:Name="TileGridPanel"
+            Grid.Row="1" Grid.RowSpan="2" Grid.Column="2"
             Background="Gray" Margin="0,0,4,4" Padding="4">
       <!-- AllowAutoHide a false: por defecto Avalonia deja una linea fina y solo saca la
              barra al pasar el raton por encima, asi que no se ve que hay mas contenido. -->
