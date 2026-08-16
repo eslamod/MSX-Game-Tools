@@ -29,7 +29,12 @@
     <value>Save project as...</value>
   </data>
   <data name="PropertiesOpenTip" xml:space="preserve"><value>Name, supertiles and attributes of this tile set</value></data>
-  <data name="SpritesDuplicate" xml:space="preserve"><value>Duplicate this pattern</value></data>
+  <data name="SpritesDuplicate" xml:space="preserve"><value>Duplicate into the first free slot</value></data>
+  <data name="SpritesCopy" xml:space="preserve"><value>Copy this pattern</value></data>
+  <data name="SpritesPasteHere" xml:space="preserve"><value>Paste here</value></data>
+  <data name="PasteLabel" xml:space="preserve"><value>Paste</value></data>
+  <data name="PasteSpriteTitle" xml:space="preserve"><value>Paste over</value></data>
+  <data name="PasteSpriteBody" xml:space="preserve"><value>Pattern {0} has a drawing and is about to be overwritten with the copy. This cannot be undone.</value></data>
   <data name="SpritesClearSpriteTip" xml:space="preserve"><value>Blank this pattern, without moving the other numbers</value></data>
   <data name="ClearLabel" xml:space="preserve"><value>Clear</value></data>
   <data name="ClearSpriteTitle" xml:space="preserve"><value>Clear the pattern</value></data>

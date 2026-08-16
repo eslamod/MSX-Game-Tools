@@ -74,6 +74,20 @@ public class Sprite
     /// de otro dejaria dos huecos enseñando la misma imagen.
     /// </para>
     /// </remarks>
+    /// <summary>Una copia suelta del patron, para poder llevarselo.</summary>
+    /// <remarks>
+    /// Suelta del banco: no ocupa hueco ni tiene miniatura. Es lo que se guarda al copiar,
+    /// para que retocar el original despues no cambie lo que se va a pegar.
+    /// </remarks>
+    public Sprite Copy()
+    {
+        var copy = new Sprite();
+
+        copy.CopyFrom(this);
+
+        return copy;
+    }
+
     public void CopyFrom(Sprite other)
     {
         for (int row = 0; row < Rows; row++)

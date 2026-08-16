@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
@@ -148,6 +149,23 @@ public partial class SpritesEditorView : UserControl
     }
 
     private void OnRefreshRequested(Sprite sprite) => CanvSprite.Redraw();
+
+    /// <summary>
+    /// El botón derecho también elige la miniatura.
+    /// </summary>
+    /// <remarks>
+    /// Sin esto el ListBox sólo selecciona con el izquierdo, y las órdenes del menú
+    /// contextual —copiar, pegar aquí— actuarían sobre el patrón que estuviera elegido de
+    /// antes y no sobre el que se acaba de pulsar. «Pegar aquí» tiene que pegar aquí.
+    /// </remarks>
+    private void OnThumbnailPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(ThumbnailList).Properties.IsRightButtonPressed)
+            return;
+
+        if ((e.Source as Visual)?.FindAncestorOfType<ListBoxItem>() is { } item)
+            item.IsSelected = true;
+    }
 
     private void OnZoomChanged(object? sender, RoutedEventArgs e)
     {

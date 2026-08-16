@@ -29,7 +29,12 @@
     <value>Anomena i desa el projecte...</value>
   </data>
   <data name="PropertiesOpenTip" xml:space="preserve"><value>Nom, supertiles i atributs d'aquest joc de tiles</value></data>
-  <data name="SpritesDuplicate" xml:space="preserve"><value>Duplica aquest patró</value></data>
+  <data name="SpritesDuplicate" xml:space="preserve"><value>Duplica al primer lloc lliure</value></data>
+  <data name="SpritesCopy" xml:space="preserve"><value>Copia aquest patró</value></data>
+  <data name="SpritesPasteHere" xml:space="preserve"><value>Enganxa aquí</value></data>
+  <data name="PasteLabel" xml:space="preserve"><value>Enganxa</value></data>
+  <data name="PasteSpriteTitle" xml:space="preserve"><value>Enganxar a sobre</value></data>
+  <data name="PasteSpriteBody" xml:space="preserve"><value>El patró {0} té dibuix i es matxucarà amb el que s'ha copiat. No es pot desfer.</value></data>
   <data name="SpritesClearSpriteTip" xml:space="preserve"><value>Deixa aquest patró en blanc, sense moure els números dels altres</value></data>
   <data name="ClearLabel" xml:space="preserve"><value>Buida</value></data>
   <data name="ClearSpriteTitle" xml:space="preserve"><value>Buidar el patró</value></data>

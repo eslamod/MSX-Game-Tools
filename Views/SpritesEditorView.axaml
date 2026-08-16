@@ -729,6 +729,7 @@
       <Panel>
       <ListBox x:Name="ThumbnailList"
                ScrollViewer.AllowAutoHide="False"
+               PointerPressed="OnThumbnailPressed"
                IsVisible="{Binding ShowsPatterns}"
                ItemsSource="{Binding ImagesMiniList}"
                SelectedItem="{Binding SelectedThumbnail, Mode=TwoWay}"
@@ -747,6 +748,15 @@
              porque es donde se piensa "este, otra vez". -->
         <ListBox.ContextMenu>
           <ContextMenu>
+            <MenuItem Header="{l:Localize SpritesCopy}"
+                      Command="{Binding CopySpriteCommand}" />
+
+            <!-- «Aqui» es el patron sobre el que se ha pulsado, porque el boton derecho
+                 tambien selecciona: sin eso pegaria en el que estuviera elegido antes, que
+                 no es donde apunta el raton. -->
+            <MenuItem Header="{l:Localize SpritesPasteHere}"
+                      Command="{Binding PasteSpriteCommand}" />
+            <Separator />
             <MenuItem Header="{l:Localize SpritesDuplicate}"
                       Command="{Binding DuplicateSpriteCommand}" />
           </ContextMenu>

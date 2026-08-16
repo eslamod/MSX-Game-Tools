@@ -226,6 +226,124 @@ public class DuplicateSpriteTests
         Assert.False(editor.DuplicateSpriteCommand.CanExecute(null));
     }
 
+    // ------------------------------------------------------------------ copiar y pegar
+
+    /// <summary>
+    /// Copiar y pegar lleva un patrón al hueco que se elija.
+    /// </summary>
+    /// <remarks>
+    /// Duplicar sirve para «otro igual, donde quepa». Esto es para «éste, ahí», que es lo
+    /// que hace falta cuando el número importa, porque es el número el que usa el juego.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Copiar_y_pegar_lleva_el_patron_al_hueco_elegido()
+    {
+        SpritesEditorViewModel editor = Bank(new IDialogAnswers(new TestDialogService()));
+        SpriteBank bank = editor.SpritesBank;
+
+        Draw(bank.SpritesList[0], color: 7);
+
+        editor.CopySpriteCommand.Execute(null);
+
+        GoToIndex(editor, 20);
+        await editor.PasteSpriteCommand.ExecuteAsync(null);
+
+        Assert.True(SameDrawing(bank.SpritesList[0], bank.SpritesList[20]));
+
+        // Y no ha caído en ningún sitio más.
+        Assert.True(bank.SpritesList[1].IsEmpty);
+        Assert.True(bank.SpritesList[19].IsEmpty);
+    }
+
+    /// <summary>Lo copiado es una copia: retocar el original después no cambia lo que se pega.</summary>
+    [AvaloniaFact]
+    public async Task Lo_copiado_no_cambia_si_se_retoca_el_original()
+    {
+        SpritesEditorViewModel editor = Bank(new IDialogAnswers(new TestDialogService()));
+        SpriteBank bank = editor.SpritesBank;
+
+        Draw(bank.SpritesList[0], color: 7);
+
+        editor.CopySpriteCommand.Execute(null);
+
+        bank.SpritesList[0].ArraySpriteRows[0].Color = 2;
+
+        GoToIndex(editor, 20);
+        await editor.PasteSpriteCommand.ExecuteAsync(null);
+
+        Assert.Equal(7, bank.SpritesList[20].ArraySpriteRows[0].Color);
+        Assert.Equal(2, bank.SpritesList[0].ArraySpriteRows[0].Color);
+    }
+
+    /// <summary>Sin nada copiado no se puede pegar.</summary>
+    [AvaloniaFact]
+    public void Sin_nada_copiado_no_se_pega()
+    {
+        SpritesEditorViewModel editor = Bank();
+
+        Assert.False(editor.PasteSpriteCommand.CanExecute(null));
+
+        editor.CopySpriteCommand.Execute(null);
+
+        Assert.True(editor.PasteSpriteCommand.CanExecute(null));
+    }
+
+    /// <summary>
+    /// Pegar encima de un patrón con dibujo pregunta antes.
+    /// </summary>
+    /// <remarks>
+    /// Se avisa en vez de no dejar: machacar un patrón a veces es justo lo que se quiere, y
+    /// obligar a vaciarlo primero son dos pasos para el mismo resultado. Lo que hay que
+    /// impedir es que pase sin querer, porque aquí no hay deshacer.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Pegar_encima_de_uno_con_dibujo_pregunta()
+    {
+        var dialogs = new TestDialogService { ConfirmAnswer = false };
+        SpritesEditorViewModel editor = Bank(new IDialogAnswers(dialogs));
+        SpriteBank bank = editor.SpritesBank;
+
+        Draw(bank.SpritesList[0], color: 7);
+        Draw(bank.SpritesList[20], color: 3);
+
+        editor.CopySpriteCommand.Execute(null);
+
+        GoToIndex(editor, 20);
+        await editor.PasteSpriteCommand.ExecuteAsync(null);
+
+        Assert.Equal(1, dialogs.ConfirmCalls);
+        Assert.Equal(3, bank.SpritesList[20].ArraySpriteRows[0].Color);
+    }
+
+    /// <summary>Y en un hueco vacío no pregunta nada: no hay nada que perder.</summary>
+    [AvaloniaFact]
+    public async Task Pegar_en_un_hueco_vacio_no_pregunta()
+    {
+        var dialogs = new TestDialogService();
+        SpritesEditorViewModel editor = Bank(new IDialogAnswers(dialogs));
+
+        Draw(editor.SpritesBank.SpritesList[0], color: 7);
+
+        editor.CopySpriteCommand.Execute(null);
+
+        GoToIndex(editor, 20);
+        await editor.PasteSpriteCommand.ExecuteAsync(null);
+
+        Assert.Equal(0, dialogs.ConfirmCalls);
+        Assert.False(editor.SpritesBank.SpritesList[20].IsEmpty);
+    }
+
+    /// <summary>Deja el editor en ese hueco, contando desde 0 como cuenta el banco.</summary>
+    /// <remarks>
+    /// La posición que enseña el editor va desde 1, así que el hueco N es la posición N+1.
+    /// Escribirlo aquí una vez evita el desfase de uno en cada prueba.
+    /// </remarks>
+    private static void GoToIndex(SpritesEditorViewModel editor, int index)
+    {
+        while (editor.CurrentSpritePosition < index + 1)
+            editor.NextSpriteCommand.Execute(null);
+    }
+
     // ------------------------------------------------------------------ vaciar
 
     /// <summary>

@@ -411,6 +411,67 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
     private bool CanDuplicateSprite() => _spriteBank.FirstEmpty() >= 0;
 
+    /// <summary>
+    /// El patrón copiado, esperando a que se elija dónde va.
+    /// </summary>
+    /// <remarks>
+    /// Una copia suelta y no una referencia: retocar el original después de copiarlo no
+    /// puede cambiar lo que se acabe pegando.
+    /// </remarks>
+    private Sprite? _inHand;
+
+    public bool HasCopiedSprite => _inHand is not null;
+
+    /// <summary>Se lleva el patrón que se está editando.</summary>
+    /// <remarks>
+    /// Duplicar sirve para «otro igual, donde quepa»; esto es para «éste, ahí», que es lo
+    /// que hace falta cuando el número importa. Y es lo que se espera de un botón derecho
+    /// sobre una miniatura.
+    /// </remarks>
+    [RelayCommand]
+    private void CopySprite()
+    {
+        _inHand = CurrentSprite.Copy();
+
+        OnPropertyChanged(nameof(HasCopiedSprite));
+        PasteSpriteCommand.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>
+    /// Suelta lo copiado en el patrón que se está viendo.
+    /// </summary>
+    /// <remarks>
+    /// Si el destino tiene algo, se pregunta antes en vez de no dejar: machacar un patrón a
+    /// veces es justo lo que se quiere, y obligar a vaciarlo primero son dos pasos para el
+    /// mismo resultado. Preguntar impide que pase sin querer, que es el riesgo de verdad
+    /// cuando no hay deshacer.
+    /// </remarks>
+    [RelayCommand(CanExecute = nameof(HasCopiedSprite))]
+    private async Task PasteSpriteAsync()
+    {
+        if (_inHand is not { } copied)
+            return;
+
+        if (!CurrentSprite.IsEmpty)
+        {
+            bool confirmed = await _dialogs.ConfirmAsync(
+                Localizer.Instance["PasteSpriteTitle"],
+                Localizer.Instance.Format("PasteSpriteBody", CurrentSpritePosition),
+                Localizer.Instance["PasteLabel"]);
+
+            if (!confirmed)
+                return;
+        }
+
+        CurrentSprite.CopyFrom(copied);
+
+        Touch();
+        RenderThumbnail(CurrentSprite);
+        RefreshRequested?.Invoke(CurrentSprite);
+
+        OnPropertyChanged(nameof(SpriteColor));
+    }
+
     /// <summary>Deja el patrón en blanco sin quitarlo del banco.</summary>
     [RelayCommand]
     private async Task ClearSpriteAsync()
