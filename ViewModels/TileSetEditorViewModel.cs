@@ -116,6 +116,9 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
         _palette.ColorsChanged += OnPaletteColorsChanged;
 
+        // Un juego que viene de fichero puede traerlos ya definidos.
+        RefreshAttributes();
+
         RenderAll();
     }
 
@@ -203,6 +206,69 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
     /// <summary>Una casilla por línea del tile, con sus dos colores.</summary>
     public ObservableCollection<TileRowColorViewModel> RowColors { get; } = [];
 
+    /// <summary>Los atributos definidos, con lo que tenga puesto el tile de delante.</summary>
+    public ObservableCollection<TileFlagViewModel> TileAttributes { get; } = [];
+
+    /// <summary>
+    /// Si este juego usa atributos. Mientras no, el bloque entero no se enseña.
+    /// </summary>
+    /// <remarks>
+    /// La premisa de la funcionalidad: quien no los quiera no tiene que enterarse de que
+    /// existen. Se definen en las propiedades del juego cuando hagan falta, y sólo entonces
+    /// aparecen aquí.
+    /// </remarks>
+    public bool HasAttributes => TileAttributes.Count > 0;
+
+    /// <summary>
+    /// Rehace la lista con los atributos que tengan nombre ahora mismo.
+    /// </summary>
+    /// <remarks>
+    /// Lo llama el panel de propiedades al aceptar: hasta entonces la lista puede estar
+    /// vacía porque no había ninguno definido.
+    /// </remarks>
+    public void RefreshAttributes()
+    {
+        TileAttributes.Clear();
+
+        foreach (int bit in _tileSet.AttributeNames.Defined)
+        {
+            TileAttributes.Add(new TileFlagViewModel(
+                bit,
+                _tileSet.AttributeNames[bit],
+                CurrentTile.Has(bit),
+                SetAttribute));
+        }
+
+        OnPropertyChanged(nameof(HasAttributes));
+    }
+
+    /// <summary>
+    /// Marca o desmarca un atributo en el tile que se está editando.
+    /// </summary>
+    /// <remarks>
+    /// La salida temprana no es un ahorro, es lo que distingue marcar de sólo enseñar: al
+    /// cambiar de tile las casillas se mueven solas y esto salta igual, y sin ella recorrer
+    /// los 256 tiles con las flechas dejaría el juego marcado como sin guardar sin haber
+    /// tocado nada. Aquí y en un solo sitio: la misma guarda repetida en la casilla dejaría
+    /// las dos sin vigilar, porque bastaría una para que la comprobación pasara.
+    /// </remarks>
+    private void SetAttribute(int bit, bool on)
+    {
+        if (CurrentTile.Has(bit) == on)
+            return;
+
+        CurrentTile.SetAttribute(bit, on);
+
+        Touch();
+    }
+
+    /// <summary>Pone las casillas como las tenga el tile de delante.</summary>
+    private void ShowAttributesOfCurrentTile()
+    {
+        foreach (TileFlagViewModel flag in TileAttributes)
+            flag.IsOn = CurrentTile.Has(flag.Bit);
+    }
+
     public int TileCount => TileSet.TileCount;
 
     /// <summary>Lo que se lee al lado de las flechas: «12 / 256».</summary>
@@ -230,6 +296,8 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
         for (int row = 0; row < RowColors.Count; row++)
             RowColors[row].Attach(CurrentTile.ArrayTileRows[row]);
+
+        ShowAttributesOfCurrentTile();
 
         RefreshRequested?.Invoke();
     }

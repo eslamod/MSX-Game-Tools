@@ -42,6 +42,9 @@
   <data name="MenuOpen" xml:space="preserve">
     <value>Abrir...</value>
   </data>
+  <data name="TileAttributes" xml:space="preserve"><value>Atributos</value></data>
+  <data name="TileAttributesNote" xml:space="preserve"><value>Un nombre por bit, del 0 al 7. Los que se dejen en blanco no se usan. Al exportar sale un byte por tile con estas banderas.</value></data>
+  <data name="TileAttributesOfTile" xml:space="preserve"><value>Atributos del tile</value></data>
   <data name="MenuRecent" xml:space="preserve"><value>Abrir reciente</value></data>
   <data name="MenuRecentClear" xml:space="preserve"><value>Vaciar la lista</value></data>
   <data name="RecentMissingTitle" xml:space="preserve"><value>Ya no está</value></data>

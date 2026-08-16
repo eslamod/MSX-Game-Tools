@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MSX_GameTools.Entities;
@@ -68,12 +69,24 @@ public partial class EditPropertiesViewModel : PanelBaseViewModel
             _superTileHeight = tiles.SuperTileHeight;
         }
 
+        // Los ocho huecos siempre, definidos o no: la lista es de tamaño fijo porque un
+        // atributo es un bit, y los ocho bits están ahí se usen o no. Dejar un nombre en
+        // blanco es la forma de decir que ese bit no se usa.
+        if (document is TileSetEditorViewModel editor)
+        {
+            for (int bit = 0; bit < TileAttributeNames.Count; bit++)
+                Attributes.Add(new TileAttributeRowViewModel(bit, editor.TileSet.AttributeNames[bit]));
+        }
+
         Header = $"{Localizer.Instance["TreeProperties"]}: {document.DocumentName}";
         TagId = "properties";
     }
 
     /// <summary>El documento cuyos atributos se están tocando.</summary>
     public PanelBaseViewModel Document { get; }
+
+    /// <summary>Los ocho atributos del juego de tiles, para ponerles nombre.</summary>
+    public ObservableCollection<TileAttributeRowViewModel> Attributes { get; } = [];
 
     /// <summary>Qué es, para que se vea de qué se están viendo las propiedades.</summary>
     public string Kind => Document.DocumentKind;
@@ -190,9 +203,42 @@ public partial class EditPropertiesViewModel : PanelBaseViewModel
         ErrorMessage = null;
 
         ApplySuperTiles();
+        ApplyAttributes();
 
         _mainWindowVm.Rename(Document, Name);
         _mainWindowVm.RightPanViewModel = null;
+    }
+
+    /// <summary>
+    /// Lleva al juego los nombres de los atributos.
+    /// </summary>
+    /// <remarks>
+    /// Borrar un nombre deja ese bit sin definir y no toca lo marcado en los tiles: el bit
+    /// se queda puesto donde estuviera, sólo deja de enseñarse. Volviendo a nombrarlo
+    /// reaparece con lo que había. Borrar un rótulo no puede borrar el trabajo de marcar
+    /// doscientos tiles.
+    /// </remarks>
+    private void ApplyAttributes()
+    {
+        if (Document is not TileSetEditorViewModel tiles)
+            return;
+
+        bool changed = false;
+
+        foreach (TileAttributeRowViewModel row in Attributes)
+        {
+            if (tiles.TileSet.AttributeNames[row.Bit] == (row.Name?.Trim() ?? string.Empty))
+                continue;
+
+            tiles.TileSet.AttributeNames.Define(row.Bit, row.Name);
+            changed = true;
+        }
+
+        if (!changed)
+            return;
+
+        tiles.Touch();
+        tiles.RefreshAttributes();
     }
 
     /// <summary>

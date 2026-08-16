@@ -28,6 +28,9 @@
   <data name="MenuSaveProjectAs" xml:space="preserve">
     <value>Anomena i desa el projecte...</value>
   </data>
+  <data name="TileAttributes" xml:space="preserve"><value>Atributs</value></data>
+  <data name="TileAttributesNote" xml:space="preserve"><value>Un nom per bit, del 0 al 7. Els que es deixin en blanc no s'usen. En exportar surt un byte per tile amb aquestes banderes.</value></data>
+  <data name="TileAttributesOfTile" xml:space="preserve"><value>Atributs del tile</value></data>
   <data name="MenuRecent" xml:space="preserve"><value>Obre recent</value></data>
   <data name="MenuRecentClear" xml:space="preserve"><value>Buida la llista</value></data>
   <data name="RecentMissingTitle" xml:space="preserve"><value>Ja no hi és</value></data>

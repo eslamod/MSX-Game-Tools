@@ -107,6 +107,16 @@ public class TileSet
     public IList<TileBlock> Blocks { get; } = new List<TileBlock>();
 
     /// <summary>
+    /// Cómo se llama cada uno de los ocho atributos, si es que se usan.
+    /// </summary>
+    /// <remarks>
+    /// Del juego y no del tile: el nombre del bit 2 es el mismo para los 256, y lo que
+    /// cambia de un tile a otro es si lo tiene puesto. Empieza vacío, y mientras siga vacío
+    /// no se enseña en ninguna parte: quien no los quiera no se entera de que existen.
+    /// </remarks>
+    public TileAttributeNames AttributeNames { get; } = new();
+
+    /// <summary>
     /// Ancho del supertile de este juego en tiles, o 0 si no va de supertiles.
     /// </summary>
     /// <remarks>

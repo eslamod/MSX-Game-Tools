@@ -78,9 +78,12 @@
        las dos primeras columnas inflaria la primera con el ancho de su contenido, y
        entonces las columnas sumarian mas que la rejilla y la barra de la derecha se
        saldria de la ventana. Ancho = las dos muestras de 44 mas sus margenes. -->
+  <!-- La fila de atributos va entre el lienzo y la navegacion, y en Auto: si no hay
+       ninguno definido no ocupa nada y el lienzo se queda con todo el alto, que es como
+       estaba antes de que existieran. -->
   <Grid x:Name="EditorGrid" Background="{DynamicResource AppPanelBackground}"
         ColumnDefinitions="256,100,*"
-        RowDefinitions="32,*,Auto">
+        RowDefinitions="32,*,Auto,Auto">
 
     <!-- Zoom del lienzo, modo de pintado y rejilla -->
     <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="2">
@@ -221,6 +224,28 @@
       </StackPanel>
     </ScrollViewer>
 
+    <!-- Los atributos del tile que se esta editando, pegados al lienzo y no en el panel de
+         la derecha: cambian con cada tile que se elige y se quieren ver mientras se dibuja,
+         y ese panel es para formularios de un uso. Aqui debajo habia sitio vacio.
+
+         El bloque entero desaparece si el juego no define ninguno, que es la premisa: quien
+         no los use no tiene que enterarse de que existen. -->
+    <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                Margin="6,10,6,4" IsVisible="{Binding HasAttributes}">
+
+      <TextBlock Text="{l:Localize TileAttributesOfTile}" FontWeight="Bold" Margin="0,0,0,6" />
+
+      <ItemsControl ItemsSource="{Binding TileAttributes}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:TileFlagViewModel">
+            <CheckBox Content="{Binding Label}" IsChecked="{Binding IsOn}"
+                      MinHeight="0" Padding="6,0,0,0" Margin="0,0,0,2" />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+    </StackPanel>
+
     <!-- Zoom de las miniaturas y rejilla -->
     <DockPanel Grid.Row="0" Grid.Column="2" Margin="2">
       <!-- El zoom va declarado primero a proposito: en un DockPanel el hijo que se declara
@@ -342,7 +367,7 @@
     <!-- Sin alineacion a Left/Top a proposito: con ellas el Border se dimensiona al
          contenido, el ScrollViewer de dentro nunca recibe un limite y no aparece
          ninguna barra por mucho que la rejilla se salga de la pantalla. -->
-    <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="2"
+    <Border Grid.Row="1" Grid.RowSpan="3" Grid.Column="2"
             Background="Gray" Margin="0,0,4,4" Padding="4">
       <!-- AllowAutoHide a false: por defecto Avalonia deja una linea fina y solo saca la
              barra al pasar el raton por encima, asi que no se ve que hay mas contenido. -->
@@ -424,7 +449,7 @@
     </Border>
 
     <!-- Navegación por los tiles -->
-    <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal"
+    <StackPanel Grid.Row="3" Grid.Column="0" Orientation="Horizontal"
                 Background="{DynamicResource AppPanelBackground}" Height="48" VerticalAlignment="Top">
       <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0">
         <TextBlock Text="{Binding TileLabel}" VerticalAlignment="Center"

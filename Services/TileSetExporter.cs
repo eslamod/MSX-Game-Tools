@@ -48,6 +48,51 @@ public static class TileSetExporter
         "colors",
         "; Un byte por linea: color de frente en el nibble alto y de fondo en el bajo.");
 
+    /// <summary>
+    /// Un byte por tile con sus ocho banderas. 256 bytes, no 2048: esto es del tile, no de
+    /// sus líneas.
+    /// </summary>
+    public static byte[] AttributesToBinary(TileSet tileSet) =>
+        [.. tileSet.ListOfTiles.Select(tile => (byte)tile.Attributes)];
+
+    /// <summary>
+    /// La tabla de atributos, con los nombres puestos y las máscaras como constantes.
+    /// </summary>
+    /// <remarks>
+    /// Las <c>equ</c> además de los comentarios porque son lo que se usa de verdad: un
+    /// comentario hay que traducirlo a mano a un <c>bit 2, a</c> cada vez que se escribe
+    /// código, y ahí es donde se cuelan los errores de un bit.
+    /// </remarks>
+    public static string AttributesToAssembler(TileSet tileSet)
+    {
+        var text = new StringBuilder();
+        string label = SpriteBankExporter.LabelOf(tileSet.Name);
+
+        text.AppendLine($"; Tile attributes - {tileSet.Name}");
+        text.AppendLine($"; One byte per tile, {TileSet.TileCount} bytes. Bit 0 is attribute 0.");
+        text.AppendLine($"; Size: {label}_attributes_end - {label}_attributes");
+        text.AppendLine();
+
+        foreach (int bit in tileSet.AttributeNames.Defined)
+        {
+            string name = SpriteBankExporter.LabelOf(tileSet.AttributeNames[bit]).ToUpperInvariant();
+
+            text.AppendLine(
+                $"{label}_attr_{name}:".PadRight(32)
+                + $"equ %{Convert.ToString(1 << bit, 2).PadLeft(TileAttributeNames.Count, '0')}"
+                + $"   ; bit {bit} - {tileSet.AttributeNames[bit]}");
+        }
+
+        text.AppendLine();
+        text.AppendLine($"{label}_attributes:");
+
+        AppendBytes(text, tileSet.ListOfTiles.Select(tile => (byte)tile.Attributes));
+
+        text.AppendLine($"{label}_attributes_end:");
+
+        return text.ToString();
+    }
+
     private static byte[] ToBinary(TileSet tileSet, Func<TileRow, byte> byteOf)
     {
         byte[] bytes = new byte[TableBytes];

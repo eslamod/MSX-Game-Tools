@@ -1655,6 +1655,10 @@ public partial class MainWindowViewModel : ObservableObject
         // los mapas dibujados con el comparten la misma. Con cada mapa se repetiria igual.
         string superPath = Path.Combine(folder, $"{stem}_supertiles{extension}");
 
+        // Y la de atributos sólo si se han definido: quien no los usa no tiene por qué
+        // encontrarse un fichero de 256 ceros que no sabe para qué es.
+        string attributesPath = Path.Combine(folder, $"{stem}_attributes{extension}");
+
         try
         {
             if (binary)
@@ -1664,6 +1668,9 @@ public partial class MainWindowViewModel : ObservableObject
 
                 if (tileSet.HasSuperTiles)
                     await File.WriteAllBytesAsync(superPath, SuperTileExporter.ToBinary(tileSet));
+
+                if (tileSet.AttributeNames.Any)
+                    await File.WriteAllBytesAsync(attributesPath, TileSetExporter.AttributesToBinary(tileSet));
             }
             else
             {
@@ -1672,6 +1679,9 @@ public partial class MainWindowViewModel : ObservableObject
 
                 if (tileSet.HasSuperTiles)
                     await File.WriteAllTextAsync(superPath, SuperTileExporter.ToAssembler(tileSet));
+
+                if (tileSet.AttributeNames.Any)
+                    await File.WriteAllTextAsync(attributesPath, TileSetExporter.AttributesToAssembler(tileSet));
             }
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)

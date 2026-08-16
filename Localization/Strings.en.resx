@@ -28,6 +28,9 @@
   <data name="MenuSaveProjectAs" xml:space="preserve">
     <value>Save project as...</value>
   </data>
+  <data name="TileAttributes" xml:space="preserve"><value>Attributes</value></data>
+  <data name="TileAttributesNote" xml:space="preserve"><value>One name per bit, 0 to 7. The ones left blank are unused. Exporting writes one byte per tile with these flags.</value></data>
+  <data name="TileAttributesOfTile" xml:space="preserve"><value>Tile attributes</value></data>
   <data name="MenuRecent" xml:space="preserve"><value>Open recent</value></data>
   <data name="MenuRecentClear" xml:space="preserve"><value>Clear the list</value></data>
   <data name="RecentMissingTitle" xml:space="preserve"><value>Not there any more</value></data>

@@ -33,12 +33,13 @@ namespace MSX_GameTools.Services;
 public static class TileSetSerializer
 {
     /// <summary>
-    /// La 2 añade los bloques, la 3 la identidad del juego y la 4 el tamaño del supertile.
-    /// Los ficheros anteriores se siguen abriendo: sin bloques los de la 1, con una
-    /// identidad recién hecha los de la 2 —que es lo que los mapas antiguos esperan porque
-    /// van por el nombre— y sin supertiles los de la 3, que es lo que eran.
+    /// La 2 añade los bloques, la 3 la identidad del juego, la 4 el tamaño del supertile y
+    /// la 5 los atributos. Los ficheros anteriores se siguen abriendo: sin bloques los de la
+    /// 1, con una identidad recién hecha los de la 2 —que es lo que los mapas antiguos
+    /// esperan porque van por el nombre—, sin supertiles los de la 3 y sin ningún atributo
+    /// definido los de la 4, que es exactamente lo que eran.
     /// </summary>
-    public const int FormatVersion = 4;
+    public const int FormatVersion = 5;
 
     /// <summary>Ocho bytes por tabla y dos dígitos por byte.</summary>
     private const int Digits = Tile.Rows * 2;
@@ -79,6 +80,14 @@ public static class TileSetSerializer
         if (file.Id is Guid id && id != Guid.Empty)
             tileSet.Id = id;
 
+        // Antes que los tiles: los nombres deciden qué se enseña, no qué se guarda, así que
+        // las banderas de un tile se leen igual estén nombradas o no.
+        for (int bit = 0; bit < TileAttributeNames.Count; bit++)
+        {
+            if (file.AttributeNames is { } names && bit < names.Count)
+                tileSet.AttributeNames.Define(bit, names[bit]);
+        }
+
         foreach (TileFile tile in file.Tiles ?? [])
             ReadTile(tile, tileSet);
 
@@ -104,7 +113,8 @@ public static class TileSetSerializer
         [.. Drawn(tileSet)],
         [.. tileSet.Blocks.Select(ToFile)],
         tileSet.SuperTileWidth,
-        tileSet.SuperTileHeight);
+        tileSet.SuperTileHeight,
+        [.. Enumerable.Range(0, TileAttributeNames.Count).Select(bit => tileSet.AttributeNames[bit])]);
 
     private static BlockFile ToFile(TileBlock block) => new(
         block.Name,
@@ -123,17 +133,26 @@ public static class TileSetSerializer
             yield return new TileFile(
                 index,
                 Hex(tile, row => row.PatternByte),
-                Hex(tile, row => row.ColorByte));
+                Hex(tile, row => row.ColorByte),
+                tile.Attributes);
         }
     }
 
-    /// <summary>Un tile recién creado: sin bits y con los colores de partida.</summary>
+    /// <summary>
+    /// Un tile recién creado: sin bits, con los colores de partida y sin marcar.
+    /// </summary>
+    /// <remarks>
+    /// También los atributos. Un tile en blanco marcado como sólido es una pared invisible,
+    /// que es una cosa que se usa; sin mirarlos aquí se daba por no tocado y se perdía al
+    /// guardar, sin decir nada.
+    /// </remarks>
     private static bool IsEmpty(Tile tile)
     {
         var fresh = new TileRow();
 
-        return tile.ArrayTileRows.All(row =>
-            row.PatternByte == 0 && row.ColorByte == fresh.ColorByte);
+        return tile.Attributes == 0
+               && tile.ArrayTileRows.All(row =>
+                   row.PatternByte == 0 && row.ColorByte == fresh.ColorByte);
     }
 
     private static string Hex(Tile tile, Func<TileRow, byte> byteOf) =>
@@ -151,6 +170,8 @@ public static class TileSetSerializer
         byte[] colors = ParseBytes(file.Colors, file.Index, "los colores");
 
         Tile tile = tileSet.ListOfTiles[file.Index];
+
+        tile.Attributes = file.Attributes;
 
         for (int row = 0; row < Tile.Rows; row++)
         {
@@ -248,9 +269,14 @@ public static class TileSetSerializer
         IReadOnlyList<TileFile>? Tiles,
         IReadOnlyList<BlockFile>? Blocks,
         int SuperTileWidth = 0,
-        int SuperTileHeight = 0);
+        int SuperTileHeight = 0,
+        IReadOnlyList<string>? AttributeNames = null);
 
-    private sealed record TileFile(int Index, string? Pattern, string? Colors);
+    /// <param name="Attributes">
+    /// Las ocho banderas en un número. Los ficheros de antes de la 5 no lo traen y se leen
+    /// como cero, que es lo que tenían.
+    /// </param>
+    private sealed record TileFile(int Index, string? Pattern, string? Colors, int Attributes = 0);
 
     private sealed record BlockFile(string? Name, IReadOnlyList<string>? Rows);
 }
