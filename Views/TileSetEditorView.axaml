@@ -35,6 +35,14 @@
   </UserControl.Styles>
 
   <UserControl.Resources>
+    <!-- Lo mas que se le consiente quitarle al lienzo.
+
+         Medido: los ocho atributos con nombres normales piden 115 envolviendo, o sea que
+         hoy no se desplaza nunca; el tope esta un poco por encima para que un nombre largo
+         no saque la barra a la primera. Pasado eso, lo que se desplaza es la lista y no el
+         lienzo, que es de lo que se trata. En una sola columna esto costaba 234. -->
+    <x:Double x:Key="TileAttributesMaxHeight">132</x:Double>
+
     <!-- Las miniaturas van pegadas, sin margen: la rejilla la forman sus propios
          bordes, como la de GIMP. El grosor no cambia al seleccionar para que los
          tiles no bailen. -->
@@ -229,14 +237,31 @@
 
       <TextBlock Text="{l:Localize TileAttributesOfTile}" FontWeight="Bold" Margin="0,0,0,6" />
 
-      <ItemsControl ItemsSource="{Binding TileAttributes}">
-        <ItemsControl.ItemTemplate>
-          <DataTemplate x:DataType="vm:TileFlagViewModel">
-            <CheckBox Content="{Binding Label}" IsChecked="{Binding IsOn}"
-                      MinHeight="0" Padding="6,0,0,0" Margin="0,0,0,2" />
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
+      <!-- Con barra propia y con tope: si la lista crece, lo que se desplaza es ella y no
+           el lienzo. Del lienzo se edita pixel a pixel y verlo entero es lo que importa;
+           de esta lista se marca una casilla de vez en cuando.
+
+           Y envolviendo, no en columnas fijas: los nombres de atributo son cortos -«Borde»,
+           «Hierba»- y a lo ancho hay sitio para tres o cuatro por fila. Cuantos mas quepan
+           a lo ancho, menos alto le quita al lienzo, que es de lo que se trata. Con
+           columnas fijas el hueco sobrante de cada nombre corto se desperdiciaba. -->
+      <ScrollViewer MaxHeight="{StaticResource TileAttributesMaxHeight}"
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled">
+        <ItemsControl ItemsSource="{Binding TileAttributes}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:TileFlagViewModel">
+              <CheckBox Content="{Binding Label}" IsChecked="{Binding IsOn}"
+                        MinHeight="0" Padding="6,0,0,0" Margin="0,0,14,2" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
 
     </StackPanel>
 

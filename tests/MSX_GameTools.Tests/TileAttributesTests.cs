@@ -1,7 +1,11 @@
+using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
 using MSX_GameTools.Entities;
 using MSX_GameTools.Services;
 using MSX_GameTools.ViewModels;
+using MSX_GameTools.Views;
 using Xunit;
 
 namespace MSX_GameTools.Tests;
@@ -276,6 +280,58 @@ public class TileAttributesTests
 
         Assert.False(editor.TileAttributes[0].IsOn);
     }
+
+    /// <summary>
+    /// La lista de atributos no se come el lienzo.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Con los ocho definidos, la lista se llevaba una fila entera y el lienzo se quedaba
+    /// desplazándose a zoom alto. La prioridad es al revés: del lienzo se edita píxel a
+    /// píxel y verlo entero es lo que importa; de la lista se marca una casilla de vez en
+    /// cuando, así que es ella la que se desplaza.
+    /// </para>
+    /// <para>
+    /// Se mide el alto de verdad y no el tope escrito: el tope es un <c>MaxHeight</c> y lo
+    /// que decide es cuánto pide el contenido, que depende de a cuántas columnas se
+    /// reparta y de lo que abulte una casilla.
+    /// </para>
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_lista_de_atributos_no_se_come_el_lienzo()
+    {
+        TileSet tileSet = Named("Colisión", "Carretera", "Borde", "Hierba",
+                                "Agua", "Daño", "Rompible", "Meta");
+
+        var view = new TileSetEditorView
+        {
+            DataContext = new TileSetEditorViewModel(tileSet, ColorPalette.CreateMsxStandard()),
+        };
+
+        var window = new Window { Content = view, Width = 1100, Height = 800 };
+
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        var grid = (Grid)view.GetVisualDescendants().First(v => v is Grid { Name: "EditorGrid" });
+
+        double taken = grid.RowDefinitions[2].ActualHeight;
+
+        Assert.True(
+            taken <= MostTheAttributesMayTake,
+            $"Los ocho atributos le quitan {taken:0.0} al lienzo y el tope está en "
+            + $"{MostTheAttributesMayTake}.");
+
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+    }
+
+    /// <summary>Lo más que se le consiente quitarle al lienzo, con los ocho definidos.</summary>
+    /// <remarks>
+    /// A dos columnas son cuatro filas de casillas más el rótulo y su aire. A una columna
+    /// eran ocho filas y se pasaba de aquí, que es de donde sale el número.
+    /// </remarks>
+    private const double MostTheAttributesMayTake = 160;
 
     /// <summary>
     /// Pasear por los tiles no deja el juego marcado como sin guardar.
