@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless.XUnit;
 using Avalonia.LogicalTree;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Material.Icons.Avalonia;
@@ -130,6 +131,121 @@ public class PanelFitTests
         window.Close();
         Pump();
         Pump();
+    }
+
+    /// <summary>
+    /// Ningún rótulo de los formularios sale cortado, en ninguno de los tres idiomas.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Nace de que «Background» salía «Backgrou» en el panel del mapa: su columna medía 60
+    /// fijos, elegidos mirando los rótulos en español —«Nombre», «Tamaño», «Fondo»,
+    /// «Vacío»—, todos más cortos. Un ancho fijo lo pone quien escribe la vista, que ve un
+    /// idioma; hay treinta columnas así repartidas por los formularios y nadie las había
+    /// medido traducidas.
+    /// </para>
+    /// <para>
+    /// Sólo los que se dejan medir solos: si alguien le pone un <c>Width</c> explícito a un
+    /// texto, es una decisión suya y no un descuido. Y sólo los de una línea, que los que
+    /// envuelven son más estrechos que su texto a propósito.
+    /// </para>
+    /// </remarks>
+    [AvaloniaTheory]
+    [InlineData("Preferences")]
+    [InlineData("TileSet")]
+    [InlineData("SpriteBank")]
+    [InlineData("Map")]
+    [InlineData("Properties")]
+    [InlineData("Resize")]
+    [InlineData("Replace")]
+    [InlineData("Palette")]
+    [InlineData("NewPalette")]
+    public void Ningun_rotulo_de_los_formularios_sale_cortado(string form)
+    {
+        string before = Localizer.Instance.Language;
+        var cut = new List<string>();
+
+        try
+        {
+            foreach (string language in (string[])["es", "en", "ca"])
+            {
+                Localizer.Instance.Language = language;
+
+                var main = new MainWindowViewModel(new TestDialogService { ChooseAnswer = false });
+
+                Open(main, form);
+
+                var window = new MainWindow { DataContext = main, Width = 1400, Height = 900 };
+
+                window.Show();
+                Pump();
+
+                Control view = window.GetVisualDescendants()
+                    .OfType<Control>()
+                    .First(control => ReferenceEquals(control.DataContext, main.RightPanViewModel)
+                                      && control is UserControl);
+
+                cut.AddRange(Clipped(view, language));
+
+                window.Close();
+                Pump();
+                Pump();
+            }
+        }
+        finally
+        {
+            Localizer.Instance.Language = before;
+        }
+
+        Assert.True(cut.Count == 0, $"En {form}: {string.Join(" | ", cut)}");
+    }
+
+    /// <summary>Los textos que no caben en el sitio que les ha tocado.</summary>
+    private static IEnumerable<string> Clipped(Control view, string language)
+    {
+        foreach (TextBlock label in view.GetVisualDescendants().OfType<TextBlock>())
+        {
+            // Los que no se ven no se cortan. Aquí caen las marcas de agua de las cajas de
+            // texto —que existen en el árbol aunque la caja tenga contenido— y las ramas
+            // que el formulario tiene plegadas, como el otro modo de Sustituir. Sin este
+            // filtro salían con ancho cero y parecían todas cortadas.
+            if (!label.IsEffectivelyVisible
+                || label.TextWrapping != TextWrapping.NoWrap
+                || !double.IsNaN(label.Width)
+                || string.IsNullOrEmpty(label.Text))
+            {
+                continue;
+            }
+
+            double needed = Unconstrained(label);
+
+            // Medio pixel de gracia: los anchos salen de una medida en punto flotante y una
+            // diferencia de redondeo no es un texto cortado.
+            if (label.Bounds.Width < needed - 0.5)
+                yield return $"en {language}, «{label.Text}» tiene {label.Bounds.Width:0} y pide {needed:0}";
+        }
+    }
+
+    /// <summary>
+    /// Lo que mide el texto sin que nadie lo apriete.
+    /// </summary>
+    /// <remarks>
+    /// El <c>DesiredSize</c> del que está montado ya viene recortado a lo que le dejaron,
+    /// así que preguntándole a él siempre parece que cabe.
+    /// </remarks>
+    private static double Unconstrained(TextBlock label)
+    {
+        var loose = new TextBlock
+        {
+            Text = label.Text,
+            FontSize = label.FontSize,
+            FontFamily = label.FontFamily,
+            FontWeight = label.FontWeight,
+        };
+
+        loose.Measure(Size.Infinity);
+
+        return loose.DesiredSize.Width;
     }
 
     /// <summary>

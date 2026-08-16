@@ -390,6 +390,76 @@ public class ToolStripLayoutTests : IDisposable
             + $"se le mete encima {right - room:0.0} píxeles.");
     }
 
+    /// <summary>
+    /// Ningún rótulo del panel del mapa sale cortado, en ningún idioma.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// «Background» salía «Backgrou»: su columna medía 60 fijos, que es lo que se le puso
+    /// mirando los rótulos en español —«Nombre», «Tamaño», «Fondo», «Vacío»—, todos más
+    /// cortos. Un ancho fijo lo elige quien escribe la vista, que ve un idioma.
+    /// </para>
+    /// <para>
+    /// Lo que se comprueba no es que la columna mida tanto, sino que el texto quepa: si
+    /// mañana se traduce a otro idioma con palabras más largas, esto lo dice.
+    /// </para>
+    /// </remarks>
+    [AvaloniaTheory]
+    [InlineData("es")]
+    [InlineData("en")]
+    [InlineData("ca")]
+    public void Los_rotulos_del_panel_del_mapa_no_salen_cortados(string language)
+    {
+        string before = Localizer.Instance.Language;
+
+        try
+        {
+            Localizer.Instance.Language = language;
+
+            var main = new MainWindowViewModel();
+            TileSetEditorViewModel tiles = main.OpenTileSet(new TileSet("Bosque"));
+
+            var view = new MapEditorView
+            {
+                DataContext = main.OpenMap(new TileMap("Nivel", 16, 16), tiles),
+            };
+
+            var window = new Window { Content = view, Width = 1100, Height = 800 };
+
+            window.Show();
+            Dispatcher.UIThread.RunJobs();
+
+            foreach (TextBlock label in MapPanelLabels(view))
+            {
+                double needed = Unconstrained(label);
+
+                Assert.True(
+                    label.Bounds.Width >= needed,
+                    $"En {language}, «{label.Text}» tiene {label.Bounds.Width:0.0} de sitio "
+                    + $"y pide {needed:0.0}: sale cortado.");
+            }
+
+            window.Close();
+            Dispatcher.UIThread.RunJobs();
+        }
+        finally
+        {
+            Localizer.Instance.Language = before;
+        }
+    }
+
+    /// <summary>Los cuatro rótulos de la izquierda del panel de propiedades del mapa.</summary>
+    /// <remarks>
+    /// Por su sitio en la rejilla y no por lo que digan, que es lo que cambia con el idioma.
+    /// </remarks>
+    private static IEnumerable<TextBlock> MapPanelLabels(Control view) =>
+        view.GetVisualDescendants()
+            .OfType<Grid>()
+            .Where(grid => grid.ColumnDefinitions.Count == 2
+                           && grid.RowDefinitions.Count == 4)
+            .SelectMany(grid => grid.Children.OfType<TextBlock>())
+            .Where(label => Grid.GetColumn(label) == 0);
+
     /// <summary>Y en el panel de bloques.</summary>
     [AvaloniaFact]
     public void En_el_panel_de_bloques_los_iconos_tambien_se_explican()

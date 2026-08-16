@@ -208,11 +208,17 @@
         <!-- Atributos del mapa -->
         <TextBlock Grid.Row="2" Text="{l:Localize MapTitle}" FontWeight="Bold" Margin="0,8,0,4" />
 
-        <Grid Grid.Row="3" ColumnDefinitions="60,*" RowDefinitions="Auto,Auto,Auto,Auto">
-          <TextBlock Grid.Row="0" Grid.Column="0" Text="{l:Localize FormName}" VerticalAlignment="Center" />
+        <!-- La columna del rotulo en Auto y no en 60: con 60 cabian los de español y
+             "Background" salia cortado en "Backgrou". Un ancho fijo lo pone quien escribe
+             la vista, que ve un idioma; Auto lo pone el rotulo mas largo de los que haya,
+             que es lo unico que sabe cuanto hace falta. -->
+        <Grid Grid.Row="3" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="{l:Localize FormName}"
+                     VerticalAlignment="Center" Margin="0,0,8,0" />
           <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Map.Name}" Margin="0,0,0,4" />
 
-          <TextBlock Grid.Row="1" Grid.Column="0" Text="{l:Localize MapSize}" VerticalAlignment="Center" />
+          <TextBlock Grid.Row="1" Grid.Column="0" Text="{l:Localize MapSize}"
+                     VerticalAlignment="Center" Margin="0,0,8,0" />
           <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,4">
             <TextBlock Text="{Binding Map.Width}" VerticalAlignment="Center" />
             <TextBlock Text=" x " VerticalAlignment="Center" />
@@ -226,7 +232,8 @@
 
           <!-- El fondo se puede cambiar, no solo mirar: es el mismo R#7 del borde del
                editor de tiles y aqui tambien hay que poder tocarlo. -->
-          <TextBlock Grid.Row="2" Grid.Column="0" Text="{l:Localize MapBackground}" VerticalAlignment="Center" />
+          <TextBlock Grid.Row="2" Grid.Column="0" Text="{l:Localize MapBackground}"
+                     VerticalAlignment="Center" Margin="0,0,8,0" />
           <Button Grid.Row="2" Grid.Column="1"
                   Theme="{StaticResource TileColorSwatch}"
                   Width="60" Height="22" HorizontalAlignment="Left" Margin="0,0,0,4"
@@ -265,7 +272,8 @@
 
           <!-- El tile de relleno con su dibujo al lado: un numero suelto no dice nada, y
                asi se ve lo que va a salir donde el mapa esta vacio. -->
-          <TextBlock Grid.Row="3" Grid.Column="0" Text="{l:Localize MapEmpty}" VerticalAlignment="Center"
+          <TextBlock Grid.Row="3" Grid.Column="0" Text="{l:Localize MapEmpty}"
+                     VerticalAlignment="Center" Margin="0,0,8,0"
                      ToolTip.Tip="{l:Localize MapEmptyTip}" />
           <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal">
             <NumericUpDown Width="100" ShowButtonSpinner="True" FormatString="0"
