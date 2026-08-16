@@ -14,6 +14,10 @@
     las marcas de selección y los fondos sobre los que se recortan los dibujos —ese gris
     oscuro que hay detrás de las miniaturas para que un tile negro no se confunda con el
     fondo— se quedan fijos: un tile tiene que verse igual con la variante que sea.
+
+    La raya pasa por debajo o alrededor. El gris que está justo debajo de un dibujo es
+    dominio y se queda fijo; el recuadro que rodea una rejilla es cromo y está aquí, en
+    AppCanvasFrame, aunque los dos sean grises y se toquen.
   -->
 
   <ResourceDictionary.ThemeDictionaries>
@@ -26,6 +30,16 @@
       <SolidColorBrush x:Key="AppSurfaceBackground" Color="#F0F0F0" />
       <SolidColorBrush x:Key="AppSeparator" Color="#A9A9A9" />
       <SolidColorBrush x:Key="AppControlBorder" Color="#909090" />
+
+      <!-- El recuadro que envuelve las rejillas de gráficos: los 256 tiles, la rejilla del
+           bloque y las dos pestañas de lo que se estampa. Dos reglas, y las dos importan:
+           más oscuro que el panel, para que la rejilla se lea metida dentro y no flotando
+           encima; y neutro, porque es el fondo contra el que se miran los dibujos y un
+           marco con color tiraría del de los tiles que tiene al lado.
+
+           Éste es el valor con el que llevan viéndose desde siempre las cinco rejillas, que
+           en claro nunca ha molestado. Lo que cambia es que ahora tiene nombre. -->
+      <SolidColorBrush x:Key="AppCanvasFrame" Color="#808080" />
 
       <!-- Las listas de nombres —capas, bloques—, que son un campo hundido dentro del
            panel y no una superficie donde se dibuje. -->
@@ -76,6 +90,16 @@
       <SolidColorBrush x:Key="AppSurfaceBackground" Color="#333333" />
       <SolidColorBrush x:Key="AppSeparator" Color="#3F3F46" />
       <SolidColorBrush x:Key="AppControlBorder" Color="#5A5A5A" />
+
+      <!-- La regla es la misma que en claro —por debajo del panel—, y aquí eso significa
+           bajar casi hasta el negro. Con el gris de la clara puesto, que es lo que había,
+           cada rejilla salía en oscuro dentro de una bandeja clara: era lo único del cromo
+           que no se enteraba de la variante.
+
+           No hasta el negro del todo: las líneas de la rejilla son negras y un tile puede
+           serlo entero, así que el marco tiene que quedar un punto por encima para que se
+           siga viendo dónde acaba la rejilla. -->
+      <SolidColorBrush x:Key="AppCanvasFrame" Color="#202020" />
 
       <!-- Más oscura que el panel, para que se siga leyendo como un campo hundido. -->
       <SolidColorBrush x:Key="AppListBackground" Color="#1F1F1F" />
@@ -151,6 +175,12 @@
       <SolidColorBrush x:Key="AppSurfaceBackground" Color="#2B333E" />
       <SolidColorBrush x:Key="AppSeparator" Color="#38424F" />
       <SolidColorBrush x:Key="AppControlBorder" Color="#55616F" />
+
+      <!-- Teñido con la mano mucho más floja que los demás grises de aquí: éste es el fondo
+           contra el que se miran los dibujos, así que se acerca al azul lo justo para no
+           cantar al lado del panel, y se queda gris. -->
+      <SolidColorBrush x:Key="AppCanvasFrame" Color="#1B2025" />
+
       <SolidColorBrush x:Key="AppListBackground" Color="#1A2027" />
 
       <!-- Más apagada que en la oscura: el fondo de aquí ya es azul, así que el mismo
@@ -190,6 +220,10 @@
       <SolidColorBrush x:Key="AppSurfaceBackground" Color="#38312A" />
       <SolidColorBrush x:Key="AppSeparator" Color="#4A4038" />
       <SolidColorBrush x:Key="AppControlBorder" Color="#6B5D51" />
+
+      <!-- Igual de flojo que en la azulada, y por lo mismo. -->
+      <SolidColorBrush x:Key="AppCanvasFrame" Color="#25201B" />
+
       <SolidColorBrush x:Key="AppListBackground" Color="#241F1B" />
 
       <SolidColorBrush x:Key="AppListSelection" Color="#855428" />
@@ -258,6 +292,11 @@
       <SolidColorBrush x:Key="AppSurfaceBackground" Color="#EBEFF4" />
       <SolidColorBrush x:Key="AppSeparator" Color="#A3ACB8" />
       <SolidColorBrush x:Key="AppControlBorder" Color="#8A95A3" />
+
+      <!-- El gris de la clara, virado lo mismo que el de la oscura azulada: la misma
+           claridad de siempre, con el punto de azul que lo hermana con el panel. -->
+      <SolidColorBrush x:Key="AppCanvasFrame" Color="#7B8085" />
+
       <SolidColorBrush x:Key="AppListBackground" Color="#F8FAFC" />
 
       <SolidColorBrush x:Key="AppListSelection" Color="#AECBEA" />
@@ -283,6 +322,10 @@
       <SolidColorBrush x:Key="AppSurfaceBackground" Color="#F5F0E9" />
       <SolidColorBrush x:Key="AppSeparator" Color="#B8AC9C" />
       <SolidColorBrush x:Key="AppControlBorder" Color="#9E9384" />
+
+      <!-- El de la clara con el mismo punto de calidez que la oscura anaranjada. -->
+      <SolidColorBrush x:Key="AppCanvasFrame" Color="#85807B" />
+
       <SolidColorBrush x:Key="AppListBackground" Color="#FDFBF7" />
 
       <SolidColorBrush x:Key="AppListSelection" Color="#F0C591" />

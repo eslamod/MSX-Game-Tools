@@ -515,7 +515,7 @@
          rejilla ocupa lo mismo que antes, porque la fila es Auto. -->
     <Border x:Name="TileGridPanel"
             Grid.Row="1" Grid.RowSpan="2" Grid.Column="2"
-            Background="Gray" Margin="0,0,4,4" Padding="4">
+            Background="{DynamicResource AppCanvasFrame}" Margin="0,0,4,4" Padding="4">
       <!-- AllowAutoHide a false: por defecto Avalonia deja una linea fina y solo saca la
              barra al pasar el raton por encima, asi que no se ve que hay mas contenido. -->
         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"

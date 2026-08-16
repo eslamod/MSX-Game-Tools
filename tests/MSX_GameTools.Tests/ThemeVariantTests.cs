@@ -25,6 +25,13 @@ namespace MSX_GameTools.Tests;
 /// </remarks>
 public class ThemeVariantTests
 {
+    /// <summary>Todas las que puede elegir el usuario, las dos de base y las cuatro teñidas.</summary>
+    private static readonly ThemeVariant[] AllVariants =
+    [
+        ThemeVariant.Light, ThemeVariant.Dark,
+        AppTheme.Blue, AppTheme.Orange, AppTheme.LightBlue, AppTheme.LightOrange,
+    ];
+
     /// <summary>Los colores del cromo están definidos en las dos variantes, y distintos.</summary>
     [AvaloniaFact]
     public void Cada_color_del_cromo_tiene_su_version_clara_y_su_version_oscura()
@@ -40,6 +47,7 @@ public class ThemeVariantTests
             "AppTextWarning",
             "AppToolButtonBackground",
             "AppToolButtonForeground",
+            "AppCanvasFrame",
         ];
 
         foreach (string key in keys)
@@ -259,13 +267,7 @@ public class ThemeVariantTests
     [AvaloniaFact]
     public void En_toda_variante_el_texto_atenuado_se_distingue_del_panel()
     {
-        ThemeVariant[] all =
-        [
-            ThemeVariant.Light, ThemeVariant.Dark,
-            AppTheme.Blue, AppTheme.Orange, AppTheme.LightBlue, AppTheme.LightOrange,
-        ];
-
-        foreach (ThemeVariant variant in all)
+        foreach (ThemeVariant variant in AllVariants)
         {
             int panel = Brightness(Resolve("AppPanelBackground", variant));
             int text = Brightness(Resolve("AppTextSecondary", variant));
@@ -380,6 +382,129 @@ public class ThemeVariantTests
 
         Assert.True(blue != dark, $"La lista azulada sale {blue}, igual que la oscura.");
         Assert.True(blue.B > blue.R + 4, $"La lista azulada sale {blue} y no tiene azul.");
+    }
+
+    // ------------------------------------------------- el marco de las rejillas
+
+    /// <summary>
+    /// En toda variante, el marco de las rejillas queda por debajo de su panel.
+    /// </summary>
+    /// <remarks>
+    /// Es la regla que lo define: el marco es el hueco donde vive la rejilla, y un hueco se
+    /// lee porque está más hondo que lo que tiene alrededor. Con el gris clavado que había
+    /// antes esto se cumplía en claro y se incumplía al revés en oscuro, donde el marco
+    /// salía mucho más claro que el panel y cada rejilla parecía puesta sobre una bandeja.
+    /// </remarks>
+    [AvaloniaFact]
+    public void En_toda_variante_el_marco_de_las_rejillas_es_mas_oscuro_que_su_panel()
+    {
+        foreach (ThemeVariant variant in AllVariants)
+        {
+            Color frame = Resolve("AppCanvasFrame", variant);
+            Color panel = Resolve("AppPanelBackground", variant);
+
+            Assert.True(
+                Brightness(frame) < Brightness(panel),
+                $"En «{variant}» el marco sale {frame} y el panel {panel}: el marco no está "
+                + "por debajo de su panel.");
+        }
+    }
+
+    /// <summary>Lo que puede virar el marco sin dejar de ser un gris.</summary>
+    /// <remarks>
+    /// Diez tiene el más teñido de los seis. El listón queda algo por encima para no atar la
+    /// mano al añadir una variante, y muy por debajo de lo que ya sería un color.
+    /// </remarks>
+    private const int MaxFrameTint = 16;
+
+    /// <summary>
+    /// Y sigue siendo gris, por muy teñida que vaya la variante.
+    /// </summary>
+    /// <remarks>
+    /// El marco no es una superficie más del cromo: es el fondo contra el que se miran los
+    /// dibujos. Teñido como el panel de una variante de color, tiraría del color de los
+    /// tiles que tiene pegados y ya no se podría juzgar un tile por lo que se ve.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_marco_de_las_rejillas_sigue_siendo_gris_en_toda_variante()
+    {
+        foreach (ThemeVariant variant in AllVariants)
+        {
+            Color frame = Resolve("AppCanvasFrame", variant);
+
+            int tint = Math.Max(frame.R, Math.Max(frame.G, frame.B))
+                       - Math.Min(frame.R, Math.Min(frame.G, frame.B));
+
+            Assert.True(
+                tint <= MaxFrameTint,
+                $"En «{variant}» el marco sale {frame}, con {tint} de diferencia entre "
+                + $"canales: el máximo son {MaxFrameTint} y eso ya no es un gris.");
+        }
+    }
+
+    /// <summary>
+    /// Y llega al recuadro de verdad: el de la rejilla de los 256 tiles.
+    /// </summary>
+    /// <remarks>
+    /// Los cinco recuadros de las rejillas llevaban <c>Background="Gray"</c> escrito a mano,
+    /// así que el recurso podría estar bien definido y no pintar nada. Esto se mide sobre el
+    /// <c>Background</c> con el que acaba el control montado, que es lo que se veía mal.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_recuadro_de_la_rejilla_de_tiles_se_pinta_segun_la_variante()
+    {
+        Color light = TileGridFrame(ThemeVariant.Light);
+        Color dark = TileGridFrame(ThemeVariant.Dark);
+
+        Assert.True(
+            light != dark,
+            $"El recuadro se pinta {light} en las dos variantes: no está usando el recurso.");
+
+        Assert.Equal(Resolve("AppCanvasFrame", ThemeVariant.Light), light);
+        Assert.Equal(Resolve("AppCanvasFrame", ThemeVariant.Dark), dark);
+    }
+
+    /// <summary>
+    /// Y ningún recuadro se ha quedado con su gris clavado.
+    /// </summary>
+    /// <remarks>
+    /// Eran cinco repartidos por tres vistas y la prueba de arriba sólo monta uno. Se mira
+    /// en el XAML, que es donde se cuela: el que añada la sexta rejilla copiará el
+    /// <c>Border</c> de al lado, y el de al lado ya viene con el recurso puesto.
+    ///
+    /// Sólo el gris de las rejillas. El <c>DarkGray</c> de la tira de sprites es el fondo
+    /// sobre el que se recortan los dibujos y es fijo a propósito.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Ninguna_vista_pinta_un_recuadro_con_el_gris_clavado()
+    {
+        var fixedGray = new List<string>();
+
+        foreach (string file in Directory.GetFiles(ViewTextsTests.ViewsFolder, "*.axaml"))
+        {
+            if (File.ReadAllText(file).Contains("Background=\"Gray\"", StringComparison.Ordinal))
+                fixedGray.Add(Path.GetFileName(file));
+        }
+
+        Assert.True(
+            fixedGray.Count == 0,
+            $"{string.Join(", ", fixedGray)}: el marco de una rejilla va con "
+            + "{DynamicResource AppCanvasFrame}, que es lo que sigue a la variante.");
+    }
+
+    /// <summary>El fondo con el que acaba pintándose el recuadro de la rejilla de tiles.</summary>
+    private static Color TileGridFrame(ThemeVariant variant)
+    {
+        var view = new TileSetEditorView
+        {
+            DataContext = new TileSetEditorViewModel(new TileSet("Bosque"), ColorPalette.CreateMsxStandard()),
+        };
+
+        return InScope(view, variant, mounted => mounted
+            .GetVisualDescendants()
+            .OfType<Border>()
+            .First(border => border.Name == "TileGridPanel")
+            .Background);
     }
 
     // ------------------------------------------------------------------ el ajuste

@@ -144,7 +144,7 @@
         </Grid>
       </StackPanel>
 
-      <Border Grid.Row="2" Background="Gray" Padding="4">
+      <Border Grid.Row="2" Background="{DynamicResource AppCanvasFrame}" Padding="4">
         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                       AllowAutoHide="False">
           <!-- Alineado a Left/Top para que la rejilla se dimensione a su contenido: si se
@@ -201,7 +201,7 @@
         <TextBlock Text="{l:Localize BlocksTiles}" VerticalAlignment="Center" />
       </DockPanel>
 
-      <Border Grid.Row="1" Background="Gray" Padding="4">
+      <Border Grid.Row="1" Background="{DynamicResource AppCanvasFrame}" Padding="4">
         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                       AllowAutoHide="False">
           <!-- 32 columnas, las mismas que el editor de tiles y que el png. Es la unica

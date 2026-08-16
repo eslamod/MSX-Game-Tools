@@ -111,8 +111,11 @@ public class ViewTextsTests
     /// <remarks>
     /// Si algún día se mueven, esto revienta con su motivo en vez de no encontrar ficheros
     /// y dar por buena una comprobación que no ha comprobado nada.
+    ///
+    /// Compartido: <see cref="ThemeVariantTests"/> también mira el XAML, y buscar la carpeta
+    /// dos veces sería tener dos sitios donde arreglarlo el día que se muevan.
     /// </remarks>
-    private static string ViewsFolder
+    internal static string ViewsFolder
     {
         get
         {

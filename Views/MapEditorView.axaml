@@ -299,7 +299,7 @@
       <!-- En un mapa de supertiles no sale: una celda es un supertile entero, asi que un
            tile suelto no se puede colocar en ninguna parte. -->
       <TabItem Header="{l:Localize MapTilesTab}" IsVisible="{Binding !UsesSuperTiles}">
-        <Border Background="Gray" Padding="4">
+        <Border Background="{DynamicResource AppCanvasFrame}" Padding="4">
           <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                         AllowAutoHide="False">
             <!-- 32 columnas, las mismas que el editor y que el png: es la unica
@@ -335,7 +335,7 @@
       </TabItem>
 
       <TabItem Header="{l:Localize MapBlocksTab}">
-        <Border Background="Gray" Padding="4">
+        <Border Background="{DynamicResource AppCanvasFrame}" Padding="4">
           <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                         AllowAutoHide="False">
             <!-- Todos a la vista y tantos por fila como quepan: un bloque se reconoce por
