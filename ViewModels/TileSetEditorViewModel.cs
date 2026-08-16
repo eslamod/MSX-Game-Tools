@@ -122,6 +122,14 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
                 row, _currentTile.ArrayTileRows[row], () => ColorPalette, OnRowColorPicked));
         }
 
+        // Sólo en GRAPHIC 1: en GRAPHIC 2 los grupos existen en la entidad pero no mandan, y
+        // enseñar 32 pares que no pintan nada sería enseñar una mentira.
+        if (tileSet.IsGraphic1)
+        {
+            foreach (TileColorGroup group in tileSet.ColorGroups)
+                GroupColors.Add(new TileGroupColorViewModel(group, () => ColorPalette, OnGroupColorPicked));
+        }
+
         PixelSurface = new TilePixelSurface(this);
 
         _palette.ColorsChanged += OnPaletteColorsChanged;
@@ -213,8 +221,24 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
     /// <summary>Las 256 miniaturas, que la vista reparte en una rejilla de 32 por 8.</summary>
     public ObservableCollection<ImageMini> Thumbnails { get; } = [];
 
-    /// <summary>Una casilla por línea del tile, con sus dos colores.</summary>
+    /// <summary>Una casilla por línea del tile, con sus dos colores. Sólo en GRAPHIC 2.</summary>
     public ObservableCollection<TileRowColorViewModel> RowColors { get; } = [];
+
+    /// <summary>
+    /// Los 32 pares de GRAPHIC 1, uno por cada ocho tiles. Vacío en GRAPHIC 2.
+    /// </summary>
+    /// <remarks>
+    /// Los dos no salen nunca a la vez: en screen 1 no hay color por línea que enseñar y en
+    /// screen 2 no hay grupos, así que lo que en un modo es la columna de la derecha del
+    /// lienzo en el otro es esta rejilla.
+    /// </remarks>
+    public ObservableCollection<TileGroupColorViewModel> GroupColors { get; } = [];
+
+    /// <summary>Si el color es de cada ocho tiles y no de cada línea.</summary>
+    public bool IsGraphic1 => _tileSet.IsGraphic1;
+
+    /// <summary>Si se enseña la columna de colores por línea, que es cosa de GRAPHIC 2.</summary>
+    public bool ShowsRowColors => !IsGraphic1;
 
     /// <summary>Los atributos definidos, con lo que tenga puesto el tile de delante.</summary>
     public ObservableCollection<TileFlagViewModel> TileAttributes { get; } = [];
@@ -594,6 +618,26 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
         RefreshRequested?.Invoke();
     }
 
+    /// <summary>
+    /// Se ha elegido un color de un grupo, y con él han cambiado ocho tiles.
+    /// </summary>
+    /// <remarks>
+    /// Ocho miniaturas y no una, que es la diferencia con elegir el color de una línea. Y
+    /// también el lienzo, porque el tile que se esté editando puede ser uno de los ocho.
+    /// </remarks>
+    private void OnGroupColorPicked(TileColorGroup group)
+    {
+        Touch();
+
+        foreach (Tile tile in group.Tiles)
+        {
+            if (tile.ImageMini is not null)
+                TileRenderer.Render(tile, ColorPalette, BorderColor.Color, tile.ImageMini);
+        }
+
+        RefreshRequested?.Invoke();
+    }
+
     private void OnPaletteColorsChanged(ColorPalette palette) => RefreshPalette();
 
     /// <summary>Cambiar de paleta o retocar un color repinta los 256.</summary>
@@ -608,6 +652,9 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
         foreach (TileRowColorViewModel row in RowColors)
             row.Refresh();
+
+        foreach (TileGroupColorViewModel group in GroupColors)
+            group.Refresh();
 
         RenderAll();
         RefreshRequested?.Invoke();

@@ -186,6 +186,12 @@
   <data name="NewTileSetTitle" xml:space="preserve"><value>Nuevo juego de tiles</value></data>
   <data name="NewTileSetHint" xml:space="preserve"><value>Juego 1</value></data>
   <data name="NewTileSetNote" xml:space="preserve"><value>256 tiles de 8x8, vacíos.</value></data>
+  <data name="NewTileSetMode" xml:space="preserve"><value>Modo</value></data>
+  <data name="TileGroupColors" xml:space="preserve"><value>Colores por grupo de 8 tiles</value></data>
+  <data name="TileSwapGroupColors" xml:space="preserve"><value>Intercambiar frente y fondo del grupo</value></data>
+  <data name="NewTileSetModeGraphic2" xml:space="preserve"><value>Screen 2 y 4 (GRAPHIC 2 y 3)</value></data>
+  <data name="NewTileSetModeGraphic1" xml:space="preserve"><value>Screen 1 (GRAPHIC 1)</value></data>
+  <data name="NewTileSetModeNote" xml:space="preserve"><value>En screen 1 el color no es de cada línea: cada ocho tiles comparten un color de frente y uno de fondo. El modo no se puede cambiar después.</value></data>
   <data name="NewTileSetSuperTiles" xml:space="preserve"><value>Los mapas de este juego van por supertiles</value></data>
   <data name="NewTileSetSuperTilesNote" xml:space="preserve"><value>Sus bloques medirán siempre esto y no se podrán redimensionar: cada uno es una celda del mapa.</value></data>
   <data name="NewTileSetSuperWidth" xml:space="preserve"><value>Ancho</value></data>

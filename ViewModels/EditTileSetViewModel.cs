@@ -7,9 +7,10 @@ namespace MSX_GameTools.ViewModels;
 
 /// <summary>Formulario de creación de un juego de tiles.</summary>
 /// <remarks>
-/// Sólo pide el nombre. A diferencia de un banco de sprites no hay tipo que elegir: el
-/// formato de un tile es el mismo en GRAPHIC 2 y en GRAPHIC 3, y lo único que cambia en
-/// MSX2 es que los 16 colores se pueden redefinir, que ya es cosa de la paleta activa.
+/// El modo se elige aquí y no se cambia después, como el tipo de un banco de sprites: de él
+/// cuelgan el fichero, la exportación y media pantalla del editor. GRAPHIC 2 y 3 son el mismo
+/// modo a estos efectos —lo único que cambia en MSX2 es que los 16 colores se pueden
+/// redefinir, y eso ya es cosa de la paleta—; GRAPHIC 1 no, que allí el color no es del tile.
 /// </remarks>
 public partial class EditTileSetViewModel : PanelBaseViewModel
 {
@@ -37,6 +38,17 @@ public partial class EditTileSetViewModel : PanelBaseViewModel
     [ObservableProperty]
     private bool _useSuperTiles;
 
+    /// <summary>
+    /// En qué modo gráfico se va a usar el juego.
+    /// </summary>
+    /// <remarks>
+    /// Se guarda la opción entera y no el enum suelto porque el desplegable enseña el nombre
+    /// traducido. Y se ignora el null: al cambiar de idioma la lista se rehace y el
+    /// desplegable escribe un hueco de vuelta antes de reelegir, que dejaría el formulario
+    /// sin modo justo cuando el usuario no ha tocado nada.
+    /// </remarks>
+    private TileModeChoice _selectedMode = null!;
+
     [ObservableProperty]
     private int _superTileWidth = 2;
 
@@ -47,6 +59,7 @@ public partial class EditTileSetViewModel : PanelBaseViewModel
     {
         _mainWindowVm = mainWindowVm;
         _palette = mainWindowVm.Palettes.ActivePalette;
+        _selectedMode = Modes[0];
 
         // Con la cabecera vacia la pestaña parecia rota.
         Header = Localizer.Instance["NewTileSetTitle"];
@@ -68,6 +81,36 @@ public partial class EditTileSetViewModel : PanelBaseViewModel
     /// <summary>Lo más grande que puede medir un supertile por cada lado.</summary>
     public static int MaxSuperTileSide => TileSet.MaxSuperTileSide;
 
+    /// <summary>Los modos entre los que se elige, con el nombre de pantalla de cada uno.</summary>
+    public IReadOnlyList<TileModeChoice> Modes { get; } =
+    [
+        new(TileSet.GraphicMode.Graphic2, "NewTileSetModeGraphic2"),
+        new(TileSet.GraphicMode.Graphic1, "NewTileSetModeGraphic1"),
+    ];
+
+    /// <inheritdoc cref="_selectedMode"/>
+    public TileModeChoice SelectedMode
+    {
+        get => _selectedMode;
+        set
+        {
+            if (value is null || ReferenceEquals(value, _selectedMode))
+                return;
+
+            _selectedMode = value;
+
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(Mode));
+            OnPropertyChanged(nameof(IsGraphic1));
+        }
+    }
+
+    /// <summary>El modo elegido, que es lo que se le pasa al juego al crearlo.</summary>
+    public TileSet.GraphicMode Mode => SelectedMode.Mode;
+
+    /// <summary>Para poder explicar en el formulario en qué se va a notar screen 1.</summary>
+    public bool IsGraphic1 => Mode == TileSet.GraphicMode.Graphic1;
+
     [RelayCommand]
     private void AcceptTileSet()
     {
@@ -87,7 +130,7 @@ public partial class EditTileSetViewModel : PanelBaseViewModel
 
         ErrorMessage = null;
 
-        var tileSet = new TileSet(Name);
+        var tileSet = new TileSet(Name, Mode);
 
         if (UseSuperTiles)
         {
@@ -102,4 +145,14 @@ public partial class EditTileSetViewModel : PanelBaseViewModel
 
     [RelayCommand]
     private void CancelTileSet() => _mainWindowVm.RightPanViewModel = null;
+}
+
+/// <summary>Un modo en el desplegable, con su nombre traducido.</summary>
+/// <remarks>
+/// El nombre no sale del enum: en el desplegable tiene que leerse «Screen 2 y 4», que es como
+/// se llama esto de cara a quien lo usa, y además cambia de idioma.
+/// </remarks>
+public sealed record TileModeChoice(TileSet.GraphicMode Mode, string Key)
+{
+    public string Name => Localizer.Instance[Key];
 }

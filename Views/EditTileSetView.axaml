@@ -39,12 +39,32 @@
       </ComboBox>
     </Grid>
 
-    <!-- No hay tipo que elegir: el formato de un tile es el mismo en GRAPHIC 2 y 3, y
-         lo unico que cambia en MSX2 es que los 16 colores se pueden redefinir, que ya
-         lo lleva la paleta de aqui arriba. -->
+    <!-- El modo se elige aqui y no se cambia despues: de el cuelgan el fichero, la
+         exportacion y media pantalla del editor. GRAPHIC 2 y 3 son el mismo modo a estos
+         efectos -lo unico que cambia en MSX2 es que los 16 colores se pueden redefinir, y
+         eso lo lleva la paleta de aqui arriba-. -->
+    <Grid ColumnDefinitions="60,*" Margin="0,0,0,8">
+      <TextBlock Grid.Column="0" Text="{l:Localize NewTileSetMode}" VerticalAlignment="Center" />
+      <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                ItemsSource="{Binding Modes}"
+                SelectedItem="{Binding SelectedMode}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:TileModeChoice">
+            <TextBlock Text="{Binding Name}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+    </Grid>
+
     <StackPanel>
 
       <TextBlock Text="{l:Localize NewTileSetNote}" Foreground="{DynamicResource AppTextSecondary}" TextWrapping="Wrap" />
+
+      <!-- Solo cuando se elige screen 1: quien vaya a lo de siempre no tiene que leer una
+           advertencia sobre un modo que no esta usando. -->
+      <TextBlock Text="{l:Localize NewTileSetModeNote}" Margin="0,6,0,0"
+                 Foreground="{DynamicResource AppTextSecondary}" TextWrapping="Wrap"
+                 IsVisible="{Binding IsGraphic1}" />
 
       <!-- Se pregunta aqui y no al crear el mapa: el tamaño del supertile es del juego,
            porque un supertile es un bloque con el tamaño clavado y los bloques cuelgan

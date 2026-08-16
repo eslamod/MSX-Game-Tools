@@ -43,6 +43,10 @@
          lienzo, que es de lo que se trata. En una sola columna esto costaba 234. -->
     <x:Double x:Key="TileAttributesMaxHeight">132</x:Double>
 
+    <!-- Mas alto que el de atributos porque son 32 fijos y no los que se definan: con 132
+         se veian cuatro filas de pares y las otras siete quedaban debajo de la barra. -->
+    <x:Double x:Key="TileGroupColorsMaxHeight">180</x:Double>
+
     <!-- Las miniaturas van pegadas, sin margen: la rejilla la forman sus propios
          bordes, como la de GIMP. El grosor no cambia al seleccionar para que los
          tiles no bailen. -->
@@ -129,9 +133,14 @@
     </Grid>
 
     <!-- Los dos colores de cada línea, alineados con las filas del lienzo. En un tile
-         un pixel es el color de frente o el de fondo de su línea, nunca otro. -->
+         un pixel es el color de frente o el de fondo de su línea, nunca otro.
+
+         En screen 1 desaparece: allí el color no es de la línea sino del grupo de ocho
+         tiles, y los 32 pares salen debajo del lienzo. Enseñar esta columna en ese modo
+         sería ofrecer una decisión que la máquina no puede cumplir. -->
     <ItemsControl x:Name="RowColorStrip"
                   ItemsSource="{Binding RowColors}"
+                  IsVisible="{Binding ShowsRowColors}"
                   VerticalAlignment="Top" Margin="4,0">
       <ItemsControl.ItemTemplate>
         <DataTemplate x:DataType="vm:TileRowColorViewModel">
@@ -232,8 +241,115 @@
 
          El bloque entero desaparece si el juego no define ninguno, que es la premisa: quien
          no los use no tiene que enterarse de que existen. -->
-    <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
-                Margin="6,10,6,4" IsVisible="{Binding HasAttributes}">
+    <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
+
+    <!-- Los 32 pares de screen 1, donde en el otro modo va la columna de colores por linea.
+         Aqui y no en el panel de la derecha por lo mismo que los atributos: se tocan
+         mientras se dibuja.
+
+         Envolviendo y no en columnas fijas, igual que los atributos: cuantos mas quepan a lo
+         ancho menos alto le quitan al lienzo. Con tope y barra propia, que 32 pares no caben
+         de ninguna manera sin comerse el lienzo entero. -->
+    <StackPanel Margin="6,10,6,4" IsVisible="{Binding IsGraphic1}">
+
+      <TextBlock Text="{l:Localize TileGroupColors}" FontWeight="Bold" Margin="0,0,0,6" />
+
+      <ScrollViewer MaxHeight="{StaticResource TileGroupColorsMaxHeight}"
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled">
+        <ItemsControl ItemsSource="{Binding GroupColors}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:TileGroupColorViewModel">
+              <StackPanel Orientation="Horizontal" Margin="0,0,10,4">
+
+                <!-- A que tiles pinta. Sin esto la rejilla son 32 pares sin nombre, y el
+                     numero de grupo por si solo no dice a que tiles toca. -->
+                <TextBlock Text="{Binding Range}" VerticalAlignment="Center"
+                           FontFamily="Consolas" FontSize="11" Width="52"
+                           TextAlignment="Right" Margin="0,0,4,0" />
+
+                <Button Theme="{StaticResource TileColorSwatch}" Width="26" Height="24"
+                        ToolTip.Tip="{Binding Foreground.DisplayName, StringFormat='Frente: {0}'}">
+                  <Button.ContextMenu>
+                    <ContextMenu>
+                      <MenuItem Header="{l:Localize TileSwapGroupColors}"
+                                Command="{Binding SwapColorsCommand}" />
+                    </ContextMenu>
+                  </Button.ContextMenu>
+                  <Border Background="{Binding Foreground.Brush}" />
+                  <Button.Flyout>
+                    <Flyout Placement="Right">
+                      <ItemsControl ItemsSource="{Binding Palette}" Width="152">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <WrapPanel />
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="entities:PaletteColor">
+                            <Button Theme="{StaticResource TileColorSwatch}"
+                                    Width="34" Height="34" Margin="2"
+                                    ToolTip.Tip="{Binding DisplayName}"
+                                    Click="OnPaletteColorClick"
+                                    Command="{Binding $parent[ItemsControl].((vm:TileGroupColorViewModel)DataContext).PickForegroundCommand}"
+                                    CommandParameter="{Binding}">
+                              <Border Background="{Binding Brush}" />
+                            </Button>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </Flyout>
+                  </Button.Flyout>
+                </Button>
+
+                <Button Theme="{StaticResource TileColorSwatch}" Width="26" Height="24" Margin="2,0,0,0"
+                        ToolTip.Tip="{Binding Background.DisplayName, StringFormat='Fondo: {0}'}">
+                  <Button.ContextMenu>
+                    <ContextMenu>
+                      <MenuItem Header="{l:Localize TileSwapGroupColors}"
+                                Command="{Binding SwapColorsCommand}" />
+                    </ContextMenu>
+                  </Button.ContextMenu>
+                  <Border Background="{Binding Background.Brush}" />
+                  <Button.Flyout>
+                    <Flyout Placement="Right">
+                      <ItemsControl ItemsSource="{Binding Palette}" Width="152">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <WrapPanel />
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="entities:PaletteColor">
+                            <Button Theme="{StaticResource TileColorSwatch}"
+                                    Width="34" Height="34" Margin="2"
+                                    ToolTip.Tip="{Binding DisplayName}"
+                                    Click="OnPaletteColorClick"
+                                    Command="{Binding $parent[ItemsControl].((vm:TileGroupColorViewModel)DataContext).PickBackgroundCommand}"
+                                    CommandParameter="{Binding}">
+                              <Border Background="{Binding Brush}" />
+                            </Button>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </Flyout>
+                  </Button.Flyout>
+                </Button>
+
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+
+    </StackPanel>
+
+    <StackPanel Margin="6,10,6,4" IsVisible="{Binding HasAttributes}">
 
       <TextBlock Text="{l:Localize TileAttributesOfTile}" FontWeight="Bold" Margin="0,0,0,6" />
 
@@ -262,6 +378,8 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
       </ScrollViewer>
+
+    </StackPanel>
 
     </StackPanel>
 

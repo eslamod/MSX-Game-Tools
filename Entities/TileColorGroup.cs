@@ -45,6 +45,9 @@ public partial class TileColorGroup : ObservableObject
     /// <summary>Cuál de los 32 grupos es.</summary>
     public int Index { get; }
 
+    /// <summary>Los ocho tiles que pinta.</summary>
+    public IReadOnlyList<Tile> Tiles => _tiles;
+
     public int FirstTile => Index * TileSet.ColorGroupSize;
 
     public int LastTile => FirstTile + TileSet.ColorGroupSize - 1;

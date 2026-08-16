@@ -170,6 +170,12 @@
   <data name="NewTileSetTitle" xml:space="preserve"><value>Joc de tiles nou</value></data>
   <data name="NewTileSetHint" xml:space="preserve"><value>Joc 1</value></data>
   <data name="NewTileSetNote" xml:space="preserve"><value>256 tiles de 8x8, buits.</value></data>
+  <data name="NewTileSetMode" xml:space="preserve"><value>Mode</value></data>
+  <data name="TileGroupColors" xml:space="preserve"><value>Colors per grup de 8 tiles</value></data>
+  <data name="TileSwapGroupColors" xml:space="preserve"><value>Intercanvia front i fons del grup</value></data>
+  <data name="NewTileSetModeGraphic2" xml:space="preserve"><value>Screen 2 i 4 (GRAPHIC 2 i 3)</value></data>
+  <data name="NewTileSetModeGraphic1" xml:space="preserve"><value>Screen 1 (GRAPHIC 1)</value></data>
+  <data name="NewTileSetModeNote" xml:space="preserve"><value>En screen 1 el color no és de cada línia: cada vuit tiles comparteixen un color de front i un de fons. El mode no es pot canviar després.</value></data>
   <data name="NewTileSetSuperTiles" xml:space="preserve"><value>Els mapes d'aquest joc van per supertiles</value></data>
   <data name="NewTileSetSuperTilesNote" xml:space="preserve"><value>Els seus blocs mesuraran sempre això i no es podran redimensionar: cadascun és una cel·la del mapa.</value></data>
   <data name="NewTileSetSuperWidth" xml:space="preserve"><value>Amplada</value></data>
