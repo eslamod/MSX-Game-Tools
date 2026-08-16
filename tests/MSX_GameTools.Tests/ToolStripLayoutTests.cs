@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Headless.XUnit;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -55,6 +56,20 @@ public class ToolStripLayoutTests : IDisposable
     /// pestaña la barra del mapa se veía apretada. Son dos márgenes de 2 que se tocan.
     /// </remarks>
     private const double StripGap = 4;
+
+    /// <summary>El aire a cada lado de la línea que parte una barra en grupos.</summary>
+    /// <remarks>
+    /// Bastante más que el <see cref="StripGap" /> de dentro del grupo: si los dos huecos se
+    /// parecen, la línea no separa nada porque el ojo ya no distingue dónde acaba un grupo.
+    /// </remarks>
+    private const double GroupPadding = 6;
+
+    /// <summary>Lo que se le quita de alto a la línea respecto a lo que separa.</summary>
+    /// <remarks>
+    /// Una línea que llega de arriba abajo se lee como el borde de una caja y no como una
+    /// separación. Tiene que quedarse corta por los dos lados.
+    /// </remarks>
+    private const double SeparatorInset = 4;
 
     private readonly Window _window;
     private readonly MapEditorView _view;
@@ -239,6 +254,81 @@ public class ToolStripLayoutTests : IDisposable
         AssertEvenGaps(_view, group);
     }
 
+    /// <summary>
+    /// Las líneas que parten una barra en grupos son todas la misma línea.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Había siete repartidas por tres vistas, puestas a mano y cada una a su aire: seis con
+    /// el gris del tema y una con el suyo escrito a fuego —esa se quedó fuera cuando todo lo
+    /// demás pasó a seguir la variante—, y el aire a los lados iba a 6 en unas y a 8 en
+    /// otra, con la línea más alta en el editor de mapas que en los otros dos.
+    /// </para>
+    /// <para>
+    /// El color se compara por identidad y no por parecido: una línea escrita a fuego puede
+    /// coincidir con la del tema claro y delatarse sólo al cambiar a oscuro, que es
+    /// justamente cuando ya no se está mirando eso.
+    /// </para>
+    /// </remarks>
+    [AvaloniaTheory]
+    [InlineData("Map")]
+    [InlineData("TileSet")]
+    [InlineData("Sprites")]
+    public void Las_lineas_que_separan_grupos_son_todas_iguales(string editor)
+    {
+        using var mounted = new MountedEditor(editor);
+
+        Assert.True(
+            Application.Current!.TryFindResource(
+                "AppSeparator", mounted.View.ActualThemeVariant, out object? gray));
+
+        var expected = Assert.IsAssignableFrom<IBrush>(gray);
+
+        Border[] lines = [.. mounted.View.GetVisualDescendants()
+            .OfType<Border>()
+            .Where(border => border.IsEffectivelyVisible
+                             && Math.Abs(border.Bounds.Width - 1) < 0.5
+                             && border.Bounds.Height > 0)];
+
+        Assert.True(lines.Length >= 1, $"En {editor} no se ha encontrado ninguna línea.");
+
+        foreach (Border line in lines)
+        {
+            Assert.True(
+                ReferenceEquals(line.Background, expected),
+                $"En {editor} una línea no usa el gris del tema: lo lleva escrito a fuego "
+                + $"({line.Background}) y no cambiará con la variante.");
+
+            Assert.True(
+                Math.Abs(line.Margin.Left - GroupPadding) < 0.5
+                && Math.Abs(line.Margin.Right - GroupPadding) < 0.5,
+                $"En {editor} una línea deja {line.Margin.Left:0.0} y {line.Margin.Right:0.0} "
+                + $"de aire a los lados, y la medida de la casa es {GroupPadding}.");
+
+            // El alto se compara con el vecino y no con el margen escrito: el mismo margen
+            // en dos barras de distinta altura no da la misma línea.
+            Control neighbour = Neighbour(line);
+
+            double shortfall = neighbour.Bounds.Height - line.Bounds.Height;
+
+            Assert.True(
+                shortfall >= SeparatorInset,
+                $"En {editor} la línea mide {line.Bounds.Height:0.0} y lo que separa mide "
+                + $"{neighbour.Bounds.Height:0.0}: se queda corta en {shortfall:0.0} y hacen "
+                + $"falta {SeparatorInset} para que no parezca el borde de una caja.");
+        }
+    }
+
+    /// <summary>El botón que la línea tiene al lado en su misma tira.</summary>
+    private static Control Neighbour(Border line)
+    {
+        var strip = (Panel)line.GetVisualParent()!;
+
+        return strip.Children
+            .OfType<Control>()
+            .First(child => child is Button or RadioButton or ToggleButton);
+    }
+
     /// <summary>Todos los huecos de esa tira miden <see cref="StripGap" />.</summary>
     private static void AssertEvenGaps(Control view, string group)
     {
@@ -413,22 +503,42 @@ public class ToolStripLayoutTests : IDisposable
     }
 
     /// <summary>Un editor de tiles montado en su ventana, que se cierra solo.</summary>
-    private sealed class MountedTileSet : IDisposable
+    private sealed class MountedTileSet() : MountedEditor("TileSet")
+    {
+        public new TileSetEditorView View => (TileSetEditorView)base.View;
+    }
+
+    /// <summary>Cualquiera de los tres editores, montado y listo para medir.</summary>
+    private class MountedEditor : IDisposable
     {
         private readonly Window _window;
 
-        public MountedTileSet()
+        public MountedEditor(string editor)
         {
             var main = new MainWindowViewModel();
+            TileSetEditorViewModel tiles = main.OpenTileSet(new TileSet("Bosque"));
 
-            View = new TileSetEditorView { DataContext = main.OpenTileSet(new TileSet("Bosque")) };
+            View = editor switch
+            {
+                "Map" => new MapEditorView
+                {
+                    DataContext = main.OpenMap(new TileMap("Nivel", 16, 16), tiles),
+                },
+                "Sprites" => new SpritesEditorView
+                {
+                    DataContext = main.OpenSpriteBank(
+                        new SpriteBank(SpriteBank.SpriteType.MSX2, "Bichos")),
+                },
+                _ => new TileSetEditorView { DataContext = tiles },
+            };
+
             _window = new Window { Content = View, Width = 1100, Height = 800 };
 
             _window.Show();
             Dispatcher.UIThread.RunJobs();
         }
 
-        public TileSetEditorView View { get; }
+        public UserControl View { get; }
 
         public void Dispose()
         {

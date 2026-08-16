@@ -93,7 +93,7 @@
           </StackPanel>
         </RadioButton>
 
-        <Border Width="1" Background="{DynamicResource AppSeparator}" Margin="6,2" />
+        <Border Classes="separator" />
 
         <Button Classes="tool" Command="{Binding FillSelectionCommand}"
                 ToolTip.Tip="{l:Localize MapFillTip}">
@@ -112,7 +112,7 @@
           <icons:MaterialIcon Kind="FindReplace" />
         </Button>
 
-        <Border Width="1" Background="{DynamicResource AppSeparator}" Margin="6,2" />
+        <Border Classes="separator" />
 
         <Button Classes="tool" Command="{Binding UndoCommand}"
                 ToolTip.Tip="{l:Localize MapUndoTip}">
@@ -123,7 +123,7 @@
           <icons:MaterialIcon Kind="Redo" />
         </Button>
 
-        <Border Width="1" Background="{DynamicResource AppSeparator}" Margin="6,2" />
+        <Border Classes="separator" />
 
         <Button Classes="tool" Command="{Binding ZoomOutCommand}"
                 ToolTip.Tip="{l:Localize MapZoomOutTip}">
