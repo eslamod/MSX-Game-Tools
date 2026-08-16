@@ -410,37 +410,61 @@ public class ThemeVariantTests
         }
     }
 
-    /// <summary>Lo que puede virar el marco sin dejar de ser un gris.</summary>
-    /// <remarks>
-    /// Diez tiene el más teñido de los seis. El listón queda algo por encima para no atar la
-    /// mano al añadir una variante, y muy por debajo de lo que ya sería un color.
-    /// </remarks>
-    private const int MaxFrameTint = 16;
-
     /// <summary>
-    /// Y sigue siendo gris, por muy teñida que vaya la variante.
+    /// El marco vira hacia donde vira su panel, y no más que él.
     /// </summary>
     /// <remarks>
-    /// El marco no es una superficie más del cromo: es el fondo contra el que se miran los
-    /// dibujos. Teñido como el panel de una variante de color, tiraría del color de los
-    /// tiles que tiene pegados y ya no se podría juzgar un tile por lo que se ve.
+    /// <para>
+    /// Aquí había un tope fijo de diferencia entre canales, y dejaba pasar justo lo que se
+    /// veía mal. El marco de la clara anaranjada llevaba la misma receta que su panel pero a
+    /// media luz, que da la mitad de calidez; al lado de una superficie cálida y grande el
+    /// ojo devolvía esa mitad a gris frío y el marco desentonaba con todo lo que tenía
+    /// alrededor. Se ve en la variante más teñida de las seis, que es donde se mira.
+    /// </para>
+    /// <para>
+    /// Así que se mide en diferencia entre canales, que es como se ve, y contra el panel,
+    /// que es lo que tiene al lado. El mismo viraje que él, ni más ni menos: por arriba lo
+    /// que se protege es que el marco no vaya más teñido que el cromo que lo rodea, y por
+    /// abajo, que es por donde falló, que no se quede a medias y lo devuelva al gris el
+    /// primer panel de color que se le ponga al lado. En la clara y en la oscura, con el
+    /// panel neutro clavado, la misma regla deja el marco neutro clavado.
+    /// </para>
     /// </remarks>
     [AvaloniaFact]
-    public void El_marco_de_las_rejillas_sigue_siendo_gris_en_toda_variante()
+    public void El_marco_de_las_rejillas_vira_como_su_panel_y_no_mas()
     {
         foreach (ThemeVariant variant in AllVariants)
         {
             Color frame = Resolve("AppCanvasFrame", variant);
-
-            int tint = Math.Max(frame.R, Math.Max(frame.G, frame.B))
-                       - Math.Min(frame.R, Math.Min(frame.G, frame.B));
+            Color panel = Resolve("AppPanelBackground", variant);
 
             Assert.True(
-                tint <= MaxFrameTint,
-                $"En «{variant}» el marco sale {frame}, con {tint} de diferencia entre "
-                + $"canales: el máximo son {MaxFrameTint} y eso ya no es un gris.");
+                Math.Sign(frame.R - frame.B) == Math.Sign(panel.R - panel.B),
+                $"En «{variant}» el marco sale {frame} y el panel {panel}: no tiran al mismo "
+                + "lado, y un marco frío al lado de un panel cálido desentona con todo.");
+
+            Assert.True(
+                Math.Abs(Tint(frame) - Tint(panel)) <= TintSlack,
+                $"En «{variant}» el marco sale {frame}, con {Tint(frame)} de diferencia entre "
+                + $"canales, y su panel {panel} tiene {Tint(panel)}: el marco lleva el viraje "
+                + "de su panel, ni más ni menos.");
         }
     }
+
+    /// <summary>
+    /// Lo que se le perdona al viraje del marco contra el de su panel.
+    /// </summary>
+    /// <remarks>
+    /// Dos, que es lo que se va de redondeo al escribir el color en hexadecimal. Ni un punto
+    /// más: la holgura la da el margen de arriba —del marco al panel hay luminosidad de
+    /// sobra— y no aflojar esto, que es lo único que sujeta el tono.
+    /// </remarks>
+    private const int TintSlack = 2;
+
+    /// <summary>Cuánto vira un color: lo que va de su canal más alto al más bajo.</summary>
+    private static int Tint(Color color) =>
+        Math.Max(color.R, Math.Max(color.G, color.B))
+        - Math.Min(color.R, Math.Min(color.G, color.B));
 
     /// <summary>
     /// Y llega al recuadro de verdad: el de la rejilla de los 256 tiles.

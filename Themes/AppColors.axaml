@@ -176,10 +176,12 @@
       <SolidColorBrush x:Key="AppSeparator" Color="#38424F" />
       <SolidColorBrush x:Key="AppControlBorder" Color="#55616F" />
 
-      <!-- Teñido con la mano mucho más floja que los demás grises de aquí: éste es el fondo
-           contra el que se miran los dibujos, así que se acerca al azul lo justo para no
-           cantar al lado del panel, y se queda gris. -->
-      <SolidColorBrush x:Key="AppCanvasFrame" Color="#1B2025" />
+      <!-- El viraje del panel, medido en diferencia entre canales y no en proporción. Es la
+           misma cantidad de azul que lleva el panel, no la misma receta: a media luz, la
+           receta del panel da la mitad de color, y al lado de una superficie teñida grande
+           el ojo devuelve al gris neutro lo que no llega. Más que el panel tampoco, que
+           entonces el marco iría más teñido que el cromo que lo rodea. -->
+      <SolidColorBrush x:Key="AppCanvasFrame" Color="#182028" />
 
       <SolidColorBrush x:Key="AppListBackground" Color="#1A2027" />
 
@@ -221,7 +223,7 @@
       <SolidColorBrush x:Key="AppSeparator" Color="#4A4038" />
       <SolidColorBrush x:Key="AppControlBorder" Color="#6B5D51" />
 
-      <!-- Igual de flojo que en la azulada, y por lo mismo. -->
+      <!-- El viraje de su panel, igual que en la azulada. -->
       <SolidColorBrush x:Key="AppCanvasFrame" Color="#25201B" />
 
       <SolidColorBrush x:Key="AppListBackground" Color="#241F1B" />
@@ -293,9 +295,8 @@
       <SolidColorBrush x:Key="AppSeparator" Color="#A3ACB8" />
       <SolidColorBrush x:Key="AppControlBorder" Color="#8A95A3" />
 
-      <!-- El gris de la clara, virado lo mismo que el de la oscura azulada: la misma
-           claridad de siempre, con el punto de azul que lo hermana con el panel. -->
-      <SolidColorBrush x:Key="AppCanvasFrame" Color="#7B8085" />
+      <!-- La claridad de siempre y el viraje de su panel. -->
+      <SolidColorBrush x:Key="AppCanvasFrame" Color="#798087" />
 
       <SolidColorBrush x:Key="AppListBackground" Color="#F8FAFC" />
 
@@ -323,8 +324,9 @@
       <SolidColorBrush x:Key="AppSeparator" Color="#B8AC9C" />
       <SolidColorBrush x:Key="AppControlBorder" Color="#9E9384" />
 
-      <!-- El de la clara con el mismo punto de calidez que la oscura anaranjada. -->
-      <SolidColorBrush x:Key="AppCanvasFrame" Color="#85807B" />
+      <!-- La que más se notaba: aquí el panel es el más teñido de las seis variantes, y un
+           marco a medio virar se veía frío al lado. Lleva la calidez entera del panel. -->
+      <SolidColorBrush x:Key="AppCanvasFrame" Color="#8A8078" />
 
       <SolidColorBrush x:Key="AppListBackground" Color="#FDFBF7" />
 
