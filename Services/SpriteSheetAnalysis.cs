@@ -154,10 +154,10 @@ public static class SpriteSheetAnalysis
 
         foreach (int pixel in Pixels(pixels, size, cellSize, selection))
         {
-            if (IsClear(pixel, transparent))
+            if (SpriteSheetPixels.IsClear(pixel, transparent))
                 continue;
 
-            Color color = FromBgra(pixel);
+            Color color = SpriteSheetPixels.FromBgra(pixel);
 
             if (!seen.Contains(color))
                 seen.Add(color);
@@ -204,12 +204,8 @@ public static class SpriteSheetAnalysis
 
         for (int x = 0; x < cellSize; x++)
         {
-            int pixel = pixels[(top * size.Width) + left + x];
-
-            if (IsClear(pixel, transparent))
-                continue;
-
-            int color = IndexOf(colors, FromBgra(pixel));
+            int color = SpriteSheetPixels.ColorAt(
+                pixels, size, left + x, top, transparent, colors);
 
             if (color >= 0 && !seen.Contains(color))
                 seen.Add(color);
@@ -264,29 +260,4 @@ public static class SpriteSheetAnalysis
         }
     }
 
-    /// <summary>
-    /// Si un pixel no pinta nada.
-    /// </summary>
-    /// <remarks>
-    /// El alfa a cero siempre, y además el color que se haya elegido como transparente: muchas
-    /// hojas vienen con el fondo de un color liso en vez de con alfa, y sin esto ese fondo se
-    /// llevaría un índice de paleta y un plano entero para nada.
-    /// </remarks>
-    private static bool IsClear(int bgra, Color? transparent) =>
-        (uint)bgra >> 24 == 0 || (transparent is { } clear && FromBgra(bgra) == clear);
-
-    private static Color FromBgra(int bgra) => Color.FromRgb(
-        (byte)((bgra >> 16) & 0xFF), (byte)((bgra >> 8) & 0xFF), (byte)(bgra & 0xFF));
-
-    /// <summary>Qué número de color es, o -1. A mano porque la lista es de sólo lectura.</summary>
-    private static int IndexOf(IReadOnlyList<Color> colors, Color color)
-    {
-        for (int index = 0; index < colors.Count; index++)
-        {
-            if (colors[index] == color)
-                return index;
-        }
-
-        return -1;
-    }
 }
