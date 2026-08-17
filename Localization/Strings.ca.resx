@@ -66,6 +66,8 @@
     <value>Sprites</value>
   </data>
   <data name="MenuNewSpriteBank" xml:space="preserve">
+    <value>Banc de sprites nou</value>
+  </data>
   <data name="MenuImportSpriteSheet" xml:space="preserve"><value>Porta d'un full de sprites (png)...</value></data>
   <data name="PickImportSpriteSheet" xml:space="preserve"><value>Tria el full de sprites</value></data>
   <data name="ImportSheetTitle" xml:space="preserve"><value>Porta d'un full</value></data>
@@ -77,8 +79,6 @@
   <data name="ImportSheetCost" xml:space="preserve"><value>{0} colors · {1} plans · {2} cel·les · {3} de {4} patrons</value></data>
   <data name="ImportSheetTooMany" xml:space="preserve"><value>No cap al banc. Tria menys cel·les o baixa els sprites superposats.</value></data>
   <data name="ImportSheetHint" xml:space="preserve"><value>Arrossega sobre el full per triar el rectangle que vulguis portar.</value></data>
-    <value>Banc de sprites nou</value>
-  </data>
 
   <data name="MenuTiles" xml:space="preserve">
     <value>Tiles</value>

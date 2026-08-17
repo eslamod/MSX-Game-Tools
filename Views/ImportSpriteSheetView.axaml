@@ -10,12 +10,10 @@
              Background="{DynamicResource AppPanelBackground}">
 
   <UserControl.Resources>
-    <!-- El recuadro de una celda de la reticula. Sin relleno: lo que se mira es la hoja. -->
-    <ControlTheme x:Key="SheetCellBox" TargetType="Border">
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="BorderBrush" Value="#40FFFFFF" />
-      <Setter Property="IsHitTestVisible" Value="False" />
-    </ControlTheme>
+    <!-- Lo mas alto que se le consiente a la hoja antes de que se desplace dentro de su
+         recuadro. Sin tope, una hoja larga deja los controles y el informe a tres pantallas
+         de distancia y hay que bajar a ciegas para ver si lo elegido cabe. -->
+    <x:Double x:Key="SheetPreviewMaxHeight">360</x:Double>
   </UserControl.Resources>
 
   <!-- El titulo arriba, los botones abajo y todo lo demas con barra, como el resto de los
@@ -25,26 +23,35 @@
 
     <TextBlock Grid.Row="0" Text="{l:Localize ImportSheetTitle}" FontWeight="Bold" Margin="0,0,0,10" />
 
+    <!-- Este solo se desplaza en vertical. Con barra horizontal, el contenido recibiria ancho
+         infinito y los textos no envolverian nunca: el informe salia en una sola linea larguisima
+         con su propia barra. Lo que necesita desplazarse a lo ancho es la hoja, y esa lleva la
+         suya. -->
     <ScrollViewer Grid.Row="1"
-                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
                   AllowAutoHide="False">
       <StackPanel>
 
     <!-- La hoja a su tamaño con la reticula encima. Sin encogerla: reducida no se acertaria
-         la celda, y para eso esta la barra. -->
-    <Panel x:Name="SheetPanel" HorizontalAlignment="Left" VerticalAlignment="Top"
-           Background="{DynamicResource AppCanvasFrame}">
-      <Image x:Name="SheetImage" Stretch="Fill"
-             RenderOptions.BitmapInterpolationMode="None"
-             Source="{Binding Source}" />
+         la celda, y para eso esta la barra. Con tope de alto para que una hoja larga no deje
+         los controles a tres pantallas de distancia. -->
+    <ScrollViewer MaxHeight="{StaticResource SheetPreviewMaxHeight}"
+                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                  AllowAutoHide="False">
+      <Panel x:Name="SheetPanel" HorizontalAlignment="Left" VerticalAlignment="Top"
+             Background="{DynamicResource AppCanvasFrame}">
+        <Image x:Name="SheetImage" Stretch="Fill"
+               RenderOptions.BitmapInterpolationMode="None"
+               Source="{Binding Source}" />
 
-      <!-- La capa que recibe el raton. Transparente y no nula: con Background nulo un Canvas
-           no recibe pulsaciones, y el arrastre no llegaria a empezar. -->
-      <Canvas x:Name="CellOverlay" Background="Transparent"
-              PointerPressed="OnSheetPressed"
-              PointerMoved="OnSheetMoved"
-              PointerReleased="OnSheetReleased" />
-    </Panel>
+        <!-- La capa que recibe el raton. Transparente y no nula: con Background nulo un Canvas
+             no recibe pulsaciones, y el arrastre no llegaria a empezar. -->
+        <Canvas x:Name="CellOverlay" Background="Transparent"
+                PointerPressed="OnSheetPressed"
+                PointerMoved="OnSheetMoved"
+                PointerReleased="OnSheetReleased" />
+      </Panel>
+    </ScrollViewer>
 
     <StackPanel Margin="0,10,0,0">
 
