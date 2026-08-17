@@ -96,7 +96,7 @@ public class MapShiftLunarRescueTests
         TileMap map = Map(Fondo, Macizo, Fondo, Hueco, Macizo, Hueco);
 
         MapShiftReport todos = MapShiftAnalysis.Of(map, Tiles());
-        MapShiftReport sinFondo = MapShiftAnalysis.Of(map, Tiles(), [Fondo]);
+        MapShiftReport sinFondo = MapShiftAnalysis.Of(map, Tiles(), new ShiftScope { Ignored = [Fondo] });
 
         Assert.Contains(todos.Dirty, tile => tile.Tile == Fondo);
         Assert.DoesNotContain(sinFondo.Tiles, tile => tile.Tile == Fondo);

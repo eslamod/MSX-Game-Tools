@@ -247,7 +247,71 @@ public class MapShiftAnalysisTests
         int[] row = [5, 7, 5, 9];
 
         Assert.Contains(MapShiftAnalysis.Of(Map(row), tiles).Tiles, tile => tile.Tile == 5);
-        Assert.DoesNotContain(MapShiftAnalysis.Of(Map(row), tiles, [5]).Tiles, tile => tile.Tile == 5);
+
+        MapShiftReport without = MapShiftAnalysis.Of(Map(row), tiles, new ShiftScope { Ignored = [5] });
+
+        Assert.DoesNotContain(without.Tiles, tile => tile.Tile == 5);
+    }
+
+    /// <summary>
+    /// Las filas que no se desplazan no atan nada.
+    /// </summary>
+    /// <remarks>
+    /// Nace de un caso real: un tile salía con una sola posición rota de diez, y la posición
+    /// estaba en la fila de arriba, que en ese juego es el marcador y no se mueve. El informe
+    /// decía la verdad y aun así estaba equivocado, porque ahí no se va a ver nada.
+    /// </remarks>
+    [Fact]
+    public void Las_filas_que_no_se_desplazan_no_atan()
+    {
+        TileSet tiles = Tiles((5, 0xFF), (7, 0xFF), (9, 0x00));
+
+        var map = new TileMap("Nivel", 2, 2);
+        map.AddLayer();
+
+        // Arriba el 5 toca macizo y abajo toca hueco: se contradice.
+        map.Layers[0].Grid[0, 0] = 5;
+        map.Layers[0].Grid[1, 0] = 7;
+        map.Layers[0].Grid[0, 1] = 5;
+        map.Layers[0].Grid[1, 1] = 9;
+
+        Assert.False(MapShiftAnalysis.Of(map, tiles).Tiles.Single(tile => tile.Tile == 5).Clean);
+
+        // Y dejando fuera la fila del marcador, deja de contradecirse.
+        MapShiftReport scrolled = MapShiftAnalysis.Of(map, tiles, new ShiftScope { FirstRow = 1 });
+
+        ShiftTileReport five = scrolled.Tiles.Single(tile => tile.Tile == 5);
+
+        Assert.True(five.Clean);
+        Assert.Equal(ShiftFill.Zeros, five.Suggested);
+        Assert.Equal(0, scrolled.Broken);
+    }
+
+    /// <summary>
+    /// Y los tiles que no se desplazan tampoco, ni salen en la tabla.
+    /// </summary>
+    /// <remarks>
+    /// Las ocho copias cuestan VRAM: lo normal es hacerlas de una parte del juego de tiles y
+    /// dejar los primeros para el marcador. La tabla que come la rutina es la de ese trozo, con
+    /// su primer byte en el primer tile que sí se desplaza.
+    /// </remarks>
+    [Fact]
+    public void Los_tiles_fuera_del_rango_ni_atan_ni_salen_en_la_tabla()
+    {
+        TileSet tiles = Tiles((5, 0xFF), (13, 0xFF), (20, 0xFF));
+
+        // Del 10 al 15: seis bytes. Y el que se mira es el 13, que cae en el cuarto.
+        // Los números están elegidos para que restar el primero y el resto entre seis den
+        // sitios distintos: con un rango que empiece donde su tamaño, los dos coinciden y
+        // una tabla desplazada pasa por buena.
+        var scope = new ShiftScope { FirstTile = 10, LastTile = 15 };
+        MapShiftReport report = MapShiftAnalysis.Of(Map(5, 13, 20), tiles, scope);
+
+        Assert.DoesNotContain(report.Tiles, tile => tile.Tile == 5);
+        Assert.Contains(report.Tiles, tile => tile.Tile == 13);
+
+        Assert.Equal(6, report.Table.Count);
+        Assert.Equal(ShiftFill.Ones, report.Table[13 - 10]);
     }
 
     /// <summary>Los sucios salen primero los que más sitios estropean.</summary>

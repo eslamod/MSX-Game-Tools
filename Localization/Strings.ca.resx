@@ -528,6 +528,13 @@ Recorda copiar cada taula {2} vegades a la VRAM, una per terç de pantalla.</val
   <data name="ShiftShowNextTip" xml:space="preserve"><value>Porta el mapa al següent lloc que no es veurà bé</value></data>
   <data name="ShiftIgnore" xml:space="preserve"><value>Ignorar</value></data>
   <data name="ShiftIgnoreTip" xml:space="preserve"><value>Treu-lo de l'informe. Per al tile de fons, que toca amb tot i enterra els altres</value></data>
+  <data name="ShiftScope" xml:space="preserve"><value>El que es desplaça</value></data>
+  <data name="ShiftTilesFrom" xml:space="preserve"><value>Tiles del</value></data>
+  <data name="ShiftRowsFrom" xml:space="preserve"><value>Files de la</value></data>
+  <data name="ShiftRangeTo" xml:space="preserve"><value>al</value></data>
+  <data name="ShiftTilesTip" xml:space="preserve"><value>Les còpies desplaçades costen VRAM i gairebé ningú no les fa dels 256: el normal és deixar els primers per al marcador i els números, iguals a les vuit taules</value></data>
+  <data name="ShiftRowsTip" xml:space="preserve"><value>La fila de dalt sol ser el marcador i no es mou, així que el que hi passi no es notarà</value></data>
+  <data name="ShiftTableSize" xml:space="preserve"><value>La taula són {0} bytes, del tile {1} al {2}.</value></data>
   <data name="ShiftExportAsm" xml:space="preserve"><value>Exportar asm</value></data>
   <data name="ShiftExportBin" xml:space="preserve"><value>Exportar bin</value></data>
   <data name="ShiftExported" xml:space="preserve"><value>Escrit {0}</value></data>

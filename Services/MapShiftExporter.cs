@@ -16,7 +16,7 @@ public static class MapShiftExporter
 {
     private const int BytesPerLine = 8;
 
-    /// <summary>Un byte por tile, del 0 al 255.</summary>
+    /// <summary>Un byte por cada tile del rango que se desplaza.</summary>
     public static byte[] ToBinary(MapShiftReport report) =>
         [.. report.Table.Select(fill => (byte)fill)];
 
@@ -31,10 +31,12 @@ public static class MapShiftExporter
     {
         var text = new StringBuilder();
         string label = SpriteBankExporter.LabelOf(name);
+        ShiftScope scope = report.Scope;
 
         text.AppendLine($"; Shift table - {name}");
-        text.AppendLine($"; One byte per tile, {TileSet.TileCount} bytes: what enters from the right");
+        text.AppendLine($"; One byte per tile, {scope.TileCount} bytes: what enters from the right");
         text.AppendLine("; when the tile set is shifted one pixel to the left.");
+        text.AppendLine($"; The first byte is tile {scope.FirstTile} and the last one is tile {scope.LastTile}.");
         text.AppendLine($"; Size: {label}_shift_end - {label}_shift");
         text.AppendLine();
 
@@ -51,9 +53,13 @@ public static class MapShiftExporter
         {
             IEnumerable<string> line = bytes.Skip(start).Take(BytesPerLine).Select(value => $"{value}");
 
+            // El comentario lleva el numero de tile y no el de byte: la tabla puede no empezar
+            // en el cero, y buscar el tile 97 contando bytes desde el principio es de lo que
+            // salen los errores de una posicion.
             text.AppendLine(
                 $"    {SpriteBankExporter.DataDirective}  {string.Join(",", line)}"
-                + $"   ; {start}-{Math.Min(start + BytesPerLine, bytes.Length) - 1}");
+                + $"   ; {scope.FirstTile + start}-"
+                + $"{scope.FirstTile + Math.Min(start + BytesPerLine, bytes.Length) - 1}");
         }
 
         text.AppendLine($"{label}_shift_end:");

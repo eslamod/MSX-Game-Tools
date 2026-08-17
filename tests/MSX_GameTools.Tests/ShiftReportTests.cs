@@ -122,6 +122,57 @@ public class ShiftReportTests
         Assert.Equal([(6, 0), (8, 0), (6, 0)], asked);
     }
 
+    /// <summary>
+    /// Dejar fuera la fila del marcador limpia lo que allí no se iba a notar.
+    /// </summary>
+    /// <remarks>
+    /// El caso que lo pidió: un tile con una sola posición rota de diez, y la posición estaba
+    /// en la fila de arriba, que es el marcador y no se desplaza.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Sacar_la_fila_del_marcador_limpia_el_informe()
+    {
+        MainWindowViewModel main = WithMap(out MapEditorViewModel editor, rows: 2);
+
+        Solid(editor, 5, 7);
+
+        // Arriba el 5 toca macizo y abajo toca vacío: se contradice.
+        editor.Map.Stamp(0, 0, 0, TilePatch.Single(5));
+        editor.Map.Stamp(0, 1, 0, TilePatch.Single(7));
+        editor.Map.Stamp(0, 0, 1, TilePatch.Single(5));
+        editor.Map.Stamp(0, 1, 1, TilePatch.Single(9));
+
+        var panel = Open(main);
+
+        Assert.Single(panel.Rows);
+
+        panel.FirstRow = 1;
+
+        Assert.Empty(panel.Rows);
+    }
+
+    /// <summary>Y el rango de tiles decide cuánto ocupa la tabla que se exporta.</summary>
+    [AvaloniaFact]
+    public void El_rango_de_tiles_decide_el_tamano_de_la_tabla()
+    {
+        MainWindowViewModel main = WithMap(out MapEditorViewModel editor);
+
+        Paint(editor, 5, 7, 5, 9);
+        Solid(editor, 5, 7);
+
+        var panel = Open(main);
+
+        Assert.Contains("256", panel.TableLabel);
+
+        panel.FirstTile = 32;
+        panel.LastTile = 127;
+
+        Assert.Contains("96", panel.TableLabel);
+
+        // Y el 5 se queda fuera del informe, que ya no se desplaza.
+        Assert.Empty(panel.Rows);
+    }
+
     /// <summary>La tabla exportada lleva un byte por tile con el código de la rutina.</summary>
     [AvaloniaFact]
     public void La_tabla_exportada_lleva_un_byte_por_tile()
@@ -185,7 +236,7 @@ public class ShiftReportTests
         }
     }
 
-    private static MainWindowViewModel WithMap(out MapEditorViewModel editor)
+    private static MainWindowViewModel WithMap(out MapEditorViewModel editor, int rows = 1)
     {
         var main = new MainWindowViewModel();
 
@@ -195,7 +246,7 @@ public class ShiftReportTests
         var form = (EditMapViewModel)main.RightPanViewModel!;
         form.Name = "Nivel 1";
         form.Columns = 12;
-        form.Rows = 1;
+        form.Rows = rows;
         form.AcceptMapCommand.Execute(null);
 
         editor = main.Tabs.OfType<MapEditorViewModel>().Last();

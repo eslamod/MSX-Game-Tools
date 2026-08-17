@@ -527,6 +527,13 @@ Remember to copy each table {2} times into VRAM, one per third of the screen.</v
   <data name="ShiftShowNextTip" xml:space="preserve"><value>Takes the map to the next place that will not look right</value></data>
   <data name="ShiftIgnore" xml:space="preserve"><value>Ignore</value></data>
   <data name="ShiftIgnoreTip" xml:space="preserve"><value>Leave it out of the report. For the background tile, which touches everything and buries the rest</value></data>
+  <data name="ShiftScope" xml:space="preserve"><value>What actually shifts</value></data>
+  <data name="ShiftTilesFrom" xml:space="preserve"><value>Tiles from</value></data>
+  <data name="ShiftRowsFrom" xml:space="preserve"><value>Rows from</value></data>
+  <data name="ShiftRangeTo" xml:space="preserve"><value>to</value></data>
+  <data name="ShiftTilesTip" xml:space="preserve"><value>Shifted copies cost VRAM and hardly anyone makes them for all 256: the usual thing is to leave the first ones for the scoreboard and the digits, the same in all eight tables</value></data>
+  <data name="ShiftRowsTip" xml:space="preserve"><value>The top row is usually the scoreboard and does not move, so whatever happens there will not show</value></data>
+  <data name="ShiftTableSize" xml:space="preserve"><value>The table is {0} bytes, from tile {1} to {2}.</value></data>
   <data name="ShiftExportAsm" xml:space="preserve"><value>Export asm</value></data>
   <data name="ShiftExportBin" xml:space="preserve"><value>Export bin</value></data>
   <data name="ShiftExported" xml:space="preserve"><value>Wrote {0}</value></data>

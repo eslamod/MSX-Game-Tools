@@ -112,6 +112,32 @@ public partial class ShiftReportViewModel : PanelBaseViewModel
     [ObservableProperty]
     private bool _onlyDirty = true;
 
+    /// <summary>
+    /// Del juego de tiles, el primero que se desplaza.
+    /// </summary>
+    /// <remarks>
+    /// Las copias desplazadas cuestan VRAM y casi nadie las hace de los 256: lo normal es dejar
+    /// los primeros para el marcador y los números, que son iguales en las ocho tablas.
+    /// </remarks>
+    [ObservableProperty]
+    private int _firstTile;
+
+    [ObservableProperty]
+    private int _lastTile = TileSet.TileCount - 1;
+
+    /// <summary>
+    /// Del mapa, la primera fila que se desplaza.
+    /// </summary>
+    /// <remarks>
+    /// La de arriba suele ser el marcador y no se mueve. Sin esto, un tile puede salir con una
+    /// sola posición rota y estar esa posición donde nunca se va a notar.
+    /// </remarks>
+    [ObservableProperty]
+    private int _firstRow;
+
+    [ObservableProperty]
+    private int _lastRow;
+
     [ObservableProperty]
     private string? _resultMessage;
 
@@ -123,12 +149,18 @@ public partial class ShiftReportViewModel : PanelBaseViewModel
         Header = Text.Format("ShiftHeader", editor.Map.Name);
         TagId = "shift:report";
 
+        _lastRow = Math.Max(0, editor.Map.Height - 1);
+
         _report = Analyse();
 
         Fill();
     }
 
     private static Localizer Text => Localizer.Instance;
+
+    public int MaxTile => TileSet.TileCount - 1;
+
+    public int MaxRow => Math.Max(0, _editor.Map.Height - 1);
 
     /// <summary>Las filas que se ven ahora mismo.</summary>
     public ObservableCollection<ShiftTileRowViewModel> Rows { get; } = [];
@@ -145,6 +177,10 @@ public partial class ShiftReportViewModel : PanelBaseViewModel
         ? null
         : Text.Format("ShiftIgnored", string.Join(", ", _ignored.Order()));
 
+    /// <summary>Cuánto ocupa lo que se va a exportar, que sale del rango de tiles.</summary>
+    public string TableLabel =>
+        Text.Format("ShiftTableSize", _report.Scope.TileCount, _report.Scope.FirstTile, _report.Scope.LastTile);
+
     public bool IsIgnored(int tile) => _ignored.Contains(tile);
 
     /// <summary>Saca un tile del informe, o lo devuelve, y rehace las cuentas.</summary>
@@ -159,7 +195,24 @@ public partial class ShiftReportViewModel : PanelBaseViewModel
     /// <summary>Lleva el mapa a una celda y la deja marcada.</summary>
     public void ShowCell(MapCell cell) => _editor.ShowCell(cell.Column, cell.Row);
 
-    private MapShiftReport Analyse() => MapShiftAnalysis.Of(_editor.Map, _editor.TileSet, _ignored);
+    /// <summary>
+    /// El ámbito tal y como está puesto, con los extremos ordenados.
+    /// </summary>
+    /// <remarks>
+    /// Ordenados y no validados: quien escribe un rango a mano pasa por estados a medias —sube
+    /// el primero por encima del último antes de subir el último— y plantarse con el informe
+    /// vacío mientras tanto no ayuda a nadie.
+    /// </remarks>
+    private ShiftScope Scope() => new()
+    {
+        FirstTile = Math.Min(FirstTile, LastTile),
+        LastTile = Math.Max(FirstTile, LastTile),
+        FirstRow = Math.Min(FirstRow, LastRow),
+        LastRow = Math.Max(FirstRow, LastRow),
+        Ignored = _ignored,
+    };
+
+    private MapShiftReport Analyse() => MapShiftAnalysis.Of(_editor.Map, _editor.TileSet, Scope());
 
     /// <summary>
     /// Rehace el informe entero.
@@ -178,6 +231,7 @@ public partial class ShiftReportViewModel : PanelBaseViewModel
         OnPropertyChanged(nameof(Totals));
         OnPropertyChanged(nameof(Counts));
         OnPropertyChanged(nameof(IgnoredLabel));
+        OnPropertyChanged(nameof(TableLabel));
     }
 
     private void Fill()
@@ -191,6 +245,14 @@ public partial class ShiftReportViewModel : PanelBaseViewModel
     }
 
     partial void OnOnlyDirtyChanged(bool value) => Fill();
+
+    partial void OnFirstTileChanged(int value) => Recompute();
+
+    partial void OnLastTileChanged(int value) => Recompute();
+
+    partial void OnFirstRowChanged(int value) => Recompute();
+
+    partial void OnLastRowChanged(int value) => Recompute();
 
     /// <summary>El dibujo de un tile, o nada si ese número no existe en el juego.</summary>
     private ImageMini? TileAt(int index) =>

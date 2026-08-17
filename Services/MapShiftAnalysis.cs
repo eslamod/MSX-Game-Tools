@@ -58,26 +58,80 @@ public sealed record ShiftTileReport(
 }
 
 /// <summary>
+/// Qué parte del mapa y del juego de tiles se desplaza de verdad.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Nada de esto es un capricho del programa: las copias desplazadas cuestan VRAM, así que casi
+/// nadie las hace de los 256 tiles. Un juego típico deja los primeros para el marcador y los
+/// números, que son iguales en las ocho tablas, y desplaza sólo los del terreno. Y la fila de
+/// arriba del mapa suele ser el marcador, que tampoco se mueve.
+/// </para>
+/// <para>
+/// Sin decirlo, el informe mide sitios que no se van a ver mal nunca porque no se desplazan, y
+/// ésos entierran a los que sí. Un tile puede salir con una sola posición rota y estar la
+/// posición en la fila del marcador.
+/// </para>
+/// </remarks>
+public sealed record ShiftScope
+{
+    /// <summary>Del juego de tiles, el primero que se desplaza.</summary>
+    public int FirstTile { get; init; }
+
+    /// <summary>Y el último, éste incluido.</summary>
+    public int LastTile { get; init; } = TileSet.TileCount - 1;
+
+    /// <summary>Del mapa, la primera fila que se desplaza.</summary>
+    public int FirstRow { get; init; }
+
+    /// <summary>Y la última, ésta incluida. Sin tocar, hasta donde llegue el mapa.</summary>
+    public int LastRow { get; init; } = int.MaxValue;
+
+    /// <summary>
+    /// Tiles que no se quieren en el informe aunque estén en el rango.
+    /// </summary>
+    /// <remarks>
+    /// Para el fondo y demás rellenos, que tocan con todo y se contradicen siempre: si ya se
+    /// sabe que su borde no importa, sacarlos deja ver los que sí.
+    /// </remarks>
+    public IReadOnlyCollection<int> Ignored { get; init; } = [];
+
+    /// <summary>Cuántos tiles cubre la tabla que hace falta.</summary>
+    public int TileCount => Math.Max(0, LastTile - FirstTile + 1);
+
+    internal bool Wants(int tile, int row) =>
+        tile >= FirstTile && tile <= LastTile && row >= FirstRow && row <= LastRow && !Ignored.Contains(tile);
+}
+
+/// <summary>
 /// Lo que costaría el desplazamiento suave en un mapa.
 /// </summary>
 /// <param name="Tiles">Sólo los que el mapa usa con algún vecino: los demás no atan nada.</param>
 /// <param name="Places">Celdas del mapa que atan a algún tile.</param>
 /// <param name="Broken">De ésas, las que no se van a ver como toca.</param>
-public sealed record MapShiftReport(IReadOnlyList<ShiftTileReport> Tiles, int Places, int Broken)
+/// <param name="Scope">Lo que se ha mirado, que es lo que decide qué tabla hay que sacar.</param>
+public sealed record MapShiftReport(
+    IReadOnlyList<ShiftTileReport> Tiles, int Places, int Broken, ShiftScope Scope)
 {
     /// <summary>Los que hay que mirar: primero los que más sitios estropean.</summary>
     public IEnumerable<ShiftTileReport> Dirty =>
         Tiles.Where(tile => !tile.Clean).OrderByDescending(tile => tile.Broken.Count + tile.Impossible.Count);
 
-    /// <summary>La tabla que se exporta: un relleno por tile, del 0 al 255.</summary>
+    /// <summary>
+    /// La tabla que se exporta: un relleno por cada tile del rango que se desplaza.
+    /// </summary>
+    /// <remarks>
+    /// Del rango y no de los 256, porque es lo que come la rutina: se le pasa dónde empieza y
+    /// cuántos son. Sacar los 256 obligaría a recortarla a mano y a contar bien de dónde.
+    /// </remarks>
     public IReadOnlyList<ShiftFill> Table
     {
         get
         {
-            var table = new ShiftFill[TileSet.TileCount];
+            var table = new ShiftFill[Scope.TileCount];
 
             foreach (ShiftTileReport tile in Tiles)
-                table[tile.Tile] = tile.Suggested;
+                table[tile.Tile - Scope.FirstTile] = tile.Suggested;
 
             return table;
         }
@@ -112,13 +166,13 @@ public static class MapShiftAnalysis
     /// <summary>
     /// Mira un mapa y dice qué relleno le toca a cada tile y qué cuesta.
     /// </summary>
-    /// <param name="ignored">
-    /// Tiles que no se quieren en el informe. Para el fondo y demás rellenos, que tocan con
-    /// todo y se contradicen siempre: si ya se sabe que su borde no importa, sacarlos deja ver
-    /// los que sí.
+    /// <param name="scope">
+    /// Qué parte se desplaza de verdad. Sin tocar, el mapa entero y los 256 tiles.
     /// </param>
-    public static MapShiftReport Of(TileMap map, TileSet tileSet, IReadOnlyCollection<int>? ignored = null)
+    public static MapShiftReport Of(TileMap map, TileSet tileSet, ShiftScope? scope = null)
     {
+        scope ??= new ShiftScope();
+
         TileGrid grid = map.Flatten();
 
         // Por tile: dónde aparece, y qué posiciones cubre cada relleno. Una posición cuenta para
@@ -139,7 +193,9 @@ public static class MapShiftAnalysis
                 if (grid[column, row] is not int tile || grid[column + 1, row] is not int right)
                     continue;
 
-                if (ignored?.Contains(tile) == true || !Inside(tile) || !Inside(right))
+                // El ámbito filtra el tile que se mira, no al vecino: el vecino sólo aporta la
+                // columna que debería entrar, y la aporta igual aunque él no se desplace.
+                if (!scope.Wants(tile, row) || !Inside(tile) || !Inside(right))
                     continue;
 
                 int needed = LeftColumn(tileSet, right);
@@ -175,7 +231,8 @@ public static class MapShiftAnalysis
         return new MapShiftReport(
             tiles,
             tiles.Sum(report => report.Places),
-            tiles.Sum(report => report.Broken.Count + report.Impossible.Count));
+            tiles.Sum(report => report.Broken.Count + report.Impossible.Count),
+            scope);
     }
 
     private static IEnumerable<ShiftTileReport> Reports(
