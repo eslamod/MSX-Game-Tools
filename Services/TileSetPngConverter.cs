@@ -208,6 +208,18 @@ public static class TileSetPngConverter
     /// reducción silenciosa estropearía el trabajo de horas sin decir dónde. El problema dice
     /// qué franja de la imagen hay que retocar.
     /// </para>
+    /// <para>
+    /// Con una excepción: los tiles enteros en transparente no cuentan para la regla. Un tile
+    /// así entra con todos sus bits a cero y sale del color de fondo del grupo, sea el que sea,
+    /// así que no necesita que el transparente sea uno de los dos colores de la franja. Sin la
+    /// excepción, un solo tile vacío entre ocho se llevaba la mitad del cupo y tumbaba hojas
+    /// que se pueden traer perfectamente; el transparente es lo que más se repite en una hoja
+    /// de tiles y casi siempre hay huecos.
+    /// </para>
+    /// <para>
+    /// Un tile <b>a medias</b> transparente sí cuenta, y tiene que contar: ahí el transparente
+    /// se ve al lado de otro color dentro del mismo tile, así que es uno de los dos de verdad.
+    /// </para>
     /// </remarks>
     private static void ReadGroups(
         int[] pixels,
@@ -237,6 +249,11 @@ public static class TileSetPngConverter
 
                 indices.Add(read);
 
+                // Un tile entero en transparente no vota: va a entrar con los bits a cero y a
+                // salir del color de fondo del grupo, así que no necesita gastar uno de los dos.
+                if (read.All(index => index == 0))
+                    continue;
+
                 foreach (int index in read)
                 {
                     int at = uses.FindIndex(use => use.Index == index);
@@ -247,6 +264,11 @@ public static class TileSetPngConverter
                         uses[at] = uses[at] with { Times = uses[at].Times + 1 };
                 }
             }
+
+            // Una franja entera vacía se queda con el par de partida y sin nada dibujado. Sin
+            // esto, elegir el color más usado de una lista vacía reventaba.
+            if (uses.Count == 0)
+                continue;
 
             if (uses.Count > ColorsPerLine)
             {

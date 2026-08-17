@@ -303,6 +303,91 @@ public class Graphic1CrossModeTests
         Assert.True(Analyse(pixels, palette, TileSet.GraphicMode.Graphic2).Ok);
     }
 
+    /// <summary>
+    /// Los tiles enteros en transparente no gastan cupo de color.
+    /// </summary>
+    /// <remarks>
+    /// El transparente es lo que más se repite en una hoja de tiles y casi siempre hay huecos.
+    /// Contándolo, un solo tile vacío entre ocho se llevaba la mitad del cupo de la franja y
+    /// tumbaba hojas que se pueden traer perfectamente.
+    /// </remarks>
+    [Fact]
+    public void Los_tiles_vacios_no_gastan_cupo_de_color()
+    {
+        ColorPalette palette = ColorPalette.CreateMsxStandard();
+
+        // Dos colores de verdad en la primera mitad de la franja y la otra mitad vacía. Uno de
+        // cada cuatro pixeles y no uno de cada dos: con la mitad justa de cada color hay empate
+        // y no se estaría comprobando cuál es el fondo, sino cuál se vio primero.
+        int[] pixels = Sheet(palette, (tile, x, _) =>
+            (tile % TileSet.ColorGroupSize) < 4 ? (x % 4 == 0 ? 4 : 12) : 0);
+
+        TileSetImportResult result = Analyse(pixels, palette);
+
+        Assert.True(result.Ok, Describe(result));
+
+        TileSet imported = result.TileSet!;
+
+        // La franja se queda con los dos colores que sí están.
+        Assert.Equal(12, imported.ColorGroups[0].BackColor);
+        Assert.Equal(4, imported.ColorGroups[0].ForeColor);
+
+        // Y los tiles vacíos entran sin un solo bit puesto.
+        Assert.All(
+            imported.ListOfTiles[5].ArrayTileRows,
+            row => Assert.Equal(0, row.PatternByte));
+    }
+
+    /// <summary>
+    /// Pero un tile a medias transparente sí cuenta, y con razón.
+    /// </summary>
+    /// <remarks>
+    /// Ahí el transparente se ve al lado de otro color dentro del mismo tile, así que es uno de
+    /// los dos colores de verdad de la franja. Perdonarlo sería perder el hueco al importar.
+    /// </remarks>
+    [Fact]
+    public void Un_tile_a_medias_transparente_si_cuenta()
+    {
+        ColorPalette palette = ColorPalette.CreateMsxStandard();
+
+        // Dos colores y transparente conviviendo dentro del mismo tile: son tres.
+        int[] pixels = Sheet(palette, (tile, x, _) =>
+            (tile % TileSet.ColorGroupSize) == 0 ? (x % 3) switch { 0 => 4, 1 => 12, _ => 0 } : 0);
+
+        TileSetImportResult result = Analyse(pixels, palette);
+
+        Assert.False(result.Ok);
+        Assert.Contains(result.Problems, problem => problem.Message.Contains("3 colores"));
+    }
+
+    /// <summary>Y una franja entera vacía no revienta ni deja nada dibujado.</summary>
+    /// <remarks>
+    /// Sin la salida, elegir el color más usado de una lista vacía se iba fuera del índice.
+    /// </remarks>
+    [Fact]
+    public void Una_franja_entera_vacia_entra_sin_nada()
+    {
+        ColorPalette palette = ColorPalette.CreateMsxStandard();
+
+        // Sólo la segunda franja lleva dibujo; la primera está entera en transparente.
+        int[] pixels = Sheet(palette, (tile, x, _) =>
+            tile >= TileSet.ColorGroupSize && tile < TileSet.ColorGroupSize * 2
+                ? (x % 4 == 0 ? 4 : 12)
+                : 0);
+
+        TileSetImportResult result = Analyse(pixels, palette);
+
+        Assert.True(result.Ok, Describe(result));
+
+        TileSet imported = result.TileSet!;
+
+        Assert.All(
+            imported.ListOfTiles[0].ArrayTileRows,
+            row => Assert.Equal(0, row.PatternByte));
+
+        Assert.Equal(12, imported.ColorGroups[1].BackColor);
+    }
+
     /// <summary>Un juego de screen 1 exportado a png vuelve a entrar igual.</summary>
     [Fact]
     public void Ida_y_vuelta_por_png_devuelve_los_mismos_colores()
@@ -338,7 +423,14 @@ public class Graphic1CrossModeTests
     private static string Describe(TileSetImportResult result) =>
         string.Join(" / ", result.Problems.Select(problem => problem.Message));
 
-    /// <summary>Una hoja entera de 256 tiles, con el color de cada pixel puesto a mano.</summary>
+    /// <summary>
+    /// Una hoja entera de 256 tiles, con el color de cada pixel puesto a mano.
+    /// </summary>
+    /// <remarks>
+    /// El índice 0 sale como pixel transparente de verdad, con el alfa a cero, y no como el
+    /// color 0 de la paleta: es lo que mira el importador, y escribirlo opaco daría por lleno
+    /// un hueco que se quería vacío.
+    /// </remarks>
     private static int[] Sheet(ColorPalette palette, Func<int, int, int, int> colorOf)
     {
         PixelSize size = TileSetPngConverter.FullSize;
@@ -349,9 +441,12 @@ public class Graphic1CrossModeTests
             for (int x = 0; x < size.Width; x++)
             {
                 int tile = ((y / Tile.Rows) * TileSet.Columns) + (x / TileRow.Columns);
+                int index = colorOf(tile, x % TileRow.Columns, y % Tile.Rows);
 
-                Avalonia.Media.Color color = palette.GetColor(
-                    colorOf(tile, x % TileRow.Columns, y % Tile.Rows));
+                if (index <= 0)
+                    continue;   // alfa a cero: el hueco de la hoja
+
+                Avalonia.Media.Color color = palette.GetColor(index);
 
                 pixels[(y * size.Width) + x] =
                     unchecked((int)0xFF000000) | (color.R << 16) | (color.G << 8) | color.B;
