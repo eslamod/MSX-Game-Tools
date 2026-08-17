@@ -123,6 +123,11 @@ Así se ve de una pasada lo que de verdad importa al montar una pantalla: cuánt
 de estos personajes caben juntos a la misma altura. Con grupos de tres planos
 salen dos por fila, y el tercero ya se baja; con grupos de dos, cuatro.
 
+Un grupo sólo se empieza si caben **todos** sus planos en los 32 que hay. Se mira
+por grupo y no por miembro: mirándolo por miembro, once grupos de tres planos
+—que son 33— dejaban el último dibujado con dos, y un personaje al que le falta
+un plano sale roto y parece un fallo del editor.
+
 El cupo por línea es del hardware y no del editor: un personaje de cuatro planos
 se come la mitad de los ocho, y dos personajes así juntos los agotan. En modo 1
 serían cuatro por línea, pero esta ROM pide GRAPHIC 3 y no arranca en un MSX1.
@@ -136,8 +141,14 @@ comprobar que los offsets del editor son los correctos.
 Un sprite que al duplicar se sale de la pantalla se aparca en Y=200, debajo del
 área visible. No se recorta ni se deja a medias, y no vale cualquier valor: 216
 es el terminador de la lista de planos en modo 2 y dejaría sin dibujar todos los
-sprites de detrás. Con `CENTRE_Y`=30 y `GROUP_Y_STEP`=20 esto empieza a pasar a
-partir del sexto grupo cuando está ampliado.
+sprites de detrás. Con `CENTRE_Y`=10 y `GROUP_Y_STEP`=20 esto empieza a pasar a
+partir de la quinta fila cuando está ampliado, porque allí lo que se dobla es
+también lo que baja cada fila.
+
+La primera fila va en `CENTRE_Y`=10 y no a media pantalla: con 30 se perdían dos
+filas por nada. Así caben nueve filas en las 192 líneas —la última empieza en 170
+y el sprite acaba en 186—, más de las que dan los 32 planos por muchos grupos de
+un solo plano que traiga el banco.
 
 La cuenta va con 16 bits con signo a propósito: con 8 bits, un desplazamiento
 grande duplicado daría la vuelta y colocaría el sprite arriba del todo en vez de

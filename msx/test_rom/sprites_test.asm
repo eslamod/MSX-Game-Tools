@@ -68,7 +68,11 @@ COLUMN_X_STEP   .equ 72         ; y las siguientes, a la derecha
 ; Pasado esto se empieza otra fila aunque sobre cupo de sprites por linea.
 ROW_X_LIMIT     .equ 216
 
-CENTRE_Y        .equ 30         ; primera fila, luego va bajando
+; Primera fila, luego va bajando. Arriba del todo y no a media pantalla: con 30
+; se perdian dos filas por nada. Con 10 caben nueve filas de 192 lineas -la
+; ultima empieza en 170 y el sprite acaba en 186-, que son mas de las que dan los
+; 32 planos por muchos grupos de uno que haya.
+CENTRE_Y        .equ 10
 GROUP_Y_STEP    .equ 20
 REG1_BASE       .equ 0x42       ; pantalla activa, sprites 16x16, MAG=0
 SCREEN_LINES    .equ 192
@@ -285,6 +289,18 @@ NextGroup:
                 or a
                 jr z,GroupDone      ; un grupo vacio no gasta planos
 
+                ; ¿Quedan planos para el grupo ENTERO? Se mira aqui y no al
+                ; escribir cada miembro: mirandolo por miembro, un grupo que solo
+                ; cabe a medias se empieza igual y se dibuja al que le faltan
+                ; planos, que sale roto y parece un fallo del editor. Con once
+                ; grupos de tres son 33 planos y el ultimo salia asi.
+                push iy
+                pop hl
+                ld a,l
+                add a,b
+                cp MAX_PLANES + 1
+                jr nc,SpritesDone   ; no cabe entero: aqui se para
+
                 ; ¿Cabe en la fila que hay abierta? Es la pregunta de la que va
                 ; toda esta prueba: mientras el cupo de la linea de barrido de
                 ; para mas, el grupo va al lado del anterior y no debajo.
@@ -314,13 +330,8 @@ GroupFits:
                 add a,b
                 ld (ROW_USED),a     ; lo que esta fila lleva gastado
 
+; Sin comprobar planos aqui: si el grupo cabia entero, caben todos sus miembros.
 NextMember:
-                push iy
-                pop hl
-                ld a,l
-                cp MAX_PLANES
-                jr nc,SpritesDone   ; sin planos libres no se sigue
-
                 call WriteMember
                 inc iy
                 djnz NextMember
