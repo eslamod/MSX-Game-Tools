@@ -506,4 +506,31 @@ Recorda copiar cada taula {2} vegades a la VRAM, una per terç de pantalla.</val
 
   <data name="LanguageChangedTitle" xml:space="preserve"><value>S'ha canviat l'idioma</value></data>
   <data name="LanguageChangedMessage" xml:space="preserve"><value>Alguns textos, com els de l'arbre del projecte, no canvien fins que es torna a obrir el programa.</value></data>
+
+  <data name="MenuShiftReport" xml:space="preserve"><value>Taula de desplaçament...</value></data>
+  <data name="ShiftHeader" xml:space="preserve"><value>Desplaçament: {0}</value></data>
+  <data name="ShiftTitle" xml:space="preserve"><value>Desplaçament suau</value></data>
+  <data name="ShiftHelp" xml:space="preserve"><value>En córrer el joc de tiles un píxel a l'esquerra cal decidir què entra pel costat dret de cada tile. Ho dicta el mapa: hi hauria d'entrar la columna esquerra del seu veí de la dreta.</value></data>
+  <data name="ShiftTotals" xml:space="preserve"><value>{0} caselles lliguen la taula, i {1} no es veuran bé.</value></data>
+  <data name="ShiftCounts" xml:space="preserve"><value>{0} tiles lligats, {1} amb contradiccions.</value></data>
+  <data name="ShiftIgnored" xml:space="preserve"><value>Fora de l'informe: {0}</value></data>
+  <data name="ShiftOnlyDirty" xml:space="preserve"><value>Només els que donen guerra</value></data>
+  <data name="ShiftOnlyDirtyTip" xml:space="preserve"><value>Els que el mapa posa sempre al costat del mateix no cal mirar-los</value></data>
+  <data name="ShiftZeros" xml:space="preserve"><value>Hi entren zeros</value></data>
+  <data name="ShiftOnes" xml:space="preserve"><value>Hi entren uns</value></data>
+  <data name="ShiftNext" xml:space="preserve"><value>Hi entra el tile següent</value></data>
+  <data name="ShiftAlsoWork" xml:space="preserve"><value>Tant se val amb: {0}</value></data>
+  <data name="ShiftClean" xml:space="preserve"><value>Surt en {0} caselles i hi encaixa a totes.</value></data>
+  <data name="ShiftCost" xml:space="preserve"><value>{0} de {1} caselles no es veuran bé.</value></data>
+  <data name="ShiftStuck" xml:space="preserve"><value>{0} sense solució: allà no hi val cap farciment.</value></data>
+  <data name="ShiftStep" xml:space="preserve"><value>{0} de {1}</value></data>
+  <data name="ShiftShowNext" xml:space="preserve"><value>Veure</value></data>
+  <data name="ShiftShowNextTip" xml:space="preserve"><value>Porta el mapa al següent lloc que no es veurà bé</value></data>
+  <data name="ShiftIgnore" xml:space="preserve"><value>Ignorar</value></data>
+  <data name="ShiftIgnoreTip" xml:space="preserve"><value>Treu-lo de l'informe. Per al tile de fons, que toca amb tot i enterra els altres</value></data>
+  <data name="ShiftExportAsm" xml:space="preserve"><value>Exportar asm</value></data>
+  <data name="ShiftExportBin" xml:space="preserve"><value>Exportar bin</value></data>
+  <data name="ShiftExported" xml:space="preserve"><value>Escrit {0}</value></data>
+  <data name="PickExportShift" xml:space="preserve"><value>Exportar taula de desplaçament</value></data>
+  <data name="ErrorExportShift" xml:space="preserve"><value>No s'ha pogut exportar la taula</value></data>
 </root>

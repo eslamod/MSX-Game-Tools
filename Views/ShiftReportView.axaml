@@ -1,0 +1,111 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:l="clr-namespace:MSX_GameTools.Localization"
+             mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="480"
+             x:Class="MSX_GameTools.Views.ShiftReportView"
+             x:DataType="vm:ShiftReportViewModel"
+             Background="{DynamicResource AppPanelBackground}">
+
+  <UserControl.Styles>
+    <!-- El marco del dibujo, para que un tile todo negro no se confunda con el fondo. -->
+    <Style Selector="Border.tile">
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="#808080" />
+      <Setter Property="Background" Value="#404040" />
+    </Style>
+  </UserControl.Styles>
+
+  <!-- Los botones anclados abajo y el resto con barra: con la escala de la interfaz al
+       200% el contenido mide el doble y los empujaba fuera del panel. -->
+  <Grid Margin="10" RowDefinitions="Auto,*,Auto">
+
+    <TextBlock Grid.Row="0" Text="{l:Localize ShiftTitle}" FontWeight="Bold" Margin="0,0,0,8" />
+
+    <!-- Todo dentro de la barra menos el titulo y el cerrar: con la escala al 200% la
+         cabecera sola ya medía más que el panel entero y echaba los botones fuera. -->
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel>
+
+        <TextBlock Text="{l:Localize ShiftHelp}" TextWrapping="Wrap"
+                   Foreground="{DynamicResource AppTextSecondary}" Margin="0,0,0,8" />
+
+        <TextBlock Text="{Binding Totals}" TextWrapping="Wrap" />
+        <TextBlock Text="{Binding Counts}" TextWrapping="Wrap" Margin="0,2,0,0" />
+
+        <TextBlock Text="{Binding IgnoredLabel}" TextWrapping="Wrap" Margin="0,2,0,0"
+                   Foreground="{DynamicResource AppTextSecondary}"
+                   IsVisible="{Binding IgnoredLabel, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+        <CheckBox Content="{l:Localize ShiftOnlyDirty}" IsChecked="{Binding OnlyDirty}"
+                  Margin="0,6,0,0" ToolTip.Tip="{l:Localize ShiftOnlyDirtyTip}" />
+
+        <!-- Exportar va aqui y no abajo: son cosas que se le hacen al informe, y abajo
+             tres botones en fila no caben en el ancho del panel. -->
+        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+          <Button Content="{l:Localize ShiftExportAsm}" Command="{Binding ExportAssemblerCommand}" />
+          <Button Content="{l:Localize ShiftExportBin}" Command="{Binding ExportBinaryCommand}" />
+        </StackPanel>
+
+        <TextBlock Text="{Binding ResultMessage}" TextWrapping="Wrap" FontWeight="Bold"
+                   Margin="0,6,0,0" />
+
+    <!-- Una fila por tile. El dibujo al lado del numero porque con 256 tiles el numero
+         solo no dice cual es, y aqui es donde se decide si merece la pena moverlo. -->
+      <ItemsControl ItemsSource="{Binding Rows}" Margin="0,8,0,0">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:ShiftTileRowViewModel">
+            <Border BorderThickness="0,0,0,1" BorderBrush="{DynamicResource AppSeparator}"
+                    Padding="0,6">
+              <Grid ColumnDefinitions="Auto,*" >
+
+                <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                  <Border Classes="tile">
+                    <Image Source="{Binding Image.SpritePreview}" Width="32" Height="32"
+                           Stretch="Fill" RenderOptions.BitmapInterpolationMode="None" />
+                  </Border>
+
+                  <TextBlock Text="{Binding Tile}" TextAlignment="Center" Margin="0,2,0,0" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1">
+                  <TextBlock Text="{Binding Fill}" FontWeight="Bold" TextWrapping="Wrap" />
+
+                  <TextBlock Text="{Binding AlsoWork}" TextWrapping="Wrap"
+                             Foreground="{DynamicResource AppTextSecondary}"
+                             IsVisible="{Binding AlsoWork, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+                  <TextBlock Text="{Binding Cost}" TextWrapping="Wrap" Margin="0,2,0,0" />
+
+                  <TextBlock Text="{Binding Stuck}" TextWrapping="Wrap"
+                             Foreground="{DynamicResource AppTextError}"
+                             IsVisible="{Binding Stuck, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+                  <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                    <Button Content="{l:Localize ShiftShowNext}" Command="{Binding ShowNextCommand}"
+                            ToolTip.Tip="{l:Localize ShiftShowNextTip}" />
+
+                    <TextBlock Text="{Binding Step}" VerticalAlignment="Center"
+                               Foreground="{DynamicResource AppTextSecondary}" />
+
+                    <CheckBox Content="{l:Localize ShiftIgnore}" IsChecked="{Binding IsIgnored}"
+                              ToolTip.Tip="{l:Localize ShiftIgnoreTip}" />
+                  </StackPanel>
+                </StackPanel>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+      <Button Content="{l:Localize FormClose}" MinWidth="90"
+              Command="{Binding CloseShiftReportCommand}" />
+    </StackPanel>
+  </Grid>
+</UserControl>

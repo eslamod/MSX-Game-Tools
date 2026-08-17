@@ -550,4 +550,31 @@ Recuerda copiar cada tabla {2} veces en VRAM, una por tercio de pantalla.</value
 
   <data name="LanguageChangedTitle" xml:space="preserve"><value>Se ha cambiado el idioma</value></data>
   <data name="LanguageChangedMessage" xml:space="preserve"><value>Algunos textos, como los del árbol del proyecto, no cambian hasta que se vuelve a abrir el programa.</value></data>
+
+  <data name="MenuShiftReport" xml:space="preserve"><value>Tabla de desplazamiento...</value></data>
+  <data name="ShiftHeader" xml:space="preserve"><value>Desplazamiento: {0}</value></data>
+  <data name="ShiftTitle" xml:space="preserve"><value>Desplazamiento suave</value></data>
+  <data name="ShiftHelp" xml:space="preserve"><value>Al correr el juego de tiles un pixel a la izquierda hay que decidir qué entra por el borde derecho de cada tile. Lo dicta el mapa: debería entrar la columna izquierda de su vecino de la derecha.</value></data>
+  <data name="ShiftTotals" xml:space="preserve"><value>{0} celdas atan la tabla, y {1} no se van a ver bien.</value></data>
+  <data name="ShiftCounts" xml:space="preserve"><value>{0} tiles atados, {1} con contradicciones.</value></data>
+  <data name="ShiftIgnored" xml:space="preserve"><value>Fuera del informe: {0}</value></data>
+  <data name="ShiftOnlyDirty" xml:space="preserve"><value>Sólo los que dan guerra</value></data>
+  <data name="ShiftOnlyDirtyTip" xml:space="preserve"><value>Los que el mapa pone siempre junto a lo mismo no hay nada que mirarles</value></data>
+  <data name="ShiftZeros" xml:space="preserve"><value>Entran ceros</value></data>
+  <data name="ShiftOnes" xml:space="preserve"><value>Entran unos</value></data>
+  <data name="ShiftNext" xml:space="preserve"><value>Entra el tile siguiente</value></data>
+  <data name="ShiftAlsoWork" xml:space="preserve"><value>Da lo mismo que: {0}</value></data>
+  <data name="ShiftClean" xml:space="preserve"><value>Sale en {0} celdas y en todas encaja.</value></data>
+  <data name="ShiftCost" xml:space="preserve"><value>{0} de {1} celdas no se verán bien.</value></data>
+  <data name="ShiftStuck" xml:space="preserve"><value>{0} sin arreglo: ahí no vale ningún relleno.</value></data>
+  <data name="ShiftStep" xml:space="preserve"><value>{0} de {1}</value></data>
+  <data name="ShiftShowNext" xml:space="preserve"><value>Ver</value></data>
+  <data name="ShiftShowNextTip" xml:space="preserve"><value>Lleva el mapa al siguiente sitio que no se va a ver bien</value></data>
+  <data name="ShiftIgnore" xml:space="preserve"><value>Ignorar</value></data>
+  <data name="ShiftIgnoreTip" xml:space="preserve"><value>Sácalo del informe. Para el tile de fondo, que toca con todo y entierra a los demás</value></data>
+  <data name="ShiftExportAsm" xml:space="preserve"><value>Exportar asm</value></data>
+  <data name="ShiftExportBin" xml:space="preserve"><value>Exportar bin</value></data>
+  <data name="ShiftExported" xml:space="preserve"><value>Escrito {0}</value></data>
+  <data name="PickExportShift" xml:space="preserve"><value>Exportar tabla de desplazamiento</value></data>
+  <data name="ErrorExportShift" xml:space="preserve"><value>No se ha podido exportar la tabla</value></data>
 </root>

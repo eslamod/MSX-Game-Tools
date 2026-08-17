@@ -505,4 +505,31 @@ Remember to copy each table {2} times into VRAM, one per third of the screen.</v
 
   <data name="LanguageChangedTitle" xml:space="preserve"><value>The language has changed</value></data>
   <data name="LanguageChangedMessage" xml:space="preserve"><value>Some text, such as the project tree, does not change until the application is opened again.</value></data>
+
+  <data name="MenuShiftReport" xml:space="preserve"><value>Shift table...</value></data>
+  <data name="ShiftHeader" xml:space="preserve"><value>Shift: {0}</value></data>
+  <data name="ShiftTitle" xml:space="preserve"><value>Smooth scrolling</value></data>
+  <data name="ShiftHelp" xml:space="preserve"><value>Shifting the tile set one pixel to the left means deciding what enters each tile from the right. The map dictates it: it should be the left column of the tile next to it.</value></data>
+  <data name="ShiftTotals" xml:space="preserve"><value>{0} cells constrain the table, and {1} will not look right.</value></data>
+  <data name="ShiftCounts" xml:space="preserve"><value>{0} tiles constrained, {1} with contradictions.</value></data>
+  <data name="ShiftIgnored" xml:space="preserve"><value>Left out: {0}</value></data>
+  <data name="ShiftOnlyDirty" xml:space="preserve"><value>Only the troublesome ones</value></data>
+  <data name="ShiftOnlyDirtyTip" xml:space="preserve"><value>Tiles the map always places next to the same thing need no looking at</value></data>
+  <data name="ShiftZeros" xml:space="preserve"><value>Zeros enter</value></data>
+  <data name="ShiftOnes" xml:space="preserve"><value>Ones enter</value></data>
+  <data name="ShiftNext" xml:space="preserve"><value>The next tile enters</value></data>
+  <data name="ShiftAlsoWork" xml:space="preserve"><value>Same result as: {0}</value></data>
+  <data name="ShiftClean" xml:space="preserve"><value>Used in {0} cells, and it fits in all of them.</value></data>
+  <data name="ShiftCost" xml:space="preserve"><value>{0} of {1} cells will not look right.</value></data>
+  <data name="ShiftStuck" xml:space="preserve"><value>{0} with no fix: no filling works there.</value></data>
+  <data name="ShiftStep" xml:space="preserve"><value>{0} of {1}</value></data>
+  <data name="ShiftShowNext" xml:space="preserve"><value>Show</value></data>
+  <data name="ShiftShowNextTip" xml:space="preserve"><value>Takes the map to the next place that will not look right</value></data>
+  <data name="ShiftIgnore" xml:space="preserve"><value>Ignore</value></data>
+  <data name="ShiftIgnoreTip" xml:space="preserve"><value>Leave it out of the report. For the background tile, which touches everything and buries the rest</value></data>
+  <data name="ShiftExportAsm" xml:space="preserve"><value>Export asm</value></data>
+  <data name="ShiftExportBin" xml:space="preserve"><value>Export bin</value></data>
+  <data name="ShiftExported" xml:space="preserve"><value>Wrote {0}</value></data>
+  <data name="PickExportShift" xml:space="preserve"><value>Export shift table</value></data>
+  <data name="ErrorExportShift" xml:space="preserve"><value>The table could not be exported</value></data>
 </root>

@@ -98,6 +98,7 @@ public class PanelFitTests
     [InlineData("Properties")]
     [InlineData("Resize")]
     [InlineData("Replace")]
+    [InlineData("Shift")]
     [InlineData("Palette")]
     [InlineData("NewPalette")]
     [InlineData("ImportSheet")]
@@ -159,6 +160,7 @@ public class PanelFitTests
     [InlineData("Properties")]
     [InlineData("Resize")]
     [InlineData("Replace")]
+    [InlineData("Shift")]
     [InlineData("Palette")]
     [InlineData("NewPalette")]
     [InlineData("ImportSheet")]
@@ -476,6 +478,8 @@ public class PanelFitTests
 
                 if (form == "Resize")
                     main.ResizeMapCommand.Execute(null);
+                else if (form == "Shift")
+                    main.ShiftReportCommand.Execute(null);
                 else
                     main.ReplaceTilesCommand.Execute(null);
 

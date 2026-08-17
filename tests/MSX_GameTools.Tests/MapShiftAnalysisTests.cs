@@ -262,7 +262,7 @@ public class MapShiftAnalysisTests
             Map(5, 7, 5, 7, 5, 7, 5, 9, 5, 9, 6, 7, 6, 7, 6, 9), tiles);
 
         Assert.Equal(2, Report(report, 5).Broken.Count);
-        Assert.Equal(1, Report(report, 6).Broken.Count);
+        Assert.Single(Report(report, 6).Broken);
 
         int[] orden = [.. report.Dirty.Select(tile => tile.Tile)];
 

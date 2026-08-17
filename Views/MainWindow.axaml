@@ -123,6 +123,7 @@
         <Separator />
         <MenuItem Header="{l:Localize MenuResizeMap}" Command="{Binding ResizeMapCommand}" />
         <MenuItem Header="{l:Localize MenuReplaceTiles}" Command="{Binding ReplaceTilesCommand}" />
+        <MenuItem Header="{l:Localize MenuShiftReport}" Command="{Binding ShiftReportCommand}" />
         <Separator />
         <MenuItem Header="{l:Localize MenuImportFromCsv}" Command="{Binding ImportMapCsvCommand}" />
         <MenuItem Header="{l:Localize MenuImportFromBinary}" Command="{Binding ImportMapBinaryCommand}" />

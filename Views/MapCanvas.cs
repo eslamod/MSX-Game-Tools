@@ -231,6 +231,25 @@ public class MapCanvas : Control
     }
 
     /// <summary>
+    /// Pone una celda en medio del hueco.
+    /// </summary>
+    /// <remarks>
+    /// Para los sitios que salen en un informe. Decir «columna 143, fila 7» de un mapa de 256
+    /// de ancho no sirve de nada si luego hay que buscarlo arrastrando: o se va solo, o el dato
+    /// es de adorno. En medio y no en la esquina porque lo que se va a mirar es qué tiene al
+    /// lado, que es de lo que hablaba el informe.
+    /// </remarks>
+    public void ShowCell(int column, int row)
+    {
+        _offset = new Point(
+            ((column + 0.5) * CellWidth) - (Bounds.Width / 2),
+            ((row + 0.5) * CellHeight) - (Bounds.Height / 2));
+
+        ClampOffset();
+        InvalidateAll();
+    }
+
+    /// <summary>
     /// Repinta las dos capas.
     /// </summary>
     /// <remarks>

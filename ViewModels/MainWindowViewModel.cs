@@ -33,6 +33,7 @@ public partial class MainWindowViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(ExportMapAssemblerCommand))]
     [NotifyCanExecuteChangedFor(nameof(ResizeMapCommand))]
     [NotifyCanExecuteChangedFor(nameof(ReplaceTilesCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ShiftReportCommand))]
     private PanelBaseViewModel? _selectedTab;
 
     /// <param name="dialogs">
@@ -1570,6 +1571,13 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand(CanExecute = nameof(IsMapSelected))]
+    private void ShiftReport()
+    {
+        if (SelectedTab is MapEditorViewModel editor)
+            OpenForm(() => new ShiftReportViewModel(this, editor));
+    }
+
+    [RelayCommand(CanExecute = nameof(IsMapSelected))]
     private Task ExportMapBinaryAsync() => ExportMapAsync(binary: true);
 
     [RelayCommand(CanExecute = nameof(IsMapSelected))]
@@ -1989,7 +1997,7 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     /// <summary>El nombre que le puso el usuario puede llevar caracteres que no valen en un fichero.</summary>
-    private static string CleanFileName(string name)
+    public static string CleanFileName(string name)
     {
         string clean = string.Concat(name.Split(Path.GetInvalidFileNameChars())).Trim();
 

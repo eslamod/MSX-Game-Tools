@@ -52,6 +52,7 @@ public partial class MapEditorView : UserControl
         {
             _subscribed = editor;
             editor.RefreshRequested += OnRefreshRequested;
+            editor.ShowCellRequested += Canvas.ShowCell;
 
             // Los bloques se editan en otro panel: al volver aqui pueden ser otros.
             editor.RefreshBlocks();
@@ -139,6 +140,7 @@ public partial class MapEditorView : UserControl
         if (_subscribed is not null)
         {
             _subscribed.RefreshRequested -= OnRefreshRequested;
+            _subscribed.ShowCellRequested -= Canvas.ShowCell;
             _subscribed = null;
         }
 

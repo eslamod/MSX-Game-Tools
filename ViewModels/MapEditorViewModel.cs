@@ -133,6 +133,24 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
     /// <summary>Hay que repintar el lienzo.</summary>
     public event Action? RefreshRequested;
 
+    /// <summary>Hay que llevar la vista a una celda.</summary>
+    public event Action<int, int>? ShowCellRequested;
+
+    /// <summary>
+    /// Enseña una celda y la deja marcada.
+    /// </summary>
+    /// <remarks>
+    /// Para los sitios que salen en un informe. Marcarla además de traerla es lo que hace que
+    /// se distinga de sus vecinas al llegar: el mapa es una alfombra de tiles parecidos y el
+    /// centro del hueco no se ve por ninguna parte.
+    /// </remarks>
+    public void ShowCell(int column, int row)
+    {
+        Select(column, row, column, row);
+
+        ShowCellRequested?.Invoke(column, row);
+    }
+
     public override bool IsDocument => true;
 
     public override string DocumentName
@@ -166,6 +184,9 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
 
     /// <summary>Los bloques del juego, que son el otro origen de lo que se estampa.</summary>
     public IList<TileBlock> Blocks => _tiles.TileSet.Blocks;
+
+    /// <summary>El juego de tiles con el que está dibujado, para quien necesite los dibujos.</summary>
+    public TileSet TileSet => _tiles.TileSet;
 
     /// <summary>
     /// Si este mapa se dibuja con supertiles, que lo decide su juego de tiles.
