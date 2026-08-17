@@ -16,8 +16,15 @@
 ;   - Vuelca los patrones exportados en el generador de patrones de sprites.
 ;   - Recorre los grupos y les va dando planos por orden, gastandolos segun
 ;     los encuentra. Cuando se acaban los 32 planos deja de poner sprites.
-;   - Cada grupo se centra en x=128 y baja GROUP_Y_STEP pixeles respecto al
-;     anterior; a eso se le suman los offsets propios de cada sprite.
+;   - Los grupos se colocan por filas, llenando cada fila mientras quepan: el
+;     VDP saca SPRITES_PER_LINE sprites por linea de barrido, asi que mientras
+;     lo que lleva la fila mas lo que pide el grupo no pase de ese cupo, el
+;     grupo va al lado y no debajo. Cuando no cabe -o cuando se acaban las
+;     columnas que entran de ancho- se empieza otra fila GROUP_Y_STEP mas abajo.
+;     A la posicion de la fila y la columna se le suman los offsets de cada
+;     sprite del grupo.
+;   - Asi se ve de una pasada lo que de verdad importa al montar una pantalla:
+;     cuantos personajes de estos caben juntos a la misma altura.
 ;   - Teclas 0-9 y A-F cambian el color de fondo.
 ;   - F1 alterna el bit de ampliacion (sprites a x2) y rehace la tabla de
 ;     atributos: al doblar el tamano se doblan tambien las distancias al
@@ -49,8 +56,19 @@ SPRITE_ATTR     .equ 0x3E00     ;  128  tabla de atributos (32 x 4)
 ; --- Constantes de la prueba -------------------------------------------------
 MAX_PLANES      .equ 32
 SPRITE_END_Y    .equ 0xD8       ; 216: en modo 2 corta el resto de planos
-CENTRE_X        .equ 128
-CENTRE_Y        .equ 30         ; primer grupo, luego va bajando
+
+; Sprites que el VDP saca por linea de barrido. Ocho en modo 2, que es el unico
+; que corre esta ROM: pide GRAPHIC 3 y los 16 bytes de color por sprite. En modo
+; 1 serian cuatro, y ahi la mitad de los grupos cabrian por fila.
+SPRITES_PER_LINE .equ 8
+
+COLUMN_X        .equ 56         ; primera columna
+COLUMN_X_STEP   .equ 72         ; y las siguientes, a la derecha
+; Tres columnas: 56 + 2*72 = 200, y el sprite acaba en 216 con MAG y todo.
+; Pasado esto se empieza otra fila aunque sobre cupo de sprites por linea.
+ROW_X_LIMIT     .equ 216
+
+CENTRE_Y        .equ 30         ; primera fila, luego va bajando
 GROUP_Y_STEP    .equ 20
 REG1_BASE       .equ 0x42       ; pantalla activa, sprites 16x16, MAG=0
 SCREEN_LINES    .equ 192
@@ -63,6 +81,12 @@ HIDDEN_Y        .equ 200        ; debajo de la pantalla, y no es 208 ni 216
 ; lo consultan tanto el bucle de teclado como la construccion de la tabla de
 ; atributos, que se rehace entera cada vez que cambia la ampliacion.
 REG1_VALUE      .equ 0xC000
+
+; Y dos mas para colocar los grupos por filas. En RAM y no en registros porque
+; entre IX -el fichero-, IY -el plano-, B -los miembros que faltan- y C -lo que
+; baja la fila- ya no queda ninguno libre que sobreviva a WriteMember.
+GROUP_DX        .equ 0xC001     ; a que columna va el grupo que toca
+ROW_USED        .equ 0xC002     ; sprites ya puestos en la fila que hay abierta
 
 ;-----------------------------------------------------------------------------
 ; Cabecera de cartucho
@@ -243,6 +267,10 @@ BuildSprites:
                 ld iy,0
                 ld c,0
 
+                xor a
+                ld (GROUP_DX),a     ; primera columna
+                ld (ROW_USED),a     ; y la fila, vacia
+
 NextGroup:
                 push ix
                 pop hl
@@ -257,6 +285,35 @@ NextGroup:
                 or a
                 jr z,GroupDone      ; un grupo vacio no gasta planos
 
+                ; ¿Cabe en la fila que hay abierta? Es la pregunta de la que va
+                ; toda esta prueba: mientras el cupo de la linea de barrido de
+                ; para mas, el grupo va al lado del anterior y no debajo.
+                ld a,(ROW_USED)
+                or a
+                jr z,GroupFits      ; fila vacia: cabe aunque el grupo pase del cupo
+
+                add a,b
+                cp SPRITES_PER_LINE + 1
+                jr nc,NextRow       ; no cabe: fila nueva
+
+                ld a,(GROUP_DX)
+                cp ROW_X_LIMIT
+                jr c,GroupFits      ; y ademas queda ancho
+
+NextRow:
+                ld a,c
+                add a,GROUP_Y_STEP
+                ld c,a
+
+                xor a
+                ld (GROUP_DX),a
+                ld (ROW_USED),a
+
+GroupFits:
+                ld a,(ROW_USED)
+                add a,b
+                ld (ROW_USED),a     ; lo que esta fila lleva gastado
+
 NextMember:
                 push iy
                 pop hl
@@ -268,10 +325,12 @@ NextMember:
                 inc iy
                 djnz NextMember
 
+; El siguiente grupo va una columna a la derecha. Si no cabe, ya se encarga la
+; comprobacion de arriba de bajarlo de fila.
 GroupDone:
-                ld a,c
-                add a,GROUP_Y_STEP
-                ld c,a
+                ld a,(GROUP_DX)
+                add a,COLUMN_X_STEP
+                ld (GROUP_DX),a
                 jr NextGroup
 
 ; El primer plano libre lleva Y=216, que en modo 2 corta el resto.
@@ -381,11 +440,19 @@ MemberCoords:
                 jr nc,HideMember
                 ld d,a
 
-                ; ---- X = CENTRE_X + offsetX * escala
+                ; ---- X = COLUMN_X + columna del grupo + offsetX * escala
+                ; La columna no se escala, igual que no se escala el centro: lo
+                ; que crece al ampliar es el sprite respecto a su grupo, no la
+                ; separacion entre grupos.
                 ld a,(ix+17)
                 call SignExtend
                 call ScaleIfMag
-                ld bc,CENTRE_X
+                ld bc,COLUMN_X
+                add hl,bc
+
+                ld a,(GROUP_DX)
+                ld c,a
+                ld b,0
                 add hl,bc
 
                 ld a,h
@@ -563,18 +630,18 @@ PaletteNext:
 ; Para probar la salida en ensamblador en vez de la binaria, comenta el .incbin
 ; y descomenta el .include de al lado. El resultado es el mismo byte a byte.
 PaletteData:
-                .incbin "msx_palette.bin"
-              ; .include "msx_palette.asm"
+               ; .incbin "msx_palette.bin"
+               .include "kickoff_palette.asm"
 PaletteEnd:
 
 PatternsData:
-                .incbin "bank_patterns.bin"
-              ; .include "bank_patterns.asm"
+              ;  .incbin "bank_patterns.bin"
+               .include "kick_off_sprites_patterns.asm"
 PatternsEnd:
 
 GroupsData:
-                .incbin "bank_groups.bin"
-              ; .include "bank_groups.asm"
+               ; .incbin "bank_groups.bin"
+               .include "kick_off_sprites_groups.asm"
 GroupsEnd:
 
 ; Relleno hasta 16K, que es el tamano que espera un cartucho en la pagina 1.

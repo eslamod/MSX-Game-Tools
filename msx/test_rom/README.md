@@ -112,8 +112,20 @@ hay, así que la única forma de recorrerlo es ir hasta el final.
   color 0, o sea transparente, así que se ve el fondo por todas partes.
 - **F1** alterna el bit MAG de R#1: sprites a tamaño doble.
 
-Cada grupo se centra en x=`CENTRE_X` y baja `GROUP_Y_STEP` píxeles respecto al
-anterior.
+Los grupos se colocan por filas, llenando cada fila mientras quepan. El VDP saca
+`SPRITES_PER_LINE` sprites por línea de barrido —ocho en modo 2, que es el único
+que corre esta ROM—, así que mientras lo que la fila lleva gastado más lo que
+pide el grupo no pase de ese cupo, el grupo va **al lado** del anterior y no
+debajo. Cuando no cabe, o cuando se acaban las tres columnas que entran de ancho,
+se empieza otra fila `GROUP_Y_STEP` píxeles más abajo.
+
+Así se ve de una pasada lo que de verdad importa al montar una pantalla: cuántos
+de estos personajes caben juntos a la misma altura. Con grupos de tres planos
+salen dos por fila, y el tercero ya se baja; con grupos de dos, cuatro.
+
+El cupo por línea es del hardware y no del editor: un personaje de cuatro planos
+se come la mitad de los ocho, y dos personajes así juntos los agotan. En modo 1
+serían cuatro por línea, pero esta ROM pide GRAPHIC 3 y no arranca en un MSX1.
 
 Al ampliar con F1 se rehace la tabla de atributos entera. Lo que se multiplica
 por dos es la **distancia al centro**, no la posición: si se multiplicara la
