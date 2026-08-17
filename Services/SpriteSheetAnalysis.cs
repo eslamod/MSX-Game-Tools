@@ -1,0 +1,292 @@
+using Avalonia;
+using Avalonia.Media;
+using MSX_GameTools.Entities;
+
+namespace MSX_GameTools.Services;
+
+/// <summary>Un rectángulo de celdas de la hoja, en celdas y no en pixeles.</summary>
+public sealed record SheetSelection(int Left, int Top, int Columns, int Rows)
+{
+    public int Cells => Columns * Rows;
+}
+
+/// <summary>Lo que le va a costar una celda: los planos que hay que superponer.</summary>
+public sealed record SheetCellPlan(int Column, int Row, int Planes);
+
+/// <summary>
+/// Lo que se sabe de una hoja antes de tocar nada.
+/// </summary>
+/// <param name="Colors">Los colores distintos que trae la selección, sin el transparente.</param>
+/// <param name="Masks">El índice de paleta que le tocaría a cada uno de esos colores.</param>
+/// <param name="Cells">Lo que pide cada celda, para saber cuáles salen caras.</param>
+/// <param name="Planes">Los planos de la celda que más pide.</param>
+/// <param name="Patterns">
+/// Los patrones que gastaría del banco. Es la suma de los planos de cada celda y no las celdas
+/// por el máximo: una celda de dos colores no gasta cuatro huecos porque otra los necesite.
+/// </param>
+public sealed record SheetAnalysis(
+    IReadOnlyList<Color> Colors,
+    IReadOnlyList<int> Masks,
+    IReadOnlyList<SheetCellPlan> Cells,
+    int Planes,
+    int Patterns,
+    IReadOnlyList<string> Problems)
+{
+    public bool Ok => Problems.Count == 0;
+
+    /// <summary>Si lo que pide entra en los huecos que tiene un banco.</summary>
+    public bool Fits => Patterns <= SpriteBank.MaxSprites;
+}
+
+/// <summary>
+/// Mira una hoja de sprites y dice qué haría falta para traerla.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Es la primera etapa del importador y no una previa aparte: sin repartir los índices no se
+/// puede descomponer nada, y sin contar los patrones no se sabe si cabe. Lo que se enseña
+/// antes de escribir es justo el resultado de este paso.
+/// </para>
+/// <para>
+/// Y hace falta enseñarlo porque el banco tiene 64 huecos y una hoja cualquiera trae cientos
+/// de celdas. Con tres planos, veintiuna celdas lo llenan. Traer una hoja entera no existe:
+/// lo que existe es elegir un rectángulo y saber de antemano si entra.
+/// </para>
+/// </remarks>
+public static class SpriteSheetAnalysis
+{
+    /// <summary>Lados de celda que sabe leer, que son los dos tamaños de sprite del VDP.</summary>
+    public static IReadOnlyList<int> CellSizes { get; } = [8, 16];
+
+    /// <param name="transparent">
+    /// El color que hace de transparente, para las hojas que no traen alfa. Los pixeles con
+    /// alfa a cero lo son siempre, se pase lo que se pase aquí.
+    /// </param>
+    /// <param name="maxPlanes">Sprites superpuestos que se está dispuesto a gastar por celda.</param>
+    public static SheetAnalysis Analyse(
+        int[] pixels,
+        PixelSize size,
+        int cellSize,
+        Color? transparent,
+        SheetSelection selection,
+        int maxPlanes)
+    {
+        var problems = new List<string>();
+
+        if (!CellSizes.Contains(cellSize))
+        {
+            problems.Add($"La celda mide {cellSize} y sólo se sabe leer de {string.Join(" o ", CellSizes)}.");
+
+            return Empty(problems);
+        }
+
+        if (!Inside(size, cellSize, selection))
+        {
+            problems.Add(
+                $"El rectángulo elegido se sale de la hoja, que mide "
+                + $"{size.Width / cellSize}x{size.Height / cellSize} celdas de {cellSize}.");
+
+            return Empty(problems);
+        }
+
+        // Los colores primero: sin ellos no hay nada que repartir, y son el primer sitio donde
+        // una hoja se cae -quince es el tope, y una hoja de verdad trae cientos-.
+        List<Color> colors = [.. Colors(pixels, size, cellSize, transparent, selection)];
+
+        if (colors.Count == 0)
+        {
+            problems.Add("El rectángulo elegido está entero en el color transparente.");
+
+            return Empty(problems);
+        }
+
+        if (colors.Count > SpritePlaneAssignment.MaxColors)
+        {
+            problems.Add(
+                $"El rectángulo elegido trae {colors.Count} colores y en la paleta caben "
+                + $"{SpritePlaneAssignment.MaxColors}, porque el índice 0 es el transparente.");
+
+            return Empty(problems);
+        }
+
+        // Cada línea de cada celda es un problema aparte: en modo 2 tanto los bits del patrón
+        // como el color van por línea, así que nunca hay que resolver un cuadrado de 16x16.
+        List<int[]> lines = [.. Lines(pixels, size, cellSize, transparent, selection, colors)];
+
+        if (SpritePlaneAssignment.Solve(lines, colors.Count, maxPlanes) is not { } solved)
+        {
+            problems.Add(
+                $"Con {maxPlanes} sprites superpuestos no salen estos {colors.Count} colores. "
+                + "El reparto es de toda la selección a la vez porque la paleta es una sola: "
+                + "dos personajes que compartan colores se atan el uno al otro.");
+
+            return Empty(problems);
+        }
+
+        List<SheetCellPlan> cells =
+            [.. Plans(pixels, size, cellSize, transparent, selection, colors, solved.Masks)];
+
+        return new SheetAnalysis(
+            colors,
+            solved.Masks,
+            cells,
+            cells.Count == 0 ? 0 : cells.Max(cell => cell.Planes),
+            cells.Sum(cell => cell.Planes),
+            problems);
+    }
+
+    private static SheetAnalysis Empty(IReadOnlyList<string> problems) =>
+        new([], [], [], 0, 0, problems);
+
+    private static bool Inside(PixelSize size, int cellSize, SheetSelection selection) =>
+        selection.Left >= 0
+        && selection.Top >= 0
+        && selection.Columns > 0
+        && selection.Rows > 0
+        && (selection.Left + selection.Columns) * cellSize <= size.Width
+        && (selection.Top + selection.Rows) * cellSize <= size.Height;
+
+    /// <summary>Los colores distintos del rectángulo, en el orden en que se encuentran.</summary>
+    private static IEnumerable<Color> Colors(
+        int[] pixels, PixelSize size, int cellSize, Color? transparent, SheetSelection selection)
+    {
+        var seen = new List<Color>();
+
+        foreach (int pixel in Pixels(pixels, size, cellSize, selection))
+        {
+            if (IsClear(pixel, transparent))
+                continue;
+
+            Color color = FromBgra(pixel);
+
+            if (!seen.Contains(color))
+                seen.Add(color);
+        }
+
+        return seen;
+    }
+
+    /// <summary>Los colores que coinciden en cada línea de cada celda del rectángulo.</summary>
+    private static IEnumerable<int[]> Lines(
+        int[] pixels,
+        PixelSize size,
+        int cellSize,
+        Color? transparent,
+        SheetSelection selection,
+        IReadOnlyList<Color> colors)
+    {
+        for (int row = 0; row < selection.Rows; row++)
+        {
+            for (int column = 0; column < selection.Columns; column++)
+            {
+                for (int line = 0; line < cellSize; line++)
+                    yield return Line(pixels, size, cellSize, transparent, selection, colors, column, row, line);
+            }
+        }
+    }
+
+    /// <summary>Los números de color distintos de una línea de una celda.</summary>
+    private static int[] Line(
+        int[] pixels,
+        PixelSize size,
+        int cellSize,
+        Color? transparent,
+        SheetSelection selection,
+        IReadOnlyList<Color> colors,
+        int column,
+        int row,
+        int line)
+    {
+        var seen = new List<int>();
+
+        int left = (selection.Left + column) * cellSize;
+        int top = ((selection.Top + row) * cellSize) + line;
+
+        for (int x = 0; x < cellSize; x++)
+        {
+            int pixel = pixels[(top * size.Width) + left + x];
+
+            if (IsClear(pixel, transparent))
+                continue;
+
+            int color = IndexOf(colors, FromBgra(pixel));
+
+            if (color >= 0 && !seen.Contains(color))
+                seen.Add(color);
+        }
+
+        return [.. seen];
+    }
+
+    /// <summary>Lo que pide cada celda con los índices ya repartidos.</summary>
+    private static IEnumerable<SheetCellPlan> Plans(
+        int[] pixels,
+        PixelSize size,
+        int cellSize,
+        Color? transparent,
+        SheetSelection selection,
+        IReadOnlyList<Color> colors,
+        IReadOnlyList<int> masks)
+    {
+        for (int row = 0; row < selection.Rows; row++)
+        {
+            for (int column = 0; column < selection.Columns; column++)
+            {
+                int planes = 0;
+
+                for (int line = 0; line < cellSize; line++)
+                {
+                    int merged = 0;
+
+                    foreach (int color in Line(
+                        pixels, size, cellSize, transparent, selection, colors, column, row, line))
+                    {
+                        merged |= masks[color];
+                    }
+
+                    planes = Math.Max(planes, System.Numerics.BitOperations.PopCount((uint)merged));
+                }
+
+                yield return new SheetCellPlan(selection.Left + column, selection.Top + row, planes);
+            }
+        }
+    }
+
+    private static IEnumerable<int> Pixels(
+        int[] pixels, PixelSize size, int cellSize, SheetSelection selection)
+    {
+        for (int y = 0; y < selection.Rows * cellSize; y++)
+        {
+            int top = (selection.Top * cellSize) + y;
+
+            for (int x = 0; x < selection.Columns * cellSize; x++)
+                yield return pixels[(top * size.Width) + (selection.Left * cellSize) + x];
+        }
+    }
+
+    /// <summary>
+    /// Si un pixel no pinta nada.
+    /// </summary>
+    /// <remarks>
+    /// El alfa a cero siempre, y además el color que se haya elegido como transparente: muchas
+    /// hojas vienen con el fondo de un color liso en vez de con alfa, y sin esto ese fondo se
+    /// llevaría un índice de paleta y un plano entero para nada.
+    /// </remarks>
+    private static bool IsClear(int bgra, Color? transparent) =>
+        (uint)bgra >> 24 == 0 || (transparent is { } clear && FromBgra(bgra) == clear);
+
+    private static Color FromBgra(int bgra) => Color.FromRgb(
+        (byte)((bgra >> 16) & 0xFF), (byte)((bgra >> 8) & 0xFF), (byte)(bgra & 0xFF));
+
+    /// <summary>Qué número de color es, o -1. A mano porque la lista es de sólo lectura.</summary>
+    private static int IndexOf(IReadOnlyList<Color> colors, Color color)
+    {
+        for (int index = 0; index < colors.Count; index++)
+        {
+            if (colors[index] == color)
+                return index;
+        }
+
+        return -1;
+    }
+}
