@@ -217,6 +217,107 @@ public class ImportSpriteSheetTests
         Assert.Null(main.RightPanViewModel);
     }
 
+    // ------------------------------------------------------------------ solo patrones
+
+    /// <summary>
+    /// En modo patrones no hay color: un bit donde la hoja pinta y nada donde no.
+    /// </summary>
+    /// <remarks>
+    /// Es para cuando el dibujo se colorea en el juego, o cuando la hoja viene ya en blanco y
+    /// negro y el color no significa nada.
+    /// </remarks>
+    [AvaloniaFact]
+    public void En_modo_patrones_solo_viaja_el_dibujo()
+    {
+        MainWindowViewModel main = Main();
+        ImportSpriteSheetViewModel form = Form(main, [White, Black, Red]);
+
+        form.OnlyPatterns = true;
+        form.Select(0, 0, 1, 1);
+        form.AcceptCommand.Execute(null);
+
+        SpritesEditorViewModel bank = Assert.Single(main.Tabs.OfType<SpritesEditorViewModel>());
+        SpriteRow line = bank.SpritesBank.SpritesList[0].ArraySpriteRows[0];
+
+        // Los tres colores de la celda son un bit cada uno; el resto de la línea, transparente.
+        Assert.True(line.ArrayColumns[0]);
+        Assert.True(line.ArrayColumns[1]);
+        Assert.True(line.ArrayColumns[2]);
+        Assert.False(line.ArrayColumns[3]);
+
+        // Y sin grupos, que es lo que distingue una tabla de patrones de un personaje.
+        Assert.Empty(bank.SpritesBank.Groups);
+    }
+
+    /// <summary>
+    /// Un patrón por celda y en orden, sin saltarse las vacías ni juntar las repetidas.
+    /// </summary>
+    /// <remarks>
+    /// Al revés que el modo de color, y a propósito: de una tabla se espera que el patrón
+    /// número N sea la celda número N de lo que se eligió. Saltarse una rompería esa cuenta sin
+    /// decir nada, y es una cuenta que el código del juego usa.
+    /// </remarks>
+    [AvaloniaFact]
+    public void En_modo_patrones_el_numero_se_corresponde_con_la_celda()
+    {
+        MainWindowViewModel main = Main();
+
+        // La segunda celda vacía y la tercera igual que la primera.
+        ImportSpriteSheetViewModel form = Form(main, [White, Black], [], [White, Black]);
+
+        form.OnlyPatterns = true;
+        form.Select(0, 0, 3, 1);
+
+        Assert.Equal(3, form.Analysis.Patterns);
+
+        form.AcceptCommand.Execute(null);
+
+        SpritesEditorViewModel bank = Assert.Single(main.Tabs.OfType<SpritesEditorViewModel>());
+
+        Assert.True(bank.SpritesBank.SpritesList[0].ArraySpriteRows[0].ArrayColumns[0]);
+        Assert.False(bank.SpritesBank.SpritesList[1].ArraySpriteRows[0].ArrayColumns[0]);
+        Assert.True(bank.SpritesBank.SpritesList[2].ArraySpriteRows[0].ArrayColumns[0]);
+    }
+
+    /// <summary>
+    /// En modo patrones no importa cuántos colores traiga la hoja.
+    /// </summary>
+    /// <remarks>
+    /// Es la razón de ser del modo: una hoja de cincuenta colores no se puede traer con color,
+    /// y en blanco y negro entra sin problema.
+    /// </remarks>
+    [AvaloniaFact]
+    public void En_modo_patrones_los_colores_no_estorban()
+    {
+        Color[] many = [.. Enumerable.Range(1, 16).Select(i => Color.FromRgb((byte)(i * 15), 0, 0))];
+
+        ImportSpriteSheetViewModel form = Form(Main(), many);
+
+        form.Select(0, 0, 1, 1);
+
+        Assert.False(form.Analysis.Ok);
+
+        form.OnlyPatterns = true;
+
+        Assert.True(form.Analysis.Ok, string.Join(" / ", form.Analysis.Problems));
+        Assert.True(form.CanAccept);
+    }
+
+    /// <summary>Y el tope de los 64 huecos sigue mandando igual.</summary>
+    [AvaloniaFact]
+    public void En_modo_patrones_tambien_hay_sesenta_y_cuatro_huecos()
+    {
+        Color[][] cells = [.. Enumerable.Range(0, 70).Select(_ => new[] { White })];
+
+        ImportSpriteSheetViewModel form = Form(Main(), cells);
+
+        form.OnlyPatterns = true;
+        form.Select(0, 0, 70, 1);
+
+        Assert.Equal(70, form.Analysis.Patterns);
+        Assert.False(form.CanAccept);
+    }
+
     /// <summary>Y cancelar no deja nada abierto.</summary>
     [AvaloniaFact]
     public void Cancelar_no_deja_nada()

@@ -71,23 +71,10 @@ public static class SpriteSheetAnalysis
         SheetSelection selection,
         int maxPlanes)
     {
+        if (Fence(size, cellSize, selection) is { } stopped)
+            return stopped;
+
         var problems = new List<string>();
-
-        if (!CellSizes.Contains(cellSize))
-        {
-            problems.Add($"La celda mide {cellSize} y sólo se sabe leer de {string.Join(" o ", CellSizes)}.");
-
-            return Empty(problems);
-        }
-
-        if (!Inside(size, cellSize, selection))
-        {
-            problems.Add(
-                $"El rectángulo elegido se sale de la hoja, que mide "
-                + $"{size.Width / cellSize}x{size.Height / cellSize} celdas de {cellSize}.");
-
-            return Empty(problems);
-        }
 
         // Los colores primero: sin ellos no hay nada que repartir, y son el primer sitio donde
         // una hoja se cae -quince es el tope, y una hoja de verdad trae cientos-.
@@ -130,6 +117,54 @@ public static class SpriteSheetAnalysis
             cells.Count == 0 ? 0 : cells.Max(cell => cell.Planes),
             cells.Sum(cell => cell.Planes),
             problems);
+    }
+
+    /// <summary>
+    /// Lo que cuesta traer la selección como tabla de patrones, sin color ni grupos.
+    /// </summary>
+    /// <remarks>
+    /// Un patrón por celda, cuente los colores que cuente: aquí un pixel sólo está o no está.
+    /// Sin saltarse las celdas vacías y sin reaprovechar las repetidas, al revés que el modo de
+    /// color, porque lo que se quiere de una tabla es que el patrón número N sea la celda
+    /// número N de lo que se eligió. Saltarse una rompería esa cuenta sin decir nada.
+    /// </remarks>
+    public static SheetAnalysis AnalysePatterns(PixelSize size, int cellSize, SheetSelection selection)
+    {
+        if (Fence(size, cellSize, selection) is { } stopped)
+            return stopped;
+
+        List<SheetCellPlan> cells =
+        [
+            .. from row in Enumerable.Range(0, selection.Rows)
+               from column in Enumerable.Range(0, selection.Columns)
+               select new SheetCellPlan(selection.Left + column, selection.Top + row, 1),
+        ];
+
+        return new SheetAnalysis([], [], cells, 1, cells.Count, []);
+    }
+
+    /// <summary>
+    /// Lo que hay que mirar antes de nada, y es igual en los dos modos.
+    /// </summary>
+    /// <returns>El resultado con el problema, o <c>null</c> si se puede seguir.</returns>
+    private static SheetAnalysis? Fence(PixelSize size, int cellSize, SheetSelection selection)
+    {
+        if (!CellSizes.Contains(cellSize))
+        {
+            return Empty(
+                [$"La celda mide {cellSize} y sólo se sabe leer de {string.Join(" o ", CellSizes)}."]);
+        }
+
+        if (!Inside(size, cellSize, selection))
+        {
+            return Empty(
+            [
+                $"El rectángulo elegido se sale de la hoja, que mide "
+                + $"{size.Width / cellSize}x{size.Height / cellSize} celdas de {cellSize}.",
+            ]);
+        }
+
+        return null;
     }
 
     private static SheetAnalysis Empty(IReadOnlyList<string> problems) =>

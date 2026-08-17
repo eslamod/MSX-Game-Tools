@@ -48,6 +48,20 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
     [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
     private int _maxPlanes = 3;
 
+    /// <summary>
+    /// Si se trae el color o sólo el dibujo.
+    /// </summary>
+    /// <remarks>
+    /// Los dos modos comparten la hoja, la retícula, el rectángulo y el transparente, que es
+    /// casi todo el formulario. Lo que cambia es qué sale por el otro lado, y por eso es un
+    /// interruptor aquí y no otra entrada de menú.
+    /// </remarks>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Report))]
+    [NotifyPropertyChangedFor(nameof(IsCombined))]
+    [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
+    private bool _onlyPatterns;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Report))]
     [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
@@ -111,9 +125,13 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
 
     public int Rows => Size.Height / Math.Max(1, CellSize);
 
+    /// <summary>Si se enseñan los controles que sólo tienen sentido trayendo el color.</summary>
+    public bool IsCombined => !OnlyPatterns;
+
     /// <summary>El análisis de lo que hay elegido ahora mismo.</summary>
-    public SheetAnalysis Analysis => SpriteSheetAnalysis.Analyse(
-        _pixels, Size, CellSize, Transparent?.Color, Selection, MaxPlanes);
+    public SheetAnalysis Analysis => OnlyPatterns
+        ? SpriteSheetAnalysis.AnalysePatterns(Size, CellSize, Selection)
+        : SpriteSheetAnalysis.Analyse(_pixels, Size, CellSize, Transparent?.Color, Selection, MaxPlanes);
 
     /// <summary>
     /// Lo que se lee debajo: o lo que va a costar, o por qué no se puede.
@@ -131,13 +149,21 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
             if (!analysis.Ok)
                 return string.Join("\n", analysis.Problems);
 
-            string cost = Localizer.Instance.Format(
-                "ImportSheetCost",
-                analysis.Colors.Count,
-                analysis.Planes,
-                analysis.Cells.Count(cell => cell.Planes > 0),
-                analysis.Patterns,
-                SpriteBank.MaxSprites);
+            // En modo patrones no hay colores ni planos que contar: sobra media frase, y
+            // enseñar «0 colores · 1 planos» sería peor que no decir nada.
+            string cost = OnlyPatterns
+                ? Localizer.Instance.Format(
+                    "ImportSheetPatternsCost",
+                    analysis.Cells.Count,
+                    analysis.Patterns,
+                    SpriteBank.MaxSprites)
+                : Localizer.Instance.Format(
+                    "ImportSheetCost",
+                    analysis.Colors.Count,
+                    analysis.Planes,
+                    analysis.Cells.Count(cell => cell.Planes > 0),
+                    analysis.Patterns,
+                    SpriteBank.MaxSprites);
 
             return analysis.Fits
                 ? cost
@@ -166,13 +192,21 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
     [RelayCommand(CanExecute = nameof(CanAccept))]
     private void Accept()
     {
-        SheetImport import = SpriteSheetImporter.Import(
-            _pixels, Size, CellSize, Transparent?.Color, Selection, MaxPlanes, _name);
+        SheetImport import = OnlyPatterns
+            ? SpriteSheetImporter.ImportPatterns(
+                _pixels, Size, CellSize, Transparent?.Color, Selection, _name)
+            : SpriteSheetImporter.Import(
+                _pixels, Size, CellSize, Transparent?.Color, Selection, MaxPlanes, _name);
 
         if (!import.Ok)
             return;
 
-        _mainWindowVm.OpenSpriteBank(import.Bank!, _mainWindowVm.Palettes.Adopt(import.Palette!));
+        // Sin paleta en modo patrones: allí el color no sale de la hoja, así que se queda la que
+        // esté puesta en vez de inventarse una con los colores de una imagen que no se ha usado.
+        _mainWindowVm.OpenSpriteBank(
+            import.Bank!,
+            import.Palette is { } made ? _mainWindowVm.Palettes.Adopt(made) : null);
+
         _mainWindowVm.RightPanViewModel = null;
     }
 

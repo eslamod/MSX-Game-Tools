@@ -82,6 +82,8 @@
   <data name="ImportSheetCell" xml:space="preserve"><value>Celda</value></data>
   <data name="ImportSheetTransparent" xml:space="preserve"><value>Transparente</value></data>
   <data name="ImportSheetPlanes" xml:space="preserve"><value>Sprites superpuestos</value></data>
+  <data name="ImportSheetOnlyPatterns" xml:space="preserve"><value>Sólo la tabla de patrones, sin color</value></data>
+  <data name="ImportSheetPatternsCost" xml:space="preserve"><value>{0} celdas · {1} de {2} patrones</value></data>
   <data name="ImportSheetCost" xml:space="preserve"><value>{0} colores · {1} planos · {2} celdas · {3} de {4} patrones</value></data>
   <data name="ImportSheetTooMany" xml:space="preserve"><value>No entra en el banco. Elige menos celdas o baja los sprites superpuestos.</value></data>
   <data name="ImportSheetHint" xml:space="preserve"><value>Arrastra sobre la hoja para elegir el rectángulo que quieras traer.</value></data>

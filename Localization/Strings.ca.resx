@@ -72,6 +72,8 @@
   <data name="ImportSheetCell" xml:space="preserve"><value>Cel·la</value></data>
   <data name="ImportSheetTransparent" xml:space="preserve"><value>Transparent</value></data>
   <data name="ImportSheetPlanes" xml:space="preserve"><value>Sprites superposats</value></data>
+  <data name="ImportSheetOnlyPatterns" xml:space="preserve"><value>Només la taula de patrons, sense color</value></data>
+  <data name="ImportSheetPatternsCost" xml:space="preserve"><value>{0} cel·les · {1} de {2} patrons</value></data>
   <data name="ImportSheetCost" xml:space="preserve"><value>{0} colors · {1} plans · {2} cel·les · {3} de {4} patrons</value></data>
   <data name="ImportSheetTooMany" xml:space="preserve"><value>No cap al banc. Tria menys cel·les o baixa els sprites superposats.</value></data>
   <data name="ImportSheetHint" xml:space="preserve"><value>Arrossega sobre el full per triar el rectangle que vulguis portar.</value></data>

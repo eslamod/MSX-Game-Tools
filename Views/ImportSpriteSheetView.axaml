@@ -51,6 +51,12 @@
       <TextBlock Text="{l:Localize ImportSheetHint}" TextWrapping="Wrap" Margin="0,0,0,8"
                  Foreground="{DynamicResource AppTextSecondary}" />
 
+      <!-- Los dos modos comparten casi todo el formulario, asi que es un interruptor y no otra
+           entrada de menu. Lo que cambia es que en el de patrones no hay color: un pixel esta
+           o no esta, y los controles de color sobran. -->
+      <CheckBox Content="{l:Localize ImportSheetOnlyPatterns}" IsChecked="{Binding OnlyPatterns}"
+                Margin="0,0,0,8" />
+
       <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" Margin="0,0,0,8">
 
         <TextBlock Grid.Row="0" Grid.Column="0" Text="{l:Localize ImportSheetCell}"
@@ -59,8 +65,10 @@
                   ItemsSource="{Binding CellSizes}" SelectedItem="{Binding CellSize}" />
 
         <TextBlock Grid.Row="1" Grid.Column="0" Text="{l:Localize ImportSheetPlanes}"
-                   VerticalAlignment="Center" Margin="0,0,8,4" />
+                   VerticalAlignment="Center" Margin="0,0,8,4"
+                   IsVisible="{Binding IsCombined}" />
         <ComboBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" Margin="0,0,0,4"
+                  IsVisible="{Binding IsCombined}"
                   ItemsSource="{Binding PlaneChoices}" SelectedItem="{Binding MaxPlanes}" />
 
         <TextBlock Grid.Row="2" Grid.Column="0" Text="{l:Localize ImportSheetTransparent}"

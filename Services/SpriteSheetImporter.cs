@@ -85,6 +85,85 @@ public static class SpriteSheetImporter
     }
 
     /// <summary>
+    /// Trae la selección como tabla de patrones: sin color y sin grupos.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Un pixel está o no está: donde la hoja no es transparente va un bit, y donde lo es no va
+    /// nada. Es lo que hace falta cuando el dibujo se colorea en el juego, o cuando la hoja
+    /// viene ya en blanco y negro y el color no significa nada.
+    /// </para>
+    /// <para>
+    /// Un patrón por celda y en orden de lectura, sin saltarse las vacías y sin reaprovechar
+    /// las repetidas. Al revés que el modo de color, y a propósito: de una tabla se espera que
+    /// el patrón número N sea la celda número N de lo que se eligió, y saltarse una rompería
+    /// esa cuenta sin decir nada.
+    /// </para>
+    /// </remarks>
+    public static SheetImport ImportPatterns(
+        int[] pixels,
+        PixelSize size,
+        int cellSize,
+        Color? transparent,
+        SheetSelection selection,
+        string name)
+    {
+        SheetAnalysis analysis = SpriteSheetAnalysis.AnalysePatterns(size, cellSize, selection);
+
+        if (!analysis.Ok)
+            return new SheetImport(null, null, analysis, analysis.Problems);
+
+        if (!analysis.Fits)
+        {
+            return new SheetImport(null, null, analysis,
+            [
+                $"Harían falta {analysis.Patterns} patrones y un banco tiene "
+                + $"{SpriteBank.MaxSprites}. Elige menos celdas.",
+            ]);
+        }
+
+        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, name);
+        int next = 0;
+
+        for (int row = 0; row < selection.Rows; row++)
+        {
+            for (int column = 0; column < selection.Columns; column++)
+            {
+                Trace(
+                    bank.SpritesList[next++],
+                    pixels, size, cellSize, transparent,
+                    (selection.Left + column) * cellSize,
+                    (selection.Top + row) * cellSize);
+            }
+        }
+
+        return new SheetImport(bank, null, analysis, []);
+    }
+
+    /// <summary>
+    /// Calca una celda en un patrón: un bit donde haya pixel.
+    /// </summary>
+    /// <remarks>
+    /// El color de las líneas se queda como estaba. No es dejarse nada: en este modo el color
+    /// no sale de la hoja, y ponerlo a algo sería inventarse una decisión que es del juego.
+    /// </remarks>
+    private static void Trace(
+        Sprite sprite, int[] pixels, PixelSize size, int cellSize, Color? transparent, int left, int top)
+    {
+        for (int row = 0; row < Sprite.Rows; row++)
+        {
+            SpriteRow line = sprite.ArraySpriteRows[row];
+
+            for (int column = 0; column < SpriteRow.Columns; column++)
+            {
+                line.ArrayColumns[column] = row < cellSize && column < cellSize
+                    && !SpriteSheetPixels.IsClear(
+                        pixels[((top + row) * size.Width) + left + column], transparent);
+            }
+        }
+    }
+
+    /// <summary>
     /// La paleta con cada color en el índice que le tocó.
     /// </summary>
     /// <remarks>
