@@ -76,6 +76,74 @@ public static class SpritePlaneAssignment
         groups.Count == 0 ? 0 : groups.Max(group => Bits(Merge(group, masks)));
 
     /// <summary>
+    /// Colores que no caben juntos con el tope de planos que se ha puesto.
+    /// </summary>
+    /// <param name="Colors">Los números de color implicados.</param>
+    /// <param name="Shared">
+    /// Los que salen en las dos líneas, o vacío cuando el choque es de una línea sola. Son la
+    /// explicación: si el negro sale con el rojo en una línea y con el azul en otra, es el
+    /// negro el que ata a los otros dos, y quitarlo de en medio arregla las dos.
+    /// </param>
+    public sealed record PlaneClash(IReadOnlyList<int> Colors, IReadOnlyList<int> Shared);
+
+    /// <summary>
+    /// Por qué no hay reparto: qué colores se estorban.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Dos formas de no caber. Una línea con más colores de los que dan los planos no cabe ella
+    /// sola. Y dos líneas que comparten colores tienen que caber en los mismos bits aunque cada
+    /// una por separado quepa: es lo que pasa con dos personajes que comparten el blanco y el
+    /// negro y llevan uno rojo y otro azul.
+    /// </para>
+    /// <para>
+    /// No cubre todos los casos, y no pasa nada: cuando no sabe atribuirlo devuelve nada y
+    /// queda el aviso de siempre. Una explicación de menos es un aviso más flojo; una
+    /// explicación inventada manda a retocar el color que no era.
+    /// </para>
+    /// </remarks>
+    public static PlaneClash? Explain(
+        IReadOnlyList<IReadOnlyList<int>> lines, int colors, int maxPlanes)
+    {
+        if (colors is <= 0 or > MaxColors || maxPlanes is < 1 or > MaxPlanes)
+            return null;
+
+        List<int> groups = [.. Distinct(lines, colors)];
+
+        // Con N planos salen 2^N − 1 colores: tres con dos planos, siete con tres, quince con
+        // cuatro. Es el tope de colores distintos que puede haber en el mismo sitio.
+        int fit = (1 << maxPlanes) - 1;
+
+        // Primero las que no caben solas, que son las que se arreglan de una: sobran colores.
+        foreach (int group in groups.OrderByDescending(Bits))
+        {
+            if (Bits(group) > fit)
+                return new PlaneClash(Numbers(group), []);
+        }
+
+        // Y luego los pares que se atan. El de más solapamiento primero: es donde está el color
+        // que más estorba, y quitarlo de en medio arregla más de un sitio.
+        foreach (int one in groups)
+        {
+            foreach (int other in groups)
+            {
+                int shared = one & other;
+
+                if (one == other || shared == 0 || Bits(one | other) <= fit)
+                    continue;
+
+                return new PlaneClash(Numbers(one | other), Numbers(shared));
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>Los números de color de una máscara de coincidencia.</summary>
+    private static int[] Numbers(int group) =>
+        [.. Enumerable.Range(0, MaxColors + 1).Where(color => (group & (1 << color)) != 0)];
+
+    /// <summary>
     /// Coloca un color detrás de otro, deshaciendo cuando el siguiente ya no cabe.
     /// </summary>
     /// <remarks>

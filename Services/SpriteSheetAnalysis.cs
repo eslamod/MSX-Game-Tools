@@ -115,10 +115,7 @@ public static class SpriteSheetAnalysis
 
         if (SpritePlaneAssignment.Solve(lines, colors.Count, maxPlanes) is not { } solved)
         {
-            problems.Add(
-                $"Con {maxPlanes} sprites superpuestos no salen estos {colors.Count} colores. "
-                + "El reparto es de toda la selección a la vez porque la paleta es una sola: "
-                + "dos personajes que compartan colores se atan el uno al otro.");
+            problems.Add(Why(lines, colors, maxPlanes));
 
             return Empty(problems);
         }
@@ -137,6 +134,42 @@ public static class SpriteSheetAnalysis
 
     private static SheetAnalysis Empty(IReadOnlyList<string> problems) =>
         new([], [], [], 0, 0, problems);
+
+    /// <summary>
+    /// Por qué no sale, con los colores que se estorban por delante.
+    /// </summary>
+    /// <remarks>
+    /// «Con 2 planos no salen estos 5 colores» deja adivinando cuál sobra. Diciendo cuáles se
+    /// atan y por dónde, se sabe qué retocar en la hoja: casi siempre hay un color que coincide
+    /// con todo —una sombra, un contorno— y es el que está gastando el plano de más.
+    /// </remarks>
+    private static string Why(
+        IReadOnlyList<int[]> lines, IReadOnlyList<Color> colors, int maxPlanes)
+    {
+        int fit = (1 << maxPlanes) - 1;
+
+        string general =
+            $"Con {maxPlanes} sprites superpuestos caben {fit} colores en la misma línea, y el "
+            + $"reparto es de toda la selección a la vez porque la paleta es una sola.";
+
+        if (SpritePlaneAssignment.Explain(lines, colors.Count, maxPlanes) is not { } clash)
+            return $"{general} Estos {colors.Count} colores no salen.";
+
+        string offending = Names(clash.Colors, colors);
+
+        if (clash.Shared.Count == 0)
+            return $"{general} En una misma línea coinciden {clash.Colors.Count}: {offending}.";
+
+        return $"{general} {Names(clash.Shared, colors)} coinciden en una línea con unos colores "
+            + $"y en otra con otros, así que los {clash.Colors.Count} tienen que caber en los "
+            + $"mismos planos: {offending}.";
+    }
+
+    /// <summary>Los colores en hexadecimal, que es como se reconocen en el editor de imágenes.</summary>
+    private static string Names(IReadOnlyList<int> numbers, IReadOnlyList<Color> colors) =>
+        string.Join(", ", numbers
+            .Where(number => number < colors.Count)
+            .Select(number => $"#{colors[number].R:X2}{colors[number].G:X2}{colors[number].B:X2}"));
 
     private static bool Inside(PixelSize size, int cellSize, SheetSelection selection) =>
         selection.Left >= 0

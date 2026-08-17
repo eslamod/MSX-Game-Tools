@@ -158,6 +158,58 @@ public class SpriteSheetAnalysisTests
         Assert.True(Analyse(sheet, new SheetSelection(1, 0, 1, 1), maxPlanes: 2).Ok);
     }
 
+    // ------------------------------------------------------------------ por que no sale
+
+    /// <summary>
+    /// Cuando no sale, dice qué colores se atan y por cuál.
+    /// </summary>
+    /// <remarks>
+    /// «Con 2 planos no salen estos 4 colores» deja adivinando cuál sobra. Lo que hace falta
+    /// saber es que hay un color que coincide con todo —una sombra, un contorno— y que es el
+    /// que está gastando el plano de más.
+    /// </remarks>
+    [Fact]
+    public void Dice_que_colores_se_atan_y_por_cual()
+    {
+        // El negro sale con el rojo en un bicho y con el azul en otro: es el que ata.
+        (int[], PixelSize) sheet = Sheet(2, 1, [[White, Black, Red], [White, Black, Blue]]);
+
+        SheetAnalysis analysis = Analyse(sheet, new SheetSelection(0, 0, 2, 1), maxPlanes: 2);
+
+        Assert.False(analysis.Ok);
+
+        string why = Assert.Single(analysis.Problems);
+
+        // Los cuatro que no caben juntos, cada uno por su color.
+        Assert.Contains("#FF0000", why);
+        Assert.Contains("#0000FF", why);
+        Assert.Contains("#000000", why);
+        Assert.Contains("#FFFFFF", why);
+
+        // Y cuántos caben con ese tope, que es lo que dice si vale la pena subirlo.
+        Assert.Contains("3 colores", why);
+    }
+
+    /// <summary>Y si es una línea la que se pasa ella sola, lo dice tal cual.</summary>
+    /// <remarks>
+    /// Se distingue del caso anterior porque se arregla de otra manera: aquí sobran colores en
+    /// un sitio, y allí lo que sobra es que dos sitios compartan uno.
+    /// </remarks>
+    [Fact]
+    public void Una_linea_que_se_pasa_ella_sola_se_dice_aparte()
+    {
+        (int[], PixelSize) sheet = Sheet(1, 1, [[White, Black, Red, Blue]]);
+
+        SheetAnalysis analysis = Analyse(sheet, new SheetSelection(0, 0, 1, 1), maxPlanes: 2);
+
+        Assert.False(analysis.Ok);
+
+        string why = Assert.Single(analysis.Problems);
+
+        Assert.Contains("En una misma línea coinciden 4", why);
+        Assert.DoesNotContain("y en otra con otros", why);
+    }
+
     // ------------------------------------------------------------------ lo que cuesta
 
     /// <summary>
