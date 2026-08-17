@@ -528,6 +528,8 @@ Recorda copiar cada taula {2} vegades a la VRAM, una per terç de pantalla.</val
   <data name="ShiftShowNextTip" xml:space="preserve"><value>Porta el mapa al següent lloc que no es veurà bé</value></data>
   <data name="ShiftIgnore" xml:space="preserve"><value>Ignorar</value></data>
   <data name="ShiftIgnoreTip" xml:space="preserve"><value>Treu-lo de l'informe. Per al tile de fons, que toca amb tot i enterra els altres</value></data>
+  <data name="ShiftWanted" xml:space="preserve"><value>A ({0}, {1}) hi té el {2}, que demana: {3}</value></data>
+  <data name="ShiftNoFill" xml:space="preserve"><value>A ({0}, {1}) hi té el {2}, que demana un color que aquest tile no sap pintar</value></data>
   <data name="ShiftScope" xml:space="preserve"><value>El que es desplaça</value></data>
   <data name="ShiftTilesFrom" xml:space="preserve"><value>Tiles del</value></data>
   <data name="ShiftRowsFrom" xml:space="preserve"><value>Files de la</value></data>

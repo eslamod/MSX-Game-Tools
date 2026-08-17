@@ -527,6 +527,8 @@ Remember to copy each table {2} times into VRAM, one per third of the screen.</v
   <data name="ShiftShowNextTip" xml:space="preserve"><value>Takes the map to the next place that will not look right</value></data>
   <data name="ShiftIgnore" xml:space="preserve"><value>Ignore</value></data>
   <data name="ShiftIgnoreTip" xml:space="preserve"><value>Leave it out of the report. For the background tile, which touches everything and buries the rest</value></data>
+  <data name="ShiftWanted" xml:space="preserve"><value>At ({0}, {1}) it has tile {2} next to it, which asks for: {3}</value></data>
+  <data name="ShiftNoFill" xml:space="preserve"><value>At ({0}, {1}) it has tile {2} next to it, which asks for a colour this tile cannot paint</value></data>
   <data name="ShiftScope" xml:space="preserve"><value>What actually shifts</value></data>
   <data name="ShiftTilesFrom" xml:space="preserve"><value>Tiles from</value></data>
   <data name="ShiftRowsFrom" xml:space="preserve"><value>Rows from</value></data>

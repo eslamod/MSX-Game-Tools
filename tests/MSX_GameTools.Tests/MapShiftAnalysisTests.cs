@@ -163,7 +163,72 @@ public class MapShiftAnalysisTests
 
         Assert.Equal(ShiftFill.FromNextTile, five.Suggested);
         Assert.Empty(five.AlsoWork);
-        Assert.Equal(new MapCell(4, 0), Assert.Single(five.Broken));
+
+        // Y con el motivo: allí tiene al 7 al lado, que es macizo.
+        ShiftTrouble broken = Assert.Single(five.Broken);
+
+        Assert.Equal(new MapCell(4, 0), broken.Cell);
+        Assert.Equal(7, broken.Neighbour);
+        Assert.Equal(ShiftFill.Ones, broken.Wanted);
+    }
+
+    // ------------------------------------------------------------------ el color
+
+    private const int Negro = 1;
+    private const int Azul = 4;
+    private const int Rojo = 8;
+
+    /// <summary>Un juego de screen 1 con el terreno pintado como en un juego de verdad.</summary>
+    /// <remarks>
+    /// La rampa con tinta azul sobre papel negro, y el llano de al lado con papel azul y ni un
+    /// bit puesto. En pantalla es el mismo azul; en bits es lo contrario.
+    /// </remarks>
+    private static TileSet Terreno(int llano)
+    {
+        var tileSet = new TileSet("Luna", TileSet.GraphicMode.Graphic1);
+
+        tileSet.ColorGroups[0].Set(Azul, Negro);
+        tileSet.ColorGroups[1].Set(Negro, llano);
+
+        Draw(tileSet, 5, [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]);
+
+        return tileSet;
+    }
+
+    /// <summary>
+    /// Lo que se compara es el color que se ve, no el bit.
+    /// </summary>
+    /// <remarks>
+    /// El caso que lo destapó, y es de los que se dan solos en screen 1: los dos colores van por
+    /// grupos de ocho tiles, así que un dibujo grande no cabe en un grupo y acaba repartido. En
+    /// un juego real la rampa del terreno estaba pintada con tinta azul sobre papel negro y el
+    /// llano de al lado era papel azul con todos los bits a cero. Comparando bits, el informe
+    /// mandaba entrar negro justo donde el azul tenía que seguir, y encima sin dudarlo.
+    /// </remarks>
+    [Fact]
+    public void Lo_que_se_compara_es_el_color_y_no_el_bit()
+    {
+        ShiftTileReport five = Report(MapShiftAnalysis.Of(Map(5, 8), Terreno(Azul)), 5);
+
+        // El vecino se ve azul, y en el 5 el azul es un uno.
+        Assert.Equal(ShiftFill.Ones, five.Suggested);
+        Assert.True(five.Clean);
+    }
+
+    /// <summary>
+    /// Y si el vecino pide un color que el tile no tiene, no lo arregla ningún relleno.
+    /// </summary>
+    /// <remarks>
+    /// Va con las imposibles y no con las rotas porque no se arregla eligiendo otra cosa: hay
+    /// que mover el tile o repartir otra vez los colores por grupos.
+    /// </remarks>
+    [Fact]
+    public void Un_color_que_el_tile_no_tiene_no_lo_da_ningun_relleno()
+    {
+        ShiftTileReport five = Report(MapShiftAnalysis.Of(Map(5, 8), Terreno(Rojo)), 5);
+
+        Assert.Empty(five.Demands);
+        Assert.Null(Assert.Single(five.Impossible).Wanted);
     }
 
     // ------------------------------------------------------------------ el conflicto
@@ -190,7 +255,7 @@ public class MapShiftAnalysisTests
         Assert.Equal(1, five.Demands.Single(demand => demand.Fill == ShiftFill.Zeros).Times);
 
         // Y dónde está el sitio que se va a ver mal, para poder ir a mirarlo.
-        Assert.Equal(new MapCell(6, 0), Assert.Single(five.Broken));
+        Assert.Equal(new MapCell(6, 0), Assert.Single(five.Broken).Cell);
     }
 
     /// <summary>Cuando el vecino no empieza ni liso ni macizo ni como el siguiente, no hay relleno.</summary>
@@ -212,7 +277,11 @@ public class MapShiftAnalysisTests
 
         ShiftTileReport five = Report(report, 5);
 
-        Assert.Equal(new MapCell(0, 0), Assert.Single(five.Impossible));
+        // Y sin nada que pedir, porque no lo da ningún relleno.
+        ShiftTrouble stuck = Assert.Single(five.Impossible);
+
+        Assert.Equal(new MapCell(0, 0), stuck.Cell);
+        Assert.Null(stuck.Wanted);
         Assert.False(five.Clean);
 
         // Aparte quiere decir aparte: esa celda no engorda además la cuenta de las rotas, que

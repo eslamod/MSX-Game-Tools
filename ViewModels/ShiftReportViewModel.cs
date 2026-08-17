@@ -56,8 +56,31 @@ public partial class ShiftTileRowViewModel(
         ? null
         : Text.Format("ShiftStep", Math.Min(_next + 1, Trouble.Count), Trouble.Count);
 
+    /// <summary>
+    /// Qué pasa en el sitio al que lleva el botón: dónde, quién es el vecino y qué pedía.
+    /// </summary>
+    /// <remarks>
+    /// Sin el motivo el informe no se explica solo. Un tile puede salir doce veces junto al
+    /// terreno llano y una junto al final de su propio dibujo, y leyendo «una de trece celdas no
+    /// se verá bien» no hay manera de saber cuál de los dos es el caso raro.
+    /// </remarks>
+    public string? Reason
+    {
+        get
+        {
+            if (Trouble.Count == 0)
+                return null;
+
+            ShiftTrouble next = Trouble[_next];
+
+            return next.Wanted is { } wanted
+                ? Text.Format("ShiftWanted", next.Cell.Column, next.Cell.Row, next.Neighbour, Text[NameOf(wanted)])
+                : Text.Format("ShiftNoFill", next.Cell.Column, next.Cell.Row, next.Neighbour);
+        }
+    }
+
     /// <summary>Las que hay que ir a mirar: primero las rotas y luego las que no tienen arreglo.</summary>
-    private IReadOnlyList<MapCell> Trouble { get; } = [.. report.Broken, .. report.Impossible];
+    private IReadOnlyList<ShiftTrouble> Trouble { get; } = [.. report.Broken, .. report.Impossible];
 
     private static Localizer Text => Localizer.Instance;
 
@@ -72,15 +95,14 @@ public partial class ShiftTileRowViewModel(
     [RelayCommand(CanExecute = nameof(HasTrouble))]
     private void ShowNext()
     {
-        MapCell cell = Trouble[_next];
+        panel.ShowCell(Trouble[_next].Cell);
 
         // Da la vuelta al llegar al final. Recorrer ciento y pico sitios y quedarse con el
         // botón apagado obligaría a cerrar el informe y volver a sacarlo para repasarlos.
         _next = (_next + 1) % Trouble.Count;
 
-        panel.ShowCell(cell);
-
         OnPropertyChanged(nameof(Step));
+        OnPropertyChanged(nameof(Reason));
     }
 
     private bool HasTrouble() => Trouble.Count > 0;

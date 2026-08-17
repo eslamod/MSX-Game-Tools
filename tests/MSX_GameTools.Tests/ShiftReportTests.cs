@@ -100,6 +100,35 @@ public class ShiftReportTests
         Assert.Equal(new MapRegion(2, 0, 1, 1), editor.Selection);
     }
 
+    /// <summary>
+    /// Cada sitio dice quién es el vecino y qué pedía, y el motivo sigue al paseo.
+    /// </summary>
+    /// <remarks>
+    /// Sin el motivo el informe no se explica solo: leyendo «una de trece celdas no se verá
+    /// bien» no hay forma de saber cuál de los vecinos es el raro, que es lo que hace falta para
+    /// decidir si se mueve el tile o se deja estar.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Cada_sitio_dice_quien_es_el_vecino_y_que_pedia()
+    {
+        MainWindowViewModel main = WithMap(out MapEditorViewModel editor);
+
+        // El 5 pide unos tres veces y ceros dos: se queda con los unos y falla en dos sitios,
+        // uno junto al 9 —que está vacío— y otro junto al 11, que también.
+        Paint(editor, 5, 7, 5, 7, 5, 7, 5, 9, 5, 11);
+        Solid(editor, 5, 7);
+
+        var panel = Open(main);
+
+        Assert.Contains("(6, 0)", panel.Rows[0].Reason);
+        Assert.Contains("9", panel.Rows[0].Reason);
+
+        panel.Rows[0].ShowNextCommand.Execute(null);
+
+        Assert.Contains("(8, 0)", panel.Rows[0].Reason);
+        Assert.Contains("11", panel.Rows[0].Reason);
+    }
+
     /// <summary>Y va pasando por todos, dando la vuelta al llegar al final.</summary>
     [AvaloniaFact]
     public void Ver_va_pasando_por_todos_los_sitios()

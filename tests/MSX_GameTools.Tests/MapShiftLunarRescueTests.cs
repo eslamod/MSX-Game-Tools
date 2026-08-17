@@ -79,7 +79,7 @@ public class MapShiftLunarRescueTests
         Assert.Equal(1, fondo.Demands.Single(demand => demand.Fill == ShiftFill.Zeros).Times);
 
         // Y el sitio que se queda sin desplazar es el borde del terreno, no el terreno.
-        Assert.Equal(new MapCell(10, 0), Assert.Single(fondo.Broken));
+        Assert.Equal(new MapCell(10, 0), Assert.Single(fondo.Broken).Cell);
     }
 
     /// <summary>

@@ -18,6 +18,23 @@ public enum ShiftFill
 /// <summary>Una celda del mapa, para poder ir a mirarla.</summary>
 public sealed record MapCell(int Column, int Row);
 
+/// <summary>
+/// Un sitio donde el relleno elegido no es el que hace falta, y por qué.
+/// </summary>
+/// <param name="Cell">Dónde.</param>
+/// <param name="Neighbour">El tile de la derecha, que es quien lo dicta.</param>
+/// <param name="Wanted">
+/// Lo que ese vecino pedía. Nulo cuando no lo da ninguno de los tres, que entonces no es que
+/// haya que elegir otra cosa sino que hay que mover el tile o retocar el dibujo.
+/// </param>
+/// <remarks>
+/// El motivo va con la posición porque sin él el informe no se explica solo. Un tile puede
+/// aparecer doce veces junto al terreno llano y una junto al final de su propio objeto: leyendo
+/// «una de trece celdas no se verá bien» no hay manera de saber cuál de los dos casos es el
+/// raro, y eso es justo lo que hace falta para decidir si se mueve el tile o se deja estar.
+/// </remarks>
+public sealed record ShiftTrouble(MapCell Cell, int Neighbour, ShiftFill? Wanted);
+
 /// <summary>En cuántas posiciones del mapa vale un relleno para un tile.</summary>
 /// <remarks>
 /// Una posición puede contar para más de uno: si el vecino empieza macizo y el tile siguiente
@@ -42,7 +59,8 @@ public sealed record ShiftDemand(ShiftFill Fill, int Times);
 /// </param>
 /// <param name="Impossible">
 /// Posiciones donde no vale ninguno de los tres. Pasa cuando el vecino no empieza ni liso ni
-/// macizo ni como el tile siguiente: ahí no hay relleno que valga, se elija el que se elija.
+/// macizo ni como el tile siguiente, y también cuando pide un color que este tile no sabe
+/// pintar: ahí no hay relleno que valga, se elija el que se elija.
 /// </param>
 public sealed record ShiftTileReport(
     int Tile,
@@ -50,8 +68,8 @@ public sealed record ShiftTileReport(
     IReadOnlyList<ShiftDemand> Demands,
     ShiftFill Suggested,
     IReadOnlyList<ShiftFill> AlsoWork,
-    IReadOnlyList<MapCell> Broken,
-    IReadOnlyList<MapCell> Impossible)
+    IReadOnlyList<ShiftTrouble> Broken,
+    IReadOnlyList<ShiftTrouble> Impossible)
 {
     /// <summary>Si el mapa lo coloca siempre en sitios que piden lo mismo.</summary>
     public bool Clean => Broken.Count == 0 && Impossible.Count == 0;
@@ -183,6 +201,7 @@ public static class MapShiftAnalysis
         var places = new Dictionary<int, List<MapCell>>();
         var covered = new Dictionary<int, Dictionary<ShiftFill, List<MapCell>>>();
         var impossible = new Dictionary<int, List<MapCell>>();
+        var neighbours = new Dictionary<(int Tile, MapCell Cell), int>();
 
         for (int row = 0; row < map.Height; row++)
         {
@@ -198,27 +217,30 @@ public static class MapShiftAnalysis
                 if (!scope.Wants(tile, row) || !Inside(tile) || !Inside(right))
                     continue;
 
-                int needed = LeftColumn(tileSet, right);
                 var cell = new MapCell(column, row);
 
                 Add(places, tile, cell);
+                neighbours[(tile, cell)] = right;
 
                 bool any = false;
 
-                foreach (ShiftFill fill in Fills)
+                if (Needed(tileSet, tile, right) is { } needed)
                 {
-                    if (!Reproduces(tileSet, tile, fill, needed))
-                        continue;
+                    foreach (ShiftFill fill in Fills)
+                    {
+                        if (!Reproduces(tileSet, tile, fill, needed))
+                            continue;
 
-                    any = true;
+                        any = true;
 
-                    if (!covered.TryGetValue(tile, out Dictionary<ShiftFill, List<MapCell>>? byFill))
-                        covered[tile] = byFill = [];
+                        if (!covered.TryGetValue(tile, out Dictionary<ShiftFill, List<MapCell>>? byFill))
+                            covered[tile] = byFill = [];
 
-                    if (!byFill.TryGetValue(fill, out List<MapCell>? cells))
-                        byFill[fill] = cells = [];
+                        if (!byFill.TryGetValue(fill, out List<MapCell>? cells))
+                            byFill[fill] = cells = [];
 
-                    cells.Add(cell);
+                        cells.Add(cell);
+                    }
                 }
 
                 if (!any)
@@ -226,7 +248,8 @@ public static class MapShiftAnalysis
             }
         }
 
-        List<ShiftTileReport> tiles = [.. Reports(places, covered, impossible).OrderBy(report => report.Tile)];
+        List<ShiftTileReport> tiles =
+            [.. Reports(places, covered, impossible, neighbours).OrderBy(report => report.Tile)];
 
         return new MapShiftReport(
             tiles,
@@ -238,7 +261,8 @@ public static class MapShiftAnalysis
     private static IEnumerable<ShiftTileReport> Reports(
         Dictionary<int, List<MapCell>> places,
         Dictionary<int, Dictionary<ShiftFill, List<MapCell>>> covered,
-        Dictionary<int, List<MapCell>> impossible)
+        Dictionary<int, List<MapCell>> impossible,
+        Dictionary<(int Tile, MapCell Cell), int> neighbours)
     {
         foreach ((int tile, List<MapCell> all) in places)
         {
@@ -262,6 +286,17 @@ public static class MapShiftAnalysis
             ShiftFill suggested = counted.Count > 0 ? counted[0].Fill : ShiftFill.FromNextTile;
 
             HashSet<MapCell> good = counted.Count > 0 ? [.. byFill[suggested]] : [];
+            List<MapCell> bad = Bad(impossible, tile);
+
+            // Lo que pedía cada sitio: el relleno que sí valía allí, y nada si no valía ninguno.
+            ShiftTrouble Why(MapCell cell) => new(
+                cell,
+                neighbours[(tile, cell)],
+                byFill.Keys
+                    .Where(fill => byFill[fill].Contains(cell))
+                    .OrderBy(fill => fill == ShiftFill.FromNextTile ? 1 : 0)
+                    .Cast<ShiftFill?>()
+                    .FirstOrDefault());
 
             yield return new ShiftTileReport(
                 tile,
@@ -269,12 +304,12 @@ public static class MapShiftAnalysis
                 counted,
                 suggested,
                 [.. byFill.Keys.Where(fill => fill != suggested && good.SetEquals(byFill[fill])).Order()],
-                [.. all.Where(cell => !good.Contains(cell)).Except(Bad(impossible, tile))],
-                Bad(impossible, tile));
+                [.. all.Where(cell => !good.Contains(cell)).Except(bad).Select(Why)],
+                [.. bad.Select(Why)]);
         }
     }
 
-    private static IReadOnlyList<MapCell> Bad(Dictionary<int, List<MapCell>> impossible, int tile) =>
+    private static List<MapCell> Bad(Dictionary<int, List<MapCell>> impossible, int tile) =>
         impossible.TryGetValue(tile, out List<MapCell>? cells) ? cells : [];
 
     /// <summary>Los tres rellenos, para recorrerlos.</summary>
@@ -285,12 +320,63 @@ public static class MapShiftAnalysis
     /// Si <paramref name="fill"/> deja el borde derecho de <paramref name="tile"/> como pide el
     /// vecino.
     /// </summary>
+    /// <remarks>
+    /// El del tile siguiente se compara en bits y no en colores porque eso es literalmente lo
+    /// que hace la máquina: el relleno saca el bit de más a la izquierda del patrón del tile
+    /// siguiente y lo mete por la derecha de éste, sin mirar de qué color se va a pintar.
+    /// </remarks>
     private static bool Reproduces(TileSet tileSet, int tile, ShiftFill fill, int needed) => fill switch
     {
         ShiftFill.Zeros => needed == 0x00,
         ShiftFill.Ones => needed == 0xFF,
         _ => tile + 1 < TileSet.TileCount && LeftColumn(tileSet, tile + 1) == needed,
     };
+
+    /// <summary>
+    /// Los bits que deberían entrar por la derecha de un tile, uno por fila, o nada si el vecino
+    /// pide un color que ese tile no sabe pintar.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// En colores y no en bits, que es lo que se ve. Un mismo azul puede ser la tinta de un tile
+    /// y el papel de su vecino —en screen 1 pasa constantemente, porque los dos colores van por
+    /// grupos de ocho tiles y un dibujo grande no cabe en un grupo— y entonces el bit que hay
+    /// que meter es el contrario del que tiene el vecino. Comparando bits, el informe manda
+    /// entrar negro donde debería seguir el azul, y encima con toda la seguridad.
+    /// </para>
+    /// <para>
+    /// Cuando el color del vecino no es ni la tinta ni el papel de este tile no hay bit que lo
+    /// dé: eso no se arregla eligiendo otro relleno, hay que mover el tile o repartir otra vez
+    /// los colores. Por eso sale nada y no un cero.
+    /// </para>
+    /// <para>
+    /// Con la tinta y el papel iguales manda el papel. Da igual cuál se elija, los dos pintan lo
+    /// mismo; el cero es el que deja el borde sin dibujo, que es lo que uno espera de un tile
+    /// donde no se distingue nada.
+    /// </para>
+    /// </remarks>
+    private static int? Needed(TileSet tileSet, int tile, int right)
+    {
+        int needed = 0;
+
+        for (int row = 0; row < Tile.Rows; row++)
+        {
+            TileRow mine = tileSet.ListOfTiles[tile].ArrayTileRows[row];
+            TileRow theirs = tileSet.ListOfTiles[right].ArrayTileRows[row];
+
+            int color = (theirs.PatternByte & 0x80) != 0 ? theirs.ForeColor : theirs.BackColor;
+
+            if (color == mine.BackColor)
+                continue;
+
+            if (color != mine.ForeColor)
+                return null;
+
+            needed |= 1 << row;
+        }
+
+        return needed;
+    }
 
     /// <summary>
     /// La columna izquierda de un tile, con un bit por fila.
