@@ -1857,6 +1857,34 @@ public partial class MainWindowViewModel : ObservableObject
     /// GRAPHIC 2 se puede convertir igualmente, pero el resultado no se parece a lo que
     /// dibujaste y no sabrías por qué. Es mejor decir dónde está el problema.
     /// </remarks>
+    /// <summary>
+    /// Abre el formulario de traer una hoja de sprites.
+    /// </summary>
+    /// <remarks>
+    /// Sólo lee el fichero: todo lo demás —celda, transparente, rectángulo, cuántos planos— se
+    /// elige en el panel, porque hay que poder cambiarlo viendo lo que costaría. Preguntarlo en
+    /// una tira de diálogos obligaría a llegar al final para descubrir que no cabe.
+    /// </remarks>
+    [RelayCommand]
+    private async Task ImportSpriteSheetAsync()
+    {
+        string? path = await Dialogs.PickFileToOpenAsync(Text["PickImportSpriteSheet"], PickerFileKind.Image);
+        if (path is null)
+            return;
+
+        try
+        {
+            (int[] pixels, PixelSize size) = PngFile.Read(path);
+
+            RightPanViewModel = new ImportSpriteSheetViewModel(
+                this, path, pixels, size, new Avalonia.Media.Imaging.Bitmap(path));
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            await Dialogs.ShowMessageAsync(Text["ErrorOpenImage"], exception.Message);
+        }
+    }
+
     [RelayCommand]
     private async Task ImportTileSetPngAsync()
     {

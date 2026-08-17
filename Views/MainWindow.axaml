@@ -100,6 +100,8 @@
       <MenuItem Header="{l:Localize MenuSprites}">
         <MenuItem Header="{l:Localize MenuNewSpriteBank}" Command="{Binding AddSpriteBankCommand}" />
         <Separator />
+        <MenuItem Header="{l:Localize MenuImportSpriteSheet}" Command="{Binding ImportSpriteSheetCommand}" />
+        <Separator />
         <MenuItem Header="{l:Localize MenuExportToBinary}" Command="{Binding ExportSpriteBankBinaryCommand}" />
         <MenuItem Header="{l:Localize MenuExportToAssembler}" Command="{Binding ExportSpriteBankAssemblerCommand}" />
       </MenuItem>

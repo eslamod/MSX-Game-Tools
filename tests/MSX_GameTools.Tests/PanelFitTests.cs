@@ -100,6 +100,7 @@ public class PanelFitTests
     [InlineData("Replace")]
     [InlineData("Palette")]
     [InlineData("NewPalette")]
+    [InlineData("ImportSheet")]
     public void Los_botones_de_los_formularios_caben(string form)
     {
         var main = new MainWindowViewModel(new TestDialogService { ChooseAnswer = false });
@@ -160,6 +161,7 @@ public class PanelFitTests
     [InlineData("Replace")]
     [InlineData("Palette")]
     [InlineData("NewPalette")]
+    [InlineData("ImportSheet")]
     public void Ningun_rotulo_de_los_formularios_sale_cortado(string form)
     {
         string before = Localizer.Instance.Language;
@@ -446,6 +448,12 @@ public class PanelFitTests
             // Y el editor, que sale al aceptarlo.
             case "Palette":
                 TestPalette.Create(main);
+                break;
+
+            // A mano y no por el comando: el comando pide un fichero, y aquí lo que se mide es
+            // el panel, que no necesita que la hoja venga de disco.
+            case "ImportSheet":
+                main.RightPanViewModel = TestSpriteSheet.Form(main);
                 break;
 
             case "Properties":

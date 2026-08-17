@@ -65,6 +65,15 @@
     <value>Sprites</value>
   </data>
   <data name="MenuNewSpriteBank" xml:space="preserve">
+  <data name="MenuImportSpriteSheet" xml:space="preserve"><value>Import from a sprite sheet (png)...</value></data>
+  <data name="PickImportSpriteSheet" xml:space="preserve"><value>Choose the sprite sheet</value></data>
+  <data name="ImportSheetTitle" xml:space="preserve"><value>Import from a sheet</value></data>
+  <data name="ImportSheetCell" xml:space="preserve"><value>Cell</value></data>
+  <data name="ImportSheetTransparent" xml:space="preserve"><value>Transparent</value></data>
+  <data name="ImportSheetPlanes" xml:space="preserve"><value>Overlapping sprites</value></data>
+  <data name="ImportSheetCost" xml:space="preserve"><value>{0} colours · {1} planes · {2} cells · {3} of {4} patterns</value></data>
+  <data name="ImportSheetTooMany" xml:space="preserve"><value>It does not fit in the bank. Choose fewer cells or lower the overlapping sprites.</value></data>
+  <data name="ImportSheetHint" xml:space="preserve"><value>Drag over the sheet to choose the rectangle you want to import.</value></data>
     <value>New sprite bank</value>
   </data>
 
