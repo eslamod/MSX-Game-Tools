@@ -360,6 +360,37 @@ public class Graphic1CrossModeTests
         Assert.Contains(result.Problems, problem => problem.Message.Contains("3 colores"));
     }
 
+    /// <summary>
+    /// Cuando una franja no entra, el aviso dice qué colores son.
+    /// </summary>
+    /// <remarks>
+    /// Y sobre todo nombra el transparente. Cuenta como color porque en la máquina lo es —el
+    /// índice 0 deja ver el borde— pero al mirar la hoja no se ve: uno cuenta dos colores donde
+    /// el importador ve tres, y el aviso parece un error del programa en vez de una regla del
+    /// hardware. Es exactamente lo que pasó con una hoja de fondo transparente y dos colores.
+    /// </remarks>
+    [Fact]
+    public void El_aviso_dice_que_colores_son_y_nombra_el_hueco()
+    {
+        ColorPalette palette = ColorPalette.CreateMsxStandard();
+
+        // Fondo transparente y dos colores dibujados: para el hardware son tres.
+        int[] pixels = Sheet(palette, (_, x, _) => (x % 3) switch { 0 => 4, 1 => 12, _ => 0 });
+
+        TileSetImportResult result = Analyse(pixels, palette);
+
+        Assert.False(result.Ok);
+
+        string why = result.Problems[0].Message;
+
+        Assert.Contains("3 colores", why);
+        Assert.Contains("el transparente", why);
+
+        // Y los dos que sí se ven, cada uno por su color.
+        Assert.Contains($"#{palette.GetColor(4).R:X2}", why);
+        Assert.Contains($"#{palette.GetColor(12).R:X2}", why);
+    }
+
     /// <summary>Y una franja entera vacía no revienta ni deja nada dibujado.</summary>
     /// <remarks>
     /// Sin la salida, elegir el color más usado de una lista vacía se iba fuera del índice.

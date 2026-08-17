@@ -274,7 +274,8 @@ public static class TileSetPngConverter
             {
                 problems.Add(new TileSetImportProblem(
                     $"Los tiles {first}-{last} usan {uses.Count} colores, y en screen 1 cada "
-                    + $"{TileSet.ColorGroupSize} tiles comparten {ColorsPerLine}.",
+                    + $"{TileSet.ColorGroupSize} tiles comparten {ColorsPerLine}. "
+                    + $"Son: {Names(uses, palette)}.",
                     first));
 
                 if (problems.Count > MaxReportedProblems)
@@ -309,6 +310,24 @@ public static class TileSetPngConverter
             }
         }
     }
+
+    /// <summary>
+    /// Cómo se llaman los colores que se estorban, del que más ocupa al que menos.
+    /// </summary>
+    /// <remarks>
+    /// Decir sólo cuántos son deja adivinando. Y sobre todo hay que nombrar el transparente:
+    /// cuenta como color porque en la máquina lo es —el índice 0 deja ver el borde— pero al
+    /// mirar la hoja no se ve, así que uno cuenta dos colores donde el importador ve tres y el
+    /// aviso parece un error del programa. Con el hueco nombrado, se entiende de una.
+    /// </remarks>
+    private static string Names(
+        IReadOnlyList<(int Index, int Times)> uses, ColorPalette palette) =>
+        string.Join(", ", uses
+            .OrderByDescending(use => use.Times)
+            .Select(use => use.Index == 0
+                ? "el transparente"
+                : $"#{palette.GetColor(use.Index).R:X2}{palette.GetColor(use.Index).G:X2}"
+                    + $"{palette.GetColor(use.Index).B:X2}"));
 
     /// <summary>Los 64 índices de paleta de un tile, en el orden de sus líneas.</summary>
     private static int[] ReadIndices(int[] pixels, int stride, int columns, int tile, ColorPalette palette)
