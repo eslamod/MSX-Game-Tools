@@ -1,6 +1,7 @@
 using Avalonia.Headless.XUnit;
 using Avalonia.Media;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Services;
 using Xunit;
 
 namespace MSX_GameTools.Tests;
@@ -52,8 +53,22 @@ public class SpriteGroupTests
         Assert.Equal(6, member.Rows[4].Color);
     }
 
+    /// <summary>
+    /// El tope son ocho planos.
+    /// </summary>
+    /// <remarks>
+    /// Con el número escrito a mano y no con la constante: es lo único que distingue subir el
+    /// tope a propósito de subirlo sin querer. Las demás comprobaciones usan la constante y
+    /// pasarían con cualquier valor.
+    /// </remarks>
+    [Fact]
+    public void El_tope_de_planos_de_un_grupo_es_ocho()
+    {
+        Assert.Equal(8, SpriteGroup.MaxMembers);
+    }
+
     [AvaloniaFact]
-    public void Un_grupo_no_pasa_de_cuatro_miembros_ni_baja_de_uno()
+    public void Un_grupo_no_pasa_de_su_tope_de_miembros_ni_baja_de_uno()
     {
         var bank = new SpriteBank();
         SpriteGroup group = bank.NewGroup(0)!;
@@ -321,5 +336,65 @@ public class SpriteGroupTests
         SpriteGroupRenderer.Render(group, bank, palette, background, preview);
 
         Assert.All(PixelReader.Read(preview), pixel => Assert.Equal(PixelReader.Bgra(background), pixel));
+    }
+
+    // ------------------------------------------------------------------ ocho planos
+
+    /// <summary>Un grupo lleno sobrevive a guardar y volver a abrir.</summary>
+    /// <remarks>
+    /// El fichero valida cuántos sprites trae cada grupo, así que subir el tope sin que la
+    /// validación lo siguiera habría dejado ilegibles justo los grupos nuevos: se guardarían
+    /// bien y reventarían al abrirlos.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Un_grupo_de_ocho_va_y_vuelve_del_fichero()
+    {
+        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bichos");
+        SpriteGroup group = Full(bank);
+
+        LoadedSpriteBank loaded = SpriteBankSerializer.Deserialize(
+            SpriteBankSerializer.Serialize(bank, ColorPalette.CreateMsxStandard(), 1, []));
+
+        Assert.Single(loaded.Bank.Groups);
+        Assert.Equal(SpriteGroup.MaxMembers, loaded.Bank.Groups[0].Members.Count);
+
+        // Y cada plano sigue apuntando a su patrón, que es el orden de prioridad.
+        for (int member = 0; member < SpriteGroup.MaxMembers; member++)
+        {
+            Assert.Equal(
+                group.Members[member].PatternIndex,
+                loaded.Bank.Groups[0].Members[member].PatternIndex);
+        }
+    }
+
+    /// <summary>Y se exporta entero: el byte de la cuenta dice ocho y van los ocho detrás.</summary>
+    /// <remarks>
+    /// El byte de la cuenta es lo único que deja recorrer el fichero, así que si dijera cuatro
+    /// el juego leería cuatro planos y tomaría los otros cuatro por el grupo siguiente.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Un_grupo_de_ocho_se_exporta_entero()
+    {
+        var bank = new SpriteBank(SpriteBank.SpriteType.MSX, "Bichos");
+        Full(bank);
+
+        byte[] bytes = SpriteBankExporter.GroupsToBinary(bank);
+
+        // En MSX1 cada plano son cuatro bytes: desplazamiento Y, X, patrón y color.
+        const int BytesPerMember = 4;
+
+        Assert.Equal(SpriteGroup.MaxMembers, bytes[0]);
+        Assert.Equal(1 + (SpriteGroup.MaxMembers * BytesPerMember), bytes.Length);
+    }
+
+    /// <summary>Un grupo con el tope de planos, cada uno sobre un patrón distinto.</summary>
+    private static SpriteGroup Full(SpriteBank bank)
+    {
+        SpriteGroup group = bank.NewGroup(0)!;
+
+        for (int member = 1; member < SpriteGroup.MaxMembers; member++)
+            group.Add(new SpriteGroupMember(member, bank.SpritesList[member]));
+
+        return group;
     }
 }

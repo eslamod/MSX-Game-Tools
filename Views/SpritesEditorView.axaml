@@ -449,12 +449,17 @@
 
         <TextBox Grid.Row="1" Text="{Binding SelectedGroup.Group.Name}" Margin="0,0,0,8" />
 
+        <!-- Crece con los miembros en vez de tener el alto clavado. El orden es la
+             prioridad, asi que verlos todos a la vez es la mitad de para lo que sirve la
+             lista; con el alto de cuatro, los otros cuatro quedaban debajo de la barra.
+             El minimo mantiene el sitio de siempre para los grupos pequeños, y el maximo
+             da justo para los ocho. -->
         <ListBox Grid.Row="2"
                  x:Name="MemberList"
                  ItemsSource="{Binding SelectedGroup.Group.Members}"
                  SelectedItem="{Binding SelectedGroup.SelectedMember, Mode=TwoWay}"
                  SelectionMode="Single"
-                 Height="84">
+                 MinHeight="84" MaxHeight="168">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="entities:SpriteGroupMember">
               <Grid ColumnDefinitions="*,Auto">

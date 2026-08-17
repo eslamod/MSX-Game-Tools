@@ -17,8 +17,9 @@ namespace MSX_GameTools.Services;
 /// <b>Grupos.</b> Los desplazamientos y los números de patrón son relativos al grupo:
 /// esto no es una tabla de atributos lista para volcar, es la receta con la que el
 /// juego la construye allá donde coloque al personaje. Cada grupo empieza por un byte
-/// con cuántos sprites lo forman, porque un grupo puede tener de uno a cuatro y sin ese
-/// byte el fichero no se puede recorrer.
+/// con cuántos sprites lo forman, porque un grupo puede tener de uno a ocho y sin ese
+/// byte el fichero no se puede recorrer. Un byte llega de sobra para el tope de hoy y
+/// para el que venga.
 /// </para>
 /// <para>
 /// <b>Etiquetas.</b> La salida en ensamblador cierra cada bloque con una etiqueta

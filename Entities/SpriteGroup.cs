@@ -6,7 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace MSX_GameTools.Entities;
 
 /// <summary>
-/// Un personaje multicolor: de uno a cuatro sprites superpuestos con desplazamiento,
+/// Un personaje multicolor: de uno a ocho sprites superpuestos con desplazamiento,
 /// que emula lo que en el hardware serían otros tantos planos de la tabla de atributos.
 /// </summary>
 /// <remarks>
@@ -15,8 +15,25 @@ namespace MSX_GameTools.Entities;
 /// </remarks>
 public partial class SpriteGroup : ObservableObject
 {
-    /// <summary>Un grupo no puede pasar de cuatro planos superpuestos.</summary>
-    public const int MaxMembers = 4;
+    /// <summary>
+    /// Un grupo no puede pasar de ocho planos superpuestos.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Eran cuatro y se quedaban cortos en cuanto el personaje lleva varios colores por
+    /// plano: dos sprites de tres colores cada uno ya son seis.
+    /// </para>
+    /// <para>
+    /// Ocho porque es lo que el VDP saca por línea de barrido en modo 2, así que un plano más
+    /// no se vería nunca. Ojo con no confundir las dos cosas: ese tope es por línea y de toda
+    /// la pantalla, no por personaje. Un grupo de ocho planos amontonados en la misma altura
+    /// se come el cupo entero de esa línea, y en modo 1 —donde el cupo es de cuatro— pasa lo
+    /// mismo con la mitad. Repartidos en vertical no estorban. Eso depende de los
+    /// desplazamientos y de lo que haya alrededor, así que no es algo que el editor pueda
+    /// decidir por nadie.
+    /// </para>
+    /// </remarks>
+    public const int MaxMembers = 8;
 
     [ObservableProperty]
     private string _name;
