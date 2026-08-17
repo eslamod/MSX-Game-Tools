@@ -402,7 +402,35 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
 
     public string BrushLabel => BrushName;
 
-    public string HoverLabel => Hover is { } cell ? $"{cell.Column}, {cell.Row}" : string.Empty;
+    /// <summary>
+    /// Dónde está el ratón y qué hay debajo.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// El número hace falta para poder contrastar cualquier cosa que hable de tiles: el informe
+    /// de desplazamiento dice «el 77 se rompe en la columna 143», y sin esto no hay forma de ir
+    /// allí y comprobar que el 77 es el que está. La otra etiqueta de la barra es la de lo que
+    /// hay cogido para estampar, que con la herramienta de seleccionar no cambia nunca.
+    /// </para>
+    /// <para>
+    /// De lo que se ve y no de la capa activa, que es lo que uno señala con el ratón. Y en un
+    /// mapa de supertiles la celda no es un tile sino un bloque, así que se dice.
+    /// </para>
+    /// </remarks>
+    public string HoverLabel
+    {
+        get
+        {
+            if (Hover is not { } cell)
+                return string.Empty;
+
+            string where = $"{cell.Column}, {cell.Row}";
+
+            return Map.TileAt(cell.Column, cell.Row, onlyVisible: true) is not int tile
+                ? where
+                : $"{where}   {(UsesSuperTiles ? "Bloque" : "Tile")} {tile}";
+        }
+    }
 
     /// <summary>Índice de la capa activa dentro del mapa, o -1 si no hay ninguna.</summary>
     public int ActiveLayerIndex => ActiveLayer is null ? -1 : Map.Layers.IndexOf(ActiveLayer.Layer);
@@ -457,8 +485,14 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
         if (ActiveLayerIndex < 0)
             return;
 
-        if (Map.Stamp(ActiveLayerIndex, column, row, Brush))
-            RefreshRequested?.Invoke();
+        if (!Map.Stamp(ActiveLayerIndex, column, row, Brush))
+            return;
+
+        RefreshRequested?.Invoke();
+
+        // Lo que hay bajo el ratón acaba de cambiar sin que el ratón se haya movido, así que
+        // el número de la barra se quedaría diciendo el tile que había antes de pintarlo.
+        OnPropertyChanged(nameof(HoverLabel));
     }
 
     /// <summary>Empieza un arrastre: todo lo que se pinte hasta soltar es un solo paso.</summary>

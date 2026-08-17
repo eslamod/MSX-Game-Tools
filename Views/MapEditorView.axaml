@@ -142,7 +142,9 @@
       <!-- Lo que se lee mientras se trabaja: dónde está el ratón, el zoom y lo cogido. -->
       <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="4,3"
                   VerticalAlignment="Center">
-        <TextBlock Text="{Binding HoverLabel}" FontFamily="Consolas" MinWidth="60"
+        <!-- Ancho de sobra para «255, 21   Bloque 255»: la tira va pegada a la derecha, y
+             sin un minimo el resto de la barra baila cada vez que cambia el numero. -->
+        <TextBlock Text="{Binding HoverLabel}" FontFamily="Consolas" MinWidth="150"
                    VerticalAlignment="Center" />
         <TextBlock Text="{Binding ZoomLabel}" Margin="10,0" MinWidth="28"
                    VerticalAlignment="Center" />
