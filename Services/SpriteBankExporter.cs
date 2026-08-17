@@ -72,15 +72,35 @@ public static class SpriteBankExporter
     /// </remarks>
     public static int TableLength(SpriteBank bank) => Math.Max(1, bank.LastDrawn() + 1);
 
-    public static byte[] PatternsToBinary(SpriteBank bank)
-    {
-        int count = TableLength(bank);
-        var bytes = new List<byte>(count * PatternBytes);
+    public static byte[] PatternsToBinary(SpriteBank bank) =>
+        PatternsToBinary(bank, 0, TableLength(bank) - 1);
 
-        for (int index = 0; index < count; index++)
+    /// <summary>Sólo un trozo de la tabla, del <paramref name="first"/> al <paramref name="last"/>.</summary>
+    /// <inheritdoc cref="PatternsToAssembler(SpriteBank, int, int)"/>
+    public static byte[] PatternsToBinary(SpriteBank bank, int first, int last)
+    {
+        (first, last) = Clamp(bank, first, last);
+
+        var bytes = new List<byte>((last - first + 1) * PatternBytes);
+
+        for (int index = first; index <= last; index++)
             bytes.AddRange(PatternBytesOf(bank.SpritesList[index]));
 
         return [.. bytes];
+    }
+
+    /// <summary>
+    /// Deja el rango dentro del banco y con los extremos en orden.
+    /// </summary>
+    /// <remarks>
+    /// Ordenados y no rechazados: quien escribe un rango a mano pasa por estados a medias, y
+    /// cortarle la exportación por eso sería antipático. Lo que no se deja es salirse del banco.
+    /// </remarks>
+    private static (int First, int Last) Clamp(SpriteBank bank, int first, int last)
+    {
+        int top = bank.SpritesList.Count - 1;
+
+        return (Math.Clamp(Math.Min(first, last), 0, top), Math.Clamp(Math.Max(first, last), 0, top));
     }
 
     public static byte[] GroupsToBinary(SpriteBank bank)
@@ -98,23 +118,44 @@ public static class SpriteBankExporter
         return [.. bytes];
     }
 
-    public static string PatternsToAssembler(SpriteBank bank)
+    public static string PatternsToAssembler(SpriteBank bank) =>
+        PatternsToAssembler(bank, 0, TableLength(bank) - 1);
+
+    /// <summary>
+    /// Sólo un trozo de la tabla, del <paramref name="first"/> al <paramref name="last"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Para cargar los patrones por partes, que es lo que hace un juego cuando no le caben los
+    /// 64 en VRAM a la vez o cuando cada pantalla trae sus bichos. Se piden por índice del banco
+    /// y no por «los que hagan falta»: los grupos apuntan a números concretos, y renumerar al
+    /// exportar dejaría los grupos mintiendo.
+    /// </para>
+    /// <para>
+    /// Y por eso las etiquetas guardan el índice del banco aunque el fichero empiece por el
+    /// medio: el <c>_pattern_37</c> se llama 37 aquí y en los grupos. Lo que cambia es dónde cae
+    /// dentro del fichero, y eso lo dice la cabecera, que es donde hay que mirarlo una vez.
+    /// </para>
+    /// </remarks>
+    public static string PatternsToAssembler(SpriteBank bank, int first, int last)
     {
         var text = new StringBuilder();
         string label = LabelOf(bank.Name);
 
-        int count = TableLength(bank);
+        (first, last) = Clamp(bank, first, last);
+
+        int count = last - first + 1;
 
         text.AppendLine($"; Sprite pattern table - {bank.Name}");
-        text.AppendLine($"; {count} patterns, {PatternBytes} bytes each");
-        text.AppendLine($"; The bank holds {SpriteBank.MaxSprites} slots; the table stops at the last one drawn,");
-        text.AppendLine("; so pattern N is always at N * 32 bytes, blank slots included.");
+        text.AppendLine($"; {count} patterns, {PatternBytes} bytes each: bank patterns {first} to {last}.");
+        text.AppendLine($"; The bank holds {SpriteBank.MaxSprites} slots. Pattern N of the bank is at");
+        text.AppendLine($"; (N - {first}) * {PatternBytes} bytes from here, blank slots included.");
         text.AppendLine("; 16x16 layout: left half rows 0-15, then right half rows 0-15");
         text.AppendLine($"; Size: {label}_patterns_end - {label}_patterns");
         text.AppendLine();
         text.AppendLine($"{label}_patterns:");
 
-        for (int index = 0; index < count; index++)
+        for (int index = first; index <= last; index++)
         {
             text.AppendLine($"{label}_pattern_{index}:");
             AppendBytes(text, PatternBytesOf(bank.SpritesList[index]));

@@ -572,6 +572,15 @@ Recuerda copiar cada tabla {2} veces en VRAM, una por tercio de pantalla.</value
   <data name="ShiftShowNextTip" xml:space="preserve"><value>Lleva el mapa al siguiente sitio que no se va a ver bien</value></data>
   <data name="ShiftIgnore" xml:space="preserve"><value>Ignorar</value></data>
   <data name="ShiftIgnoreTip" xml:space="preserve"><value>Sácalo del informe. Para el tile de fondo, que toca con todo y entierra a los demás</value></data>
+  <data name="MenuExportPatternRange" xml:space="preserve"><value>Exportar patrones sueltos...</value></data>
+  <data name="ExportPatternsHeader" xml:space="preserve"><value>Patrones: {0}</value></data>
+  <data name="ExportPatternsTitle" xml:space="preserve"><value>Exportar patrones sueltos</value></data>
+  <data name="ExportPatternsHelp" xml:space="preserve"><value>Sólo la tabla de patrones, y sólo el trozo que se diga, para cargarla por partes. Los grupos no salen: apuntan a números de patrón del banco, y el ensamblador dice dónde cae cada uno dentro del fichero.</value></data>
+  <data name="ExportPatternsFrom" xml:space="preserve"><value>Del patrón</value></data>
+  <data name="ExportPatternsTo" xml:space="preserve"><value>Al patrón</value></data>
+  <data name="ExportPatternsSize" xml:space="preserve"><value>{0} patrones, {1} bytes.</value></data>
+  <data name="ExportPatternsDone" xml:space="preserve"><value>Escrito {0}</value></data>
+  <data name="PickExportPatterns" xml:space="preserve"><value>Exportar patrones de sprite</value></data>
   <data name="ShiftWanted" xml:space="preserve"><value>En ({0}, {1}) tiene al {2}, que pide: {3}</value></data>
   <data name="ShiftNoFill" xml:space="preserve"><value>En ({0}, {1}) tiene al {2}, que pide un color que este tile no sabe pintar</value></data>
   <data name="ShiftScope" xml:space="preserve"><value>Lo que se desplaza</value></data>

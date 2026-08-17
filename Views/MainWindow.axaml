@@ -104,6 +104,7 @@
         <Separator />
         <MenuItem Header="{l:Localize MenuExportToBinary}" Command="{Binding ExportSpriteBankBinaryCommand}" />
         <MenuItem Header="{l:Localize MenuExportToAssembler}" Command="{Binding ExportSpriteBankAssemblerCommand}" />
+        <MenuItem Header="{l:Localize MenuExportPatternRange}" Command="{Binding ExportPatternRangeCommand}" />
       </MenuItem>
 
       <MenuItem Header="{l:Localize MenuTiles}">

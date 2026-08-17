@@ -1,0 +1,77 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:l="clr-namespace:MSX_GameTools.Localization"
+             mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="340"
+             x:Class="MSX_GameTools.Views.ExportPatternsView"
+             x:DataType="vm:ExportPatternsViewModel"
+             Background="{DynamicResource AppPanelBackground}">
+
+  <UserControl.Styles>
+    <!-- El marco del dibujo, para que un patron todo negro no se confunda con el fondo. -->
+    <Style Selector="Border.tile">
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="#808080" />
+      <Setter Property="Background" Value="#404040" />
+    </Style>
+  </UserControl.Styles>
+
+  <!-- Los botones anclados abajo y el resto con barra: con la escala de la interfaz al
+       200% el contenido mide el doble y los empujaba fuera del panel. -->
+  <Grid Margin="10" RowDefinitions="Auto,*,Auto">
+
+    <TextBlock Grid.Row="0" Text="{l:Localize ExportPatternsTitle}" FontWeight="Bold" Margin="0,0,0,8" />
+
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel>
+
+        <TextBlock Text="{l:Localize ExportPatternsHelp}" TextWrapping="Wrap"
+                   Foreground="{DynamicResource AppTextSecondary}" Margin="0,0,0,10" />
+
+        <!-- El dibujo al lado del numero: con 64 patrones el numero solo no dice cual es, y
+             aqui es donde se ve que te has pasado de largo, antes de escribir el fichero. -->
+        <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,6">
+          <TextBlock Grid.Column="0" Text="{l:Localize ExportPatternsFrom}"
+                     VerticalAlignment="Center" Margin="0,0,6,0" />
+          <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
+                         Minimum="0" Maximum="{Binding MaxPattern}" Increment="1"
+                         Value="{Binding First}" />
+          <Border Grid.Column="2" Classes="tile" Margin="6,0,0,0">
+            <Image Source="{Binding FirstImage.SpritePreview}" Width="32" Height="32"
+                   Stretch="Fill" RenderOptions.BitmapInterpolationMode="None" />
+          </Border>
+        </Grid>
+
+        <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,10">
+          <TextBlock Grid.Column="0" Text="{l:Localize ExportPatternsTo}"
+                     VerticalAlignment="Center" Margin="0,0,6,0" />
+          <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
+                         Minimum="0" Maximum="{Binding MaxPattern}" Increment="1"
+                         Value="{Binding Last}" />
+          <Border Grid.Column="2" Classes="tile" Margin="6,0,0,0">
+            <Image Source="{Binding LastImage.SpritePreview}" Width="32" Height="32"
+                   Stretch="Fill" RenderOptions.BitmapInterpolationMode="None" />
+          </Border>
+        </Grid>
+
+        <TextBlock Text="{Binding SizeLabel}" TextWrapping="Wrap" Margin="0,0,0,10" />
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button Content="{l:Localize ShiftExportAsm}" Command="{Binding ExportAssemblerCommand}" />
+          <Button Content="{l:Localize ShiftExportBin}" Command="{Binding ExportBinaryCommand}" />
+        </StackPanel>
+
+        <TextBlock Text="{Binding ResultMessage}" TextWrapping="Wrap" FontWeight="Bold"
+                   Margin="0,10,0,0" />
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+      <Button Content="{l:Localize FormClose}" MinWidth="90"
+              Command="{Binding CloseExportPatternsCommand}" />
+    </StackPanel>
+  </Grid>
+</UserControl>

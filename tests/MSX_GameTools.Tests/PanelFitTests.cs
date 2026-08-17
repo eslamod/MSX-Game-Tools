@@ -99,6 +99,7 @@ public class PanelFitTests
     [InlineData("Resize")]
     [InlineData("Replace")]
     [InlineData("Shift")]
+    [InlineData("Patterns")]
     [InlineData("Palette")]
     [InlineData("NewPalette")]
     [InlineData("ImportSheet")]
@@ -161,6 +162,7 @@ public class PanelFitTests
     [InlineData("Resize")]
     [InlineData("Replace")]
     [InlineData("Shift")]
+    [InlineData("Patterns")]
     [InlineData("Palette")]
     [InlineData("NewPalette")]
     [InlineData("ImportSheet")]
@@ -440,6 +442,12 @@ public class PanelFitTests
 
             case "SpriteBank":
                 main.AddSpriteBankCommand.Execute(null);
+                break;
+
+            case "Patterns":
+                main.OpenSpriteBank(new SpriteBank(SpriteBank.SpriteType.MSX2, "Bichos"));
+                main.ExportPatternRangeCommand.Execute(null);
+
                 break;
 
             // El formulario de crear, que pregunta el nombre y de cuál se copia.

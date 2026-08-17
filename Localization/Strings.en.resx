@@ -527,6 +527,15 @@ Remember to copy each table {2} times into VRAM, one per third of the screen.</v
   <data name="ShiftShowNextTip" xml:space="preserve"><value>Takes the map to the next place that will not look right</value></data>
   <data name="ShiftIgnore" xml:space="preserve"><value>Ignore</value></data>
   <data name="ShiftIgnoreTip" xml:space="preserve"><value>Leave it out of the report. For the background tile, which touches everything and buries the rest</value></data>
+  <data name="MenuExportPatternRange" xml:space="preserve"><value>Export some patterns...</value></data>
+  <data name="ExportPatternsHeader" xml:space="preserve"><value>Patterns: {0}</value></data>
+  <data name="ExportPatternsTitle" xml:space="preserve"><value>Export some patterns</value></data>
+  <data name="ExportPatternsHelp" xml:space="preserve"><value>The pattern table only, and only the stretch you name, to load it in parts. Groups are not written: they point at bank pattern numbers, and the assembler file says where each one lands inside it.</value></data>
+  <data name="ExportPatternsFrom" xml:space="preserve"><value>From pattern</value></data>
+  <data name="ExportPatternsTo" xml:space="preserve"><value>To pattern</value></data>
+  <data name="ExportPatternsSize" xml:space="preserve"><value>{0} patterns, {1} bytes.</value></data>
+  <data name="ExportPatternsDone" xml:space="preserve"><value>Wrote {0}</value></data>
+  <data name="PickExportPatterns" xml:space="preserve"><value>Export sprite patterns</value></data>
   <data name="ShiftWanted" xml:space="preserve"><value>At ({0}, {1}) it has tile {2} next to it, which asks for: {3}</value></data>
   <data name="ShiftNoFill" xml:space="preserve"><value>At ({0}, {1}) it has tile {2} next to it, which asks for a colour this tile cannot paint</value></data>
   <data name="ShiftScope" xml:space="preserve"><value>What actually shifts</value></data>

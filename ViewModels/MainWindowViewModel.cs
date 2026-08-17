@@ -24,6 +24,7 @@ public partial class MainWindowViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(SaveDocumentAsCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportSpriteBankBinaryCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportSpriteBankAssemblerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExportPatternRangeCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetBinaryCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetAssemblerCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetPngCommand))]
@@ -1371,6 +1372,20 @@ public partial class MainWindowViewModel : ObservableObject
     /// </summary>
     private static PickerFileKind FormatOf(bool binary) =>
         binary ? PickerFileKind.Binary : PickerFileKind.Assembler;
+
+    /// <summary>
+    /// Abre el formulario para sacar sólo un trozo de la tabla de patrones.
+    /// </summary>
+    /// <remarks>
+    /// Aparte de la exportación de siempre y no en lugar de ella: la de siempre saca el banco
+    /// entero con sus grupos, que es lo normal, y ésta un trozo suelto para cargarlo por partes.
+    /// </remarks>
+    [RelayCommand(CanExecute = nameof(IsSpriteBankSelected))]
+    private void ExportPatternRange()
+    {
+        if (SelectedTab is SpritesEditorViewModel editor)
+            OpenForm(() => new ExportPatternsViewModel(this, editor));
+    }
 
     [RelayCommand(CanExecute = nameof(IsSpriteBankSelected))]
     private Task ExportSpriteBankBinaryAsync() => ExportSpriteBankAsync(binary: true);
