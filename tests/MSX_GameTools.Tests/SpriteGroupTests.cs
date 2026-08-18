@@ -19,7 +19,8 @@ public class SpriteGroupTests
     /// </remarks>
     private const int Size = SpriteGroupRenderer.NominalSize;
 
-    private const int Origin = SpriteRow.Columns;
+    /// <summary>Sin planos sacados del grupo, el desplazamiento cero cae en la esquina.</summary>
+    private const int Origin = 0;
 
     /// <summary>
     /// El lienzo de un grupo sale de lo que el grupo ocupa, con un sprite de margen.
@@ -35,13 +36,18 @@ public class SpriteGroupTests
         var bank = new SpriteBank();
         SpriteGroup group = bank.NewGroup(0)!;
 
-        // Uno solo sin desplazar: el sprite y un sprite de margen a cada lado.
-        Assert.Equal((48, 48, 16, 16), SpriteGroupRenderer.CanvasOf(group));
+        // Uno solo sin desplazar: justo el sprite, sin margen que no enseña nada.
+        Assert.Equal((16, 16, 0, 0), SpriteGroupRenderer.CanvasOf(group));
 
-        // Y con otro un sprite más abajo, el lienzo crece a lo alto y no a lo ancho.
+        // Con otro un sprite más abajo, el lienzo crece a lo alto y no a lo ancho.
         group.Add(new SpriteGroupMember(1, bank.SpritesList[1]) { OffsetY = 16 });
 
-        Assert.Equal((48, 64, 16, 16), SpriteGroupRenderer.CanvasOf(group));
+        Assert.Equal((16, 32, 0, 0), SpriteGroupRenderer.CanvasOf(group));
+
+        // Y sacando uno hacia arriba y a la izquierda, el origen se corre con él.
+        group.Add(new SpriteGroupMember(2, bank.SpritesList[2]) { OffsetX = -3, OffsetY = -5 });
+
+        Assert.Equal((19, 37, 3, 5), SpriteGroupRenderer.CanvasOf(group));
     }
 
     [AvaloniaFact]

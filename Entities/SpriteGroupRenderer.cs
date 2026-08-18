@@ -24,12 +24,6 @@ namespace MSX_GameTools.Entities;
 public static class SpriteGroupRenderer
 {
     /// <summary>
-    /// Margen alrededor de lo que ocupa el grupo, para poder sacar un plano un poco sin
-    /// que la miniatura cambie de tamaño en cuanto se toca una flecha.
-    /// </summary>
-    private const int Margin = SpriteRow.Columns;
-
-    /// <summary>
     /// Lo que mide el lienzo de un grupo de un solo sprite sin desplazar.
     /// </summary>
     /// <remarks>
@@ -37,7 +31,7 @@ public static class SpriteGroupRenderer
     /// defecto. Cada grupo se pinta en el suyo, que puede ser mayor; esto es sólo el punto de
     /// partida de los pasos de zoom.
     /// </remarks>
-    public const int NominalSize = SpriteRow.Columns + (2 * Margin);
+    public const int NominalSize = SpriteRow.Columns;
 
     /// <summary>Marca de celda vacía en el buffer de índices de color.</summary>
     private const int Empty = -1;
@@ -53,10 +47,14 @@ public static class SpriteGroupRenderer
     /// quedarían casi vacías.
     /// </para>
     /// <para>
-    /// Redondeado a sprites enteros y con un sprite de margen. Lo que se quiere evitar es que
-    /// la miniatura cambie de tamaño y reordene el panel cada vez que se toca una flecha: con
-    /// esto sólo cambia al cruzar un borde de sprite, que es cuando la figura de verdad ocupa
-    /// otra cosa.
+    /// Justo la caja que ocupa, sin margen. Un margen se lleva sitio en la tira de miniaturas
+    /// para no enseñar nada: cuando un plano se saca del grupo el lienzo ya crece con él, así
+    /// que no hace falta dejarle hueco por si acaso.
+    /// </para>
+    /// <para>
+    /// La caja incluye siempre el sprite sin desplazar aunque no haya ningún plano ahí. Es lo
+    /// que hace que un grupo con todo corrido a la derecha se vea corrido: sin eso, un plano
+    /// solo desplazado diez pixeles saldría igual que uno sin desplazar.
     /// </para>
     /// </remarks>
     public static (int Width, int Height, int OriginX, int OriginY) CanvasOf(SpriteGroup group)
@@ -74,15 +72,8 @@ public static class SpriteGroupRenderer
             bottom = Math.Max(bottom, member.OffsetY + Sprite.Rows);
         }
 
-        int originX = Round(Margin - left);
-        int originY = Round(Margin - top);
-
-        return (Round(originX + right + Margin), Round(originY + bottom + Margin), originX, originY);
+        return (right - left, bottom - top, -left, -top);
     }
-
-    /// <summary>Al alza, a sprites enteros.</summary>
-    private static int Round(int value) =>
-        (value + SpriteRow.Columns - 1) / SpriteRow.Columns * SpriteRow.Columns;
 
     public static ImageMini CreatePreview(SpriteGroup group)
     {

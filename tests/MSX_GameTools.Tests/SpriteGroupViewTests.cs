@@ -112,19 +112,26 @@ public class SpriteGroupViewTests
         editor.ViewModel.AddGroupCommand.Execute(null);
 
         SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
-        int before = PixelReader.At(group.Preview, SpriteRow.Columns, SpriteRow.Columns);
+        int before = PixelReader.At(group.Preview, 0, 0);
 
         group.NudgeOffsetCommand.Execute("right");
 
-        int after = PixelReader.At(group.Preview, SpriteRow.Columns, SpriteRow.Columns);
-        int moved = PixelReader.At(group.Preview, SpriteRow.Columns + 1, SpriteRow.Columns);
+        int after = PixelReader.At(group.Preview, 0, 0);
+        int moved = PixelReader.At(group.Preview, 1, 0);
 
         Assert.NotEqual(before, after);
         Assert.Equal(before, moved);
     }
 
+    /// <summary>
+    /// Un grupo recién creado ocupa justo un sprite.
+    /// </summary>
+    /// <remarks>
+    /// El lienzo sale de lo que ocupa el grupo, así que el caso corriente -un plano sin
+    /// desplazar- es el sprite pelado. Antes eran 46x46 fijos y la miniatura iba casi vacía.
+    /// </remarks>
     [AvaloniaFact]
-    public void La_miniatura_del_grupo_es_de_46x46()
+    public void La_miniatura_de_un_grupo_recien_creado_es_un_sprite()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
         editor.SetThumbnailMode(ThumbnailMode.Groups);
@@ -202,13 +209,13 @@ public class SpriteGroupViewTests
         editor.ViewModel.AddGroupCommand.Execute(null);
 
         SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
-        int before = PixelReader.At(group.Preview, SpriteRow.Columns, SpriteRow.Columns);
+        int before = PixelReader.At(group.Preview, 0, 0);
 
         // Un trazo de verdad sobre el lienzo, con su pulsar y soltar.
         editor.Press(0, 0);
         editor.Release(0, 0);
 
-        int after = PixelReader.At(group.Preview, SpriteRow.Columns, SpriteRow.Columns);
+        int after = PixelReader.At(group.Preview, 0, 0);
 
         Assert.True(editor.Bank.SpritesList[0].ArraySpriteRows[0].ArrayColumns[0]);
         Assert.NotEqual(before, after);

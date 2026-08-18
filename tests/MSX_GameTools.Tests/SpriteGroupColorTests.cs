@@ -14,7 +14,7 @@ namespace MSX_GameTools.Tests;
 /// </summary>
 public class SpriteGroupColorTests
 {
-    private const int Origin = SpriteRow.Columns;
+    private const int Origin = 0;
 
     [AvaloniaFact]
     public void Las_casillas_siguen_al_miembro_seleccionado()

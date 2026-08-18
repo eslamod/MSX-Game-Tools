@@ -800,17 +800,20 @@
         </ListBox.ItemsPanel>
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:SpriteGroupViewModel">
-            <StackPanel>
+            <!-- Pegado arriba: los grupos ya no miden todos lo mismo, y el WrapPanel le da a
+                 cada ficha el alto de la fila entera. Sin esto el nombre de los grupos bajos
+                 se iba al fondo de la fila y quedaba a distinta altura en cada uno. -->
+            <StackPanel VerticalAlignment="Top">
               <!-- Tres capas: el color de fondo del banco, la referencia encima y la
                    composicion arriba del todo. La composicion se dibuja con el hueco
                    transparente cuando hay referencia, asi que basta con superponerlas,
                    y la referencia va centrada y a escala de pixel de sprite, no
                    estirada al hueco.
 
-                   El color de fondo hace falta porque el lienzo del grupo es mayor que el
-                   sprite -lleva un sprite de margen a cada lado- y una celda de 16 solo
-                   cubre el centro: sin esta capa por los bordes se veria el gris del
-                   panel de detras, que no es un color del banco ni significa nada.
+                   El color de fondo hace falta porque el lienzo del grupo puede ser mayor que
+                   el sprite -crece con los planos que se saquen- y la referencia solo cubre
+                   su parte: sin esta capa por los bordes se veria el gris del panel de
+                   detras, que no es un color del banco ni significa nada.
 
                    La miniatura mide lo que mide su grupo y no un cuadrado fijo: una figura
                    de dos sprites de alto en un cuadrado saldria aplastada. -->
