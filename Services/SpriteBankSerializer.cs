@@ -30,7 +30,7 @@ public static class SpriteBankSerializer
     /// seguidos desde el 0, así que su posición en el fichero <b>era</b> su índice, y
     /// leyéndolos por posición caen exactamente donde estaban. Ni un número se mueve.
     /// </remarks>
-    public const int FormatVersion = 2;
+    public const int FormatVersion = 3;
 
     private const int PatternDigits = 4; // 16 columnas, cuatro dígitos hexadecimales
 
@@ -97,6 +97,7 @@ public static class SpriteBankSerializer
         bank.Name,
         bank.Type.ToString(),
         backgroundColorIndex,
+        bank.Capacity,
         PaletteSerializer.ToFile(palette),
         [.. Drawn(bank)],
         [.. bank.Groups.Select(ToFile)],
@@ -152,14 +153,26 @@ public static class SpriteBankSerializer
     {
         SpriteBank.SpriteType type = ParseType(file.Type);
 
-        int patternCount = file.Patterns?.Count ?? 0;
-        if (patternCount > SpriteBank.MaxSprites)
+        // Sin capacidad en el fichero es de 64: es lo que habia antes de la version 3 y lo
+        // unico que cabe en la tabla de patrones de la VRAM.
+        int capacity = file.Capacity ?? SpriteBank.MaxSprites;
+
+        if (!SpriteBank.Capacities.Contains(capacity))
         {
             throw new FileFormatException(
-                $"Un banco tiene {SpriteBank.MaxSprites} patrones, y el fichero trae {patternCount}.");
+                $"El fichero dice que el banco tiene {capacity} patrones, y los tamanos que hay "
+                + $"son {string.Join(", ", SpriteBank.Capacities)}.");
         }
 
-        var bank = new SpriteBank(type, string.IsNullOrWhiteSpace(file.Name) ? "Banco sin nombre" : file.Name);
+        int patternCount = file.Patterns?.Count ?? 0;
+        if (patternCount > capacity)
+        {
+            throw new FileFormatException(
+                $"Un banco de este tamano tiene {capacity} patrones, y el fichero trae {patternCount}.");
+        }
+
+        var bank = new SpriteBank(
+            type, string.IsNullOrWhiteSpace(file.Name) ? "Banco sin nombre" : file.Name, capacity);
 
         // El banco ya viene con sus 64 huecos hechos: aqui solo se rellenan los que traiga
         // el fichero, cada uno en el suyo.
@@ -172,10 +185,10 @@ public static class SpriteBankSerializer
             // exactamente donde estaban: ni un solo numero se mueve al abrir un banco viejo.
             int index = pattern.Index ?? position;
 
-            if ((uint)index >= (uint)SpriteBank.MaxSprites)
+            if ((uint)index >= (uint)capacity)
             {
                 throw new FileFormatException(
-                    $"El fichero trae el patrón {index}, y un banco sólo tiene {SpriteBank.MaxSprites}.");
+                    $"El fichero trae el patrón {index}, y este banco sólo tiene {capacity}.");
             }
 
             ReadPattern(pattern, bank.SpritesList[index], index);
@@ -319,11 +332,16 @@ public static class SpriteBankSerializer
             columns[column] = (bits & (1 << (SpriteRow.Columns - 1 - column))) != 0;
     }
 
+    /// <param name="Capacity">
+    /// Cuántos patrones tiene el banco. Los ficheros anteriores a la versión 3 no lo traen y
+    /// son de 64, que era lo único que había.
+    /// </param>
     private sealed record BankFile(
         int Version,
         string? Name,
         string? Type,
         int BackgroundColor,
+        int? Capacity,
         PaletteSerializer.PaletteFile? Palette,
         IReadOnlyList<PatternFile>? Patterns,
         IReadOnlyList<GroupFile>? Groups,

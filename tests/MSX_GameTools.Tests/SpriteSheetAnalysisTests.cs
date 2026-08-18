@@ -243,7 +243,7 @@ public class SpriteSheetAnalysisTests
     /// tiene 64 huecos. Con tres planos, veintiuna celdas lo llenan.
     /// </remarks>
     [Fact]
-    public void Se_sabe_si_entra_en_los_sesenta_y_cuatro_huecos()
+    public void Se_sabe_en_que_banco_entra()
     {
         Color[][] cells = [.. Enumerable.Range(0, 40).Select(_ => new[] { White, Black, Red })];
 
@@ -251,15 +251,28 @@ public class SpriteSheetAnalysisTests
 
         SheetAnalysis analysis = Analyse(sheet, new SheetSelection(0, 0, 40, 1), maxPlanes: 2);
 
+        // Ochenta patrones ya no caben en un banco de 64, pero sí en uno de 128: el tamaño
+        // del banco sale de lo que se ha elegido, así que no hay nada que preguntar.
         Assert.True(analysis.Ok, string.Join(" / ", analysis.Problems));
         Assert.Equal(80, analysis.Patterns);
-        Assert.False(analysis.Fits);
+        Assert.Equal(128, analysis.BankSize);
+        Assert.True(analysis.Fits);
 
-        // Y la mitad de esas celdas sí entra.
+        // Y la mitad de esas celdas cabe en el de siempre.
         SheetAnalysis half = Analyse(sheet, new SheetSelection(0, 0, 20, 1), maxPlanes: 2);
 
         Assert.Equal(40, half.Patterns);
+        Assert.Equal(64, half.BankSize);
         Assert.True(half.Fits);
+
+        // Lo que no entra en el mayor de todos sí se rechaza.
+        Color[][] many = [.. Enumerable.Range(0, 140).Select(_ => new[] { White, Black, Red })];
+
+        SheetAnalysis huge = Analyse(
+            Sheet(140, 1, many), new SheetSelection(0, 0, 140, 1), maxPlanes: 2);
+
+        Assert.Equal(280, huge.Patterns);
+        Assert.False(huge.Fits);
         Assert.True(half.Patterns <= SpriteBank.MaxSprites);
     }
 

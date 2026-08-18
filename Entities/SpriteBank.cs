@@ -30,6 +30,27 @@ public class SpriteBank
     public const int MaxSprites = 64;
 
     /// <summary>
+    /// Tamaños que puede tener un banco.
+    /// </summary>
+    /// <remarks>
+    /// Los 64 son de la tabla de patrones de la VRAM, no del banco. Un juego que no mete
+    /// todos los patrones en VRAM -los tiene en ROM y va redefiniendo los que necesita cada
+    /// animación- puede tener muchos más: 256 patrones son 8 KB, que en una MegaROM no es
+    /// nada. Por eso se puede pasar de 64, avisando de lo que significa.
+    /// </remarks>
+    public static IReadOnlyList<int> Capacities { get; } = [64, 128, 256];
+
+    /// <summary>
+    /// Cuántos patrones tiene este banco.
+    /// </summary>
+    /// <remarks>
+    /// Los que pasan de 64 no caben en la tabla de patrones de la VRAM, así que sólo sirven
+    /// para bancos que se quedan en ROM y se van volcando por partes. El editor no lo
+    /// impide: lo avisa al crearlo y lo deja en manos de quien hace el juego.
+    /// </remarks>
+    public int Capacity { get; }
+
+    /// <summary>
     /// Grupos que caben en el catálogo. No es un límite del hardware: los grupos son
     /// definiciones reutilizables, y cuántos planos hay en pantalla a la vez lo decide
     /// el juego, no el editor.
@@ -41,12 +62,13 @@ public class SpriteBank
 
     // En la versión WPF el constructor con SpriteType no inicializaba la lista,
     // así que cualquier uso distinto del constructor por defecto reventaba.
-    public SpriteBank(SpriteType spriteType = SpriteType.MSX, string name = "")
+    public SpriteBank(SpriteType spriteType = SpriteType.MSX, string name = "", int capacity = MaxSprites)
     {
         _spriteType = spriteType;
         Name = name;
+        Capacity = Capacities.Contains(capacity) ? capacity : MaxSprites;
 
-        for (int index = 0; index < MaxSprites; index++)
+        for (int index = 0; index < Capacity; index++)
         {
             Sprite sprite = _spriteType == SpriteType.MSX ? new SpriteMSX() : new SpriteMSX2();
 

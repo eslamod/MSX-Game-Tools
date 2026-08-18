@@ -176,7 +176,7 @@ public class ImportSpriteSheetTests
 
     /// <summary>Con un rectángulo que no cabe, el informe lo dice y no se deja aceptar.</summary>
     [AvaloniaFact]
-    public void Lo_que_no_cabe_no_se_deja_aceptar()
+    public void Lo_que_pasa_de_sesenta_y_cuatro_se_trae_en_un_banco_mayor()
     {
         // Cada celda con un dibujo distinto para que no se reaprovechen patrones.
         Color[][] cells = [.. Enumerable.Range(0, 40).Select(i => (Color[])
@@ -191,9 +191,10 @@ public class ImportSpriteSheetTests
         form.MaxPlanes = 2;
         form.Select(0, 0, 40, 1);
 
-        Assert.False(form.CanAccept);
-        Assert.False(form.AcceptCommand.CanExecute(null));
-        Assert.True(form.Analysis.Patterns > SpriteBank.MaxSprites);
+        // Ochenta patrones caben en un banco de 128, así que esto sí se acepta: el tamaño
+        // del banco sale de lo que se ha elegido.
+        Assert.True(form.CanAccept);
+        Assert.Equal(128, form.Analysis.BankSize);
     }
 
     // ------------------------------------------------------------------ aceptar
@@ -305,7 +306,7 @@ public class ImportSpriteSheetTests
 
     /// <summary>Y el tope de los 64 huecos sigue mandando igual.</summary>
     [AvaloniaFact]
-    public void En_modo_patrones_tambien_hay_sesenta_y_cuatro_huecos()
+    public void En_modo_patrones_el_banco_crece_igual()
     {
         Color[][] cells = [.. Enumerable.Range(0, 70).Select(_ => new[] { White })];
 
@@ -315,7 +316,8 @@ public class ImportSpriteSheetTests
         form.Select(0, 0, 70, 1);
 
         Assert.Equal(70, form.Analysis.Patterns);
-        Assert.False(form.CanAccept);
+        Assert.Equal(128, form.Analysis.BankSize);
+        Assert.True(form.CanAccept);
     }
 
     /// <summary>Y cancelar no deja nada abierto.</summary>

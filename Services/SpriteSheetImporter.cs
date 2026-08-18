@@ -57,12 +57,12 @@ public static class SpriteSheetImporter
         {
             return new SheetImport(null, null, analysis,
             [
-                $"Harían falta {analysis.Patterns} patrones y un banco tiene "
-                + $"{SpriteBank.MaxSprites}. Elige menos celdas.",
+                $"Harían falta {analysis.Patterns} patrones y el banco más grande tiene "
+                + $"{SpriteBank.Capacities[^1]}. Elige menos celdas.",
             ]);
         }
 
-        var bank = new SpriteBank(type, name);
+        var bank = new SpriteBank(type, name, analysis.BankSize);
         ColorPalette palette = PaletteOf(name, analysis);
 
         var problems = new List<string>();
@@ -158,12 +158,12 @@ public static class SpriteSheetImporter
         {
             return new SheetImport(null, null, analysis,
             [
-                $"Harían falta {analysis.Patterns} patrones y un banco tiene "
-                + $"{SpriteBank.MaxSprites}. Elige menos celdas.",
+                $"Harían falta {analysis.Patterns} patrones y el banco más grande tiene "
+                + $"{SpriteBank.Capacities[^1]}. Elige menos celdas.",
             ]);
         }
 
-        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, name);
+        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, name, analysis.BankSize);
         int next = 0;
 
         for (int row = 0; row < selection.Rows; row++)
@@ -266,7 +266,7 @@ public static class SpriteSheetImporter
                 continue;
             }
 
-            if (next >= SpriteBank.MaxSprites)
+            if (next >= bank.SpritesList.Count)
                 return false;
 
             Write(bank.SpritesList[next], plane, cellSize);

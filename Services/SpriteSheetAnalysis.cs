@@ -34,8 +34,20 @@ public sealed record SheetAnalysis(
 {
     public bool Ok => Problems.Count == 0;
 
-    /// <summary>Si lo que pide entra en los huecos que tiene un banco.</summary>
-    public bool Fits => Patterns <= SpriteBank.MaxSprites;
+    /// <summary>
+    /// El banco más pequeño en el que cabe lo que se ha pedido.
+    /// </summary>
+    /// <remarks>
+    /// Traer una hoja crea el banco, así que el tamaño no hay que preguntarlo: sale de lo que
+    /// se ha elegido. Pasar de 64 no es gratis -eso ya no cabe en la tabla de patrones de la
+    /// VRAM y hay que ir volcándolo por partes-, así que se coge el más pequeño que valga y se
+    /// dice cuál es antes de importar.
+    /// </remarks>
+    public int BankSize =>
+        SpriteBank.Capacities.FirstOrDefault(size => Patterns <= size, SpriteBank.Capacities[^1]);
+
+    /// <summary>Si lo que pide entra en el banco más grande que hay.</summary>
+    public bool Fits => Patterns <= SpriteBank.Capacities[^1];
 }
 
 /// <summary>

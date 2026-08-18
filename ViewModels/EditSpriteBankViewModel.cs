@@ -15,6 +15,20 @@ public partial class EditSpriteBankViewModel : PanelBaseViewModel
     [ObservableProperty]
     private SpriteBank.SpriteType _type = SpriteBank.SpriteType.MSX;
 
+    /// <summary>
+    /// Cuántos patrones va a tener el banco.
+    /// </summary>
+    /// <remarks>
+    /// Los 64 son de la tabla de patrones de la VRAM, no del banco. Un juego que tenga los
+    /// patrones en ROM y vaya redefiniendo los que necesita cada animación puede tener
+    /// muchos más, y 256 son 8 KB, que en una MegaROM no es nada. Por eso se puede pasar de
+    /// 64, con el aviso al lado y no en un diálogo aparte: es una decisión de cómo está
+    /// hecho el juego, no un error que haya que confirmar.
+    /// </remarks>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsOverVram))]
+    private int _capacity = SpriteBank.MaxSprites;
+
     // En WPF esto era un MessageBox.Show desde el ViewModel. Ahora el error se
     // enlaza a la propia vista: sin diálogo modal y sin acoplar VM y UI.
     [ObservableProperty]
@@ -37,6 +51,11 @@ public partial class EditSpriteBankViewModel : PanelBaseViewModel
 
     public IReadOnlyList<SpriteBank.SpriteType> SpriteTypes { get; } = Enum.GetValues<SpriteBank.SpriteType>();
 
+    public IReadOnlyList<int> Capacities => SpriteBank.Capacities;
+
+    /// <summary>Si el tamaño elegido ya no cabe en la tabla de patrones de la VRAM.</summary>
+    public bool IsOverVram => Capacity > SpriteBank.MaxSprites;
+
     /// <inheritdoc cref="EditTileSetViewModel.Palettes"/>
     public IReadOnlyList<ColorPalette> Palettes => _mainWindowVm.Palettes.Palettes;
 
@@ -54,7 +73,7 @@ public partial class EditSpriteBankViewModel : PanelBaseViewModel
         ErrorMessage = null;
 
         // Recien creado y vacio: no hay nada que perder todavia, asi que sale sin marcar.
-        _mainWindowVm.OpenSpriteBank(new SpriteBank(Type, Name), Palette).MarkClean();
+        _mainWindowVm.OpenSpriteBank(new SpriteBank(Type, Name, Capacity), Palette).MarkClean();
         _mainWindowVm.RightPanViewModel = null;
     }
 

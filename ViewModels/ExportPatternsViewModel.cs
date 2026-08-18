@@ -55,7 +55,7 @@ public partial class ExportPatternsViewModel : PanelBaseViewModel
 
     private static Localizer Text => Localizer.Instance;
 
-    public int MaxPattern => SpriteBank.MaxSprites - 1;
+    public int MaxPattern => _editor.SpritesBank.Capacity - 1;
 
     /// <summary>Cuántos salen y cuánto ocupan, que es lo que se va a mirar para el hueco.</summary>
     public string SizeLabel

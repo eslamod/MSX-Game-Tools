@@ -148,7 +148,7 @@ public static class SpriteBankExporter
 
         text.AppendLine($"; Sprite pattern table - {bank.Name}");
         text.AppendLine($"; {count} patterns, {PatternBytes} bytes each: bank patterns {first} to {last}.");
-        text.AppendLine($"; The bank holds {SpriteBank.MaxSprites} slots. Pattern N of the bank is at");
+        text.AppendLine($"; The bank holds {bank.Capacity} slots. Pattern N of the bank is at");
         text.AppendLine($"; (N - {first}) * {PatternBytes} bytes from here, blank slots included.");
         text.AppendLine("; 16x16 layout: left half rows 0-15, then right half rows 0-15");
         text.AppendLine($"; Size: {label}_patterns_end - {label}_patterns");

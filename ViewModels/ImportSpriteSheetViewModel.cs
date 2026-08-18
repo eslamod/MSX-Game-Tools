@@ -225,14 +225,14 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
                     "ImportSheetPatternsCost",
                     analysis.Cells.Count(cell => cell.Planes > 0),
                     analysis.Patterns,
-                    SpriteBank.MaxSprites)
+                    analysis.BankSize)
                 : Localizer.Instance.Format(
                     "ImportSheetCost",
                     analysis.Colors.Count,
                     analysis.Planes,
                     analysis.Cells.Count(cell => cell.Planes > 0),
                     analysis.Patterns,
-                    SpriteBank.MaxSprites);
+                    analysis.BankSize);
 
             return analysis.Fits
                 ? cost

@@ -207,21 +207,21 @@ public class SpriteSheetImporterTests
 
     /// <summary>Si no entra en los 64 huecos, se dice antes de escribir nada.</summary>
     [AvaloniaFact]
-    public void Lo_que_no_cabe_no_se_trae_a_medias()
+    public void Lo_que_no_cabe_ni_en_el_banco_mayor_no_se_trae_a_medias()
     {
         // Cada celda con un dibujo distinto para que no se reaprovechen patrones.
-        string[][] cells = [.. Enumerable.Range(0, 40).Select(i =>
+        string[][] cells = [.. Enumerable.Range(0, 140).Select(i =>
             new[] { new string('W', (i % 7) + 1) + new string('K', (i % 5) + 1) + "R" })];
 
-        SheetImport import = Import(Sheet(cells), new SheetSelection(0, 0, 40, 1), maxPlanes: 2);
+        SheetImport import = Import(Sheet(cells), new SheetSelection(0, 0, 140, 1), maxPlanes: 2);
 
         Assert.False(import.Ok);
         Assert.Null(import.Bank);
-        Assert.Contains(import.Problems, problem => problem.Contains("64"));
+        Assert.Contains(import.Problems, problem => problem.Contains("256"));
 
         // Y el informe sigue estando, que es lo que dice cuánto sobra.
         Assert.True(import.Analysis.Ok);
-        Assert.True(import.Analysis.Patterns > SpriteBank.MaxSprites);
+        Assert.True(import.Analysis.Patterns > SpriteBank.Capacities[^1]);
     }
 
     // ------------------------------------------------------------------ la paleta

@@ -557,4 +557,6 @@ Remember to copy each table {2} times into VRAM, one per third of the screen.</v
   <data name="ImportSheetDownTip" xml:space="preserve"><value>And how many tall. With two, head and body land in the same group</value></data>
   <data name="ImportSheetSkipEmpty" xml:space="preserve"><value>Skip the empty cells</value></data>
   <data name="ImportSheetSkipEmptyTip" xml:space="preserve"><value>A blank cell costs 32 bytes and a bank slot to draw nothing. This skips them, but pattern number N stops being cell number N</value></data>
+  <data name="NewSpriteBankSize" xml:space="preserve"><value>Size</value></data>
+  <data name="NewSpriteBankOverVram" xml:space="preserve"><value>More than 64 does not fit in the VRAM pattern table. It is for banks that stay in ROM and get redefined as the animation needs.</value></data>
 </root>
