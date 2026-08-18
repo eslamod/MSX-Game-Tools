@@ -800,10 +800,20 @@
         </ListBox.ItemsPanel>
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:SpriteGroupViewModel">
-            <!-- Pegado arriba: los grupos ya no miden todos lo mismo, y el WrapPanel le da a
-                 cada ficha el alto de la fila entera. Sin esto el nombre de los grupos bajos
-                 se iba al fondo de la fila y quedaba a distinta altura en cada uno. -->
-            <StackPanel VerticalAlignment="Top">
+            <!-- La ficha ocupa la fila entera y el nombre va abajo del todo, no pegado a la
+                 miniatura: los grupos ya no miden todos lo mismo, y el WrapPanel le da a cada
+                 ficha el alto del mas alto de su fila. Con el nombre detras de la imagen, el
+                 de los grupos bajos quedaba a media altura y distinto en cada uno.
+
+                 Y el hueco que sobra se pinta del color de fondo del banco. Antes se veia por
+                 ahi el gris de la lista, que no es un color del banco ni significa nada; ahora
+                 lo unico gris es la tira del nombre, igual en todas las fichas. -->
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Bottom" Text="{Binding Group.Name}" FontSize="10"
+                         HorizontalAlignment="Center" Margin="0,2,0,0" />
+
+              <Border Background="{Binding $parent[views:SpritesEditorView].((vm:SpritesEditorViewModel)DataContext).BackgroundColor.Brush}">
+              <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center">
               <!-- Tres capas: el color de fondo del banco, la referencia encima y la
                    composicion arriba del todo. La composicion se dibuja con el hueco
                    transparente cuando hay referencia, asi que basta con superponerlas,
@@ -855,9 +865,9 @@
                        Stretch="Fill"
                        RenderOptions.BitmapInterpolationMode="None" />
               </Panel>
-              <TextBlock Text="{Binding Group.Name}" FontSize="10"
-                         HorizontalAlignment="Center" Margin="0,2,0,0" />
-            </StackPanel>
+              </StackPanel>
+              </Border>
+            </DockPanel>
           </DataTemplate>
         </ListBox.ItemTemplate>
       </ListBox>

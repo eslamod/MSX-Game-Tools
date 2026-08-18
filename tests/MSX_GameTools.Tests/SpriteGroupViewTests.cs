@@ -289,4 +289,56 @@ public class SpriteGroupViewTests
         Assert.NotNull(editor.ViewModel.SelectedGroup);
         Assert.Same(editor.ViewModel.SelectedGroup, editor.GroupList.SelectedItem);
     }
+
+    /// <summary>
+    /// El nombre de cada grupo cae a la misma altura, midan lo que midan las miniaturas.
+    /// </summary>
+    /// <remarks>
+    /// El lienzo de cada grupo sale de lo que ocupa, así que en una fila conviven fichas de
+    /// alturas distintas y el WrapPanel le da a todas el alto de la más alta. Con el nombre
+    /// pegado detrás de la imagen, el de los grupos bajos quedaba a media ficha y a distinta
+    /// altura en cada uno; va abajo del todo para que se lean en línea.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Los_nombres_de_los_grupos_van_todos_a_la_misma_altura()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+        editor.SetThumbnailMode(ThumbnailMode.Groups);
+
+        // Uno corriente y otro con un plano sacado hacia abajo, que mide bastante más.
+        editor.ViewModel.AddGroupCommand.Execute(null);
+        editor.ViewModel.AddGroupCommand.Execute(null);
+
+        SpriteGroupViewModel tall = editor.ViewModel.Groups[1];
+        tall.Group.Members[0].OffsetY = 20;
+
+        Pump();
+
+        List<TextBlock> names =
+        [
+            .. editor.GroupList.GetVisualDescendants()
+                .OfType<TextBlock>()
+                .Where(text => editor.ViewModel.Groups.Any(group => group.Group.Name == text.Text)),
+        ];
+
+        Assert.Equal(2, names.Count);
+
+        // Las dos fichas miden lo mismo -las estira el WrapPanel-, así que basta con que el
+        // nombre acabe a la misma distancia del fondo de su ficha.
+        double[] bottoms =
+        [
+            .. names.Select(name =>
+            {
+                Control card = name.GetVisualAncestors().OfType<DockPanel>().First();
+
+                return card.Bounds.Height
+                    - (name.TranslatePoint(new Point(0, name.Bounds.Height), card)?.Y ?? -1);
+            }),
+        ];
+
+        // Pegados al fondo de su ficha, y no sólo a la misma altura: las fichas de una fila
+        // ya miden todas lo mismo, así que «a la misma altura» se cumple pongas el nombre
+        // donde lo pongas, también arriba del todo.
+        Assert.All(bottoms, bottom => Assert.True(bottom < 1, $"el nombre acaba a {bottom} del fondo."));
+    }
 }
