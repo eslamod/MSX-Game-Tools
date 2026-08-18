@@ -61,6 +61,31 @@ internal static class SpriteSheetPixels
         return true;
     }
 
+    /// <summary>
+    /// El dibujo de una celda, para reconocer dos que salen iguales.
+    /// </summary>
+    /// <remarks>
+    /// Sólo los bits, que es todo lo que hay en este modo: el color no sale de la hoja. Una
+    /// animación cambia dos líneas y repite el resto, así que reconocerlas decide si la
+    /// tabla entra en el banco o no.
+    /// </remarks>
+    public static string CellKey(
+        int[] pixels, PixelSize size, int cellSize, Color? transparent, int column, int row)
+    {
+        int left = column * cellSize;
+        int top = row * cellSize;
+
+        var key = new System.Text.StringBuilder(cellSize * cellSize);
+
+        for (int y = 0; y < cellSize; y++)
+        {
+            for (int x = 0; x < cellSize; x++)
+                key.Append(IsClear(pixels[((top + y) * size.Width) + left + x], transparent) ? '0' : '1');
+        }
+
+        return key.ToString();
+    }
+
     public static Color FromBgra(int bgra) => Color.FromRgb(
         (byte)((bgra >> 16) & 0xFF), (byte)((bgra >> 8) & 0xFF), (byte)(bgra & 0xFF));
 

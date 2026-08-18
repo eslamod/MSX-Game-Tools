@@ -232,6 +232,11 @@ public static class SpriteSheetAnalysis
     /// Sin saltarse las celdas vacías y sin reaprovechar las repetidas, al revés que el modo de
     /// color, porque lo que se quiere de una tabla es que el patrón número N sea la celda
     /// número N de lo que se eligió. Saltarse una rompería esa cuenta sin decir nada.
+    /// <para>
+    /// Con <paramref name="pack"/> se hace lo del otro modo: fuera las vacías y un solo patrón
+    /// para las que salen iguales. Hay que mirar los pixeles para contarlo, porque si no el
+    /// número que se enseña antes de importar no sería el que se va a escribir.
+    /// </para>
     /// </remarks>
     public static SheetAnalysis AnalysePatterns(
         int[] pixels,
@@ -239,26 +244,41 @@ public static class SpriteSheetAnalysis
         int cellSize,
         Color? transparent,
         SheetSelection selection,
-        bool skipEmpty = false)
+        bool pack = false)
     {
         if (Fence(size, cellSize, selection) is { } stopped)
             return stopped;
 
-        List<SheetCellPlan> cells =
-        [
-            .. from row in Enumerable.Range(0, selection.Rows)
-               from column in Enumerable.Range(0, selection.Columns)
-               select new SheetCellPlan(
-                   selection.Left + column,
-                   selection.Top + row,
-                   skipEmpty && SpriteSheetPixels.IsBlankCell(
-                       pixels, size, cellSize, transparent,
-                       selection.Left + column, selection.Top + row)
-                       ? 0
-                       : 1),
-        ];
+        var cells = new List<SheetCellPlan>();
+        var seen = new HashSet<string>();
+        int patterns = 0;
 
-        return new SheetAnalysis([], [], cells, 1, cells.Sum(cell => cell.Planes), []);
+        for (int row = 0; row < selection.Rows; row++)
+        {
+            for (int column = 0; column < selection.Columns; column++)
+            {
+                int left = selection.Left + column;
+                int top = selection.Top + row;
+
+                bool blank = pack && SpriteSheetPixels.IsBlankCell(
+                    pixels, size, cellSize, transparent, left, top);
+
+                cells.Add(new SheetCellPlan(left, top, blank ? 0 : 1));
+
+                if (blank)
+                    continue;
+
+                // Aprovechando el banco, dos celdas con el mismo dibujo comparten patrón. Las
+                // celdas siguen contándose todas: lo que baja es lo que se va a escribir.
+                if (!pack || seen.Add(SpriteSheetPixels.CellKey(
+                        pixels, size, cellSize, transparent, left, top)))
+                {
+                    patterns++;
+                }
+            }
+        }
+
+        return new SheetAnalysis([], [], cells, 1, patterns, []);
     }
 
     /// <summary>

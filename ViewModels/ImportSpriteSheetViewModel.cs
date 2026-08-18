@@ -95,39 +95,38 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Report))]
     [NotifyPropertyChangedFor(nameof(IsCombined))]
-    [NotifyPropertyChangedFor(nameof(SkipsEmpty))]
+    [NotifyPropertyChangedFor(nameof(Packs))]
     [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
     private bool _onlyPatterns;
 
     /// <summary>
-    /// Si las celdas vacías se saltan en vez de gastar un patrón en blanco.
+    /// Si se aprovecha el banco: fuera las celdas vacías y un solo patrón para las repetidas.
     /// </summary>
     /// <remarks>
-    /// Apagado por defecto, y no por comodidad: con las vacías dentro, el patrón número N es
-    /// la celda número N de lo que se eligió, y un juego que direccione el patrón por la
-    /// posición de la celda cuenta con eso. Encendido se ahorran treinta y dos bytes y un
-    /// hueco del banco por cada celda en blanco, que en una hoja con separación entre figuras
-    /// es media tabla.
+    /// Apagado por defecto, y no por comodidad: sin tocarlo, el patrón número N es la celda
+    /// número N de lo que se eligió, y un juego que direccione el patrón por la posición de la
+    /// celda cuenta con eso. Encendido se hace lo que ya hace el modo de color, y en una hoja
+    /// de animación eso es media tabla.
     /// </remarks>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Report))]
-    [NotifyPropertyChangedFor(nameof(SkipsEmpty))]
+    [NotifyPropertyChangedFor(nameof(Packs))]
     [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
-    private bool _skipEmpty;
+    private bool _pack;
 
     /// <summary>
-    /// Si las celdas vacías se van a saltar, se haya pedido o no.
+    /// Si el banco se va a aprovechar, se haya pedido o no.
     /// </summary>
     /// <remarks>
-    /// En el modo de color siempre, y no porque se elija: una celda sin nada que pintar no
-    /// tiene ningún plano que colocar. Por eso la casilla se enseña marcada y apagada en vez
-    /// de esconderse, que es lo que hacía y dejaba buscándola. Escondida no se aprende que la
-    /// opción existe ni que ahí ya está puesta.
+    /// En el modo de color siempre, y no porque se elija: una celda sin nada que pintar no tiene
+    /// ningún plano que colocar, y los patrones repetidos se reconocen antes de darles hueco.
+    /// Por eso la casilla se enseña marcada y apagada en vez de esconderse: escondida no se
+    /// aprende que la opción existe ni que ahí ya está puesta.
     /// </remarks>
-    public bool SkipsEmpty
+    public bool Packs
     {
-        get => !OnlyPatterns || SkipEmpty;
-        set => SkipEmpty = value;
+        get => !OnlyPatterns || Pack;
+        set => Pack = value;
     }
 
     [ObservableProperty]
@@ -214,7 +213,7 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
     /// <summary>El análisis de lo que hay elegido ahora mismo.</summary>
     public SheetAnalysis Analysis => OnlyPatterns
         ? SpriteSheetAnalysis.AnalysePatterns(
-            _pixels, Size, CellSize, Transparent?.Color, Selection, SkipEmpty)
+            _pixels, Size, CellSize, Transparent?.Color, Selection, Pack)
         : SpriteSheetAnalysis.Analyse(
             _pixels, Size, CellSize, Transparent?.Color, Selection, MaxPlanes, SpriteType,
             Across, Down);
@@ -280,7 +279,7 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
     {
         SheetImport import = OnlyPatterns
             ? SpriteSheetImporter.ImportPatterns(
-                _pixels, Size, CellSize, Transparent?.Color, Selection, _name, SkipEmpty)
+                _pixels, Size, CellSize, Transparent?.Color, Selection, _name, Pack, SpriteType)
             : SpriteSheetImporter.Import(
                 _pixels, Size, CellSize, Transparent?.Color, Selection, MaxPlanes, _name, SpriteType,
                 Across, Down);

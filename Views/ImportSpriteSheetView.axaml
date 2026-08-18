@@ -68,9 +68,9 @@
            saltan de todas formas, porque una celda sin nada que pintar no tiene ningun plano
            que colocar. Escondiendola no se aprende que la opcion existe ni que ahi ya esta
            puesta, y se acaba buscandola. -->
-      <CheckBox Content="{l:Localize ImportSheetSkipEmpty}" IsChecked="{Binding SkipsEmpty}"
+      <CheckBox Content="{l:Localize ImportSheetPack}" IsChecked="{Binding Packs}"
                 IsEnabled="{Binding OnlyPatterns}" Margin="0,0,0,8"
-                ToolTip.Tip="{l:Localize ImportSheetSkipEmptyTip}" />
+                ToolTip.Tip="{l:Localize ImportSheetPackTip}" />
 
       <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" Margin="0,0,0,8">
 
@@ -97,12 +97,14 @@
 
         <!-- Cambia la aritmetica entera y no solo una etiqueta: en MSX2 el bit CC mezcla los
              colores de los sprites solapados y dos planos pueden dar tres colores; en MSX1 no
-             existe ese bit y hacen falta tantos sprites como colores. -->
+             existe ese bit y hacen falta tantos sprites como colores.
+
+             Se pregunta tambien en el modo de patrones, aunque alli no se traiga color: un
+             banco MSX1 lleva un color por sprite y uno MSX2 uno por linea, asi que el editor
+             no ensena lo mismo ni el exportador escribe lo mismo. -->
         <TextBlock Grid.Row="2" Grid.Column="0" Text="{l:Localize ImportSheetType}"
-                   VerticalAlignment="Center" Margin="0,0,8,4"
-                   IsVisible="{Binding IsCombined}" />
+                   VerticalAlignment="Center" Margin="0,0,8,4" />
         <ComboBox Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" Margin="0,0,0,4"
-                  IsVisible="{Binding IsCombined}"
                   ItemsSource="{Binding TypeChoices}" SelectedItem="{Binding SpriteType}" />
 
         <TextBlock Grid.Row="3" Grid.Column="0" Text="{l:Localize ImportSheetPlanes}"

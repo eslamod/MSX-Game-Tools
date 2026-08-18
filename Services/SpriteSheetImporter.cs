@@ -133,10 +133,15 @@ public static class SpriteSheetImporter
     /// cuenta sin decir nada.
     /// </para>
     /// <para>
-    /// Con <paramref name="skipEmpty"/> se hace lo contrario, y también tiene su razón: una
-    /// celda vacía son treinta y dos bytes de patrón y un hueco del banco para no pintar nada,
-    /// y en una hoja con separación entre figuras eso es la mitad de la tabla. Lo que se pierde
-    /// es poder direccionar el patrón por el número de celda, así que lo elige quien importa.
+    /// Con <paramref name="pack"/> se hace lo del otro modo: fuera las celdas vacías y un solo
+    /// patrón para las que salen iguales. Una celda en blanco son treinta y dos bytes y un hueco
+    /// del banco para no pintar nada, y una animación repite casi todo el dibujo entre fotograma
+    /// y fotograma; en una hoja de verdad eso es media tabla.
+    /// </para>
+    /// <para>
+    /// Las dos cosas van juntas en un solo interruptor porque rompen el mismo contrato -el
+    /// patrón N deja de ser la celda N- y en cuanto se rompe una, la otra ya no cuesta nada:
+    /// conservar los repetidos con los índices corridos sólo gasta banco sin dar nada a cambio.
     /// </para>
     /// </remarks>
     public static SheetImport ImportPatterns(
@@ -146,10 +151,11 @@ public static class SpriteSheetImporter
         Color? transparent,
         SheetSelection selection,
         string name,
-        bool skipEmpty = false)
+        bool pack = false,
+        SpriteBank.SpriteType type = SpriteBank.SpriteType.MSX2)
     {
         SheetAnalysis analysis = SpriteSheetAnalysis.AnalysePatterns(
-            pixels, size, cellSize, transparent, selection, skipEmpty);
+            pixels, size, cellSize, transparent, selection, pack);
 
         if (!analysis.Ok)
             return new SheetImport(null, null, analysis, analysis.Problems);
@@ -163,25 +169,34 @@ public static class SpriteSheetImporter
             ]);
         }
 
-        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, name, analysis.BankSize);
+        var bank = new SpriteBank(type, name, analysis.BankSize);
+        var placed = new HashSet<string>();
         int next = 0;
 
         for (int row = 0; row < selection.Rows; row++)
         {
             for (int column = 0; column < selection.Columns; column++)
             {
-                if (skipEmpty && SpriteSheetPixels.IsBlankCell(
-                        pixels, size, cellSize, transparent,
-                        selection.Left + column, selection.Top + row))
+                int left = selection.Left + column;
+                int top = selection.Top + row;
+
+                if (pack)
                 {
-                    continue;
+                    if (SpriteSheetPixels.IsBlankCell(pixels, size, cellSize, transparent, left, top))
+                        continue;
+
+                    if (!placed.Add(SpriteSheetPixels.CellKey(
+                            pixels, size, cellSize, transparent, left, top)))
+                    {
+                        continue;
+                    }
                 }
 
                 Trace(
                     bank.SpritesList[next++],
                     pixels, size, cellSize, transparent,
-                    (selection.Left + column) * cellSize,
-                    (selection.Top + row) * cellSize);
+                    left * cellSize,
+                    top * cellSize);
             }
         }
 
@@ -194,6 +209,11 @@ public static class SpriteSheetImporter
     /// <remarks>
     /// El color de las líneas se queda como estaba. No es dejarse nada: en este modo el color
     /// no sale de la hoja, y ponerlo a algo sería inventarse una decisión que es del juego.
+    /// <para>
+    /// De qué máquina es el banco sí se pregunta, aunque no se traiga color. Un banco MSX1 lleva
+    /// un color por sprite y uno MSX2 uno por línea, así que el editor no enseña lo mismo ni el
+    /// exportador escribe lo mismo: forzarlo a MSX2 dejaba sin poder traer una hoja a MSX1.
+    /// </para>
     /// </remarks>
     private static void Trace(
         Sprite sprite, int[] pixels, PixelSize size, int cellSize, Color? transparent, int left, int top)

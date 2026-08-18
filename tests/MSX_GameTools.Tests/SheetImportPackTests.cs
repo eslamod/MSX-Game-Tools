@@ -9,7 +9,7 @@ using Xunit;
 namespace MSX_GameTools.Tests;
 
 /// <summary>
-/// Saltarse las celdas vacías al traer sólo la tabla de patrones.
+/// Aprovechar el banco al traer sólo la tabla de patrones.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -23,12 +23,18 @@ namespace MSX_GameTools.Tests;
 /// plano que colocar, así que ya se salta sola.
 /// </para>
 /// </remarks>
-public class SheetImportSkipEmptyTests
+public class SheetImportPackTests
 {
     private const int Fondo = unchecked((int)0xFF000000);
     private const int Rojo = unchecked((int)0xFFFF0000);
 
-    /// <summary>Una hoja de cuatro celdas donde la segunda y la cuarta están en blanco.</summary>
+    /// <summary>
+    /// Una hoja de cuatro celdas: la segunda y la cuarta en blanco, y las otras dos distintas.
+    /// </summary>
+    /// <remarks>
+    /// Distintas a propósito. Con el mismo dibujo, aprovechar el banco las juntaría en un solo
+    /// patrón y estas pruebas no sabrían si están midiendo eso o lo de las vacías.
+    /// </remarks>
     private static int[] Sheet()
     {
         int[] pixels = new int[32 * 8];
@@ -36,8 +42,8 @@ public class SheetImportSkipEmptyTests
         for (int i = 0; i < pixels.Length; i++)
             pixels[i] = Fondo;
 
-        pixels[0] = Rojo;
-        pixels[16] = Rojo;
+        pixels[0] = Rojo;   // celda 0, esquina
+        pixels[17] = Rojo;  // celda 2, un pixel a la derecha
 
         return pixels;
     }
@@ -45,7 +51,7 @@ public class SheetImportSkipEmptyTests
     private static SheetSelection Four => new(0, 0, 4, 1);
 
     [Fact]
-    public void Sin_decir_nada_las_vacias_gastan_su_patron()
+    public void Sin_decir_nada_cada_celda_gasta_su_patron()
     {
         SheetImport import = SpriteSheetImporter.ImportPatterns(
             Sheet(), new PixelSize(32, 8), 8, Color.FromUInt32(0xFF000000), Four, "Bichos");
@@ -66,11 +72,11 @@ public class SheetImportSkipEmptyTests
     /// no es lo de siempre.
     /// </remarks>
     [Fact]
-    public void Saltandoselas_solo_gastan_patron_las_que_dibujan()
+    public void Aprovechando_solo_gastan_patron_las_que_hacen_falta()
     {
         SheetImport import = SpriteSheetImporter.ImportPatterns(
             Sheet(), new PixelSize(32, 8), 8, Color.FromUInt32(0xFF000000), Four, "Bichos",
-            skipEmpty: true);
+            pack: true);
 
         Assert.True(import.Ok);
         Assert.Equal(2, import.Analysis.Patterns);
@@ -94,7 +100,7 @@ public class SheetImportSkipEmptyTests
             Sheet(), new PixelSize(32, 8), 8, Color.FromUInt32(0xFF000000), Four);
 
         SheetAnalysis some = SpriteSheetAnalysis.AnalysePatterns(
-            Sheet(), new PixelSize(32, 8), 8, Color.FromUInt32(0xFF000000), Four, skipEmpty: true);
+            Sheet(), new PixelSize(32, 8), 8, Color.FromUInt32(0xFF000000), Four, pack: true);
 
         Assert.Equal(4, all.Patterns);
         Assert.Equal(2, some.Patterns);
@@ -125,15 +131,72 @@ public class SheetImportSkipEmptyTests
 
         // Trayendo el color, marcada y sin poder tocarla: alli se saltan siempre.
         Assert.False(form.OnlyPatterns);
-        Assert.True(form.SkipsEmpty);
+        Assert.True(form.Packs);
 
         form.OnlyPatterns = true;
 
         // Y en el de patrones manda lo que se elija, que arranca apagado.
-        Assert.False(form.SkipsEmpty);
+        Assert.False(form.Packs);
 
-        form.SkipsEmpty = true;
+        form.Packs = true;
 
-        Assert.True(form.SkipEmpty);
+        Assert.True(form.Pack);
+    }
+
+    /// <summary>
+    /// Dos celdas con el mismo dibujo comparten patrón.
+    /// </summary>
+    /// <remarks>
+    /// Es la mitad del ahorro y la que no se ve venir: una animación cambia dos líneas entre
+    /// fotograma y fotograma y repite el resto, así que en una hoja de verdad hay muchas celdas
+    /// que salen idénticas.
+    /// </remarks>
+    [Fact]
+    public void Dos_celdas_iguales_comparten_patron()
+    {
+        // Cuatro celdas: la primera y la tercera con el mismo pixel, la segunda vacia y la
+        // cuarta con otro dibujo.
+        int[] pixels = new int[32 * 8];
+
+        for (int i = 0; i < pixels.Length; i++)
+            pixels[i] = Fondo;
+
+        pixels[0] = Rojo;
+        pixels[16] = Rojo;
+        pixels[25] = Rojo;
+
+        SheetImport import = SpriteSheetImporter.ImportPatterns(
+            pixels, new PixelSize(32, 8), 8, Color.FromUInt32(0xFF000000), Four, "Bichos",
+            pack: true);
+
+        // Tres celdas con dibujo, pero dos de ellas son la misma: dos patrones.
+        Assert.Equal(2, import.Analysis.Patterns);
+        Assert.True(Drawn(import.Bank!, 0));
+        Assert.True(Drawn(import.Bank!, 1));
+        Assert.False(Drawn(import.Bank!, 2));
+    }
+
+    /// <summary>
+    /// La máquina se elige también trayendo sólo la tabla de patrones.
+    /// </summary>
+    /// <remarks>
+    /// Allí no se trae color, pero el banco que sale sí es de una máquina o de otra: MSX1 lleva
+    /// un color por sprite y MSX2 uno por línea, así que el editor no enseña lo mismo ni el
+    /// exportador escribe lo mismo. Forzarlo a MSX2 dejaba sin poder traer una hoja a MSX1.
+    /// </remarks>
+    [Fact]
+    public void La_maquina_se_elige_tambien_en_el_modo_de_patrones()
+    {
+        SheetImport msx1 = SpriteSheetImporter.ImportPatterns(
+            Sheet(), new PixelSize(32, 8), 8, Color.FromUInt32(0xFF000000), Four, "Bichos",
+            pack: false, type: SpriteBank.SpriteType.MSX);
+
+        Assert.Equal(SpriteBank.SpriteType.MSX, msx1.Bank!.Type);
+
+        // Y sin decir nada sigue saliendo MSX2, que es lo que habia.
+        SheetImport porDefecto = SpriteSheetImporter.ImportPatterns(
+            Sheet(), new PixelSize(32, 8), 8, Color.FromUInt32(0xFF000000), Four, "Bichos");
+
+        Assert.Equal(SpriteBank.SpriteType.MSX2, porDefecto.Bank!.Type);
     }
 }
