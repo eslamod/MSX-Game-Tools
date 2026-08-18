@@ -95,6 +95,7 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Report))]
     [NotifyPropertyChangedFor(nameof(IsCombined))]
+    [NotifyPropertyChangedFor(nameof(SkipsEmpty))]
     [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
     private bool _onlyPatterns;
 
@@ -110,8 +111,24 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
     /// </remarks>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Report))]
+    [NotifyPropertyChangedFor(nameof(SkipsEmpty))]
     [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
     private bool _skipEmpty;
+
+    /// <summary>
+    /// Si las celdas vacías se van a saltar, se haya pedido o no.
+    /// </summary>
+    /// <remarks>
+    /// En el modo de color siempre, y no porque se elija: una celda sin nada que pintar no
+    /// tiene ningún plano que colocar. Por eso la casilla se enseña marcada y apagada en vez
+    /// de esconderse, que es lo que hacía y dejaba buscándola. Escondida no se aprende que la
+    /// opción existe ni que ahí ya está puesta.
+    /// </remarks>
+    public bool SkipsEmpty
+    {
+        get => !OnlyPatterns || SkipEmpty;
+        set => SkipEmpty = value;
+    }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Report))]

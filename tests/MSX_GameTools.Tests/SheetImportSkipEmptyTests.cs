@@ -1,7 +1,9 @@
 using Avalonia;
+using Avalonia.Headless.XUnit;
 using Avalonia.Media;
 using MSX_GameTools.Entities;
 using MSX_GameTools.Services;
+using MSX_GameTools.ViewModels;
 using Xunit;
 
 namespace MSX_GameTools.Tests;
@@ -104,4 +106,34 @@ public class SheetImportSkipEmptyTests
 
     private static bool Drawn(SpriteBank bank, int pattern) =>
         bank.SpritesList[pattern].ArraySpriteRows.Any(row => row.ArrayColumns.Any(on => on));
+
+    /// <summary>
+    /// La casilla se ve siempre, y en el modo de color sale marcada y apagada.
+    /// </summary>
+    /// <remarks>
+    /// Escondiéndola no se aprende que la opción existe ni que en el modo de color ya está
+    /// puesta: allí las vacías se saltan de todas formas, porque una celda sin nada que pintar
+    /// no tiene ningún plano que colocar. Nace de ir a buscarla y no encontrarla.
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_casilla_dice_lo_que_va_a_pasar_en_los_dos_modos()
+    {
+        var main = new MainWindowViewModel();
+        var form = new ImportSpriteSheetViewModel(
+            main, "hoja.png", new int[8 * 8], new PixelSize(8, 8), new Avalonia.Media.Imaging.WriteableBitmap(
+                new PixelSize(8, 8), new Vector(96, 96)));
+
+        // Trayendo el color, marcada y sin poder tocarla: alli se saltan siempre.
+        Assert.False(form.OnlyPatterns);
+        Assert.True(form.SkipsEmpty);
+
+        form.OnlyPatterns = true;
+
+        // Y en el de patrones manda lo que se elija, que arranca apagado.
+        Assert.False(form.SkipsEmpty);
+
+        form.SkipsEmpty = true;
+
+        Assert.True(form.SkipEmpty);
+    }
 }

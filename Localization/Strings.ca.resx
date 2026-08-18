@@ -557,7 +557,7 @@ Recorda copiar cada taula {2} vegades a la VRAM, una per terç de pantalla.</val
   <data name="ImportSheetAcrossTip" xml:space="preserve"><value>Sprites d'ample que fa una figura del full</value></data>
   <data name="ImportSheetDownTip" xml:space="preserve"><value>I d'alt. Amb dos, el cap i el cos entren al mateix grup</value></data>
   <data name="ImportSheetSkipEmpty" xml:space="preserve"><value>Saltar-se les cel·les buides</value></data>
-  <data name="ImportSheetSkipEmptyTip" xml:space="preserve"><value>Una cel·la en blanc gasta 32 bytes i un lloc del banc per no pintar res. Això se les salta, però el patró número N deixa de ser la cel·la número N</value></data>
+  <data name="ImportSheetSkipEmptyTip" xml:space="preserve"><value>Una cel·la en blanc gasta 32 bytes i un lloc del banc per no pintar res. Això se les salta, però el patró número N deixa de ser la cel·la número N. Portant el color se salten sempre, perquè una cel·la sense res a pintar no té cap pla a col·locar.</value></data>
   <data name="NewSpriteBankSize" xml:space="preserve"><value>Mida</value></data>
   <data name="NewSpriteBankOverVram" xml:space="preserve"><value>Més de 64 no cap a la taula de patrons de la VRAM. Serveix per a bancs que es queden a la ROM i es van redefinint segons l'animació.</value></data>
 </root>
