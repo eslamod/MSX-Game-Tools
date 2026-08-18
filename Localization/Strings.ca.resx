@@ -560,4 +560,5 @@ Recorda copiar cada taula {2} vegades a la VRAM, una per terç de pantalla.</val
   <data name="ImportSheetPackTip" xml:space="preserve"><value>Deixa fora les cel·les buides i dóna un sol patró a les que surten iguals, que és el que ja fa portant el color. S'estalvia banc, però el patró número N deixa de ser la cel·la número N.</value></data>
   <data name="NewSpriteBankSize" xml:space="preserve"><value>Mida</value></data>
   <data name="NewSpriteBankOverVram" xml:space="preserve"><value>Més de 64 no cap a la taula de patrons de la VRAM. Serveix per a bancs que es queden a la ROM i es van redefinint segons l'animació.</value></data>
+  <data name="ImportSheetAlpha" xml:space="preserve"><value>Transparent del full</value></data>
 </root>

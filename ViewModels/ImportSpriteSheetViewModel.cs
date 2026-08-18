@@ -9,12 +9,25 @@ using MSX_GameTools.Services;
 
 namespace MSX_GameTools.ViewModels;
 
-/// <summary>Un color de la hoja, para poder elegir cuál hace de transparente.</summary>
+/// <summary>
+/// Un color de la hoja, para poder elegir cuál hace de transparente.
+/// </summary>
+/// <remarks>
+/// El alfa de la hoja es uno más de la lista, con su cuenta de pixeles. Antes no salía —sólo se
+/// contaban los colores opacos— y con una hoja con alfa de verdad no había manera de elegirlo:
+/// se cogía el color opaco más usado, que en un dibujo grande es parte del dibujo, y esos
+/// sprites entraban en blanco.
+/// </remarks>
 public sealed record SheetColor(Color Color, int Times)
 {
     public IBrush Brush { get; } = new SolidColorBrush(Color);
 
-    public string Hex => $"#{Color.R:X2}{Color.G:X2}{Color.B:X2}";
+    /// <summary>Si es el alfa de la hoja y no un color suyo.</summary>
+    public bool IsAlpha => Color.A == 0;
+
+    public string Hex => IsAlpha
+        ? Localizer.Instance["ImportSheetAlpha"]
+        : $"#{Color.R:X2}{Color.G:X2}{Color.B:X2}";
 }
 
 /// <summary>
@@ -308,26 +321,44 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
         Select(Selection.Left, Selection.Top, Selection.Columns, Selection.Rows);
     }
 
-    /// <summary>Los colores de la hoja con cuántas veces sale cada uno, del más usado al menos.</summary>
+    /// <summary>
+    /// Los colores de la hoja con cuántas veces sale cada uno, del más usado al menos.
+    /// </summary>
+    /// <remarks>
+    /// El alfa va el primero cuando lo hay, y no por cuántas veces salga: una hoja con alfa lo
+    /// trae como fondo, y ése es el que se quiere. Poniéndolo por cuenta, en una hoja con poco
+    /// hueco alrededor de las figuras acabaría el tercero y elegido saldría un color del dibujo.
+    /// </remarks>
     private static IEnumerable<SheetColor> Counted(int[] pixels)
     {
         var times = new Dictionary<uint, int>();
+        int clear = 0;
 
         foreach (int pixel in pixels)
         {
             if ((uint)pixel >> 24 == 0)
+            {
+                clear++;
+
                 continue;
+            }
 
             uint rgb = (uint)pixel & 0x00FFFFFF;
 
             times[rgb] = times.GetValueOrDefault(rgb) + 1;
         }
 
-        return times
+        if (clear > 0)
+            yield return new SheetColor(Colors.Transparent, clear);
+
+        IEnumerable<SheetColor> opaque = times
             .OrderByDescending(pair => pair.Value)
             .Select(pair => new SheetColor(
                 Color.FromRgb(
                     (byte)((pair.Key >> 16) & 0xFF), (byte)((pair.Key >> 8) & 0xFF), (byte)(pair.Key & 0xFF)),
                 pair.Value));
+
+        foreach (SheetColor color in opaque)
+            yield return color;
     }
 }

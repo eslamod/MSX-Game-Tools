@@ -604,4 +604,5 @@ Recuerda copiar cada tabla {2} veces en VRAM, una por tercio de pantalla.</value
   <data name="ImportSheetPackTip" xml:space="preserve"><value>Deja fuera las celdas vacías y da un solo patrón a las que salen iguales, que es lo que ya hace trayendo el color. Se ahorra banco, pero el patrón número N deja de ser la celda número N.</value></data>
   <data name="NewSpriteBankSize" xml:space="preserve"><value>Tamaño</value></data>
   <data name="NewSpriteBankOverVram" xml:space="preserve"><value>Más de 64 no cabe en la tabla de patrones de la VRAM. Sirve para bancos que se quedan en ROM y se van redefiniendo según la animación.</value></data>
+  <data name="ImportSheetAlpha" xml:space="preserve"><value>Transparente de la hoja</value></data>
 </root>
