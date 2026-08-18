@@ -341,4 +341,39 @@ public class SpriteGroupViewTests
         // donde lo pongas, también arriba del todo.
         Assert.All(bottoms, bottom => Assert.True(bottom < 1, $"el nombre acaba a {bottom} del fondo."));
     }
+
+    /// <summary>
+    /// La miniatura va centrada en su ficha.
+    /// </summary>
+    /// <remarks>
+    /// Con el zoom bajo, el nombre del grupo es más ancho que el dibujo y es él quien decide
+    /// lo que mide la ficha. Sin centrar, el dibujo se quedaba pegado a un lado y la tira se
+    /// leía en zigzag.
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_miniatura_va_centrada_en_su_ficha()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+        editor.SetThumbnailMode(ThumbnailMode.Groups);
+        editor.ViewModel.AddGroupCommand.Execute(null);
+
+        // Con un nombre largo, que es cuando se nota: un grupo corriente mide mas que su
+        // nombre y entonces la ficha es justo la miniatura y no hay nada que centrar.
+        editor.ViewModel.Groups[0].Group.Name = "Enemigo volador de tres planos";
+        Pump();
+
+        Image thumbnail = editor.GroupList.GetVisualDescendants()
+            .OfType<Image>()
+            .First(image => image.Bounds.Width > 0);
+
+        Control card = thumbnail.GetVisualAncestors().OfType<DockPanel>().First();
+
+        // Un grupo recién creado mide un sprite, y el nombre ocupa más: si no fuera así el
+        // centrado no se notaría y la prueba pasaría sin comprobar nada.
+        Assert.True(card.Bounds.Width > thumbnail.Bounds.Width, "el nombre no ensancha la ficha.");
+
+        double left = thumbnail.TranslatePoint(new Point(0, 0), card)!.Value.X;
+
+        Assert.Equal((card.Bounds.Width - thumbnail.Bounds.Width) / 2, left, 1);
+    }
 }
