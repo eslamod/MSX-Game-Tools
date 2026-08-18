@@ -49,6 +49,20 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
     private int _maxPlanes = 3;
 
     /// <summary>
+    /// De qué máquina va a ser el banco que salga.
+    /// </summary>
+    /// <remarks>
+    /// Cambia la aritmética entera, no sólo una etiqueta. En MSX2 el bit CC mezcla con un OR
+    /// los colores de los sprites solapados y dos planos pueden enseñar tres colores; en MSX1
+    /// no existe ese bit, un sprite es de un color y hacen falta tantos como colores tenga la
+    /// celda. El informe de abajo cuenta una cosa u otra según lo que haya puesto aquí.
+    /// </remarks>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Report))]
+    [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
+    private SpriteBank.SpriteType _spriteType = SpriteBank.SpriteType.MSX2;
+
+    /// <summary>
     /// Si se trae el color o sólo el dibujo.
     /// </summary>
     /// <remarks>
@@ -121,6 +135,10 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
     /// <summary>Los topes de planos que se pueden pedir.</summary>
     public IReadOnlyList<int> PlaneChoices { get; } = [1, 2, 3, 4];
 
+    /// <summary>De qué máquina va a ser el banco que salga.</summary>
+    public IReadOnlyList<SpriteBank.SpriteType> TypeChoices { get; } =
+        [SpriteBank.SpriteType.MSX, SpriteBank.SpriteType.MSX2];
+
     public int Columns => Size.Width / Math.Max(1, CellSize);
 
     public int Rows => Size.Height / Math.Max(1, CellSize);
@@ -131,7 +149,8 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
     /// <summary>El análisis de lo que hay elegido ahora mismo.</summary>
     public SheetAnalysis Analysis => OnlyPatterns
         ? SpriteSheetAnalysis.AnalysePatterns(Size, CellSize, Selection)
-        : SpriteSheetAnalysis.Analyse(_pixels, Size, CellSize, Transparent?.Color, Selection, MaxPlanes);
+        : SpriteSheetAnalysis.Analyse(
+            _pixels, Size, CellSize, Transparent?.Color, Selection, MaxPlanes, SpriteType);
 
     /// <summary>
     /// Lo que se lee debajo: o lo que va a costar, o por qué no se puede.
@@ -196,7 +215,7 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
             ? SpriteSheetImporter.ImportPatterns(
                 _pixels, Size, CellSize, Transparent?.Color, Selection, _name)
             : SpriteSheetImporter.Import(
-                _pixels, Size, CellSize, Transparent?.Color, Selection, MaxPlanes, _name);
+                _pixels, Size, CellSize, Transparent?.Color, Selection, MaxPlanes, _name, SpriteType);
 
         if (!import.Ok)
             return;

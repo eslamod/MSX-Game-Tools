@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Media;
+using MSX_GameTools.Entities;
 
 namespace MSX_GameTools.Services;
 
@@ -52,7 +53,8 @@ public static class SpriteSheetDecomposer
         IReadOnlyList<Color> colors,
         IReadOnlyList<int> masks,
         int column,
-        int row)
+        int row,
+        SpriteBank.SpriteType type = SpriteBank.SpriteType.MSX2)
     {
         int left = column * cellSize;
         int top = row * cellSize;
@@ -78,6 +80,18 @@ public static class SpriteSheetDecomposer
 
         var planes = new List<SheetPlane>();
 
+        // En MSX1 un plano es un color entero, no un bit: los sprites que se solapan no mezclan
+        // nada, así que cada color se pinta con su propio sprite y ahí se acaba la historia.
+        // De menor a mayor índice, para que dos celdas con los mismos colores den los planos en
+        // el mismo orden y sus patrones se puedan comparar.
+        if (type == SpriteBank.SpriteType.MSX)
+        {
+            foreach (int color in Used(indices, cellSize).Order())
+                planes.Add(new SheetPlane(color, Mask(indices, cellSize, value => value == color)));
+
+            return planes;
+        }
+
         for (int bit = 0; bit < SpritePlaneAssignment.MaxPlanes; bit++)
         {
             int color = 1 << bit;
@@ -87,22 +101,45 @@ public static class SpriteSheetDecomposer
             if ((used & color) == 0)
                 continue;
 
-            var rows = new List<bool[]>(cellSize);
-
-            for (int y = 0; y < cellSize; y++)
-            {
-                bool[] line = new bool[cellSize];
-
-                for (int x = 0; x < cellSize; x++)
-                    line[x] = (indices[y, x] & color) != 0;
-
-                rows.Add(line);
-            }
-
-            planes.Add(new SheetPlane(color, rows));
+            planes.Add(new SheetPlane(color, Mask(indices, cellSize, value => (value & color) != 0)));
         }
 
         return planes;
+    }
+
+    /// <summary>Los índices que la celda usa de verdad, sin el transparente.</summary>
+    private static IEnumerable<int> Used(int[,] indices, int cellSize)
+    {
+        var seen = new HashSet<int>();
+
+        for (int y = 0; y < cellSize; y++)
+        {
+            for (int x = 0; x < cellSize; x++)
+            {
+                if (indices[y, x] != 0)
+                    seen.Add(indices[y, x]);
+            }
+        }
+
+        return seen;
+    }
+
+    /// <summary>Los pixeles de la celda que cumplen algo, que es lo que dibuja un plano.</summary>
+    private static List<bool[]> Mask(int[,] indices, int cellSize, Func<int, bool> paints)
+    {
+        var rows = new List<bool[]>(cellSize);
+
+        for (int y = 0; y < cellSize; y++)
+        {
+            bool[] line = new bool[cellSize];
+
+            for (int x = 0; x < cellSize; x++)
+                line[x] = paints(indices[y, x]);
+
+            rows.Add(line);
+        }
+
+        return rows;
     }
 
     /// <summary>

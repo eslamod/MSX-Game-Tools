@@ -25,6 +25,7 @@ public static class SpriteSheetImporter
 {
     /// <inheritdoc cref="SpriteSheetAnalysis.Analyse" path="/param[@name='transparent']"/>
     /// <inheritdoc cref="SpriteSheetAnalysis.Analyse" path="/param[@name='maxPlanes']"/>
+    /// <inheritdoc cref="SpriteSheetAnalysis.Analyse" path="/param[@name='type']"/>
     public static SheetImport Import(
         int[] pixels,
         PixelSize size,
@@ -32,10 +33,11 @@ public static class SpriteSheetImporter
         Color? transparent,
         SheetSelection selection,
         int maxPlanes,
-        string name)
+        string name,
+        SpriteBank.SpriteType type = SpriteBank.SpriteType.MSX2)
     {
         SheetAnalysis analysis = SpriteSheetAnalysis.Analyse(
-            pixels, size, cellSize, transparent, selection, maxPlanes);
+            pixels, size, cellSize, transparent, selection, maxPlanes, type);
 
         if (!analysis.Ok)
             return new SheetImport(null, null, analysis, analysis.Problems);
@@ -49,7 +51,7 @@ public static class SpriteSheetImporter
             ]);
         }
 
-        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, name);
+        var bank = new SpriteBank(type, name);
         ColorPalette palette = PaletteOf(name, analysis);
 
         var problems = new List<string>();
@@ -62,7 +64,7 @@ public static class SpriteSheetImporter
             {
                 IReadOnlyList<SheetPlane> planes = SpriteSheetDecomposer.Decompose(
                     pixels, size, cellSize, transparent, analysis.Colors, analysis.Masks,
-                    selection.Left + column, selection.Top + row);
+                    selection.Left + column, selection.Top + row, type);
 
                 // Una celda vacía es un hueco de la hoja: ni patrón ni grupo.
                 if (planes.Count == 0)
@@ -77,7 +79,7 @@ public static class SpriteSheetImporter
                     return new SheetImport(null, null, analysis, problems);
                 }
 
-                Group(bank, patterns, selection.Left + column, selection.Top + row);
+                Group(bank, patterns, selection.Left + column, selection.Top + row, type);
             }
         }
 
@@ -273,13 +275,29 @@ public static class SpriteSheetImporter
     }
 
     /// <summary>
-    /// Monta el grupo de una celda: un plano por patrón, con CC en todos menos el primero.
+    /// Monta el grupo de una celda: un plano por patrón.
     /// </summary>
     /// <remarks>
-    /// El primero sin CC porque es contra él contra quien combinan los demás. Todos van sin
-    /// desplazamiento: son el mismo dibujo superpuesto, no un personaje repartido en trozos.
+    /// <para>
+    /// En MSX2, con CC en todos menos el primero, que es contra quien combinan los demás: ese
+    /// es el OR que hace que dos sprites ensenen tres colores.
+    /// </para>
+    /// <para>
+    /// En MSX1 no se toca el CC porque no existe. Los sprites de una celda se solapan y ya
+    /// esta: cada uno pinta su color y donde coinciden gana el de mas prioridad. Encenderlo
+    /// aqui escribiria un banco que la maquina no puede ensenar.
+    /// </para>
+    /// <para>
+    /// Todos van sin desplazamiento: son el mismo dibujo superpuesto, no un personaje repartido
+    /// en trozos.
+    /// </para>
     /// </remarks>
-    private static void Group(SpriteBank bank, IReadOnlyList<int> patterns, int column, int row)
+    private static void Group(
+        SpriteBank bank,
+        IReadOnlyList<int> patterns,
+        int column,
+        int row,
+        SpriteBank.SpriteType type)
     {
         if (bank.NewGroup(patterns[0]) is not { } group)
             return;
@@ -288,6 +306,9 @@ public static class SpriteSheetImporter
 
         for (int plane = 1; plane < patterns.Count; plane++)
             group.Add(new SpriteGroupMember(patterns[plane], bank.SpritesList[patterns[plane]]));
+
+        if (type == SpriteBank.SpriteType.MSX)
+            return;
 
         for (int plane = 1; plane < group.Members.Count; plane++)
         {

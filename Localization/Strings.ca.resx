@@ -551,4 +551,5 @@ Recorda copiar cada taula {2} vegades a la VRAM, una per terç de pantalla.</val
   <data name="ShiftExported" xml:space="preserve"><value>Escrit {0}</value></data>
   <data name="PickExportShift" xml:space="preserve"><value>Exportar taula de desplaçament</value></data>
   <data name="ErrorExportShift" xml:space="preserve"><value>No s'ha pogut exportar la taula</value></data>
+  <data name="ImportSheetType" xml:space="preserve"><value>Màquina</value></data>
 </root>

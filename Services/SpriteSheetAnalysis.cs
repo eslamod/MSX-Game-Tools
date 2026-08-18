@@ -63,13 +63,30 @@ public static class SpriteSheetAnalysis
     /// alfa a cero lo son siempre, se pase lo que se pase aquí.
     /// </param>
     /// <param name="maxPlanes">Sprites superpuestos que se está dispuesto a gastar por celda.</param>
+    /// <param name="type">
+    /// De qué máquina va a ser el banco, que cambia la aritmética entera.
+    /// </param>
+    /// <remarks>
+    /// <para>
+    /// Los dos modos no se parecen en nada más que en leer la hoja. En <b>MSX2</b> el color va
+    /// por línea y existe el bit CC, que mezcla con un OR los colores de los sprites que se
+    /// solapan: con las máscaras a potencias de dos, k planos dan 2^k-1 colores, y por eso dos
+    /// sprites pueden enseñar tres.
+    /// </para>
+    /// <para>
+    /// En <b>MSX1</b> no hay nada de eso. Un sprite tiene un color, el mismo para sus dieciséis
+    /// líneas, y solaparlos no mezcla: gana el de más prioridad. Así que los planos que hace
+    /// falta son tantos como colores distintos tenga la celda, sin repartos ni combinaciones.
+    /// </para>
+    /// </remarks>
     public static SheetAnalysis Analyse(
         int[] pixels,
         PixelSize size,
         int cellSize,
         Color? transparent,
         SheetSelection selection,
-        int maxPlanes)
+        int maxPlanes,
+        SpriteBank.SpriteType type = SpriteBank.SpriteType.MSX2)
     {
         if (Fence(size, cellSize, selection) is { } stopped)
             return stopped;
@@ -96,6 +113,35 @@ public static class SpriteSheetAnalysis
             return Empty(problems);
         }
 
+        // En MSX1 no hay nada que repartir: cada color es un sprite y su índice de paleta es
+        // el que le toque por orden. Lo único que puede fallar es que una celda traiga más
+        // colores de los sprites que se está dispuesto a superponer.
+        if (type == SpriteBank.SpriteType.MSX)
+        {
+            List<int> plain = [.. Enumerable.Range(1, colors.Count)];
+
+            List<SheetCellPlan> flat =
+                [.. Plans(pixels, size, cellSize, transparent, selection, colors, plain, type)];
+
+            if (flat.FirstOrDefault(cell => cell.Planes > maxPlanes) is { } tight)
+            {
+                problems.Add(
+                    $"La celda {tight.Column},{tight.Row} trae {tight.Planes} colores y en MSX1 "
+                    + $"cada sprite es de un color, así que harían falta {tight.Planes} "
+                    + $"superpuestos y se han pedido {maxPlanes}.");
+
+                return Empty(problems);
+            }
+
+            return new SheetAnalysis(
+                colors,
+                plain,
+                flat,
+                flat.Count == 0 ? 0 : flat.Max(cell => cell.Planes),
+                flat.Sum(cell => cell.Planes),
+                problems);
+        }
+
         // Cada línea de cada celda es un problema aparte: en modo 2 tanto los bits del patrón
         // como el color van por línea, así que nunca hay que resolver un cuadrado de 16x16.
         List<int[]> lines = [.. Lines(pixels, size, cellSize, transparent, selection, colors)];
@@ -108,7 +154,7 @@ public static class SpriteSheetAnalysis
         }
 
         List<SheetCellPlan> cells =
-            [.. Plans(pixels, size, cellSize, transparent, selection, colors, solved.Masks)];
+            [.. Plans(pixels, size, cellSize, transparent, selection, colors, solved.Masks, type)];
 
         return new SheetAnalysis(
             colors,
@@ -290,7 +336,8 @@ public static class SpriteSheetAnalysis
         Color? transparent,
         SheetSelection selection,
         IReadOnlyList<Color> colors,
-        IReadOnlyList<int> masks)
+        IReadOnlyList<int> masks,
+        SpriteBank.SpriteType type)
     {
         for (int row = 0; row < selection.Rows; row++)
         {
@@ -298,17 +345,35 @@ public static class SpriteSheetAnalysis
             {
                 int planes = 0;
 
-                for (int line = 0; line < cellSize; line++)
+                // En MSX1 el color es del sprite entero, así que la cuenta es de la celda y no
+                // de una línea: dos colores que no coinciden en ninguna línea siguen siendo dos
+                // sprites, porque ninguno de los dos puede cambiar de color a medio camino.
+                if (type == SpriteBank.SpriteType.MSX)
                 {
-                    int merged = 0;
+                    var seen = new HashSet<int>();
 
-                    foreach (int color in Line(
-                        pixels, size, cellSize, transparent, selection, colors, column, row, line))
+                    for (int line = 0; line < cellSize; line++)
                     {
-                        merged |= masks[color];
+                        seen.UnionWith(Line(
+                            pixels, size, cellSize, transparent, selection, colors, column, row, line));
                     }
 
-                    planes = Math.Max(planes, System.Numerics.BitOperations.PopCount((uint)merged));
+                    planes = seen.Count;
+                }
+                else
+                {
+                    for (int line = 0; line < cellSize; line++)
+                    {
+                        int merged = 0;
+
+                        foreach (int color in Line(
+                            pixels, size, cellSize, transparent, selection, colors, column, row, line))
+                        {
+                            merged |= masks[color];
+                        }
+
+                        planes = Math.Max(planes, System.Numerics.BitOperations.PopCount((uint)merged));
+                    }
                 }
 
                 yield return new SheetCellPlan(selection.Left + column, selection.Top + row, planes);

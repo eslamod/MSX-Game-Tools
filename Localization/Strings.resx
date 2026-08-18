@@ -595,4 +595,5 @@ Recuerda copiar cada tabla {2} veces en VRAM, una por tercio de pantalla.</value
   <data name="ShiftExported" xml:space="preserve"><value>Escrito {0}</value></data>
   <data name="PickExportShift" xml:space="preserve"><value>Exportar tabla de desplazamiento</value></data>
   <data name="ErrorExportShift" xml:space="preserve"><value>No se ha podido exportar la tabla</value></data>
+  <data name="ImportSheetType" xml:space="preserve"><value>Máquina</value></data>
 </root>

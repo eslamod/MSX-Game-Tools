@@ -550,4 +550,5 @@ Remember to copy each table {2} times into VRAM, one per third of the screen.</v
   <data name="ShiftExported" xml:space="preserve"><value>Wrote {0}</value></data>
   <data name="PickExportShift" xml:space="preserve"><value>Export shift table</value></data>
   <data name="ErrorExportShift" xml:space="preserve"><value>The table could not be exported</value></data>
+  <data name="ImportSheetType" xml:space="preserve"><value>Machine</value></data>
 </root>

@@ -64,26 +64,36 @@
       <CheckBox Content="{l:Localize ImportSheetOnlyPatterns}" IsChecked="{Binding OnlyPatterns}"
                 Margin="0,0,0,8" />
 
-      <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" Margin="0,0,0,8">
+      <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,0,0,8">
 
         <TextBlock Grid.Row="0" Grid.Column="0" Text="{l:Localize ImportSheetCell}"
                    VerticalAlignment="Center" Margin="0,0,8,4" />
         <ComboBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" Margin="0,0,0,4"
                   ItemsSource="{Binding CellSizes}" SelectedItem="{Binding CellSize}" />
 
-        <TextBlock Grid.Row="1" Grid.Column="0" Text="{l:Localize ImportSheetPlanes}"
+        <!-- Cambia la aritmetica entera y no solo una etiqueta: en MSX2 el bit CC mezcla los
+             colores de los sprites solapados y dos planos pueden dar tres colores; en MSX1 no
+             existe ese bit y hacen falta tantos sprites como colores. -->
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="{l:Localize ImportSheetType}"
                    VerticalAlignment="Center" Margin="0,0,8,4"
                    IsVisible="{Binding IsCombined}" />
         <ComboBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" Margin="0,0,0,4"
                   IsVisible="{Binding IsCombined}"
+                  ItemsSource="{Binding TypeChoices}" SelectedItem="{Binding SpriteType}" />
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="{l:Localize ImportSheetPlanes}"
+                   VerticalAlignment="Center" Margin="0,0,8,4"
+                   IsVisible="{Binding IsCombined}" />
+        <ComboBox Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" Margin="0,0,0,4"
+                  IsVisible="{Binding IsCombined}"
                   ItemsSource="{Binding PlaneChoices}" SelectedItem="{Binding MaxPlanes}" />
 
-        <TextBlock Grid.Row="2" Grid.Column="0" Text="{l:Localize ImportSheetTransparent}"
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="{l:Localize ImportSheetTransparent}"
                    VerticalAlignment="Center" Margin="0,0,8,0" />
 
         <!-- Los colores de la hoja, del mas usado al menos. El primero sale elegido porque
              casi siempre es el fondo, asi que la mayoria de hojas no hay ni que tocarlas. -->
-        <ComboBox Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch"
+        <ComboBox Grid.Row="3" Grid.Column="1" HorizontalAlignment="Stretch"
                   ItemsSource="{Binding SheetColors}" SelectedItem="{Binding Transparent}">
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="vm:SheetColor">
