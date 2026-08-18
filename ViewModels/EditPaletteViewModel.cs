@@ -1,9 +1,14 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MSX_GameTools.Entities;
+using Avalonia.Media;
 using MSX_GameTools.Localization;
 
 namespace MSX_GameTools.ViewModels;
+
+/// <summary>Una ranura de la paleta con la que se compara.</summary>
+/// <param name="Same">Si en esa ranura las dos paletas tienen el mismo color.</param>
+public sealed record ComparedColor(int Index, IBrush Brush, string Hex, bool Same);
 
 /// <summary>
 /// Panel de edición de una paleta: se elige un color de la lista y se ajustan sus tres
@@ -26,6 +31,19 @@ public partial class EditPaletteViewModel : PanelBaseViewModel
     [ObservableProperty]
     private PaletteColor _selectedColor;
 
+    /// <summary>
+    /// La paleta que se enseña al lado para compararla, o nada.
+    /// </summary>
+    /// <remarks>
+    /// Aquí y no en un panel aparte: comparar sirve para mover colores hasta que dos paletas
+    /// se parezcan, y mover colores es justo lo que hace este panel. En uno aparte habría que
+    /// ir y volver a cada arrastre.
+    /// </remarks>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsComparing))]
+    [NotifyPropertyChangedFor(nameof(ComparedColors))]
+    private ColorPalette? _compared;
+
     public EditPaletteViewModel(MainWindowViewModel mainWindowVm, ColorPalette palette)
     {
         _mainWindowVm = mainWindowVm;
@@ -36,9 +54,48 @@ public partial class EditPaletteViewModel : PanelBaseViewModel
 
         Header = palette.Name;
         TagId = $"palette:{palette.Name}";
+
+        // Editar un color o moverlo de sitio cambia cuáles coinciden con la de al lado, y
+        // esa marca es justo lo que se está mirando mientras se arrastra.
+        palette.ColorsChanged += _ => OnPropertyChanged(nameof(ComparedColors));
     }
 
     public ColorPalette Palette { get; }
+
+    /// <summary>Las otras paletas, que son con las que tiene sentido compararse.</summary>
+    public IReadOnlyList<ColorPalette> Comparisons =>
+        [.. _mainWindowVm.Palettes.Palettes.Where(other => !ReferenceEquals(other, Palette))];
+
+    public bool IsComparing => Compared is not null;
+
+    /// <summary>
+    /// La paleta de al lado, ranura a ranura y con cuáles ya coinciden.
+    /// </summary>
+    /// <remarks>
+    /// Por índice y no por color, que es como se compara de verdad: lo que se quiere saber es
+    /// qué hay en el 4 aquí y qué hay en el 4 allí, porque es lo que decide qué mover.
+    /// </remarks>
+    public IReadOnlyList<ComparedColor> ComparedColors
+    {
+        get
+        {
+            if (Compared is not { } other)
+                return [];
+
+            return
+            [
+                .. Enumerable.Range(0, ColorPalette.Size).Select(index => new ComparedColor(
+                    index,
+                    other.GetBrush(index),
+                    other[index].HexRgb,
+                    other.GetColor(index) == Palette.GetColor(index))),
+            ];
+        }
+    }
+
+    /// <summary>Deja de comparar.</summary>
+    [RelayCommand]
+    private void StopComparing() => Compared = null;
 
     /// <summary>Hay colores movidos de sitio y los dibujos aún no se han reajustado.</summary>
     public bool HasSwaps => !_swaps.IsEmpty;

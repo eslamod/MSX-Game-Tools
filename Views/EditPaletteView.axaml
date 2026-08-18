@@ -44,14 +44,39 @@
            la barra agarrada no bastan: dejaban el numero justo a ras. -->
       <StackPanel Margin="0,0,22,0">
 
-    <Grid ColumnDefinitions="60,*" Margin="0,0,0,10">
+    <Grid ColumnDefinitions="72,*" Margin="0,0,0,10">
       <TextBlock Grid.Column="0" Text="{l:Localize FormName}" VerticalAlignment="Center" />
       <TextBox Grid.Column="1" Text="{Binding Palette.Name}" />
     </Grid>
 
-    <!-- Los 16 colores. El seleccionado es el que editan los sliders, y arrastrar uno
-         sobre otro los intercambia de indice. -->
-    <ListBox x:Name="ColorList"
+    <!-- Con que paleta se compara. Va aqui y no en un panel aparte porque comparar sirve
+         para mover colores hasta que dos paletas se parezcan, y mover colores es lo que hace
+         este panel: en uno aparte habria que ir y volver a cada arrastre. -->
+    <Grid ColumnDefinitions="72,*,Auto" Margin="0,0,0,10">
+      <TextBlock Grid.Column="0" Text="{l:Localize PaletteCompare}" VerticalAlignment="Center" />
+      <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                ItemsSource="{Binding Comparisons}"
+                SelectedItem="{Binding Compared}"
+                PlaceholderText="{l:Localize PaletteCompareNone}"
+                ToolTip.Tip="{l:Localize PaletteCompareTip}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="entities:ColorPalette">
+            <TextBlock Text="{Binding Name}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+      <Button Grid.Column="2" Content="X" Margin="4,0,0,0" Padding="8,0"
+              Command="{Binding StopComparingCommand}"
+              IsVisible="{Binding IsComparing}"
+              ToolTip.Tip="{l:Localize PaletteCompareClear}" />
+    </Grid>
+
+    <!-- Los 16 colores, y a la derecha los de la paleta con la que se compara. Emparejados
+         por indice, que es como se compara de verdad: lo que se quiere saber es que hay en
+         el 4 aqui y que hay en el 4 alli, porque eso decide que mover. -->
+    <Grid ColumnDefinitions="*,Auto">
+
+    <ListBox x:Name="ColorList" Grid.Column="0"
              ItemsSource="{Binding Palette.Colors}"
              SelectedItem="{Binding SelectedColor, Mode=TwoWay}"
              SelectionMode="Single"
@@ -82,6 +107,36 @@
         </DataTemplate>
       </ListBox.ItemTemplate>
     </ListBox>
+
+    <ItemsControl Grid.Column="1" ItemsSource="{Binding ComparedColors}"
+                  IsVisible="{Binding IsComparing}" Margin="6,0,0,0">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:ComparedColor">
+          <!-- El mismo alto que las filas de la izquierda mas su margen, para que las dos
+               columnas queden emparejadas sin depender de donde caiga cada una. -->
+          <Grid ColumnDefinitions="Auto,Auto,Auto" Height="26">
+            <Border Grid.Column="0" Width="24" Height="18"
+                    BorderBrush="Black" BorderThickness="1"
+                    VerticalAlignment="Center">
+              <Grid>
+                <Border Background="#DDDDDD" />
+                <Border Background="{Binding Brush}" />
+              </Grid>
+            </Border>
+            <TextBlock Grid.Column="1" Text="{Binding Hex}"
+                       FontFamily="Consolas" Foreground="{DynamicResource AppTextSecondary}"
+                       VerticalAlignment="Center" Margin="4,0,0,0" />
+            <!-- La marca de los que ya coinciden: los que no la llevan son los que quedan. -->
+            <TextBlock Grid.Column="2" Text="=" FontWeight="Bold"
+                       VerticalAlignment="Center" Margin="4,0,0,0"
+                       IsVisible="{Binding Same}"
+                       ToolTip.Tip="{l:Localize PaletteCompareSame}" />
+          </Grid>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    </Grid>
 
     <!-- Componentes del color seleccionado, en el formato nativo del MSX: 0-7. -->
     <StackPanel Margin="0,10,0,0"

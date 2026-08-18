@@ -607,4 +607,9 @@ Recuerda copiar cada tabla {2} veces en VRAM, una por tercio de pantalla.</value
   <data name="ImportSheetAlpha" xml:space="preserve"><value>Transparente de la hoja</value></data>
   <data name="ImportSheetReusePalette" xml:space="preserve"><value>Encajar en la paleta que hay</value></data>
   <data name="ImportSheetReusePaletteTip" xml:space="preserve"><value>En vez de traer una paleta con los colores del png, coge para cada uno el más parecido de la paleta activa. Los colores no serán exactamente los de la imagen. Sólo en MSX1: en MSX2 el índice de cada color lo fija el reparto de planos.</value></data>
+  <data name="PaletteCompare" xml:space="preserve"><value>Comparar</value></data>
+  <data name="PaletteCompareNone" xml:space="preserve"><value>con ninguna</value></data>
+  <data name="PaletteCompareTip" xml:space="preserve"><value>Enseña otra paleta al lado, ranura a ranura, para ver qué colores hay que mover de sitio</value></data>
+  <data name="PaletteCompareClear" xml:space="preserve"><value>Dejar de comparar</value></data>
+  <data name="PaletteCompareSame" xml:space="preserve"><value>En esta ranura las dos tienen el mismo color</value></data>
 </root>
