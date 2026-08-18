@@ -188,6 +188,11 @@ y ficheros propios.
 
 ## Estado
 
-En desarrollo. Funcionan los bancos de sprites, los juegos de tiles con sus bloques, las
-paletas, el editor de mapas y el proyecto que los agrupa. Están por hacer las animaciones,
-los comportamientos, los sonidos y la música, que ya tienen su sitio en el árbol.
+En desarrollo, y con el alcance ya decidido: esto es una suite de herramientas para hacer
+juegos, no un generador de juegos. Funcionan los bancos de sprites, los juegos de tiles con
+sus bloques, las paletas, el editor de mapas y el proyecto que los agrupa.
+
+Queda por hacer el editor de **animaciones**, que encaja con lo demás: son los patrones que
+ya existen, puestos en secuencia. Lo que había apuntado de comportamientos, sonidos y música
+se ha retirado. Sacar la ROM de un juego entero es otro programa, y mucho más difícil; un
+hueco vacío prometiéndolo sólo envejece mal.

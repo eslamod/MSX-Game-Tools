@@ -37,9 +37,9 @@ public class TreeGeneralViewModel : PanelBaseViewModel
             _nodeTileSets,
             _nodeMaps,
             new ItemTree { NameKey = "TreeAnimations", Tag = Constants.TAG_ID_NODE_ANIMATORS },
-            new ItemTree { NameKey = "TreeBehaviours", Tag = Constants.TAG_ID_NODE_BEHAVOURS },
-            new ItemTree { NameKey = "TreeSounds", Tag = Constants.TAG_ID_NODE_SOUNDS },
-            new ItemTree { NameKey = "TreeMusic", Tag = Constants.TAG_ID_NODE_MUSIC },
+            //new ItemTree { NameKey = "TreeBehaviours", Tag = Constants.TAG_ID_NODE_BEHAVOURS },
+            //new ItemTree { NameKey = "TreeSounds", Tag = Constants.TAG_ID_NODE_SOUNDS },
+            //new ItemTree { NameKey = "TreeMusic", Tag = Constants.TAG_ID_NODE_MUSIC },
         ];
 
     }

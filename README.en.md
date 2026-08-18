@@ -185,6 +185,11 @@ embedded data and your own files.
 
 ## Status
 
-Under development. Sprite banks, tile sets with their blocks, palettes, the map editor and
-the project that groups them all work. Animations, behaviours, sounds and music are still
-to be done, though they already have their place in the tree.
+Under development, with the scope already settled: this is a suite of tools for making
+games, not a game maker. Sprite banks, tile sets with their blocks, palettes, the map editor
+and the project that groups them all work.
+
+The **animation** editor is still to come, and it fits with the rest: the patterns that are
+already there, put in sequence. What had been pencilled in for behaviours, sounds and music
+has been dropped. Producing a whole game's ROM is a different program, and a far harder one;
+an empty slot promising it only ages badly.

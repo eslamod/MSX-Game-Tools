@@ -124,12 +124,16 @@ public class ProjectTreeTests
 
         Assert.False(spriteBanks.IsPanelNode);
 
+        // Cuántas hay, no cuántas debería haber: lo que se comprueba es que no se vaya
+        // ninguna, y cuáles son las categorías es una decisión de alcance que cambia.
+        int categories = main.TreeGeneralVm.PrimaryNodes.Count;
+
         main.OpenTreeItemCommand.Execute(spriteBanks);
         await main.DeleteTreeItemCommand.ExecuteAsync(spriteBanks);
 
         Assert.Empty(main.Tabs);
         Assert.Equal(0, dialogs.ConfirmCalls);
-        Assert.Equal(7, main.TreeGeneralVm.PrimaryNodes.Count);
+        Assert.Equal(categories, main.TreeGeneralVm.PrimaryNodes.Count);
     }
 
     /// <summary>
