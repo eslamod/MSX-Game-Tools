@@ -69,8 +69,15 @@
            que colocar. Escondiendola no se aprende que la opcion existe ni que ahi ya esta
            puesta, y se acaba buscandola. -->
       <CheckBox Content="{l:Localize ImportSheetPack}" IsChecked="{Binding Packs}"
-                IsEnabled="{Binding OnlyPatterns}" Margin="0,0,0,8"
+                IsEnabled="{Binding OnlyPatterns}" Margin="0,0,0,4"
                 ToolTip.Tip="{l:Localize ImportSheetPackTip}" />
+
+      <!-- Solo en MSX1: en MSX2 el indice de cada color lo fija el reparto de planos, porque
+           es lo que hace que el OR del CC reconstruya el color de cada pixel. -->
+      <CheckBox Content="{l:Localize ImportSheetReusePalette}" IsChecked="{Binding ReusePalette}"
+                IsEnabled="{Binding CanReusePalette}" IsVisible="{Binding IsCombined}"
+                Margin="0,0,0,8"
+                ToolTip.Tip="{l:Localize ImportSheetReusePaletteTip}" />
 
       <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" Margin="0,0,0,8">
 

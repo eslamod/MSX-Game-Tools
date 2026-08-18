@@ -605,4 +605,6 @@ Recuerda copiar cada tabla {2} veces en VRAM, una por tercio de pantalla.</value
   <data name="NewSpriteBankSize" xml:space="preserve"><value>Tamaño</value></data>
   <data name="NewSpriteBankOverVram" xml:space="preserve"><value>Más de 64 no cabe en la tabla de patrones de la VRAM. Sirve para bancos que se quedan en ROM y se van redefiniendo según la animación.</value></data>
   <data name="ImportSheetAlpha" xml:space="preserve"><value>Transparente de la hoja</value></data>
+  <data name="ImportSheetReusePalette" xml:space="preserve"><value>Encajar en la paleta que hay</value></data>
+  <data name="ImportSheetReusePaletteTip" xml:space="preserve"><value>En vez de traer una paleta con los colores del png, coge para cada uno el más parecido de la paleta activa. Los colores no serán exactamente los de la imagen. Sólo en MSX1: en MSX2 el índice de cada color lo fija el reparto de planos.</value></data>
 </root>

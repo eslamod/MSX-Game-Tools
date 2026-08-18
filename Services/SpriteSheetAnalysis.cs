@@ -80,6 +80,11 @@ public static class SpriteSheetAnalysis
     /// </param>
     /// <param name="across">Sprites de ancho que mide una figura de la hoja.</param>
     /// <param name="down">Y de alto.</param>
+    /// <param name="reuse">
+    /// La paleta en la que encajar los colores de la hoja, en vez de traerlos tal cual. Sólo
+    /// se mira en MSX1: en MSX2 los índices los fija el reparto de planos, porque son ellos
+    /// los que hacen que el OR del CC reconstruya cada color.
+    /// </param>
     /// <remarks>
     /// <para>
     /// Los dos modos no se parecen en nada más que en leer la hoja. En <b>MSX2</b> el color va
@@ -102,7 +107,8 @@ public static class SpriteSheetAnalysis
         int maxPlanes,
         SpriteBank.SpriteType type = SpriteBank.SpriteType.MSX2,
         int across = 1,
-        int down = 1)
+        int down = 1,
+        ColorPalette? reuse = null)
     {
         if (Fence(size, cellSize, selection) is { } stopped)
             return stopped;
@@ -134,7 +140,18 @@ public static class SpriteSheetAnalysis
         // colores de los sprites que se está dispuesto a superponer.
         if (type == SpriteBank.SpriteType.MSX)
         {
-            List<int> plain = [.. Enumerable.Range(1, colors.Count)];
+            // Encajando en una paleta que ya existe, el índice de cada color es el del más
+            // parecido que haya en ella. Sin ella, los índices son los primeros que quedan.
+            List<int> plain = reuse is null
+                ? [.. Enumerable.Range(1, colors.Count)]
+                : [.. colors.Select(color => SpriteSheetPixels.Nearest(reuse, color))];
+
+            if (reuse is not null && plain.Distinct().Count() != plain.Count)
+            {
+                problems.Add(Crowded(colors, plain, reuse));
+
+                return Empty(problems);
+            }
 
             List<SheetCellPlan> flat =
                 [.. Plans(pixels, size, cellSize, transparent, selection, colors, plain, type)];
@@ -180,6 +197,33 @@ public static class SpriteSheetAnalysis
             cells.Sum(cell => cell.Planes),
             problems);
     }
+
+    /// <summary>
+    /// Qué colores de la hoja caen en el mismo de la paleta, para poder decidir.
+    /// </summary>
+    /// <remarks>
+    /// Dos colores en el mismo índice se verían iguales en la máquina, y eso es una pérdida
+    /// del dibujo que no se puede tapar: o se retoca la hoja, o se le hace sitio a ese color
+    /// en la paleta, o se trae con paleta nueva. Se dice cuáles son, que es lo que hace falta
+    /// para elegir entre las tres.
+    /// </remarks>
+    private static string Crowded(
+        IReadOnlyList<Color> colors, IReadOnlyList<int> masks, ColorPalette palette)
+    {
+        IEnumerable<string> clashes = masks
+            .Select((mask, color) => (mask, color))
+            .GroupBy(pair => pair.mask)
+            .Where(group => group.Count() > 1)
+            .Select(group =>
+                $"el {group.Key} ({palette.GetColor(group.Key)}) se lleva "
+                + string.Join(" y ", group.Select(pair => Name(colors[pair.color]))));
+
+        return "En la paleta que hay no caben todos los colores de la hoja por separado: "
+            + string.Join("; ", clashes)
+            + ". Retoca la hoja, hazles sitio en la paleta, o trae con paleta nueva.";
+    }
+
+    private static string Name(Color color) => $"#{color.R:X2}{color.G:X2}{color.B:X2}";
 
     /// <summary>
     /// Cuántos sprites coinciden en la línea de barrido peor de todas.

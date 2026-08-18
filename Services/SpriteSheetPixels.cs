@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Media;
+using MSX_GameTools.Entities;
 
 namespace MSX_GameTools.Services;
 
@@ -59,6 +60,39 @@ internal static class SpriteSheetPixels
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// En qué índice de una paleta encaja mejor un color, sin contar el transparente.
+    /// </summary>
+    /// <remarks>
+    /// Por distancia en el cubo RGB, que para dieciséis colores tan separados como los del
+    /// MSX acierta siempre y no hace falta nada más fino. Al cuadrado y sin raíz: sólo se
+    /// comparan entre sí, y la raíz no cambia cuál es el menor.
+    /// </remarks>
+    public static int Nearest(ColorPalette palette, Color color)
+    {
+        int best = 1;
+        int distance = int.MaxValue;
+
+        for (int index = 1; index < palette.Count; index++)
+        {
+            Color candidate = palette.GetColor(index);
+
+            int red = candidate.R - color.R;
+            int green = candidate.G - color.G;
+            int blue = candidate.B - color.B;
+
+            int away = (red * red) + (green * green) + (blue * blue);
+
+            if (away >= distance)
+                continue;
+
+            distance = away;
+            best = index;
+        }
+
+        return best;
     }
 
     /// <summary>

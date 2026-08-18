@@ -35,6 +35,7 @@ public static class SpriteSheetImporter
     /// <inheritdoc cref="SpriteSheetAnalysis.Analyse" path="/param[@name='type']"/>
     /// <inheritdoc cref="SpriteSheetAnalysis.Analyse" path="/param[@name='across']"/>
     /// <inheritdoc cref="SpriteSheetAnalysis.Analyse" path="/param[@name='down']"/>
+    /// <inheritdoc cref="SpriteSheetAnalysis.Analyse" path="/param[@name='reuse']"/>
     public static SheetImport Import(
         int[] pixels,
         PixelSize size,
@@ -45,10 +46,11 @@ public static class SpriteSheetImporter
         string name,
         SpriteBank.SpriteType type = SpriteBank.SpriteType.MSX2,
         int across = 1,
-        int down = 1)
+        int down = 1,
+        ColorPalette? reuse = null)
     {
         SheetAnalysis analysis = SpriteSheetAnalysis.Analyse(
-            pixels, size, cellSize, transparent, selection, maxPlanes, type, across, down);
+            pixels, size, cellSize, transparent, selection, maxPlanes, type, across, down, reuse);
 
         if (!analysis.Ok)
             return new SheetImport(null, null, analysis, analysis.Problems);
@@ -63,7 +65,10 @@ public static class SpriteSheetImporter
         }
 
         var bank = new SpriteBank(type, name, analysis.BankSize);
-        ColorPalette palette = PaletteOf(name, analysis);
+
+        // Encajando en una paleta que ya existe no sale ninguna: sus colores ya son los de
+        // ella, y devolver una copia solo llenaria la lista de paletas repetidas.
+        ColorPalette? palette = reuse is null ? PaletteOf(name, analysis) : null;
 
         var problems = new List<string>();
         var placed = new Dictionary<string, int>();

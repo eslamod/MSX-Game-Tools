@@ -94,8 +94,22 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
     /// </remarks>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Report))]
+    [NotifyPropertyChangedFor(nameof(CanReusePalette))]
     [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
     private SpriteBank.SpriteType _spriteType = SpriteBank.SpriteType.MSX2;
+
+    /// <summary>
+    /// Si los colores se encajan en la paleta que ya hay en vez de traer una nueva.
+    /// </summary>
+    /// <remarks>
+    /// Sólo en MSX1. En MSX2 el índice de cada color no se puede elegir: lo fija el reparto de
+    /// planos, porque es lo que hace que el OR del bit CC reconstruya el color de cada pixel.
+    /// Encajarlos en otros índices rompería esa cuenta.
+    /// </remarks>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Report))]
+    [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
+    private bool _reusePalette;
 
     /// <summary>
     /// Si se trae el color o sólo el dibujo.
@@ -223,13 +237,20 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
     /// <summary>Si se enseñan los controles que sólo tienen sentido trayendo el color.</summary>
     public bool IsCombined => !OnlyPatterns;
 
+    /// <summary>Si se puede encajar en la paleta que hay, que es cosa de la máquina.</summary>
+    public bool CanReusePalette => SpriteType == SpriteBank.SpriteType.MSX;
+
+    /// <summary>La paleta en la que encajar, o nada si se va a traer una nueva.</summary>
+    private ColorPalette? Reuse =>
+        ReusePalette && CanReusePalette ? _mainWindowVm.Palettes.ActivePalette : null;
+
     /// <summary>El análisis de lo que hay elegido ahora mismo.</summary>
     public SheetAnalysis Analysis => OnlyPatterns
         ? SpriteSheetAnalysis.AnalysePatterns(
             _pixels, Size, CellSize, Transparent?.Color, Selection, Pack)
         : SpriteSheetAnalysis.Analyse(
             _pixels, Size, CellSize, Transparent?.Color, Selection, MaxPlanes, SpriteType,
-            Across, Down);
+            Across, Down, Reuse);
 
     /// <summary>
     /// Lo que se lee debajo: o lo que va a costar, o por qué no se puede.
@@ -295,7 +316,7 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
                 _pixels, Size, CellSize, Transparent?.Color, Selection, _name, Pack, SpriteType)
             : SpriteSheetImporter.Import(
                 _pixels, Size, CellSize, Transparent?.Color, Selection, MaxPlanes, _name, SpriteType,
-                Across, Down);
+                Across, Down, Reuse);
 
         if (!import.Ok)
             return;

@@ -560,4 +560,6 @@ Remember to copy each table {2} times into VRAM, one per third of the screen.</v
   <data name="NewSpriteBankSize" xml:space="preserve"><value>Size</value></data>
   <data name="NewSpriteBankOverVram" xml:space="preserve"><value>More than 64 does not fit in the VRAM pattern table. It is for banks that stay in ROM and get redefined as the animation needs.</value></data>
   <data name="ImportSheetAlpha" xml:space="preserve"><value>The sheet's transparency</value></data>
+  <data name="ImportSheetReusePalette" xml:space="preserve"><value>Fit into the palette in use</value></data>
+  <data name="ImportSheetReusePaletteTip" xml:space="preserve"><value>Instead of bringing a palette with the png's colours, take the closest one in the active palette for each. The colours will not be exactly those of the image. MSX1 only: on MSX2 each colour's index is fixed by the plane assignment.</value></data>
 </root>
