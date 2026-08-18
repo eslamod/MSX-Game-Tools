@@ -47,7 +47,11 @@ tiles and blocks along the bottom to pick what to paint with.
 - **Groups**: several patterns placed with offsets to build a figure bigger than a single
   sprite plane allows.
 - Reference images behind the canvas, with adjustable opacity, for tracing.
-- Exports the pattern table and the attributes, as binary and as `.asm`.
+- **Imports a sprite sheet** from a png: mark a rectangle and out comes a bank with its
+  groups, each colour dealt into the plane it belongs to. Before importing it says how many
+  planes are needed and which colours get in each other's way.
+- Exports the pattern table and the attributes, as binary and as `.asm`, whole or only the
+  patterns you name.
 
 ### Tile sets
 
@@ -74,6 +78,8 @@ tiles and blocks along the bottom to pick what to paint with.
 - Select a rectangle and fill it, copy it or clear it.
 - Resize with an anchor, and replace ranges of tiles with others.
 - **Undo and redo**, twenty steps.
+- **Shift report**: derives from the map the table needed for one-pixel smooth scrolling,
+  says in which cells it will show, and takes the view to each one.
 - Reads and writes json, csv (Tiled compatible) and binary; also writes `.asm`.
 
 ### The application
@@ -150,6 +156,14 @@ merged into a single name table, the topmost non-empty cell winning.
 
 **A block and a layer are the same structure.** A block is a small name table and a map
 is the same table, bigger, so stamping a block onto a map needs no translation.
+
+**Smooth scrolling is a report, not a check.** One-pixel scrolling keeps eight copies of the
+tile set, each shifted one more pixel, and for every tile something has to enter from the
+right: zeros, ones or the next tile's column. The map dictates which, so a tile placed next
+to different neighbours has no answer that is good for all of them. That is the technique,
+not a fault in the map: what you need to know is the majority option and how many places it
+costs. And it compares the **colour** you see, not the bit: in screen 1 the same blue can be
+one tile's ink and its neighbour's paper.
 
 **Tiles are always shown in 32 columns.** That is the layout of the editor and of the
 png, and the only one where picking a rectangle means anything: a tree drawn across three

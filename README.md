@@ -47,7 +47,11 @@ tira de tiles y bloques abajo para coger con qué pintar.
 - **Grupos**: varios patrones colocados con desplazamiento para formar una figura mayor
   de lo que da un plano de sprite.
 - Imágenes de referencia detrás del lienzo, con opacidad regulable, para calcar.
-- Exporta la tabla de patrones y los atributos, en binario y en `.asm`.
+- **Importa una hoja de sprites** desde un png: se marca un rectángulo y sale un banco con
+  sus grupos, repartiendo cada color en el plano que le toca. Dice antes de importar
+  cuántos planos hace falta y qué colores se estorban entre sí.
+- Exporta la tabla de patrones y los atributos, en binario y en `.asm`, enteros o sólo los
+  patrones que se digan.
 
 ### Juegos de tiles
 
@@ -74,6 +78,8 @@ tira de tiles y bloques abajo para coger con qué pintar.
 - Seleccionar un rectángulo y rellenarlo, copiarlo o vaciarlo.
 - Redimensionar con ancla, y sustituir rangos de tiles por otros.
 - **Deshacer y rehacer**, veinte pasos.
+- **Informe de desplazamiento**: saca del mapa la tabla que hace falta para el scroll suave
+  de un pixel, dice en qué celdas se va a notar y lleva la vista a cada una.
 - Entra y sale en json, csv (compatible con Tiled) y binario; y sale también en `.asm`.
 
 ### El programa
@@ -153,6 +159,14 @@ una sola tabla de nombres, ganando la celda no vacía más alta.
 **Un bloque y una capa son la misma estructura.** Un bloque es una tabla de nombres
 pequeña y un mapa la misma tabla más grande, así que estampar un bloque en el mapa no
 necesita ninguna traducción.
+
+**El desplazamiento suave es un informe y no una comprobación.** El scroll de un pixel
+guarda ocho copias del juego de tiles corridas una a una, y por cada tile hay que decidir
+qué entra por su borde derecho: ceros, unos o la columna del tile siguiente. Lo dicta el
+mapa, así que un tile puesto junto a vecinos distintos no tiene respuesta buena para todos.
+Eso es la técnica, no un fallo del mapa: lo que hace falta saber es cuál es la opción
+mayoritaria y cuántos sitios cuesta. Y se compara el **color** que se ve, no el bit: en
+screen 1 el mismo azul puede ser la tinta de un tile y el papel de su vecino.
 
 **Los tiles se enseñan siempre en 32 columnas.** Es la disposición del editor y la del
 png, y la única en la que coger un rectángulo significa algo: un árbol dibujado en tres
