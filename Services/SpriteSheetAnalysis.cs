@@ -66,6 +66,8 @@ public static class SpriteSheetAnalysis
     /// <param name="type">
     /// De qué máquina va a ser el banco, que cambia la aritmética entera.
     /// </param>
+    /// <param name="across">Sprites de ancho que mide una figura de la hoja.</param>
+    /// <param name="down">Y de alto.</param>
     /// <remarks>
     /// <para>
     /// Los dos modos no se parecen en nada más que en leer la hoja. En <b>MSX2</b> el color va
@@ -86,7 +88,9 @@ public static class SpriteSheetAnalysis
         Color? transparent,
         SheetSelection selection,
         int maxPlanes,
-        SpriteBank.SpriteType type = SpriteBank.SpriteType.MSX2)
+        SpriteBank.SpriteType type = SpriteBank.SpriteType.MSX2,
+        int across = 1,
+        int down = 1)
     {
         if (Fence(size, cellSize, selection) is { } stopped)
             return stopped;
@@ -137,7 +141,7 @@ public static class SpriteSheetAnalysis
                 colors,
                 plain,
                 flat,
-                flat.Count == 0 ? 0 : flat.Max(cell => cell.Planes),
+                PerScanline(flat, selection, across, down),
                 flat.Sum(cell => cell.Planes),
                 problems);
         }
@@ -160,9 +164,52 @@ public static class SpriteSheetAnalysis
             colors,
             solved.Masks,
             cells,
-            cells.Count == 0 ? 0 : cells.Max(cell => cell.Planes),
+            PerScanline(cells, selection, across, down),
             cells.Sum(cell => cell.Planes),
             problems);
+    }
+
+    /// <summary>
+    /// Cuántos sprites coinciden en la línea de barrido peor de todas.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// No es la suma de la figura ni el máximo de sus trozos. Una figura de 16x32 son dos
+    /// sprites apilados: el de arriba cubre las líneas 0 a 15 y el de abajo las 16 a 31, así que
+    /// no coinciden en ninguna y sus planos no se suman. Los que sí se suman son los que van
+    /// lado a lado, que comparten las mismas líneas.
+    /// </para>
+    /// <para>
+    /// Es el número que decide si la figura se puede enseñar: el VDP dibuja cuatro sprites por
+    /// línea en modo 1 y ocho en el 2, y a partir de ahí deja de pintar. Los patrones que gasta
+    /// del banco son otra cuenta, y esa sí es la suma de todo.
+    /// </para>
+    /// </remarks>
+    private static int PerScanline(
+        IReadOnlyList<SheetCellPlan> cells, SheetSelection selection, int across, int down)
+    {
+        if (cells.Count == 0)
+            return 0;
+
+        int worst = 0;
+
+        for (int top = 0; top + down <= selection.Rows; top += down)
+        {
+            for (int left = 0; left + across <= selection.Columns; left += across)
+            {
+                for (int band = 0; band < down; band++)
+                {
+                    int line = 0;
+
+                    for (int column = 0; column < across; column++)
+                        line += cells[((top + band) * selection.Columns) + left + column].Planes;
+
+                    worst = Math.Max(worst, line);
+                }
+            }
+        }
+
+        return worst;
     }
 
     /// <summary>

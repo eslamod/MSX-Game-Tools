@@ -4,6 +4,13 @@ using MSX_GameTools.Entities;
 
 namespace MSX_GameTools.Services;
 
+/// <summary>Un plano de un trozo de la figura, con donde cae ese trozo.</summary>
+internal sealed record SheetSlice(int Pattern, int OffsetX, int OffsetY)
+{
+    /// <summary>De que trozo de la figura es, para saber cuales comparten linea.</summary>
+    public (int X, int Y) Place => (OffsetX, OffsetY);
+}
+
 /// <summary>Lo que sale de traer una hoja: el banco con sus grupos y su paleta.</summary>
 public sealed record SheetImport(
     SpriteBank? Bank,
@@ -26,6 +33,8 @@ public static class SpriteSheetImporter
     /// <inheritdoc cref="SpriteSheetAnalysis.Analyse" path="/param[@name='transparent']"/>
     /// <inheritdoc cref="SpriteSheetAnalysis.Analyse" path="/param[@name='maxPlanes']"/>
     /// <inheritdoc cref="SpriteSheetAnalysis.Analyse" path="/param[@name='type']"/>
+    /// <inheritdoc cref="SpriteSheetAnalysis.Analyse" path="/param[@name='across']"/>
+    /// <inheritdoc cref="SpriteSheetAnalysis.Analyse" path="/param[@name='down']"/>
     public static SheetImport Import(
         int[] pixels,
         PixelSize size,
@@ -34,10 +43,12 @@ public static class SpriteSheetImporter
         SheetSelection selection,
         int maxPlanes,
         string name,
-        SpriteBank.SpriteType type = SpriteBank.SpriteType.MSX2)
+        SpriteBank.SpriteType type = SpriteBank.SpriteType.MSX2,
+        int across = 1,
+        int down = 1)
     {
         SheetAnalysis analysis = SpriteSheetAnalysis.Analyse(
-            pixels, size, cellSize, transparent, selection, maxPlanes, type);
+            pixels, size, cellSize, transparent, selection, maxPlanes, type, across, down);
 
         if (!analysis.Ok)
             return new SheetImport(null, null, analysis, analysis.Problems);
@@ -58,28 +69,48 @@ public static class SpriteSheetImporter
         var placed = new Dictionary<string, int>();
         int next = 0;
 
-        for (int row = 0; row < selection.Rows; row++)
+        // Por figuras, no por sprites: una figura de 16x32 son dos sprites apilados que van al
+        // mismo grupo, cada uno con su desplazamiento. Es lo que hace que la cabeza y el cuerpo
+        // de un personaje se coloquen juntos en vez de quedar como dos grupos sueltos.
+        for (int row = 0; row + down <= selection.Rows; row += down)
         {
-            for (int column = 0; column < selection.Columns; column++)
+            for (int column = 0; column + across <= selection.Columns; column += across)
             {
-                IReadOnlyList<SheetPlane> planes = SpriteSheetDecomposer.Decompose(
-                    pixels, size, cellSize, transparent, analysis.Colors, analysis.Masks,
-                    selection.Left + column, selection.Top + row, type);
+                var figure = new List<SheetSlice>();
 
-                // Una celda vacía es un hueco de la hoja: ni patrón ni grupo.
-                if (planes.Count == 0)
-                    continue;
-
-                if (!Place(bank, planes, cellSize, placed, ref next, out List<int> patterns))
+                for (int band = 0; band < down; band++)
                 {
-                    problems.Add(
-                        $"La celda {selection.Left + column},{selection.Top + row} no cabe: "
-                        + $"el banco se ha quedado sin huecos.");
+                    for (int slice = 0; slice < across; slice++)
+                    {
+                        IReadOnlyList<SheetPlane> planes = SpriteSheetDecomposer.Decompose(
+                            pixels, size, cellSize, transparent, analysis.Colors, analysis.Masks,
+                            selection.Left + column + slice, selection.Top + row + band, type);
 
-                    return new SheetImport(null, null, analysis, problems);
+                        // Un trozo vacio no gasta patron ni entra en el grupo. La figura sigue:
+                        // un personaje con la esquina de arriba a la derecha en blanco no deja
+                        // de ser un personaje.
+                        if (planes.Count == 0)
+                            continue;
+
+                        if (!Place(bank, planes, cellSize, placed, ref next, out List<int> patterns))
+                        {
+                            problems.Add(
+                                $"La celda {selection.Left + column + slice},"
+                                + $"{selection.Top + row + band} no cabe: "
+                                + $"el banco se ha quedado sin huecos.");
+
+                            return new SheetImport(null, null, analysis, problems);
+                        }
+
+                        foreach (int pattern in patterns)
+                            figure.Add(new SheetSlice(pattern, slice * cellSize, band * cellSize));
+                    }
                 }
 
-                Group(bank, patterns, selection.Left + column, selection.Top + row, type);
+                if (figure.Count == 0)
+                    continue;
+
+                Group(bank, figure, selection.Left + column, selection.Top + row, type);
             }
         }
 
@@ -294,24 +325,36 @@ public static class SpriteSheetImporter
     /// </remarks>
     private static void Group(
         SpriteBank bank,
-        IReadOnlyList<int> patterns,
+        IReadOnlyList<SheetSlice> figure,
         int column,
         int row,
         SpriteBank.SpriteType type)
     {
-        if (bank.NewGroup(patterns[0]) is not { } group)
+        if (bank.NewGroup(figure[0].Pattern) is not { } group)
             return;
 
         group.Name = $"{column},{row}";
 
-        for (int plane = 1; plane < patterns.Count; plane++)
-            group.Add(new SpriteGroupMember(patterns[plane], bank.SpritesList[patterns[plane]]));
+        for (int plane = 1; plane < figure.Count; plane++)
+        {
+            group.Add(new SpriteGroupMember(figure[plane].Pattern, bank.SpritesList[figure[plane].Pattern])
+            {
+                OffsetX = figure[plane].OffsetX,
+                OffsetY = figure[plane].OffsetY,
+            });
+        }
 
         if (type == SpriteBank.SpriteType.MSX)
             return;
 
+        // El primer plano de cada trozo se queda sin CC, y no vale con el primero del grupo:
+        // dos trozos que no comparten ninguna linea de barrido no se habilitan entre si, asi
+        // que el CC del segundo no lo encenderia nadie y esa linea no se dibujaria.
         for (int plane = 1; plane < group.Members.Count; plane++)
         {
+            if (figure[plane].Place != figure[plane - 1].Place)
+                continue;
+
             foreach (SpriteAttributeRow line in group.Members[plane].Rows)
                 line.CombineColor = true;
         }

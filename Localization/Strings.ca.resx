@@ -552,4 +552,8 @@ Recorda copiar cada taula {2} vegades a la VRAM, una per terç de pantalla.</val
   <data name="PickExportShift" xml:space="preserve"><value>Exportar taula de desplaçament</value></data>
   <data name="ErrorExportShift" xml:space="preserve"><value>No s'ha pogut exportar la taula</value></data>
   <data name="ImportSheetType" xml:space="preserve"><value>Màquina</value></data>
+  <data name="ImportSheetFigure" xml:space="preserve"><value>Figura</value></data>
+  <data name="ImportSheetFigureSize" xml:space="preserve"><value>{0} x {1} píxels</value></data>
+  <data name="ImportSheetAcrossTip" xml:space="preserve"><value>Sprites d'ample que fa una figura del full</value></data>
+  <data name="ImportSheetDownTip" xml:space="preserve"><value>I d'alt. Amb dos, el cap i el cos entren al mateix grup</value></data>
 </root>

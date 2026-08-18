@@ -551,4 +551,8 @@ Remember to copy each table {2} times into VRAM, one per third of the screen.</v
   <data name="PickExportShift" xml:space="preserve"><value>Export shift table</value></data>
   <data name="ErrorExportShift" xml:space="preserve"><value>The table could not be exported</value></data>
   <data name="ImportSheetType" xml:space="preserve"><value>Machine</value></data>
+  <data name="ImportSheetFigure" xml:space="preserve"><value>Figure</value></data>
+  <data name="ImportSheetFigureSize" xml:space="preserve"><value>{0} x {1} pixels</value></data>
+  <data name="ImportSheetAcrossTip" xml:space="preserve"><value>How many sprites wide a figure of the sheet is</value></data>
+  <data name="ImportSheetDownTip" xml:space="preserve"><value>And how many tall. With two, head and body land in the same group</value></data>
 </root>

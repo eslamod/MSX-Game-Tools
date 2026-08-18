@@ -40,8 +40,30 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Report))]
+    [NotifyPropertyChangedFor(nameof(FigureLabel))]
     [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
     private int _cellSize = 16;
+
+    /// <summary>
+    /// Sprites de ancho y de alto que mide una figura de la hoja.
+    /// </summary>
+    /// <remarks>
+    /// Un personaje no tiene por qué caber en un sprite. Con dos de alto, la cabeza y el
+    /// cuerpo entran como dos patrones en un mismo grupo, cada uno con su desplazamiento, en
+    /// vez de quedar como dos grupos sueltos que hay que volver a juntar a mano.
+    /// </remarks>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Report))]
+    [NotifyPropertyChangedFor(nameof(FigureLabel))]
+    [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
+    private int _across = 1;
+
+    /// <inheritdoc cref="Across"/>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Report))]
+    [NotifyPropertyChangedFor(nameof(FigureLabel))]
+    [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
+    private int _down = 1;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Report))]
@@ -135,6 +157,17 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
     /// <summary>Los topes de planos que se pueden pedir.</summary>
     public IReadOnlyList<int> PlaneChoices { get; } = [1, 2, 3, 4];
 
+    /// <summary>Sprites que puede medir una figura, a lo ancho o a lo alto.</summary>
+    /// <remarks>
+    /// Hasta cuatro: son los desplazamientos que aguanta un miembro de grupo, y de todas
+    /// formas una figura mayor no cabe en los sprites por línea de barrido del VDP.
+    /// </remarks>
+    public IReadOnlyList<int> SpriteChoices { get; } = [1, 2, 3, 4];
+
+    /// <summary>Lo que mide una figura en pixeles, que es como se mira una hoja.</summary>
+    public string FigureLabel =>
+        Localizer.Instance.Format("ImportSheetFigureSize", Across * CellSize, Down * CellSize);
+
     /// <summary>De qué máquina va a ser el banco que salga.</summary>
     public IReadOnlyList<SpriteBank.SpriteType> TypeChoices { get; } =
         [SpriteBank.SpriteType.MSX, SpriteBank.SpriteType.MSX2];
@@ -150,7 +183,8 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
     public SheetAnalysis Analysis => OnlyPatterns
         ? SpriteSheetAnalysis.AnalysePatterns(Size, CellSize, Selection)
         : SpriteSheetAnalysis.Analyse(
-            _pixels, Size, CellSize, Transparent?.Color, Selection, MaxPlanes, SpriteType);
+            _pixels, Size, CellSize, Transparent?.Color, Selection, MaxPlanes, SpriteType,
+            Across, Down);
 
     /// <summary>
     /// Lo que se lee debajo: o lo que va a costar, o por qué no se puede.
@@ -215,7 +249,8 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
             ? SpriteSheetImporter.ImportPatterns(
                 _pixels, Size, CellSize, Transparent?.Color, Selection, _name)
             : SpriteSheetImporter.Import(
-                _pixels, Size, CellSize, Transparent?.Color, Selection, MaxPlanes, _name, SpriteType);
+                _pixels, Size, CellSize, Transparent?.Color, Selection, MaxPlanes, _name, SpriteType,
+                Across, Down);
 
         if (!import.Ok)
             return;
