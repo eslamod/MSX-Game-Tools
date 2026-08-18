@@ -221,7 +221,13 @@ public static class SpriteSheetAnalysis
     /// color, porque lo que se quiere de una tabla es que el patrón número N sea la celda
     /// número N de lo que se eligió. Saltarse una rompería esa cuenta sin decir nada.
     /// </remarks>
-    public static SheetAnalysis AnalysePatterns(PixelSize size, int cellSize, SheetSelection selection)
+    public static SheetAnalysis AnalysePatterns(
+        int[] pixels,
+        PixelSize size,
+        int cellSize,
+        Color? transparent,
+        SheetSelection selection,
+        bool skipEmpty = false)
     {
         if (Fence(size, cellSize, selection) is { } stopped)
             return stopped;
@@ -230,10 +236,17 @@ public static class SpriteSheetAnalysis
         [
             .. from row in Enumerable.Range(0, selection.Rows)
                from column in Enumerable.Range(0, selection.Columns)
-               select new SheetCellPlan(selection.Left + column, selection.Top + row, 1),
+               select new SheetCellPlan(
+                   selection.Left + column,
+                   selection.Top + row,
+                   skipEmpty && SpriteSheetPixels.IsBlankCell(
+                       pixels, size, cellSize, transparent,
+                       selection.Left + column, selection.Top + row)
+                       ? 0
+                       : 1),
         ];
 
-        return new SheetAnalysis([], [], cells, 1, cells.Count, []);
+        return new SheetAnalysis([], [], cells, 1, cells.Sum(cell => cell.Planes), []);
     }
 
     /// <summary>

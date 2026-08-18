@@ -556,4 +556,6 @@ Recorda copiar cada taula {2} vegades a la VRAM, una per terç de pantalla.</val
   <data name="ImportSheetFigureSize" xml:space="preserve"><value>{0} x {1} píxels</value></data>
   <data name="ImportSheetAcrossTip" xml:space="preserve"><value>Sprites d'ample que fa una figura del full</value></data>
   <data name="ImportSheetDownTip" xml:space="preserve"><value>I d'alt. Amb dos, el cap i el cos entren al mateix grup</value></data>
+  <data name="ImportSheetSkipEmpty" xml:space="preserve"><value>Saltar-se les cel·les buides</value></data>
+  <data name="ImportSheetSkipEmptyTip" xml:space="preserve"><value>Una cel·la en blanc gasta 32 bytes i un lloc del banc per no pintar res. Això se les salta, però el patró número N deixa de ser la cel·la número N</value></data>
 </root>

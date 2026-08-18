@@ -98,6 +98,21 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
     [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
     private bool _onlyPatterns;
 
+    /// <summary>
+    /// Si las celdas vacías se saltan en vez de gastar un patrón en blanco.
+    /// </summary>
+    /// <remarks>
+    /// Apagado por defecto, y no por comodidad: con las vacías dentro, el patrón número N es
+    /// la celda número N de lo que se eligió, y un juego que direccione el patrón por la
+    /// posición de la celda cuenta con eso. Encendido se ahorran treinta y dos bytes y un
+    /// hueco del banco por cada celda en blanco, que en una hoja con separación entre figuras
+    /// es media tabla.
+    /// </remarks>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Report))]
+    [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
+    private bool _skipEmpty;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Report))]
     [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
@@ -181,7 +196,8 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
 
     /// <summary>El análisis de lo que hay elegido ahora mismo.</summary>
     public SheetAnalysis Analysis => OnlyPatterns
-        ? SpriteSheetAnalysis.AnalysePatterns(Size, CellSize, Selection)
+        ? SpriteSheetAnalysis.AnalysePatterns(
+            _pixels, Size, CellSize, Transparent?.Color, Selection, SkipEmpty)
         : SpriteSheetAnalysis.Analyse(
             _pixels, Size, CellSize, Transparent?.Color, Selection, MaxPlanes, SpriteType,
             Across, Down);
@@ -207,7 +223,7 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
             string cost = OnlyPatterns
                 ? Localizer.Instance.Format(
                     "ImportSheetPatternsCost",
-                    analysis.Cells.Count,
+                    analysis.Cells.Count(cell => cell.Planes > 0),
                     analysis.Patterns,
                     SpriteBank.MaxSprites)
                 : Localizer.Instance.Format(
@@ -247,7 +263,7 @@ public partial class ImportSpriteSheetViewModel : PanelBaseViewModel
     {
         SheetImport import = OnlyPatterns
             ? SpriteSheetImporter.ImportPatterns(
-                _pixels, Size, CellSize, Transparent?.Color, Selection, _name)
+                _pixels, Size, CellSize, Transparent?.Color, Selection, _name, SkipEmpty)
             : SpriteSheetImporter.Import(
                 _pixels, Size, CellSize, Transparent?.Color, Selection, MaxPlanes, _name, SpriteType,
                 Across, Down);

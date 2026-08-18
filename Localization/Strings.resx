@@ -600,4 +600,6 @@ Recuerda copiar cada tabla {2} veces en VRAM, una por tercio de pantalla.</value
   <data name="ImportSheetFigureSize" xml:space="preserve"><value>{0} x {1} pixeles</value></data>
   <data name="ImportSheetAcrossTip" xml:space="preserve"><value>Sprites de ancho que mide una figura de la hoja</value></data>
   <data name="ImportSheetDownTip" xml:space="preserve"><value>Y de alto. Con dos, la cabeza y el cuerpo entran en un mismo grupo</value></data>
+  <data name="ImportSheetSkipEmpty" xml:space="preserve"><value>Saltarse las celdas vacías</value></data>
+  <data name="ImportSheetSkipEmptyTip" xml:space="preserve"><value>Una celda en blanco gasta 32 bytes y un hueco del banco para no pintar nada. Con esto se saltan, pero el patrón número N deja de ser la celda número N</value></data>
 </root>

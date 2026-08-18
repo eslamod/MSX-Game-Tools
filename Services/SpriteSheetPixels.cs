@@ -38,6 +38,29 @@ internal static class SpriteSheetPixels
     public static bool IsClear(int bgra, Color? transparent) =>
         (uint)bgra >> 24 == 0 || (transparent is { } clear && FromBgra(bgra) == clear);
 
+    /// <summary>Si una celda de la hoja no trae ni un pixel que pintar.</summary>
+    /// <remarks>
+    /// Una celda así no se lleva ningún patrón cuando se pide saltarse las vacías, y no
+    /// hacen falta sus colores para saberlo: basta con que ningún pixel sea transparente.
+    /// </remarks>
+    public static bool IsBlankCell(
+        int[] pixels, PixelSize size, int cellSize, Color? transparent, int column, int row)
+    {
+        int left = column * cellSize;
+        int top = row * cellSize;
+
+        for (int y = 0; y < cellSize; y++)
+        {
+            for (int x = 0; x < cellSize; x++)
+            {
+                if (!IsClear(pixels[((top + y) * size.Width) + left + x], transparent))
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
     public static Color FromBgra(int bgra) => Color.FromRgb(
         (byte)((bgra >> 16) & 0xFF), (byte)((bgra >> 8) & 0xFF), (byte)(bgra & 0xFF));
 

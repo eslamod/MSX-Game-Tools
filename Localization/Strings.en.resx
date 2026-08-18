@@ -555,4 +555,6 @@ Remember to copy each table {2} times into VRAM, one per third of the screen.</v
   <data name="ImportSheetFigureSize" xml:space="preserve"><value>{0} x {1} pixels</value></data>
   <data name="ImportSheetAcrossTip" xml:space="preserve"><value>How many sprites wide a figure of the sheet is</value></data>
   <data name="ImportSheetDownTip" xml:space="preserve"><value>And how many tall. With two, head and body land in the same group</value></data>
+  <data name="ImportSheetSkipEmpty" xml:space="preserve"><value>Skip the empty cells</value></data>
+  <data name="ImportSheetSkipEmptyTip" xml:space="preserve"><value>A blank cell costs 32 bytes and a bank slot to draw nothing. This skips them, but pattern number N stops being cell number N</value></data>
 </root>

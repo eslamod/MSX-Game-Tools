@@ -127,10 +127,16 @@ public static class SpriteSheetImporter
     /// viene ya en blanco y negro y el color no significa nada.
     /// </para>
     /// <para>
-    /// Un patrón por celda y en orden de lectura, sin saltarse las vacías y sin reaprovechar
-    /// las repetidas. Al revés que el modo de color, y a propósito: de una tabla se espera que
-    /// el patrón número N sea la celda número N de lo que se eligió, y saltarse una rompería
-    /// esa cuenta sin decir nada.
+    /// Un patrón por celda y en orden de lectura, incluidas las vacías, y sin reaprovechar las
+    /// repetidas. Al revés que el modo de color, y a propósito: de una tabla se espera que el
+    /// patrón número N sea la celda número N de lo que se eligió, y saltarse una rompería esa
+    /// cuenta sin decir nada.
+    /// </para>
+    /// <para>
+    /// Con <paramref name="skipEmpty"/> se hace lo contrario, y también tiene su razón: una
+    /// celda vacía son treinta y dos bytes de patrón y un hueco del banco para no pintar nada,
+    /// y en una hoja con separación entre figuras eso es la mitad de la tabla. Lo que se pierde
+    /// es poder direccionar el patrón por el número de celda, así que lo elige quien importa.
     /// </para>
     /// </remarks>
     public static SheetImport ImportPatterns(
@@ -139,9 +145,11 @@ public static class SpriteSheetImporter
         int cellSize,
         Color? transparent,
         SheetSelection selection,
-        string name)
+        string name,
+        bool skipEmpty = false)
     {
-        SheetAnalysis analysis = SpriteSheetAnalysis.AnalysePatterns(size, cellSize, selection);
+        SheetAnalysis analysis = SpriteSheetAnalysis.AnalysePatterns(
+            pixels, size, cellSize, transparent, selection, skipEmpty);
 
         if (!analysis.Ok)
             return new SheetImport(null, null, analysis, analysis.Problems);
@@ -162,6 +170,13 @@ public static class SpriteSheetImporter
         {
             for (int column = 0; column < selection.Columns; column++)
             {
+                if (skipEmpty && SpriteSheetPixels.IsBlankCell(
+                        pixels, size, cellSize, transparent,
+                        selection.Left + column, selection.Top + row))
+                {
+                    continue;
+                }
+
                 Trace(
                     bank.SpritesList[next++],
                     pixels, size, cellSize, transparent,
