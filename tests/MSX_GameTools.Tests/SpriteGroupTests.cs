@@ -12,14 +12,36 @@ namespace MSX_GameTools.Tests;
 /// </summary>
 public class SpriteGroupTests
 {
-    private const int Size = SpriteGroupRenderer.PreviewSize;
-    private const int Origin = SpriteGroupMember.MaxOffset;
+    /// <summary>El lienzo de un grupo corriente y dónde cae en él el desplazamiento cero.</summary>
+    /// <remarks>
+    /// No son constantes del renderizador: el lienzo sale de lo que ocupa cada grupo. Estos son
+    /// los de un grupo de un sprite sin desplazar, que es el de casi todas estas pruebas.
+    /// </remarks>
+    private const int Size = SpriteGroupRenderer.NominalSize;
 
+    private const int Origin = SpriteRow.Columns;
+
+    /// <summary>
+    /// El lienzo de un grupo sale de lo que el grupo ocupa, con un sprite de margen.
+    /// </summary>
+    /// <remarks>
+    /// Antes era fijo, atado al desplazamiento máximo, y con eso una figura de dos sprites de
+    /// alto no cabía. Redondeado a sprites enteros para que mover una flecha no cambie el
+    /// tamaño de la miniatura y reordene el panel.
+    /// </remarks>
     [AvaloniaFact]
-    public void El_lienzo_del_grupo_cubre_el_sprite_mas_el_desplazamiento_maximo()
+    public void El_lienzo_sale_de_lo_que_ocupa_el_grupo()
     {
-        // 16 del sprite mas 15 a cada lado.
-        Assert.Equal(46, SpriteGroupRenderer.PreviewSize);
+        var bank = new SpriteBank();
+        SpriteGroup group = bank.NewGroup(0)!;
+
+        // Uno solo sin desplazar: el sprite y un sprite de margen a cada lado.
+        Assert.Equal((48, 48, 16, 16), SpriteGroupRenderer.CanvasOf(group));
+
+        // Y con otro un sprite más abajo, el lienzo crece a lo alto y no a lo ancho.
+        group.Add(new SpriteGroupMember(1, bank.SpritesList[1]) { OffsetY = 16 });
+
+        Assert.Equal((48, 64, 16, 16), SpriteGroupRenderer.CanvasOf(group));
     }
 
     [AvaloniaFact]
@@ -101,13 +123,13 @@ public class SpriteGroupTests
     }
 
     [AvaloniaFact]
-    public void Los_desplazamientos_se_limitan_a_mas_menos_15()
+    public void Los_desplazamientos_se_limitan_a_tres_sprites()
     {
         var bank = new SpriteBank();
         SpriteGroupMember member = bank.NewGroup(0)!.Members[0];
 
-        member.OffsetX = 40;
-        member.OffsetY = -40;
+        member.OffsetX = 100;
+        member.OffsetY = -100;
 
         Assert.Equal(SpriteGroupMember.MaxOffset, member.OffsetX);
         Assert.Equal(SpriteGroupMember.MinOffset, member.OffsetY);
@@ -160,12 +182,18 @@ public class SpriteGroupTests
         group.Members[0].OffsetX = -15;
         group.Members[0].OffsetY = 15;
 
-        ImageMini preview = SpriteGroupRenderer.CreatePreview();
+        ImageMini preview = SpriteGroupRenderer.CreatePreview(group);
         SpriteGroupRenderer.Render(group, bank, palette, background, preview);
 
         int[] pixels = PixelReader.Read(preview);
 
-        Assert.Equal(PixelReader.Bgra(palette.GetColor(8)), pixels[((Origin + 15) * Size) + Origin - 15]);
+        // El origen de este grupo no es el de siempre: sacar un plano quince pixeles a la
+        // izquierda ensancha el lienzo por ese lado.
+        (int width, _, int originX, int originY) = SpriteGroupRenderer.CanvasOf(group);
+
+        Assert.Equal(
+            PixelReader.Bgra(palette.GetColor(8)),
+            pixels[((originY + 15) * width) + originX - 15]);
         Assert.Equal(1, pixels.Count(p => p == PixelReader.Bgra(palette.GetColor(8))));
     }
 
@@ -184,7 +212,7 @@ public class SpriteGroupTests
         behind.Rows[0].Color = 2;
         group.Add(behind);
 
-        ImageMini preview = SpriteGroupRenderer.CreatePreview();
+        ImageMini preview = SpriteGroupRenderer.CreatePreview(group);
         SpriteGroupRenderer.Render(group, bank, palette, palette.GetColor(1), preview);
 
         // El primero de la lista es el de mayor prioridad.
@@ -207,7 +235,7 @@ public class SpriteGroupTests
         behind.Rows[0].CombineColor = true;
         group.Add(behind);
 
-        ImageMini preview = SpriteGroupRenderer.CreatePreview();
+        ImageMini preview = SpriteGroupRenderer.CreatePreview(group);
         SpriteGroupRenderer.Render(group, bank, palette, palette.GetColor(1), preview);
 
         // 0001 OR 0100 = 0101 = 5. El V9938 combina los codigos de color, no el RGB.
@@ -229,7 +257,7 @@ public class SpriteGroupTests
         group.Members[0].Rows[0].Color = 8;
         group.Members[0].Rows[0].CombineColor = true; // el primero: nadie por delante
 
-        ImageMini preview = SpriteGroupRenderer.CreatePreview();
+        ImageMini preview = SpriteGroupRenderer.CreatePreview(group);
         SpriteGroupRenderer.Render(group, bank, palette, background, preview);
 
         // La maquina no lo dibujaria, asi que el editor tampoco.
@@ -253,7 +281,7 @@ public class SpriteGroupTests
         behind.Rows[0].Color = 4; // CC a 0, pero va detras
         group.Add(behind);
 
-        ImageMini preview = SpriteGroupRenderer.CreatePreview();
+        ImageMini preview = SpriteGroupRenderer.CreatePreview(group);
         SpriteGroupRenderer.Render(group, bank, palette, background, preview);
 
         // Solo habilitan los de numero menor: el de CC sigue sin dibujarse y se ve
@@ -280,7 +308,7 @@ public class SpriteGroupTests
         combined.Rows[0].CombineColor = true; // columnas 6-9, sin solapar con el de abajo
         group.Add(combined);
 
-        ImageMini preview = SpriteGroupRenderer.CreatePreview();
+        ImageMini preview = SpriteGroupRenderer.CreatePreview(group);
         SpriteGroupRenderer.Render(group, bank, palette, background, preview);
 
         // Comparten linea de pantalla aunque no se toquen, asi que se dibuja igual.
@@ -309,7 +337,7 @@ public class SpriteGroupTests
         third.Rows[0].CombineColor = true;
         group.Add(third);
 
-        ImageMini preview = SpriteGroupRenderer.CreatePreview();
+        ImageMini preview = SpriteGroupRenderer.CreatePreview(group);
         SpriteGroupRenderer.Render(group, bank, palette, palette.GetColor(1), preview);
 
         // Los codigos se acumulan con OR segun se solapan.
@@ -332,7 +360,7 @@ public class SpriteGroupTests
 
         SpriteGroup group = bank.NewGroup(0)!;
 
-        ImageMini preview = SpriteGroupRenderer.CreatePreview();
+        ImageMini preview = SpriteGroupRenderer.CreatePreview(group);
         SpriteGroupRenderer.Render(group, bank, palette, background, preview);
 
         Assert.All(PixelReader.Read(preview), pixel => Assert.Equal(PixelReader.Bgra(background), pixel));

@@ -807,12 +807,26 @@
                    y la referencia va centrada y a escala de pixel de sprite, no
                    estirada al hueco.
 
-                   El color de fondo hace falta porque el lienzo del grupo es de 46x46
-                   (16 del sprite mas 15 de margen a cada lado) y una celda de 16 solo
+                   El color de fondo hace falta porque el lienzo del grupo es mayor que el
+                   sprite -lleva un sprite de margen a cada lado- y una celda de 16 solo
                    cubre el centro: sin esta capa por los bordes se veria el gris del
-                   panel de detras, que no es un color del banco ni significa nada. -->
-              <Panel Width="{Binding $parent[views:SpritesEditorView].GroupThumbnailSize}"
-                     Height="{Binding $parent[views:SpritesEditorView].GroupThumbnailSize}">
+                   panel de detras, que no es un color del banco ni significa nada.
+
+                   La miniatura mide lo que mide su grupo y no un cuadrado fijo: una figura
+                   de dos sprites de alto en un cuadrado saldria aplastada. -->
+              <Panel>
+                <Panel.Width>
+                  <MultiBinding Converter="{x:Static converters:MultiplyConverter.Instance}">
+                    <Binding Path="Preview.Width" />
+                    <Binding Path="GroupPixelSize" RelativeSource="{RelativeSource AncestorType=views:SpritesEditorView}" />
+                  </MultiBinding>
+                </Panel.Width>
+                <Panel.Height>
+                  <MultiBinding Converter="{x:Static converters:MultiplyConverter.Instance}">
+                    <Binding Path="Preview.Height" />
+                    <Binding Path="GroupPixelSize" RelativeSource="{RelativeSource AncestorType=views:SpritesEditorView}" />
+                  </MultiBinding>
+                </Panel.Height>
                 <Border Background="{Binding $parent[views:SpritesEditorView].((vm:SpritesEditorViewModel)DataContext).BackgroundColor.Brush}"
                         IsVisible="{Binding Background.VisibleTile, Converter={x:Static ObjectConverters.IsNotNull}}" />
 

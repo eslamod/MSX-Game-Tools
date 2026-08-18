@@ -112,12 +112,12 @@ public class SpriteGroupViewTests
         editor.ViewModel.AddGroupCommand.Execute(null);
 
         SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
-        int before = PixelReader.At(group.Preview, SpriteGroupMember.MaxOffset, SpriteGroupMember.MaxOffset);
+        int before = PixelReader.At(group.Preview, SpriteRow.Columns, SpriteRow.Columns);
 
         group.NudgeOffsetCommand.Execute("right");
 
-        int after = PixelReader.At(group.Preview, SpriteGroupMember.MaxOffset, SpriteGroupMember.MaxOffset);
-        int moved = PixelReader.At(group.Preview, SpriteGroupMember.MaxOffset + 1, SpriteGroupMember.MaxOffset);
+        int after = PixelReader.At(group.Preview, SpriteRow.Columns, SpriteRow.Columns);
+        int moved = PixelReader.At(group.Preview, SpriteRow.Columns + 1, SpriteRow.Columns);
 
         Assert.NotEqual(before, after);
         Assert.Equal(before, moved);
@@ -132,8 +132,8 @@ public class SpriteGroupViewTests
 
         ImageMini preview = editor.ViewModel.SelectedGroup!.Preview;
 
-        Assert.Equal(SpriteGroupRenderer.PreviewSize, preview.Width);
-        Assert.Equal(SpriteGroupRenderer.PreviewSize, preview.Height);
+        Assert.Equal(SpriteGroupRenderer.NominalSize, preview.Width);
+        Assert.Equal(SpriteGroupRenderer.NominalSize, preview.Height);
     }
 
     // Estar en modo Grupos no impide seguir dibujando: el lienzo sigue al patrón del
@@ -202,13 +202,13 @@ public class SpriteGroupViewTests
         editor.ViewModel.AddGroupCommand.Execute(null);
 
         SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
-        int before = PixelReader.At(group.Preview, SpriteGroupMember.MaxOffset, SpriteGroupMember.MaxOffset);
+        int before = PixelReader.At(group.Preview, SpriteRow.Columns, SpriteRow.Columns);
 
         // Un trazo de verdad sobre el lienzo, con su pulsar y soltar.
         editor.Press(0, 0);
         editor.Release(0, 0);
 
-        int after = PixelReader.At(group.Preview, SpriteGroupMember.MaxOffset, SpriteGroupMember.MaxOffset);
+        int after = PixelReader.At(group.Preview, SpriteRow.Columns, SpriteRow.Columns);
 
         Assert.True(editor.Bank.SpritesList[0].ArraySpriteRows[0].ArrayColumns[0]);
         Assert.NotEqual(before, after);

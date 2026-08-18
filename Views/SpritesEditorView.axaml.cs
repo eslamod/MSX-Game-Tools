@@ -37,12 +37,12 @@ public partial class SpritesEditorView : UserControl
     /// <summary>
     /// Lado de la miniatura de un grupo. Se escala con el mismo número de pixeles de
     /// pantalla por pixel de sprite que las miniaturas de patrones, así que sale
-    /// proporcionalmente mayor: el lienzo del grupo es de 46 y el del patrón de 16.
+    /// proporcionalmente mayor: el lienzo de un grupo corriente es de 48 y el del patrón de 16.
     /// </summary>
     public static readonly StyledProperty<double> GroupThumbnailSizeProperty =
         AvaloniaProperty.Register<SpritesEditorView, double>(
             nameof(GroupThumbnailSize),
-            defaultValue: SpriteGroupRenderer.PreviewSize * ThumbnailBaseScale);
+            defaultValue: SpriteGroupRenderer.NominalSize * ThumbnailBaseScale);
 
     /// <summary>
     /// Lo que mide en pantalla un pixel del lienzo del grupo. La imagen de referencia se
@@ -192,7 +192,7 @@ public partial class SpritesEditorView : UserControl
             preferences.SpriteThumbnailZoom = factor;
 
         ThumbnailSize = GridSize * scale;
-        GroupThumbnailSize = SpriteGroupRenderer.PreviewSize * scale;
+        GroupThumbnailSize = SpriteGroupRenderer.NominalSize * scale;
         GroupPixelSize = scale;
     }
 

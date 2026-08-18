@@ -24,12 +24,12 @@ public class GroupMemberVisibilityTests
         SetLine(group.Members[0], row: 0, color: 4, combine: false);
         SetLine(group.Members[1], row: 0, color: 8, combine: false);
 
-        Assert.Equal(4, ComposeAt(bank, group, 15, 15));
+        Assert.Equal(4, ComposeAt(bank, group, 0, 0));
 
         group.Members[0].IsVisible = false;
 
         // Al quitar el de mayor prioridad se ve el que había debajo.
-        Assert.Equal(8, ComposeAt(bank, group, 15, 15));
+        Assert.Equal(8, ComposeAt(bank, group, 0, 0));
     }
 
     /// <summary>
@@ -45,12 +45,12 @@ public class GroupMemberVisibilityTests
         SetLine(group.Members[1], row: 0, color: 8, combine: true);
 
         // Con los dos visibles, el CC combina con OR sobre el de mayor prioridad.
-        Assert.Equal(4 | 8, ComposeAt(bank, group, 15, 15));
+        Assert.Equal(4 | 8, ComposeAt(bank, group, 0, 0));
 
         group.Members[0].IsVisible = false;
 
         // Sigue viéndose: lo que se oculta son sus pixeles, no su papel de habilitador.
-        Assert.Equal(8, ComposeAt(bank, group, 15, 15));
+        Assert.Equal(8, ComposeAt(bank, group, 0, 0));
     }
 
     [AvaloniaFact]
@@ -63,7 +63,7 @@ public class GroupMemberVisibilityTests
         SetLine(group.Members[0], row: 0, color: 4, combine: true);
         SetLine(group.Members[1], row: 0, color: 8, combine: true);
 
-        Assert.Equal(-1, ComposeAt(bank, group, 15, 15));
+        Assert.Equal(-1, ComposeAt(bank, group, 0, 0));
     }
 
     [AvaloniaFact]
@@ -103,10 +103,21 @@ public class GroupMemberVisibilityTests
         member.Rows[row].CombineColor = combine;
     }
 
-    /// <summary>Índice de color compuesto en un punto del lienzo del grupo; -1 si no se pinta.</summary>
+    /// <summary>
+    /// Índice de color compuesto en un pixel del patrón; -1 si no se pinta.
+    /// </summary>
+    /// <remarks>
+    /// En coordenadas del patrón y no del lienzo: dónde cae el desplazamiento cero sale de lo
+    /// que ocupa el grupo, así que fijarlo a un número aquí ataría la prueba a un tamaño de
+    /// miniatura que no es lo que se está comprobando.
+    /// </remarks>
     private static int ComposeAt(SpriteBank bank, SpriteGroup group, int x, int y)
     {
-        ImageMini preview = SpriteGroupRenderer.CreatePreview();
+        ImageMini preview = SpriteGroupRenderer.CreatePreview(group);
+        (_, _, int originX, int originY) = SpriteGroupRenderer.CanvasOf(group);
+
+        x += originX;
+        y += originY;
         var palette = ColorPalette.CreateMsxStandard();
 
         // Cada indice a un color distinto y reconocible: el propio indice en el rojo.

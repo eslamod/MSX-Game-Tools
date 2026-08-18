@@ -12,10 +12,14 @@ namespace MSX_GameTools.Entities;
 public static class ReferenceImageSlicer
 {
     /// <summary>
-    /// Hasta este tamaño la imagen entra de una pieza y no se pregunta nada. Es el lado
-    /// del lienzo del grupo: una imagen que ya cabe ahí no gana nada troceándose.
+    /// Hasta este tamaño la imagen entra de una pieza y no se pregunta nada.
     /// </summary>
-    public const int SingleTileMax = SpriteGroupRenderer.PreviewSize;
+    /// <remarks>
+    /// Un sprite y pico: una imagen de referencia que ya cabe ahí no gana nada troceándose.
+    /// Era el lado del lienzo del grupo, pero ese lienzo pasó a salir de lo que ocupa cada
+    /// grupo, y atar a él este umbral lo dejaba cambiando por motivos que no son suyos.
+    /// </remarks>
+    public const int SingleTileMax = 46;
 
     /// <summary>
     /// Celdas en las que se parte una imagen, de izquierda a derecha y de arriba abajo.

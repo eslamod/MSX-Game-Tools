@@ -24,19 +24,72 @@ namespace MSX_GameTools.Entities;
 public static class SpriteGroupRenderer
 {
     /// <summary>
-    /// Lado del lienzo del grupo: 16 del sprite más 15 de margen a cada lado, que es
-    /// el desplazamiento máximo. Fijo a propósito, para que la miniatura no cambie de
-    /// tamaño y reordene el panel cada vez que se toca una flecha.
+    /// Margen alrededor de lo que ocupa el grupo, para poder sacar un plano un poco sin
+    /// que la miniatura cambie de tamaño en cuanto se toca una flecha.
     /// </summary>
-    public const int PreviewSize = SpriteRow.Columns + (2 * SpriteGroupMember.MaxOffset);
+    private const int Margin = SpriteRow.Columns;
 
-    /// <summary>Punto del lienzo donde cae el desplazamiento cero.</summary>
-    private const int Origin = SpriteGroupMember.MaxOffset;
+    /// <summary>
+    /// Lo que mide el lienzo de un grupo de un solo sprite sin desplazar.
+    /// </summary>
+    /// <remarks>
+    /// El caso corriente, y lo que usa la interfaz para dimensionar la tira de miniaturas por
+    /// defecto. Cada grupo se pinta en el suyo, que puede ser mayor; esto es sólo el punto de
+    /// partida de los pasos de zoom.
+    /// </remarks>
+    public const int NominalSize = SpriteRow.Columns + (2 * Margin);
 
     /// <summary>Marca de celda vacía en el buffer de índices de color.</summary>
     private const int Empty = -1;
 
-    public static ImageMini CreatePreview() => new(PreviewSize, PreviewSize);
+    /// <summary>
+    /// El lienzo que le hace falta a un grupo, y dónde cae dentro el desplazamiento cero.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Sale de lo que el grupo ocupa de verdad y no de un tamaño fijo, porque una figura de
+    /// dos sprites de alto no cabía: con un lienzo atado al desplazamiento máximo, subir ese
+    /// tope para que quepa agranda además la miniatura de todos los demás grupos, que se
+    /// quedarían casi vacías.
+    /// </para>
+    /// <para>
+    /// Redondeado a sprites enteros y con un sprite de margen. Lo que se quiere evitar es que
+    /// la miniatura cambie de tamaño y reordene el panel cada vez que se toca una flecha: con
+    /// esto sólo cambia al cruzar un borde de sprite, que es cuando la figura de verdad ocupa
+    /// otra cosa.
+    /// </para>
+    /// </remarks>
+    public static (int Width, int Height, int OriginX, int OriginY) CanvasOf(SpriteGroup group)
+    {
+        int left = 0;
+        int top = 0;
+        int right = SpriteRow.Columns;
+        int bottom = Sprite.Rows;
+
+        foreach (SpriteGroupMember member in group.Members)
+        {
+            left = Math.Min(left, member.OffsetX);
+            top = Math.Min(top, member.OffsetY);
+            right = Math.Max(right, member.OffsetX + SpriteRow.Columns);
+            bottom = Math.Max(bottom, member.OffsetY + Sprite.Rows);
+        }
+
+        int originX = Round(Margin - left);
+        int originY = Round(Margin - top);
+
+        return (Round(originX + right + Margin), Round(originY + bottom + Margin), originX, originY);
+    }
+
+    /// <summary>Al alza, a sprites enteros.</summary>
+    private static int Round(int value) =>
+        (value + SpriteRow.Columns - 1) / SpriteRow.Columns * SpriteRow.Columns;
+
+    public static ImageMini CreatePreview(SpriteGroup group)
+    {
+        (int width, int height, _, _) = CanvasOf(group);
+
+        return new ImageMini(width, height);
+    }
 
     public static void Render(
         SpriteGroup group,
@@ -45,7 +98,9 @@ public static class SpriteGroupRenderer
         Color background,
         ImageMini target)
     {
-        int[] indices = new int[PreviewSize * PreviewSize];
+        (int width, int height, int originX, int originY) = CanvasOf(group);
+
+        int[] indices = new int[width * height];
         Array.Fill(indices, Empty);
 
         // Los patrones se resuelven una vez: la composición recorre líneas de pantalla,
@@ -57,8 +112,8 @@ public static class SpriteGroupRenderer
                 .Select(member => (member, bank.SpritesList[member.PatternIndex])),
         ];
 
-        for (int canvasY = 0; canvasY < PreviewSize; canvasY++)
-            ComposeLine(indices, members, canvasY);
+        for (int canvasY = 0; canvasY < height; canvasY++)
+            ComposeLine(indices, members, canvasY, width, originX, originY);
 
         for (int i = 0; i < indices.Length; i++)
         {
@@ -68,14 +123,17 @@ public static class SpriteGroupRenderer
                 ? background
                 : SpriteRenderer.ResolveRowColor(palette, index, background);
 
-            target.SetPixel(i % PreviewSize, i / PreviewSize, color);
+            target.SetPixel(i % width, i / width, color);
         }
     }
 
     private static void ComposeLine(
         int[] indices,
         List<(SpriteGroupMember Member, Sprite Pattern)> members,
-        int canvasY)
+        int canvasY,
+        int width,
+        int originX,
+        int originY)
     {
         // ¿Ha aparecido ya, en esta línea, un sprite de mayor prioridad con CC a 0? Es
         // lo que habilita a los de CC. Se mira sólo hacia atrás, así que un CC en el
@@ -84,7 +142,7 @@ public static class SpriteGroupRenderer
 
         foreach ((SpriteGroupMember member, Sprite pattern) in members)
         {
-            int row = canvasY - Origin - member.OffsetY;
+            int row = canvasY - originY - member.OffsetY;
             if ((uint)row >= Sprite.Rows)
                 continue;
 
@@ -93,7 +151,7 @@ public static class SpriteGroupRenderer
             if (!attributes.CombineColor)
             {
                 if (member.IsVisible)
-                    DrawLine(indices, pattern, member, row, canvasY, attributes.Color, combine: false);
+                    DrawLine(indices, pattern, member, row, canvasY, attributes.Color, false, width, originX);
 
                 // Basta con que su línea caiga aquí, aunque no pinte ningún pixel. Y
                 // sigue habilitando aunque esté oculto: ocultar un plano para mirar los
@@ -105,7 +163,7 @@ public static class SpriteGroupRenderer
             }
 
             if (enabledByHigherPriority && member.IsVisible)
-                DrawLine(indices, pattern, member, row, canvasY, attributes.Color, combine: true);
+                DrawLine(indices, pattern, member, row, canvasY, attributes.Color, true, width, originX);
         }
     }
 
@@ -116,7 +174,9 @@ public static class SpriteGroupRenderer
         int row,
         int canvasY,
         int color,
-        bool combine)
+        bool combine,
+        int width,
+        int originX)
     {
         SpriteRow patternRow = pattern.ArraySpriteRows[row];
 
@@ -125,11 +185,11 @@ public static class SpriteGroupRenderer
             if (!patternRow.ArrayColumns[column])
                 continue;
 
-            int canvasX = Origin + member.OffsetX + column;
-            if ((uint)canvasX >= PreviewSize)
+            int canvasX = originX + member.OffsetX + column;
+            if ((uint)canvasX >= (uint)width)
                 continue;
 
-            int offset = (canvasY * PreviewSize) + canvasX;
+            int offset = (canvasY * width) + canvasX;
 
             if (indices[offset] == Empty)
             {

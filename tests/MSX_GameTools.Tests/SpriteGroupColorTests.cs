@@ -14,7 +14,7 @@ namespace MSX_GameTools.Tests;
 /// </summary>
 public class SpriteGroupColorTests
 {
-    private const int Origin = SpriteGroupMember.MaxOffset;
+    private const int Origin = SpriteRow.Columns;
 
     [AvaloniaFact]
     public void Las_casillas_siguen_al_miembro_seleccionado()
@@ -82,13 +82,16 @@ public class SpriteGroupColorTests
 
         int[] pixels = PixelReader.Read(group.Preview);
 
+        // Desplazar un plano ensancha el lienzo, asi que el ancho y el origen salen del grupo.
+        (int width, _, int originX, int originY) = SpriteGroupRenderer.CanvasOf(group.Group);
+
         Assert.Equal(
             PixelReader.Bgra(editor.Palette.GetColor(8)),
-            pixels[(Origin * SpriteGroupRenderer.PreviewSize) + Origin]);
+            pixels[(originY * width) + originX]);
 
         Assert.Equal(
             PixelReader.Bgra(editor.Palette.GetColor(2)),
-            pixels[(Origin * SpriteGroupRenderer.PreviewSize) + Origin + 1]);
+            pixels[(originY * width) + originX + 1]);
     }
 
     [AvaloniaFact]

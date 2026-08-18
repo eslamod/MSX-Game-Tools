@@ -130,8 +130,10 @@ public class GroupBackgroundTests : IDisposable
         SpriteGroupViewModel group = editor.SelectedGroup!;
         group.BackgroundTile = library.Tiles[0];
 
-        // El desplazamiento cero cae en la 15,15 del lienzo del grupo.
-        Assert.Equal(255, Alpha(group.Preview, 15, 15));
+        // Donde caiga el desplazamiento cero, que sale de lo que ocupa el grupo.
+        (_, _, int originX, int originY) = SpriteGroupRenderer.CanvasOf(group.Group);
+
+        Assert.Equal(255, Alpha(group.Preview, originX, originY));
     }
 
     [AvaloniaFact]

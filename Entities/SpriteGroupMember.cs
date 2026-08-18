@@ -13,8 +13,19 @@ namespace MSX_GameTools.Entities;
 /// </remarks>
 public partial class SpriteGroupMember : ObservableObject
 {
-    public const int MinOffset = -15;
-    public const int MaxOffset = 15;
+    /// <summary>
+    /// Cuanto se puede sacar un plano del grupo, en pixeles.
+    /// </summary>
+    /// <remarks>
+    /// Tres sprites en cada direccion. Antes eran quince pixeles, menos de un sprite, y con
+    /// eso una figura de dos sprites de alto no se podia montar en un grupo: la mitad de abajo
+    /// necesita dieciseis. En el fichero exportado el desplazamiento va en un byte con signo,
+    /// asi que llega de sobra.
+    /// </remarks>
+    public const int MinOffset = -48;
+
+    /// <inheritdoc cref="MinOffset"/>
+    public const int MaxOffset = 48;
 
     private int _patternIndex;
     private int _offsetX;

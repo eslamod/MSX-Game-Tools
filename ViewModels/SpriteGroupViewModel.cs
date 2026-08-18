@@ -39,7 +39,7 @@ public partial class SpriteGroupViewModel : ObservableObject
             backgrounds, dialogs, () => group.Background, reference => group.Background = reference);
 
         Background.Changed += () => OnPropertyChanged(nameof(BackgroundTile));
-        Preview = SpriteGroupRenderer.CreatePreview();
+        Preview = SpriteGroupRenderer.CreatePreview(group);
 
         for (int row = 0; row < Sprite.Rows; row++)
         {
@@ -97,7 +97,7 @@ public partial class SpriteGroupViewModel : ObservableObject
     private double _spriteOpacity = 1.0;
 
     /// <summary>La composición de los miembros, ya dibujada.</summary>
-    public ImageMini Preview { get; }
+    public ImageMini Preview { get; private set; }
 
     /// <summary>Último patrón del banco al que puede apuntar un miembro.</summary>
     public int MaxPatternIndex => _bank.SpritesList.Count - 1;
@@ -193,8 +193,23 @@ public partial class SpriteGroupViewModel : ObservableObject
     /// que en el MSX es el transparente de verdad, así que con esto la composición pasa
     /// a ser una capa que deja ver lo de debajo sin tocar nada más.
     /// </remarks>
-    public void Render(ColorPalette palette, Color background) => SpriteGroupRenderer.Render(
-        Group, _bank, palette, Background.VisibleTile is null ? background : Colors.Transparent, Preview);
+    public void Render(ColorPalette palette, Color background)
+    {
+        // El lienzo sale de lo que ocupa el grupo, asi que sacar un plano de la figura puede
+        // hacerlo mas grande. La imagen no se redimensiona: se cambia por otra, y hay que
+        // avisar para que la vista deje de ensenar la anterior.
+        (int width, int height, _, _) = SpriteGroupRenderer.CanvasOf(Group);
+
+        if (Preview.Width != width || Preview.Height != height)
+        {
+            Preview = SpriteGroupRenderer.CreatePreview(Group);
+
+            OnPropertyChanged(nameof(Preview));
+        }
+
+        SpriteGroupRenderer.Render(
+            Group, _bank, palette, Background.VisibleTile is null ? background : Colors.Transparent, Preview);
+    }
 
     /// <summary>
     /// Añade un sprite más con el mismo patrón que el seleccionado. Repetir el patrón
