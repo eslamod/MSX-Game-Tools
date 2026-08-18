@@ -11,6 +11,15 @@
              DragDrop.AllowDrop="True"
              Background="{DynamicResource AppPanelBackground}">
 
+  <UserControl.Resources>
+    <!-- El alto de una fila y su borde, en un solo sitio. Las dos columnas -la paleta que
+         se edita y la que se compara- tienen que ir al mismo paso, y con el numero escrito
+         en cada una se descuadraban un poco por fila: al llegar abajo, la diferencia era de
+         media lista. -->
+    <x:Double x:Key="PaletteRowHeight">24</x:Double>
+    <Thickness x:Key="PaletteRowBorder">2</Thickness>
+  </UserControl.Resources>
+
   <UserControl.Styles>
     <!-- Las filas de la lista, apretadas. El ListBoxItem de serie trae relleno y alto
          minimo pensados para texto suelto, y con dieciseis colores eso son dos pantallas
@@ -18,7 +27,7 @@
     <Style Selector="ListBox#ColorList > ListBoxItem">
       <Setter Property="Padding" Value="4,0" />
       <Setter Property="MinHeight" Value="0" />
-      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="BorderThickness" Value="{StaticResource PaletteRowBorder}" />
       <Setter Property="BorderBrush" Value="Transparent" />
     </Style>
 
@@ -85,7 +94,7 @@
              ScrollViewer.VerticalScrollBarVisibility="Disabled">
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="entities:PaletteColor">
-          <Grid ColumnDefinitions="Auto,28,*,Auto" Height="24">
+          <Grid ColumnDefinitions="Auto,28,*,Auto" Height="{StaticResource PaletteRowHeight}">
             <Border Grid.Column="0" Width="24" Height="18"
                     BorderBrush="Black" BorderThickness="1"
                     VerticalAlignment="Center">
@@ -112,9 +121,11 @@
                   IsVisible="{Binding IsComparing}" Margin="6,0,0,0">
       <ItemsControl.ItemTemplate>
         <DataTemplate x:DataType="vm:ComparedColor">
-          <!-- El mismo alto que las filas de la izquierda mas su margen, para que las dos
-               columnas queden emparejadas sin depender de donde caiga cada una. -->
-          <Grid ColumnDefinitions="Auto,Auto,Auto" Height="26">
+          <!-- Mismo alto y mismo borde que las filas de la izquierda, y de los mismos recursos:
+               las dos columnas van emparejadas por indice, asi que basta con que una fila mida
+               un pelo distinto para que abajo esten a media fila de diferencia. -->
+          <Border BorderThickness="{StaticResource PaletteRowBorder}" BorderBrush="Transparent">
+          <Grid ColumnDefinitions="Auto,Auto,Auto" Height="{StaticResource PaletteRowHeight}">
             <Border Grid.Column="0" Width="24" Height="18"
                     BorderBrush="Black" BorderThickness="1"
                     VerticalAlignment="Center">
@@ -132,6 +143,7 @@
                        IsVisible="{Binding Same}"
                        ToolTip.Tip="{l:Localize PaletteCompareSame}" />
           </Grid>
+          </Border>
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>

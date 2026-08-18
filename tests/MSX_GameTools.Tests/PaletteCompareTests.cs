@@ -1,4 +1,9 @@
+using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
+using MSX_GameTools.Views;
 using MSX_GameTools.Entities;
 using MSX_GameTools.ViewModels;
 using Xunit;
@@ -89,4 +94,49 @@ public class PaletteCompareTests
 
         return (form, other);
     }
+
+    /// <summary>
+    /// Las dos columnas van al mismo paso, también en la última fila.
+    /// </summary>
+    /// <remarks>
+    /// Emparejadas por índice, así que basta con que una fila mida un pelo distinto para que
+    /// abajo estén a media fila de diferencia y la comparación deje de significar nada. Pasó:
+    /// el alto de la derecha se puso a ojo y el de la izquierda lo decidía el tema.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Las_dos_columnas_van_a_la_misma_altura()
+    {
+        var main = new MainWindowViewModel();
+
+        EditPaletteViewModel form = TestPalette.Create(main);
+        form.Compared = main.Palettes.Adopt(form.Palette.Clone("Otra"));
+
+        var view = new EditPaletteView { DataContext = form };
+        var window = new Window { Content = view, Width = 420, Height = 900 };
+
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        ListBox left = view.GetVisualDescendants().OfType<ListBox>().Single();
+        ItemsControl right = view.GetVisualDescendants()
+            .OfType<ItemsControl>()
+            .First(items => items is not ListBox && items.ItemCount == ColorPalette.Size);
+
+        // La última de cada lado, que es donde se acumula cualquier diferencia por fila.
+        Control lastLeft = Row(left, ColorPalette.Size - 1);
+        Control lastRight = Row(right, ColorPalette.Size - 1);
+
+        double top = lastLeft.TranslatePoint(new Point(0, 0), view)!.Value.Y;
+        double other = lastRight.TranslatePoint(new Point(0, 0), view)!.Value.Y;
+
+        Assert.True(
+            Math.Abs(top - other) < 1,
+            $"la última fila cae en {top} a la izquierda y en {other} a la derecha.");
+
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+    }
+
+    private static Control Row(ItemsControl items, int index) =>
+        (Control)items.ContainerFromIndex(index)!;
 }
