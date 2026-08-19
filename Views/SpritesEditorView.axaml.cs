@@ -67,6 +67,15 @@ public partial class SpritesEditorView : UserControl
     private SpritesEditorViewModel? _subscribed;
 
     /// <summary>
+    /// El reloj de la vista previa de las animaciones.
+    /// </summary>
+    /// <remarks>
+    /// Vive aquí y no en el reproductor a propósito: al reproductor sólo le llegan pulsos, y
+    /// así una prueba recorre una animación entera sin esperar ni depender de un temporizador.
+    /// </remarks>
+    private DispatcherTimer? _beats;
+
+    /// <summary>
     /// Donde vive el zoom entre pestañas. El TabControl reconstruye la vista cada vez que
     /// se cambia, asi que la vista no puede recordarlo por su cuenta.
     /// </summary>
@@ -112,6 +121,105 @@ public partial class SpritesEditorView : UserControl
         // se disparaba antes de que el constructor rellenase los arrays de tamaños,
         // así que hasta que no pulsabas un zoom no se pintaba nada.
         RestoreZoom();
+        StartBeats();
+    }
+
+    /// <summary>
+    /// Arranca el reloj que mueve la vista previa.
+    /// </summary>
+    /// <remarks>
+    /// Late siempre, esté o no reproduciéndose: el reproductor ignora los pulsos si está
+    /// parado, y arrancarlo y pararlo con cada botón sólo añade estados que se pueden quedar
+    /// descuadrados. A cincuenta latidos por segundo eso no se nota.
+    /// </remarks>
+    private void StartBeats()
+    {
+        if (Editor is not { } vm)
+            return;
+
+        _beats = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1000.0 / vm.Player.Hz) };
+
+        _beats.Tick += OnBeat;
+        _beats.Start();
+
+        vm.Player.PropertyChanged += OnPlayerChanged;
+
+        ShowFrame();
+    }
+
+    private SpritesEditorViewModel? Editor => DataContext as SpritesEditorViewModel;
+
+    private void OnBeat(object? sender, EventArgs e)
+    {
+        Editor?.Player.Beat();
+    }
+
+    private void OnPlayerChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(AnimationPlayerViewModel.Hz) && _beats is not null && Editor is { } vm)
+            _beats.Interval = TimeSpan.FromMilliseconds(1000.0 / vm.Player.Hz);
+
+        ShowFrame();
+    }
+
+    /// <summary>
+    /// Pone en la vista previa el dibujo del fotograma que toca.
+    /// </summary>
+    /// <remarks>
+    /// El patrón o la composición del grupo, según de qué vaya la animación. Un número que ya
+    /// no existe —un grupo borrado, un patrón fuera del banco— deja la vista en blanco en vez
+    /// de reventar: es un estado que se puede tener mientras se edita.
+    /// </remarks>
+    private void ShowFrame()
+    {
+        if (Editor is not { } vm || AnimationFrameImage is null)
+            return;
+
+        AnimationFrameImage.Source = Frame(vm)?.SpritePreview;
+    }
+
+    private static ImageMini? Frame(SpritesEditorViewModel vm)
+    {
+        if (vm.Player.Current is not { } frame || vm.SelectedAnimation is not { } animation)
+            return null;
+
+        if (animation.Kind == AnimationKind.Groups)
+        {
+            return (uint)frame.Target < (uint)vm.Groups.Count ? vm.Groups[frame.Target].Preview : null;
+        }
+
+        return (uint)frame.Target < (uint)vm.ImagesMiniList.Count ? vm.ImagesMiniList[frame.Target] : null;
+    }
+
+    private void OnAnimationPlay(object? sender, RoutedEventArgs e)
+    {
+        if (Editor is not { } vm)
+            return;
+
+        if (vm.Player.IsPlaying)
+            vm.Player.Pause();
+        else
+            vm.Player.Play();
+    }
+
+    private void OnAnimationStop(object? sender, RoutedEventArgs e) => Editor?.Player.Stop();
+
+    private void OnAnimationNext(object? sender, RoutedEventArgs e) => Editor?.Player.Next();
+
+    private void OnAnimationPrevious(object? sender, RoutedEventArgs e) => Editor?.Player.Previous();
+
+    /// <summary>
+    /// Tocar un número de un paso vuelve a resolver la animación.
+    /// </summary>
+    /// <remarks>
+    /// Vuelve a resolver, que no toca la lista. Rehacer la lista aquí enlazaría otra vez estos
+    /// mismos controles, que volverían a avisar de que han cambiado: un tiovivo de seis
+    /// reconstrucciones por clic. Cada fila se entera sola de sus números.
+    /// </remarks>
+    private void OnStepValueChanged(object? sender, NumericUpDownValueChangedEventArgs e)
+    {
+        Editor?.SelectedAnimation?.Refresh();
+        ShowFrame();
     }
 
     /// <summary>Deja marcados los botones del zoom que se estaba usando y lo aplica.</summary>
@@ -139,9 +247,17 @@ public partial class SpritesEditorView : UserControl
 
     protected override void OnUnloaded(RoutedEventArgs e)
     {
+        if (_beats is not null)
+        {
+            _beats.Stop();
+            _beats.Tick -= OnBeat;
+            _beats = null;
+        }
+
         if (_subscribed is not null)
         {
             _subscribed.RefreshRequested -= OnRefreshRequested;
+            _subscribed.Player.PropertyChanged -= OnPlayerChanged;
             _subscribed = null;
         }
 

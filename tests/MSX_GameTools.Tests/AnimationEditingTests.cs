@@ -190,4 +190,33 @@ public class AnimationEditingTests
 
         return panel;
     }
+
+    /// <summary>
+    /// Una fila se entera sola de que le han cambiado los números.
+    /// </summary>
+    /// <remarks>
+    /// Sin esto habría que rehacer la lista al tocar una espera, y rehacerla vuelve a enlazar los
+    /// controles que editan el paso, que vuelven a avisar de que han cambiado: se montaba un
+    /// tiovivo de seis reconstrucciones por cada clic.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Una_fila_se_entera_de_sus_numeros_sin_rehacer_la_lista()
+    {
+        SpriteAnimationViewModel panel = Empty();
+
+        panel.AddFrameCommand.Execute(null);
+
+        AnimationStepViewModel row = panel.Steps[0];
+
+        List<string> changed = [];
+        row.PropertyChanged += (_, e) => changed.Add(e.PropertyName ?? string.Empty);
+
+        row.Frame!.Wait = 7;
+
+        Assert.Equal("7", row.Wait);
+        Assert.Contains(nameof(AnimationStepViewModel.Wait), changed);
+
+        // Y la fila sigue siendo la misma: no se ha rehecho la lista por debajo.
+        Assert.Same(row, panel.Steps[0]);
+    }
 }

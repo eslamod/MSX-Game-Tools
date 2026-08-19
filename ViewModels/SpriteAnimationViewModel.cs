@@ -16,12 +16,42 @@ namespace MSX_GameTools.ViewModels;
 /// con sangría. Un árbol de verdad se arrastra peor y no compra nada aquí: la profundidad rara
 /// vez pasa de dos, y lo que se hace todo el rato es mover un paso una fila arriba o abajo.
 /// </remarks>
-public sealed class AnimationStepViewModel(AnimationStep step, int depth, IList<AnimationStep> owner)
+public sealed class AnimationStepViewModel : ObservableObject
 {
-    public AnimationStep Step { get; } = step;
+    /// <summary>Lo que se mete por la izquierda por cada bucle que lo envuelve.</summary>
+    private const int Step16 = 16;
+
+    private readonly AnimationKind _kind;
+
+    /// <summary>
+    /// La fila se entera sola de que le han cambiado los números.
+    /// </summary>
+    /// <remarks>
+    /// Sin esto habría que rehacer la lista entera al tocar una espera, y rehacerla vuelve a
+    /// enlazar los controles que editan el paso, que vuelven a avisar de que han cambiado: se
+    /// montaba un tiovivo de seis reconstrucciones por cada clic.
+    /// </remarks>
+    public AnimationStepViewModel(
+        AnimationStep step, int depth, IList<AnimationStep> owner, AnimationKind kind)
+    {
+        Step = step;
+        Depth = depth;
+        Owner = owner;
+        _kind = kind;
+
+        step.PropertyChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(Detail));
+            OnPropertyChanged(nameof(Wait));
+            OnPropertyChanged(nameof(Offset));
+            OnPropertyChanged(nameof(Event));
+        };
+    }
+
+    public AnimationStep Step { get; }
 
     /// <summary>Cuántos bucles lo envuelven, para sangrarlo.</summary>
-    public int Depth { get; } = depth;
+    public int Depth { get; }
 
     /// <summary>
     /// La lista de la que cuelga.
@@ -30,7 +60,7 @@ public sealed class AnimationStepViewModel(AnimationStep step, int depth, IList<
     /// Es lo que hace que añadir y mover se comporten como uno espera: estando dentro de un
     /// bucle, lo que se añade cae dentro, y subir un paso no lo saca del bucle de un salto.
     /// </remarks>
-    public IList<AnimationStep> Owner { get; } = owner;
+    public IList<AnimationStep> Owner { get; }
 
     public AnimationFrame? Frame => Step as AnimationFrame;
 
@@ -39,6 +69,28 @@ public sealed class AnimationStepViewModel(AnimationStep step, int depth, IList<
     public bool IsLoop => Loop is not null;
 
     public bool IsFrame => Frame is not null;
+
+    /// <summary>La sangría, que es lo que enseña de qué bucle cuelga.</summary>
+    public Avalonia.Thickness Indent => new(Depth * Step16, 0, 0, 0);
+
+    /// <summary>De qué es el paso: un bucle, o un patrón o un grupo según la animación.</summary>
+    public string Label => Localizer.Instance[IsLoop
+        ? "AnimStepLoop"
+        : _kind == AnimationKind.Groups ? "AnimStepGroup" : "AnimStepPattern"];
+
+    /// <summary>Y a qué apunta: el número, o las vueltas si es un bucle.</summary>
+    public string Detail => IsLoop ? $"x{Loop!.Times}" : $"{Frame!.Target}";
+
+    /// <summary>Lo que se queda en pantalla, que en un bucle no significa nada.</summary>
+    public string Wait => IsLoop ? string.Empty : $"{Frame!.Wait}";
+
+    /// <summary>Dónde cae, si está desplazado. En blanco cuando está en su sitio.</summary>
+    public string Offset => IsLoop || (Frame!.OffsetX == 0 && Frame.OffsetY == 0)
+        ? string.Empty
+        : $"{Frame.OffsetX:+#;-#;0},{Frame.OffsetY:+#;-#;0}";
+
+    /// <summary>El aviso al juego, si este paso avisa de algo.</summary>
+    public string Event => IsLoop || Frame!.Event == 0 ? string.Empty : $"!{Frame.Event}";
 }
 
 /// <summary>
@@ -61,7 +113,19 @@ public partial class SpriteAnimationViewModel : ObservableObject
         Animation = animation;
         _bank = bank;
 
-        animation.PropertyChanged += (_, _) => Refresh();
+        // Cambiar de patrones a grupos cambia lo que dice cada fila, asi que hay que rehacer
+        // la lista y no solo volver a resolver.
+        animation.PropertyChanged += (_, e) =>
+        {
+            // Reemitido, que si no la lista se queda con el nombre de cuando se creó: estas
+            // propiedades son un paso a través y quien avisa de su cambio es la entidad.
+            OnPropertyChanged(e.PropertyName);
+
+            if (e.PropertyName == nameof(SpriteAnimation.Kind))
+                Rebuild();
+            else
+                Refresh();
+        };
 
         Rebuild();
     }
@@ -245,7 +309,7 @@ public partial class SpriteAnimationViewModel : ObservableObject
     {
         foreach (AnimationStep step in steps)
         {
-            Steps.Add(new AnimationStepViewModel(step, depth, steps));
+            Steps.Add(new AnimationStepViewModel(step, depth, steps, Kind));
 
             if (step is not AnimationLoop loop)
                 continue;

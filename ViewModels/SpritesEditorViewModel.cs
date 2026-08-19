@@ -276,6 +276,12 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
     public bool ShowsAnimations => ThumbnailMode == ThumbnailMode.Animations;
 
+    /// <summary>De qué puede estar hecha una animación, para el desplegable.</summary>
+    public IReadOnlyList<AnimationKind> AnimationKinds { get; } = Enum.GetValues<AnimationKind>();
+
+    /// <inheritdoc cref="AnimationKinds"/>
+    public IReadOnlyList<AnimationMode> AnimationModes { get; } = Enum.GetValues<AnimationMode>();
+
     /// <summary>Las animaciones del banco.</summary>
     public ObservableCollection<SpriteAnimationViewModel> Animations { get; } = [];
 

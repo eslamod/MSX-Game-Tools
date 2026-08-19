@@ -73,6 +73,9 @@ internal sealed class SpriteCanvasHarness : IDisposable
         Drag,
     }
 
+    /// <summary>La vista montada, para mirar lo que el XAML enlaza de verdad.</summary>
+    public SpritesEditorView View => _view;
+
     public SpriteBank Bank { get; }
 
     public SpritesEditorViewModel ViewModel { get; }

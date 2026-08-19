@@ -570,4 +570,39 @@ Remember to copy each table {2} times into VRAM, one per third of the screen.</v
   <data name="AnimUsesPatterns" xml:space="preserve"><value>patterns</value></data>
   <data name="AnimUsesGroups" xml:space="preserve"><value>groups</value></data>
   <data name="AnimCost" xml:space="preserve"><value>{0} frames · {1} interrupts · {2} {3}</value></data>
+  <data name="AnimStepPattern" xml:space="preserve"><value>Pattern</value></data>
+  <data name="AnimStepGroup" xml:space="preserve"><value>Group</value></data>
+  <data name="AnimStepLoop" xml:space="preserve"><value>Loop</value></data>
+  <data name="SpritesAnimations" xml:space="preserve"><value>Animations</value></data>
+  <data name="SpritesAnimationsTip" xml:space="preserve"><value>The animations made with this bank's patterns or groups</value></data>
+  <data name="AnimAdd" xml:space="preserve"><value>New animation</value></data>
+  <data name="AnimRemove" xml:space="preserve"><value>Delete the animation</value></data>
+  <data name="AnimName" xml:space="preserve"><value>Name</value></data>
+  <data name="AnimKind" xml:space="preserve"><value>Made of</value></data>
+  <data name="AnimMode" xml:space="preserve"><value>When it ends</value></data>
+  <data name="AnimSteps" xml:space="preserve"><value>Steps</value></data>
+  <data name="AnimAddFrame" xml:space="preserve"><value>Frame</value></data>
+  <data name="AnimAddFrameTip" xml:space="preserve"><value>Adds a frame after the selected one, and inside its loop if it is in one</value></data>
+  <data name="AnimAddLoop" xml:space="preserve"><value>Loop</value></data>
+  <data name="AnimAddLoopTip" xml:space="preserve"><value>Adds a loop. Whatever you add with the loop selected lands inside it</value></data>
+  <data name="AnimRemoveStep" xml:space="preserve"><value>Remove the step. Removing a loop takes what it holds</value></data>
+  <data name="AnimMoveUp" xml:space="preserve"><value>Move up within its list</value></data>
+  <data name="AnimMoveDown" xml:space="preserve"><value>Move down within its list</value></data>
+  <data name="AnimTarget" xml:space="preserve"><value>Shows</value></data>
+  <data name="AnimWait" xml:space="preserve"><value>Waits</value></data>
+  <data name="AnimWaitTip" xml:space="preserve"><value>Interrupts it stays on screen</value></data>
+  <data name="AnimOffset" xml:space="preserve"><value>Offset</value></data>
+  <data name="AnimEvent" xml:space="preserve"><value>Cue</value></data>
+  <data name="AnimEventTip" xml:space="preserve"><value>A number the game can read on that frame: the footstep sound, enabling the punch. 0 means no cue</value></data>
+  <data name="AnimTimes" xml:space="preserve"><value>Times</value></data>
+  <data name="AnimTruncated" xml:space="preserve"><value>The animation runs to more frames than can be shown here, so the preview falls short. On the machine it runs whole.</value></data>
+  <data name="AnimPlay" xml:space="preserve"><value>Play or pause</value></data>
+  <data name="AnimStop" xml:space="preserve"><value>Stop and go back to the start</value></data>
+  <data name="AnimPrevious" xml:space="preserve"><value>Previous frame</value></data>
+  <data name="AnimNext" xml:space="preserve"><value>Next frame</value></data>
+  <data name="AnimSpeed" xml:space="preserve"><value>Speed</value></data>
+  <data name="AnimSpeedTip" xml:space="preserve"><value>To look at a frame calmly. It does not change the animation, only how it looks here</value></data>
+  <data name="AnimHz" xml:space="preserve"><value>Hz</value></data>
+  <data name="AnimHzTip" xml:space="preserve"><value>How many interrupts per second the machine runs at. Not saved with the animation: it only changes the milliseconds and how fast this view goes</value></data>
+  <data name="AnimEmpty" xml:space="preserve"><value>No animations. Create one with the button above.</value></data>
 </root>

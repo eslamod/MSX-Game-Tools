@@ -571,4 +571,39 @@ Recorda copiar cada taula {2} vegades a la VRAM, una per terç de pantalla.</val
   <data name="AnimUsesPatterns" xml:space="preserve"><value>patrons</value></data>
   <data name="AnimUsesGroups" xml:space="preserve"><value>grups</value></data>
   <data name="AnimCost" xml:space="preserve"><value>{0} fotogrames · {1} interrupcions · {2} {3}</value></data>
+  <data name="AnimStepPattern" xml:space="preserve"><value>Patró</value></data>
+  <data name="AnimStepGroup" xml:space="preserve"><value>Grup</value></data>
+  <data name="AnimStepLoop" xml:space="preserve"><value>Bucle</value></data>
+  <data name="SpritesAnimations" xml:space="preserve"><value>Animacions</value></data>
+  <data name="SpritesAnimationsTip" xml:space="preserve"><value>Les animacions fetes amb els patrons o els grups d'aquest banc</value></data>
+  <data name="AnimAdd" xml:space="preserve"><value>Animació nova</value></data>
+  <data name="AnimRemove" xml:space="preserve"><value>Eliminar l'animació</value></data>
+  <data name="AnimName" xml:space="preserve"><value>Nom</value></data>
+  <data name="AnimKind" xml:space="preserve"><value>Feta amb</value></data>
+  <data name="AnimMode" xml:space="preserve"><value>En acabar</value></data>
+  <data name="AnimSteps" xml:space="preserve"><value>Passos</value></data>
+  <data name="AnimAddFrame" xml:space="preserve"><value>Fotograma</value></data>
+  <data name="AnimAddFrameTip" xml:space="preserve"><value>Afegeix un fotograma darrere del triat, i dins del seu bucle si hi és</value></data>
+  <data name="AnimAddLoop" xml:space="preserve"><value>Bucle</value></data>
+  <data name="AnimAddLoopTip" xml:space="preserve"><value>Afegeix un bucle. El que posis amb el bucle triat cau a dins</value></data>
+  <data name="AnimRemoveStep" xml:space="preserve"><value>Treure el pas. Traient un bucle se'n va el que tingui a dins</value></data>
+  <data name="AnimMoveUp" xml:space="preserve"><value>Pujar dins de la seva llista</value></data>
+  <data name="AnimMoveDown" xml:space="preserve"><value>Baixar dins de la seva llista</value></data>
+  <data name="AnimTarget" xml:space="preserve"><value>Ensenya</value></data>
+  <data name="AnimWait" xml:space="preserve"><value>Espera</value></data>
+  <data name="AnimWaitTip" xml:space="preserve"><value>Interrupcions que es queda a la pantalla</value></data>
+  <data name="AnimOffset" xml:space="preserve"><value>Desplaçat</value></data>
+  <data name="AnimEvent" xml:space="preserve"><value>Avís</value></data>
+  <data name="AnimEventTip" xml:space="preserve"><value>Un número que el joc pot llegir en aquest fotograma: el so de la petjada, activar el cop. 0 és no avisar de res</value></data>
+  <data name="AnimTimes" xml:space="preserve"><value>Voltes</value></data>
+  <data name="AnimTruncated" xml:space="preserve"><value>L'animació dona per a més fotogrames dels que es poden ensenyar aquí, així que la vista prèvia es queda curta. A la màquina s'executa sencera.</value></data>
+  <data name="AnimPlay" xml:space="preserve"><value>Reproduir o pausar</value></data>
+  <data name="AnimStop" xml:space="preserve"><value>Parar i tornar al principi</value></data>
+  <data name="AnimPrevious" xml:space="preserve"><value>Fotograma anterior</value></data>
+  <data name="AnimNext" xml:space="preserve"><value>Fotograma següent</value></data>
+  <data name="AnimSpeed" xml:space="preserve"><value>Velocitat</value></data>
+  <data name="AnimSpeedTip" xml:space="preserve"><value>Per mirar un fotograma amb calma. No canvia l'animació, només com es veu aquí</value></data>
+  <data name="AnimHz" xml:space="preserve"><value>Hz</value></data>
+  <data name="AnimHzTip" xml:space="preserve"><value>A quantes interrupcions per segon va la màquina. No es desa amb l'animació: només canvia els mil·lisegons i com de ràpid va aquesta vista</value></data>
+  <data name="AnimEmpty" xml:space="preserve"><value>Sense animacions. Crea'n una amb el botó de dalt.</value></data>
 </root>
