@@ -206,6 +206,45 @@ public class PanelFitTests
         Assert.True(cut.Count == 0, $"En {form}: {string.Join(" | ", cut)}");
     }
 
+    /// <summary>
+    /// Y en la pestaña de animaciones tampoco, que no es de los formularios del lateral.
+    /// </summary>
+    /// <remarks>
+    /// Aquí salió: la columna de los rótulos mide 72 y «When it ends» pedía más, así que en
+    /// inglés se leía «When it en». En español cabía de sobra y no se veía nada raro.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Ningun_rotulo_de_las_animaciones_sale_cortado()
+    {
+        string before = Localizer.Instance.Language;
+        var cut = new List<string>();
+
+        try
+        {
+            foreach (string language in (string[])["es", "en", "ca"])
+            {
+                Localizer.Instance.Language = language;
+
+                using var editor = new SpriteCanvasHarness(
+                    SpriteCanvasHarness.PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+
+                editor.ViewModel.AddAnimationCommand.Execute(null);
+                editor.ViewModel.SelectedAnimation!.AddFrameCommand.Execute(null);
+                editor.SetThumbnailMode(ThumbnailMode.Animations);
+
+                Pump();
+
+                cut.AddRange(Clipped(editor.View, language));
+            }
+        }
+        finally
+        {
+            Localizer.Instance.Language = before;
+        }
+
+        Assert.True(cut.Count == 0, string.Join(" | ", cut));
+    }
+
     /// <summary>Los textos que no caben en el sitio que les ha tocado.</summary>
     private static IEnumerable<string> Clipped(Control view, string language)
     {

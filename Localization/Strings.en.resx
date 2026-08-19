@@ -581,7 +581,7 @@ Remember to copy each table {2} times into VRAM, one per third of the screen.</v
   <data name="AnimDown" xml:space="preserve"><value>Move the animation down the list</value></data>
   <data name="AnimName" xml:space="preserve"><value>Name</value></data>
   <data name="AnimKind" xml:space="preserve"><value>Made of</value></data>
-  <data name="AnimMode" xml:space="preserve"><value>When it ends</value></data>
+  <data name="AnimMode" xml:space="preserve"><value>Ending</value></data>
   <data name="AnimSteps" xml:space="preserve"><value>Steps</value></data>
   <data name="AnimAddFrame" xml:space="preserve"><value>Frame</value></data>
   <data name="AnimAddFrameTip" xml:space="preserve"><value>Adds a frame after the selected one, and inside its loop if it is in one</value></data>
