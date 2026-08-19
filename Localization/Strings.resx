@@ -612,4 +612,7 @@ Recuerda copiar cada tabla {2} veces en VRAM, una por tercio de pantalla.</value
   <data name="PaletteCompareTip" xml:space="preserve"><value>Enseña otra paleta al lado, ranura a ranura, para ver qué colores hay que mover de sitio</value></data>
   <data name="PaletteCompareClear" xml:space="preserve"><value>Dejar de comparar</value></data>
   <data name="PaletteCompareSame" xml:space="preserve"><value>En esta ranura las dos tienen el mismo color</value></data>
+  <data name="AnimUsesPatterns" xml:space="preserve"><value>patrones</value></data>
+  <data name="AnimUsesGroups" xml:space="preserve"><value>grupos</value></data>
+  <data name="AnimCost" xml:space="preserve"><value>{0} fotogramas · {1} interrupciones · {2} {3}</value></data>
 </root>

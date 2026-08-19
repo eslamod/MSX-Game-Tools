@@ -567,4 +567,7 @@ Remember to copy each table {2} times into VRAM, one per third of the screen.</v
   <data name="PaletteCompareTip" xml:space="preserve"><value>Shows another palette alongside, slot by slot, to see which colours need moving</value></data>
   <data name="PaletteCompareClear" xml:space="preserve"><value>Stop comparing</value></data>
   <data name="PaletteCompareSame" xml:space="preserve"><value>Both have the same colour in this slot</value></data>
+  <data name="AnimUsesPatterns" xml:space="preserve"><value>patterns</value></data>
+  <data name="AnimUsesGroups" xml:space="preserve"><value>groups</value></data>
+  <data name="AnimCost" xml:space="preserve"><value>{0} frames · {1} interrupts · {2} {3}</value></data>
 </root>

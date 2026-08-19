@@ -73,13 +73,16 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
     [NotifyPropertyChangedFor(nameof(BackgroundColor))]
     private int _backgroundColorIndex;
 
-    /// <summary>Qué enseña el panel de la derecha: los patrones del banco o los grupos.</summary>
+    /// <summary>Qué enseña el panel de la derecha: los patrones, los grupos o las animaciones.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsPatterns))]
     [NotifyPropertyChangedFor(nameof(ShowsGroups))]
+    [NotifyPropertyChangedFor(nameof(ShowsAnimations))]
     [NotifyPropertyChangedFor(nameof(ShowsRowColors))]
     [NotifyPropertyChangedFor(nameof(ShowsSpriteColor))]
     private ThumbnailMode _thumbnailMode = ThumbnailMode.Patterns;
+
+    private SpriteAnimationViewModel? _selectedAnimation;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DeleteGroupCommand))]
@@ -164,7 +167,13 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
         foreach (SpriteGroup group in bank.Groups)
             TrackGroup(group);
 
+        // Las que traiga el banco al abrirlo, que si no la pestaña saldria vacia con el
+        // fichero lleno de animaciones.
+        foreach (SpriteAnimation animation in bank.Animations)
+            Animations.Add(Watch(animation));
+
         SelectedGroup = Groups.FirstOrDefault();
+        SelectedAnimation = Animations.FirstOrDefault();
 
         RenderAllThumbnails();
     }
@@ -264,6 +273,97 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
     public bool ShowsPatterns => ThumbnailMode == ThumbnailMode.Patterns;
 
     public bool ShowsGroups => ThumbnailMode == ThumbnailMode.Groups;
+
+    public bool ShowsAnimations => ThumbnailMode == ThumbnailMode.Animations;
+
+    /// <summary>Las animaciones del banco.</summary>
+    public ObservableCollection<SpriteAnimationViewModel> Animations { get; } = [];
+
+    /// <summary>La que se está editando y reproduciendo.</summary>
+    public SpriteAnimationViewModel? SelectedAnimation
+    {
+        get => _selectedAnimation;
+        set
+        {
+            if (!SetProperty(ref _selectedAnimation, value))
+                return;
+
+            Player.Stop();
+            Player.Load(value?.Timeline ?? new Services.AnimationTimeline([], false, false));
+
+            RemoveAnimationCommand.NotifyCanExecuteChanged();
+        }
+    }
+
+    /// <summary>Por dónde va la animación que se está viendo.</summary>
+    public AnimationPlayerViewModel Player { get; } = new();
+
+    [RelayCommand]
+    private void AddAnimation()
+    {
+        var animation = new SpriteAnimation(NextAnimationName());
+
+        _spriteBank.Animations.Add(animation);
+
+        SpriteAnimationViewModel panel = Watch(animation);
+
+        Animations.Add(panel);
+        SelectedAnimation = panel;
+
+        Touch();
+    }
+
+    [RelayCommand(CanExecute = nameof(HasAnimation))]
+    private void RemoveAnimation()
+    {
+        if (SelectedAnimation is not { } doomed)
+            return;
+
+        int at = Animations.IndexOf(doomed);
+
+        _spriteBank.Animations.Remove(doomed.Animation);
+        Animations.Remove(doomed);
+
+        SelectedAnimation = Animations.Count == 0
+            ? null
+            : Animations[Math.Min(at, Animations.Count - 1)];
+
+        Touch();
+    }
+
+    private bool HasAnimation() => SelectedAnimation is not null;
+
+    /// <summary>
+    /// Engancha una animación para que el reproductor se entere de lo que se le toque.
+    /// </summary>
+    /// <remarks>
+    /// Cambiar un paso cambia la línea de tiempo, y el reproductor está mirando la de antes.
+    /// Sin esto habría que cerrar y volver a elegir la animación para ver el cambio.
+    /// </remarks>
+    private SpriteAnimationViewModel Watch(SpriteAnimation animation)
+    {
+        var panel = new SpriteAnimationViewModel(animation, _spriteBank);
+
+        panel.Changed += () =>
+        {
+            Touch();
+
+            if (ReferenceEquals(SelectedAnimation, panel))
+                Player.Load(panel.Timeline);
+        };
+
+        return panel;
+    }
+
+    private string NextAnimationName()
+    {
+        int number = 1;
+
+        while (_spriteBank.Animations.Any(other => other.Name == $"Animación {number}"))
+            number++;
+
+        return $"Animación {number}";
+    }
 
     /// <summary>La columna de colores por línea es del patrón, no del grupo.</summary>
     public bool ShowsRowColors => IsMsx2 && ShowsPatterns;

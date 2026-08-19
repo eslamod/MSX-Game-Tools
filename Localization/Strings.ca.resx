@@ -568,4 +568,7 @@ Recorda copiar cada taula {2} vegades a la VRAM, una per terç de pantalla.</val
   <data name="PaletteCompareTip" xml:space="preserve"><value>Ensenya una altra paleta al costat, ranura a ranura, per veure quins colors cal moure de lloc</value></data>
   <data name="PaletteCompareClear" xml:space="preserve"><value>Deixar de comparar</value></data>
   <data name="PaletteCompareSame" xml:space="preserve"><value>En aquesta ranura totes dues tenen el mateix color</value></data>
+  <data name="AnimUsesPatterns" xml:space="preserve"><value>patrons</value></data>
+  <data name="AnimUsesGroups" xml:space="preserve"><value>grups</value></data>
+  <data name="AnimCost" xml:space="preserve"><value>{0} fotogrames · {1} interrupcions · {2} {3}</value></data>
 </root>

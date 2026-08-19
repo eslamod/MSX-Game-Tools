@@ -8,4 +8,7 @@ public enum ThumbnailMode
 
     /// <summary>Los grupos, cada uno con sus sprites compuestos.</summary>
     Groups,
+
+    /// <summary>Las animaciones hechas con unos o con otros.</summary>
+    Animations,
 }
