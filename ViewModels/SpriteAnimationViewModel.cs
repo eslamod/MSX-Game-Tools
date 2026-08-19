@@ -255,7 +255,7 @@ public partial class SpriteAnimationViewModel : ObservableObject
 
     /// <summary>El máximo que se puede poner en un paso, que depende de a qué apunte.</summary>
     public int MaxTarget => Kind == AnimationKind.Groups
-        ? Math.Max(0, _bank.Groups.Count - 1)
+        ? (_bank.Groups.Count == 0 ? 0 : _bank.Groups.Max(group => group.Id))
         : _bank.Capacity - 1;
 
     // ------------------------------------------------------------------ editar la lista
@@ -353,7 +353,13 @@ public partial class SpriteAnimationViewModel : ObservableObject
         RemoveStepCommand.NotifyCanExecuteChanged();
         MoveUpCommand.NotifyCanExecuteChanged();
         MoveDownCommand.NotifyCanExecuteChanged();
+
+        if (value is not null)
+            StepPicked?.Invoke(value);
     }
+
+    /// <summary>Alguien ha elegido un paso, por si hay que enseñar lo que lleva dentro.</summary>
+    public event Action<AnimationStepViewModel>? StepPicked;
 
     // ------------------------------------------------------------------ rehacer
 

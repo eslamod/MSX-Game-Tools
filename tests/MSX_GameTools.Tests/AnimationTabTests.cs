@@ -214,6 +214,76 @@ public class AnimationTabTests
         Assert.Equal("Andar", editor.ViewModel.SelectedAnimation?.Name);
     }
 
+    /// <summary>Elegir un paso deja seleccionado el patrón que enseña.</summary>
+    [AvaloniaFact]
+    public void Elegir_un_paso_lleva_a_su_patron()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+
+        editor.ViewModel.AddAnimationCommand.Execute(null);
+        editor.SetThumbnailMode(ThumbnailMode.Animations);
+
+        SpriteAnimationViewModel animation = editor.ViewModel.SelectedAnimation!;
+
+        animation.AddFrameCommand.Execute(null);
+        animation.Steps[0].Target = 7;
+
+        // Se deselecciona y se vuelve a elegir, que es lo que hace quien lo pulsa.
+        animation.SelectedStep = null;
+        animation.SelectedStep = animation.Steps[0];
+
+        Pump();
+
+        Assert.Equal(7, editor.ViewModel.CurrentSpriteIndex);
+    }
+
+    /// <summary>
+    /// Y en las de grupos, al grupo que lleva ese número.
+    /// </summary>
+    /// <remarks>
+    /// Por el número y no por el sitio que ocupa: borrando un grupo los que quedan no se
+    /// renumeran, así que buscarlo por su sitio enseñaría otro distinto, o ninguno. Aquí se
+    /// borra el primero a propósito para que las dos cosas no coincidan.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Elegir_un_paso_lleva_a_su_grupo()
+    {
+        using var editor = new SpriteCanvasHarness(
+            PaintMode.Drag, SpriteBank.SpriteType.MSX2, dialogs: new TestDialogService());
+
+        for (int each = 0; each < 3; each++)
+        {
+            editor.ViewModel.CurrentSpriteIndex = each;
+            editor.ViewModel.AddGroupCommand.Execute(null);
+        }
+
+        editor.ViewModel.SelectedGroup = editor.ViewModel.Groups[0];
+        await editor.ViewModel.DeleteGroupCommand.ExecuteAsync(null);
+
+        // El que ahora está en el sitio 1 se sigue llamando 2: si no, esta prueba no separa
+        // buscar por número de buscar por posición y pasaría de las dos maneras.
+        int wanted = editor.ViewModel.Groups[1].Group.Id;
+
+        Assert.Equal(2, editor.ViewModel.Groups.Count);
+        Assert.Equal(2, wanted);
+
+        editor.ViewModel.AddAnimationCommand.Execute(null);
+        editor.SetThumbnailMode(ThumbnailMode.Animations);
+
+        SpriteAnimationViewModel animation = editor.ViewModel.SelectedAnimation!;
+
+        animation.Kind = AnimationKind.Groups;
+        animation.AddFrameCommand.Execute(null);
+        animation.Steps[0].Target = wanted;
+
+        animation.SelectedStep = null;
+        animation.SelectedStep = animation.Steps[0];
+
+        Pump();
+
+        Assert.Equal(wanted, editor.ViewModel.SelectedGroup?.Group.Id);
+    }
+
     private static Button Arrow(SpriteCanvasHarness editor, string name) => editor.View
         .GetVisualDescendants()
         .OfType<Button>()

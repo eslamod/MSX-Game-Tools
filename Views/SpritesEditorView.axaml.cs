@@ -207,7 +207,9 @@ public partial class SpritesEditorView : UserControl
 
         if (animation.Kind == AnimationKind.Groups)
         {
-            return (uint)frame.Target < (uint)vm.Groups.Count ? vm.Groups[frame.Target].Preview : null;
+            // Por el número del grupo y no por su sitio en la lista: borrando uno, los que
+            // quedan no se renumeran y buscarlos por su sitio enseñaría otro, o ninguno.
+            return vm.GroupWithId(frame.Target)?.Preview;
         }
 
         return (uint)frame.Target < (uint)vm.ImagesMiniList.Count ? vm.ImagesMiniList[frame.Target] : null;

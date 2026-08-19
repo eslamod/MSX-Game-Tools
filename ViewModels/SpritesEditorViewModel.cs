@@ -393,7 +393,45 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
                 Player.Load(panel.Timeline);
         };
 
+        panel.StepPicked += step => Show(panel, step);
+
         return panel;
+    }
+
+    /// <summary>
+    /// Lleva la selección al patrón o al grupo que enseña el paso.
+    /// </summary>
+    /// <remarks>
+    /// Un paso es un número, y para saber si es el que toca hay que verlo. Así al cambiar de
+    /// pestaña ya está puesto lo que el paso enseña, sin buscarlo a mano en la tira.
+    /// </remarks>
+    private void Show(SpriteAnimationViewModel animation, AnimationStepViewModel step)
+    {
+        if (step.Frame is not { } frame)
+            return;
+
+        if (animation.Kind != AnimationKind.Groups)
+        {
+            GoTo(frame.Target);
+            return;
+        }
+
+        if (GroupWithId(frame.Target) is { } group)
+            SelectedGroup = group;
+    }
+
+    /// <summary>
+    /// El grupo que lleva ese número, que no es el sitio que ocupa.
+    /// </summary>
+    /// <remarks>
+    /// Las animaciones guardan el número del grupo y no su posición, para que borrar uno no
+    /// deje a las demás apuntando a otro sin decir nada. Aquí se traduce para poder enseñarlo.
+    /// </remarks>
+    public SpriteGroupViewModel? GroupWithId(int id)
+    {
+        int at = _spriteBank.OrdinalOfGroup(id);
+
+        return (uint)at < (uint)Groups.Count ? Groups[at] : null;
     }
 
     private string NextAnimationName()
