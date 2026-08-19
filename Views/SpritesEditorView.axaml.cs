@@ -436,6 +436,23 @@ public partial class SpritesEditorView : UserControl
         AnimationPreviewSize = AnimationPreviewCells * scale;
     }
 
+    /// <summary>
+    /// El zoom rehace la vista previa de la animación.
+    /// </summary>
+    /// <remarks>
+    /// El tamaño del dibujo ya no sale de un enlace del XAML sino de una cuenta, y por eso hay
+    /// que rehacerla aquí: si no, el recuadro cambia de tamaño y el dibujo se queda con el de
+    /// antes. Se veía bien justo al zoom con el que se hubiera calculado y recortado en los
+    /// demás. Se mira la propiedad y no el botón, que el zoom también se restaura al abrir.
+    /// </remarks>
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == AnimationPreviewSizeProperty)
+            ShowFrame();
+    }
+
     private void OnThumbnailModeChanged(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not SpritesEditorViewModel vm)

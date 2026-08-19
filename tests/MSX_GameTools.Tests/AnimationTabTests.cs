@@ -395,12 +395,7 @@ public class AnimationTabTests
         animation.Steps[1].OffsetX = -24;
         animation.Refresh();
 
-        editor.View.GetVisualDescendants()
-            .OfType<RadioButton>()
-            .Single(one => one.GroupName == "PreviewZoom" && (string?)one.Tag == zoom)
-            .IsChecked = true;
-
-        Pump();
+        Zoom(editor, zoom);
 
         Image preview = Preview(editor);
 
@@ -410,6 +405,51 @@ public class AnimationTabTests
         Pump();
 
         Fits(preview);
+    }
+
+    /// <summary>
+    /// El zoom cambia de verdad el tamaño del dibujo, no sólo el del recuadro.
+    /// </summary>
+    /// <remarks>
+    /// El tamaño ya no sale de un enlace del XAML sino de una cuenta, así que hay que rehacerla
+    /// al cambiar el zoom. Sin eso el recuadro encogía y el dibujo se quedaba con el tamaño de
+    /// antes: se veía bien justo al zoom con el que se hubiera calculado y recortado en los
+    /// demás. Y no vale con mirar que quepa, que un dibujo que se ha quedado pequeño cabe.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_zoom_cambia_el_tamano_del_dibujo()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+
+        SpriteAnimationViewModel animation = WithTallFigure(editor);
+
+        animation.AddFrameCommand.Execute(null);
+        animation.Refresh();
+
+        Zoom(editor, "1");
+
+        Image preview = Preview(editor);
+        Panel box = preview.GetVisualParent<Panel>()!;
+
+        // Sin desplazamientos, una figura de dos sprites de alto llena el recuadro a lo alto.
+        Assert.Equal(box.Bounds.Height, preview.Height, 1);
+
+        double small = preview.Height;
+
+        Zoom(editor, "4");
+
+        Assert.Equal(4 * small, preview.Height, 1);
+        Assert.Equal(box.Bounds.Height, preview.Height, 1);
+    }
+
+    private static void Zoom(SpriteCanvasHarness editor, string factor)
+    {
+        editor.View.GetVisualDescendants()
+            .OfType<RadioButton>()
+            .Single(one => one.GroupName == "PreviewZoom" && (string?)one.Tag == factor)
+            .IsChecked = true;
+
+        Pump();
     }
 
     /// <summary>Una figura de dos sprites de alto, que es lo corriente.</summary>
