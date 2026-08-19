@@ -453,6 +453,7 @@ They will look just like before, but with the colours at their new indices. They
   <data name="DeleteItemBodyUnsaved" xml:space="preserve"><value>«{0}» is about to be deleted and its tab will be closed. It has unsaved changes and they will be lost.</value></data>
   <data name="DeleteGroupTitle" xml:space="preserve"><value>Delete the group</value></data>
   <data name="DeleteGroupBody" xml:space="preserve"><value>The group «{0}» is about to be deleted. This cannot be undone.</value></data>
+  <data name="DeleteGroupUsedBody" xml:space="preserve"><value>The group «{0}» is about to be deleted, and these animations use it: {1}. They will be left pointing at a number that no longer exists. This cannot be undone.</value></data>
 
   <data name="MissingItemsTitle" xml:space="preserve"><value>Some items of the project are missing</value></data>
   <data name="MissingItemsBody" xml:space="preserve"><value>These could not be opened:

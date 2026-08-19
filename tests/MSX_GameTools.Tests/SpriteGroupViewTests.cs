@@ -272,6 +272,62 @@ public class SpriteGroupViewTests
         Assert.Single(editor.Bank.Groups);
     }
 
+    /// <summary>
+    /// Y dice qué animaciones lo usan, si alguna lo usa.
+    /// </summary>
+    /// <remarks>
+    /// Borrarlo no las corrige ni las rompe en silencio: se quedan apuntando a un número que ya
+    /// no existe. En el editor se ve —la vista previa se queda en blanco— y al exportar se avisa
+    /// otra vez, pero el momento de decirlo es antes de borrar, que es cuando aún se puede.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Eliminar_un_grupo_dice_que_animaciones_lo_usan()
+    {
+        var dialogs = new TestDialogService { ConfirmAnswer = false };
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2, dialogs);
+
+        editor.ViewModel.AddGroupCommand.Execute(null);
+
+        int number = editor.ViewModel.SelectedGroup!.Group.Id;
+
+        editor.ViewModel.AddAnimationCommand.Execute(null);
+
+        SpriteAnimationViewModel animation = editor.ViewModel.SelectedAnimation!;
+
+        animation.Name = "Andar";
+        animation.Kind = AnimationKind.Groups;
+        animation.AddFrameCommand.Execute(null);
+        animation.Steps[0].Target = number;
+
+        await editor.ViewModel.DeleteGroupCommand.ExecuteAsync(null);
+
+        Assert.Contains("Andar", dialogs.LastConfirmMessage);
+    }
+
+    /// <summary>Pero no lo menciona cuando no lo usa ninguna.</summary>
+    [AvaloniaFact]
+    public async Task Eliminar_un_grupo_que_no_usa_nadie_no_habla_de_animaciones()
+    {
+        var dialogs = new TestDialogService { ConfirmAnswer = false };
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2, dialogs);
+
+        editor.ViewModel.AddGroupCommand.Execute(null);
+        editor.ViewModel.AddAnimationCommand.Execute(null);
+
+        SpriteAnimationViewModel animation = editor.ViewModel.SelectedAnimation!;
+
+        animation.Name = "Andar";
+        animation.Kind = AnimationKind.Groups;
+
+        // Un fotograma que apunta a otro número: la animación existe, pero no usa este grupo.
+        animation.AddFrameCommand.Execute(null);
+        animation.Steps[0].Target = editor.ViewModel.SelectedGroup!.Group.Id + 1;
+
+        await editor.ViewModel.DeleteGroupCommand.ExecuteAsync(null);
+
+        Assert.DoesNotContain("Andar", dialogs.LastConfirmMessage);
+    }
+
     [AvaloniaFact]
     public async Task Eliminar_el_grupo_seleccionado_no_deja_la_seleccion_vacia()
     {

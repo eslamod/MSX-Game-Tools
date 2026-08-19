@@ -472,9 +472,18 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
         SpriteGroupViewModel doomed = SelectedGroup;
 
+        // Borrarlo no corrige las animaciones ni las rompe en silencio: se quedan apuntando a un
+        // número que ya no existe. Lo que hace falta es decirlo antes, que es esto.
+        IReadOnlyList<SpriteAnimation> used = _spriteBank.AnimationsUsing(doomed.Group.Id);
+
         bool confirmed = await _dialogs.ConfirmAsync(
             Localizer.Instance["DeleteGroupTitle"],
-            Localizer.Instance.Format("DeleteGroupBody", doomed.Group.Name),
+            used.Count == 0
+                ? Localizer.Instance.Format("DeleteGroupBody", doomed.Group.Name)
+                : Localizer.Instance.Format(
+                    "DeleteGroupUsedBody",
+                    doomed.Group.Name,
+                    string.Join(", ", used.Select(animation => animation.Name))),
             Localizer.Instance["DeleteLabel"]);
 
         if (!confirmed)

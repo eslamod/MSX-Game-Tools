@@ -454,6 +454,7 @@ Es veuran igual que abans, però amb els colors als seus índexs nous. Quedaran 
   <data name="DeleteItemBodyUnsaved" xml:space="preserve"><value>S'eliminarà «{0}» i es tancarà la seva pestanya. Té canvis sense desar i es perdran.</value></data>
   <data name="DeleteGroupTitle" xml:space="preserve"><value>Elimina el grup</value></data>
   <data name="DeleteGroupBody" xml:space="preserve"><value>S'eliminarà el grup «{0}». Aquesta acció no es pot desfer.</value></data>
+  <data name="DeleteGroupUsedBody" xml:space="preserve"><value>S'eliminarà el grup «{0}», que fan servir aquestes animacions: {1}. Es quedaran apuntant a un número que ja no existeix. Aquesta acció no es pot desfer.</value></data>
 
   <data name="MissingItemsTitle" xml:space="preserve"><value>Falten elements del projecte</value></data>
   <data name="MissingItemsBody" xml:space="preserve"><value>No s'han pogut obrir:

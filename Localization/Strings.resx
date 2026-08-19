@@ -491,6 +491,7 @@ Se verán igual que antes, pero con los colores en sus índices nuevos. Quedará
   <data name="DeleteItemBodyUnsaved" xml:space="preserve"><value>Se va a eliminar «{0}» y se cerrará su pestaña. Tiene cambios sin guardar y se perderán.</value></data>
   <data name="DeleteGroupTitle" xml:space="preserve"><value>Eliminar el grupo</value></data>
   <data name="DeleteGroupBody" xml:space="preserve"><value>Se va a eliminar el grupo «{0}». Esta acción no se puede deshacer.</value></data>
+  <data name="DeleteGroupUsedBody" xml:space="preserve"><value>Se va a eliminar el grupo «{0}», que usan estas animaciones: {1}. Se quedarán apuntando a un número que ya no existe. Esta acción no se puede deshacer.</value></data>
 
   <!-- Abrir y guardar el proyecto -->
   <data name="MissingItemsTitle" xml:space="preserve"><value>Faltan elementos del proyecto</value></data>
