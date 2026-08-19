@@ -1,5 +1,9 @@
+using System.Runtime.InteropServices;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.VisualTree;
 using MSX_GameTools.Entities;
 using MSX_GameTools.ViewModels;
@@ -116,6 +120,56 @@ public class AnimationTabTests
             .First();
 
         Assert.Equal("Andar", label.Text);
+    }
+
+    /// <summary>
+    /// El color de fondo nuevo llega también a la vista previa de la animación.
+    /// </summary>
+    /// <remarks>
+    /// Las miniaturas no se repintan encima: al cambiar el fondo se tira la que había y se hace
+    /// otra. Quien la tiene enlazada se entera solo, pero la de la animación se pone a mano, y se
+    /// quedaba con la de antes. Se veía el editor entero en negro y ese recuadro blanco.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_fondo_nuevo_llega_a_la_vista_previa()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+
+        editor.ViewModel.AddAnimationCommand.Execute(null);
+        editor.ViewModel.SelectedAnimation!.AddFrameCommand.Execute(null);
+        editor.SetThumbnailMode(ThumbnailMode.Animations);
+
+        editor.ViewModel.BackgroundColorIndex = 1;
+        Pump();
+
+        Color before = editor.ViewModel.BackgroundColor.Color;
+
+        editor.ViewModel.BackgroundColorIndex = 2;
+        Pump();
+
+        Color after = editor.ViewModel.BackgroundColor.Color;
+
+        // Si los dos colores fueran el mismo la prueba pasaría sin comprobar nada.
+        Assert.NotEqual(before, after);
+        Assert.Equal(PixelReader.Bgra(after), Corner(editor));
+    }
+
+    /// <summary>La esquina de lo que enseña la vista previa, que en un patrón vacío es el fondo.</summary>
+    private static int Corner(SpriteCanvasHarness editor)
+    {
+        Image preview = editor.View.GetVisualDescendants()
+            .OfType<Image>()
+            .Single(image => image.Name == "AnimationFrameImage");
+
+        var bitmap = (WriteableBitmap?)preview.Source
+                     ?? throw new InvalidOperationException("La vista previa no está enseñando nada.");
+
+        int[] first = new int[bitmap.PixelSize.Width];
+
+        using ILockedFramebuffer buffer = bitmap.Lock();
+        Marshal.Copy(buffer.Address, first, 0, first.Length);
+
+        return first[0];
     }
 
     private static Control Board(SpriteCanvasHarness editor) => editor.View

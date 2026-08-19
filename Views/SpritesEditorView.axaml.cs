@@ -286,7 +286,20 @@ public partial class SpritesEditorView : UserControl
         base.OnUnloaded(e);
     }
 
-    private void OnRefreshRequested(Sprite sprite) => CanvSprite.Redraw();
+    /// <summary>
+    /// Repinta lo que depende del banco: el lienzo y la vista previa de la animación.
+    /// </summary>
+    /// <remarks>
+    /// La vista previa también, y no es de más. Al cambiar el color de fondo o la paleta, las
+    /// miniaturas se rehacen creando un bitmap nuevo; los que van enlazados se enteran solos,
+    /// pero aquí la imagen se pone a mano y se quedaba con la de antes. Se veía clarísimo:
+    /// todo el editor en negro y el recuadro de la animación con el fondo blanco de antes.
+    /// </remarks>
+    private void OnRefreshRequested(Sprite sprite)
+    {
+        CanvSprite.Redraw();
+        ShowFrame();
+    }
 
     /// <summary>
     /// El botón derecho también elige la miniatura.
