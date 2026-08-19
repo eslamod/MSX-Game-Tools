@@ -146,7 +146,8 @@ public static class SpriteBankSerializer
     private static GroupFile ToFile(SpriteGroup group) => new(
         group.Name,
         [.. group.Members.Select(ToFile)],
-        ToFile(group.Background));
+        ToFile(group.Background),
+        group.Id);
 
     /// <summary>Sin fondo no se escribe nada, para no llenar el fichero de nulos.</summary>
     private static BackgroundFile? ToFile(BackgroundRef reference) =>
@@ -214,6 +215,17 @@ public static class SpriteBankSerializer
 
         foreach (GroupFile group in file.Groups ?? [])
             ReadGroup(group, bank);
+
+        // Los ficheros de antes no traian numero de grupo, y alli su posicion era su identidad:
+        // dandoles la posicion, un banco viejo se abre con las mismas referencias que tenia.
+        for (int index = 0; index < bank.Groups.Count; index++)
+        {
+            GroupFile? saved = file.Groups?[index];
+
+            bank.Groups[index].Id = saved?.Id ?? index;
+        }
+
+        bank.ResumeGroupIds();
 
         foreach (AnimationFile animation in file.Animations ?? [])
             bank.Animations.Add(ReadAnimation(animation));
@@ -474,10 +486,15 @@ public static class SpriteBankSerializer
         [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] BackgroundFile? Background,
         int? Index = null);
 
+    /// <param name="Id">
+    /// Su número de puertas adentro, el que no se mueve al borrar otro grupo. Los ficheros
+    /// anteriores no lo traen y se les da su posición, que allí era su identidad.
+    /// </param>
     private sealed record GroupFile(
         string? Name,
         IReadOnlyList<MemberFile>? Members,
-        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] BackgroundFile? Background);
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] BackgroundFile? Background,
+        int? Id);
 
     /// <summary>A qué celda de qué imagen apunta un grupo o un patrón.</summary>
     private sealed record BackgroundFile(string? Path, int Cell);

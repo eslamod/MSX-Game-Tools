@@ -42,12 +42,30 @@ public partial class SpriteGroup : ObservableObject
     [ObservableProperty]
     private BackgroundRef _background = BackgroundRef.None;
 
-    public SpriteGroup(string name)
+    public SpriteGroup(string name, int id = 0)
     {
         _name = name;
+        Id = id;
 
         Members.CollectionChanged += OnMembersChanged;
     }
+
+    /// <summary>
+    /// Su número, que no se mueve nunca y no se reaprovecha.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// No es su posición en la lista. La posición sí se mueve —borrar un grupo corre todos los
+    /// de atrás— y eso dejaba a las animaciones apuntando a otro grupo sin que nada lo dijera.
+    /// El banco ya había aprendido esto con los patrones: sus huecos son fijos precisamente para
+    /// que ningún número se pueda mover.
+    /// </para>
+    /// <para>
+    /// Al juego no le llega: los grupos se exportan en orden y él los direcciona por su
+    /// posición. Esto es de puertas adentro, y se traduce a posición al exportar.
+    /// </para>
+    /// </remarks>
+    public int Id { get; internal set; }
 
     /// <summary>Ha cambiado algo que afecta a cómo se ve el grupo.</summary>
     public event Action<SpriteGroup>? Changed;

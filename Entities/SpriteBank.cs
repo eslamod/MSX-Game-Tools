@@ -58,6 +58,9 @@ public class SpriteBank
     public const int MaxGroups = 32;
 
     private readonly List<Sprite> _sprites = [];
+
+    /// <summary>El siguiente número libre de grupo. No se reaprovechan los de los borrados.</summary>
+    private int _nextGroupId;
     private readonly SpriteType _spriteType;
 
     // En la versión WPF el constructor con SpriteType no inicializaba la lista,
@@ -126,6 +129,49 @@ public class SpriteBank
     /// </remarks>
     public ObservableCollection<SpriteAnimation> Animations { get; } = [];
 
+    /// <summary>
+    /// Dónde cae un grupo en la lista, que es como lo direcciona el juego.
+    /// </summary>
+    /// <remarks>
+    /// La traducción entre lo de dentro y lo de fuera: dentro los grupos se conocen por su
+    /// número, que no se mueve; fuera se exportan en orden y el juego los cuenta. Devuelve -1 si
+    /// ese grupo ya no está, que es justo lo que hay que poder decir.
+    /// </remarks>
+    public int OrdinalOfGroup(int groupId)
+    {
+        for (int index = 0; index < Groups.Count; index++)
+        {
+            if (Groups[index].Id == groupId)
+                return index;
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// Las animaciones que usan un grupo, para poder avisar antes de borrarlo.
+    /// </summary>
+    /// <remarks>
+    /// Borrarlo no las corrige ni las rompe en silencio: se quedan apuntando a un número que ya
+    /// no existe, y eso se ve. Lo que hace falta es decirlo antes, que es para lo que está esto.
+    /// </remarks>
+    public IReadOnlyList<SpriteAnimation> AnimationsUsing(int groupId) =>
+    [
+        .. Animations.Where(animation =>
+            animation.Kind == AnimationKind.Groups && Uses(animation.Steps, groupId)),
+    ];
+
+    private static bool Uses(IEnumerable<AnimationStep> steps, int groupId) => steps.Any(step => step switch
+    {
+        AnimationFrame frame => frame.Target == groupId,
+        AnimationLoop loop => Uses(loop.Steps, groupId),
+        _ => false,
+    });
+
+    /// <summary>Al abrir un banco, los números salen del fichero y hay que seguir por ahí.</summary>
+    internal void ResumeGroupIds() =>
+        _nextGroupId = Groups.Count == 0 ? 0 : Groups.Max(group => group.Id) + 1;
+
     public bool CanAddGroup => Groups.Count < MaxGroups;
 
     /// <summary>Crea un grupo con un único miembro. Devuelve <c>null</c> si ya no caben más.</summary>
@@ -134,7 +180,7 @@ public class SpriteBank
         if (!CanAddGroup || (uint)patternIndex >= (uint)_sprites.Count)
             return null;
 
-        var group = new SpriteGroup(NextGroupName());
+        var group = new SpriteGroup(NextGroupName(), _nextGroupId++);
         group.Add(new SpriteGroupMember(patternIndex, _sprites[patternIndex]));
 
         Groups.Add(group);
