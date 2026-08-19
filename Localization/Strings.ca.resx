@@ -475,6 +475,15 @@ El projecte s'obre igualment, sense ells. Compte: si el deses ara, també marxar
   <data name="ExportedTwoFiles" xml:space="preserve"><value>S'han escrit:
 {0}
 {1}</value></data>
+  <data name="ExportedThreeFiles" xml:space="preserve"><value>S'han escrit:
+{0}
+{1}
+{2}</value></data>
+  <data name="ExportMissingGroupsTitle" xml:space="preserve"><value>Grups que ja no hi són</value></data>
+  <data name="ExportMissingGroupsBody" xml:space="preserve"><value>Hi ha animacions que demanen grups esborrats:
+{0}
+Sortiran com a 0xFF i el joc no sabrà què ensenyar-hi.</value></data>
+  <data name="ExportAnywayLabel" xml:space="preserve"><value>Exportar igualment</value></data>
   <data name="ExportedTileSetTitle" xml:space="preserve"><value>Joc de tiles exportat</value></data>
   <data name="ExportedTileSetBody" xml:space="preserve"><value>S'han escrit:
 {0}

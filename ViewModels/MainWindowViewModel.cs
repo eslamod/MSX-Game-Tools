@@ -1419,17 +1419,32 @@ public partial class MainWindowViewModel : ObservableObject
         string patternsPath = Path.Combine(folder, $"{stem}_patterns{extension}");
         string groupsPath = Path.Combine(folder, $"{stem}_groups{extension}");
 
+        // Sólo si hay: un fichero de cero bytes junto a los otros dos parece que algo ha
+        // fallado, y quien no anima nada no tiene por qué encontrárselo.
+        string? animationsPath = bank.Animations.Count == 0
+            ? null
+            : Path.Combine(folder, $"{stem}_animations{extension}");
+
+        if (animationsPath is not null && !await AnimationsAreSoundAsync(bank))
+            return;
+
         try
         {
             if (binary)
             {
                 await File.WriteAllBytesAsync(patternsPath, SpriteBankExporter.PatternsToBinary(bank));
                 await File.WriteAllBytesAsync(groupsPath, SpriteBankExporter.GroupsToBinary(bank));
+
+                if (animationsPath is not null)
+                    await File.WriteAllBytesAsync(animationsPath, SpriteAnimationExporter.ToBinary(bank));
             }
             else
             {
                 await File.WriteAllTextAsync(patternsPath, SpriteBankExporter.PatternsToAssembler(bank));
                 await File.WriteAllTextAsync(groupsPath, SpriteBankExporter.GroupsToAssembler(bank));
+
+                if (animationsPath is not null)
+                    await File.WriteAllTextAsync(animationsPath, SpriteAnimationExporter.ToAssembler(bank));
             }
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
@@ -1439,10 +1454,45 @@ public partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        // El nombre elegido se reparte en dos, asi que conviene decir cuales han salido.
+        // El nombre elegido se reparte en varios, asi que conviene decir cuales han salido.
         await Dialogs.ShowMessageAsync(
             Text["ExportedSpriteBankTitle"],
-            Text.Format("ExportedTwoFiles", Path.GetFileName(patternsPath), Path.GetFileName(groupsPath)));
+            animationsPath is null
+                ? Text.Format(
+                    "ExportedTwoFiles",
+                    Path.GetFileName(patternsPath),
+                    Path.GetFileName(groupsPath))
+                : Text.Format(
+                    "ExportedThreeFiles",
+                    Path.GetFileName(patternsPath),
+                    Path.GetFileName(groupsPath),
+                    Path.GetFileName(animationsPath)));
+    }
+
+    /// <summary>
+    /// Avisa si alguna animación pide un grupo que ya no existe, y deja decidir.
+    /// </summary>
+    /// <remarks>
+    /// Borrar un grupo no toca las animaciones, así que se puede llegar aquí con una apuntando
+    /// a un número que ya no está. Se exporta igual —cortar la exportación por esto sería peor—,
+    /// pero diciéndolo: en el fichero es un 0xFF y en la máquina, un sprite que no aparece.
+    /// </remarks>
+    private async Task<bool> AnimationsAreSoundAsync(SpriteBank bank)
+    {
+        IReadOnlyList<SpriteAnimationExporter.MissingGroup> missing =
+            SpriteAnimationExporter.MissingGroups(bank);
+
+        if (missing.Count == 0)
+            return true;
+
+        string what = string.Join(
+            Environment.NewLine,
+            missing.Select(one => $"{one.Animation}: {one.Group}").Distinct());
+
+        return await Dialogs.ConfirmAsync(
+            Text["ExportMissingGroupsTitle"],
+            Text.Format("ExportMissingGroupsBody", what),
+            Text["ExportAnywayLabel"]);
     }
 
     private bool IsTileSetSelected() => SelectedTab is TileSetEditorViewModel;

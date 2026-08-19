@@ -516,6 +516,15 @@ El proyecto se abre igual, sin ellos. Ojo: si lo guardas ahora, se irán tambié
   <data name="ExportedTwoFiles" xml:space="preserve"><value>Se han escrito:
 {0}
 {1}</value></data>
+  <data name="ExportedThreeFiles" xml:space="preserve"><value>Se han escrito:
+{0}
+{1}
+{2}</value></data>
+  <data name="ExportMissingGroupsTitle" xml:space="preserve"><value>Grupos que ya no están</value></data>
+  <data name="ExportMissingGroupsBody" xml:space="preserve"><value>Hay animaciones que piden grupos borrados:
+{0}
+Saldrán como 0xFF y el juego no sabrá qué enseñar ahí.</value></data>
+  <data name="ExportAnywayLabel" xml:space="preserve"><value>Exportar igual</value></data>
   <data name="ExportedTileSetTitle" xml:space="preserve"><value>Juego de tiles exportado</value></data>
   <data name="ExportedTileSetBody" xml:space="preserve"><value>Se han escrito:
 {0}

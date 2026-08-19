@@ -474,6 +474,15 @@ The project opens anyway, without them. Careful: saving it now drops them from t
   <data name="ExportedTwoFiles" xml:space="preserve"><value>These were written:
 {0}
 {1}</value></data>
+  <data name="ExportedThreeFiles" xml:space="preserve"><value>These were written:
+{0}
+{1}
+{2}</value></data>
+  <data name="ExportMissingGroupsTitle" xml:space="preserve"><value>Groups that are gone</value></data>
+  <data name="ExportMissingGroupsBody" xml:space="preserve"><value>Some animations ask for deleted groups:
+{0}
+They will be written as 0xFF and the game will not know what to show there.</value></data>
+  <data name="ExportAnywayLabel" xml:space="preserve"><value>Export anyway</value></data>
   <data name="ExportedTileSetTitle" xml:space="preserve"><value>Tile set exported</value></data>
   <data name="ExportedTileSetBody" xml:space="preserve"><value>These were written:
 {0}
