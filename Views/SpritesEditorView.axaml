@@ -449,7 +449,7 @@
             Background="{DynamicResource AppSurfaceBackground}" BorderBrush="{DynamicResource AppSeparator}" BorderThickness="1">
       <Grid RowDefinitions="Auto,*,Auto,Auto,Auto,Auto,Auto">
 
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,6">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto,Auto" Margin="0,0,0,6">
           <TextBlock Grid.Column="0" Text="{l:Localize SpritesAnimations}" FontWeight="Bold"
                      VerticalAlignment="Center" />
           <Button Grid.Column="1" Width="28" Height="26" Padding="0" Margin="2,0,0,0"
@@ -461,6 +461,19 @@
                   Command="{Binding RemoveAnimationCommand}"
                   ToolTip.Tip="{l:Localize AnimRemove}">
             <icons:MaterialIcon Kind="Minus" />
+          </Button>
+          <!-- El orden de la lista es el que se guarda, asi que se puede cambiar. -->
+          <Button x:Name="AnimationUpButton"
+                  Grid.Column="3" Width="28" Height="26" Padding="0" Margin="2,0,0,0"
+                  Command="{Binding MoveAnimationUpCommand}"
+                  ToolTip.Tip="{l:Localize AnimUp}">
+            <icons:MaterialIcon Kind="ArrowUp" />
+          </Button>
+          <Button x:Name="AnimationDownButton"
+                  Grid.Column="4" Width="28" Height="26" Padding="0" Margin="2,0,0,0"
+                  Command="{Binding MoveAnimationDownCommand}"
+                  ToolTip.Tip="{l:Localize AnimDown}">
+            <icons:MaterialIcon Kind="ArrowDown" />
           </Button>
         </Grid>
 

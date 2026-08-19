@@ -577,6 +577,8 @@ Remember to copy each table {2} times into VRAM, one per third of the screen.</v
   <data name="SpritesAnimationsTip" xml:space="preserve"><value>The animations made with this bank's patterns or groups</value></data>
   <data name="AnimAdd" xml:space="preserve"><value>New animation</value></data>
   <data name="AnimRemove" xml:space="preserve"><value>Delete the animation</value></data>
+  <data name="AnimUp" xml:space="preserve"><value>Move the animation up the list</value></data>
+  <data name="AnimDown" xml:space="preserve"><value>Move the animation down the list</value></data>
   <data name="AnimName" xml:space="preserve"><value>Name</value></data>
   <data name="AnimKind" xml:space="preserve"><value>Made of</value></data>
   <data name="AnimMode" xml:space="preserve"><value>When it ends</value></data>

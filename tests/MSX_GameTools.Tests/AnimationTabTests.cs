@@ -154,6 +154,71 @@ public class AnimationTabTests
         Assert.Equal(PixelReader.Bgra(after), Corner(editor));
     }
 
+    /// <summary>
+    /// Las animaciones se pueden cambiar de orden con las flechas.
+    /// </summary>
+    /// <remarks>
+    /// Con el ratón y con la ventana montada, que es donde salen los fallos de este estilo: el
+    /// modelo de vista suelto siempre pasa, y lo que se rompe es la lista escribiendo de vuelta.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Las_animaciones_se_pueden_cambiar_de_orden()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+
+        for (int each = 0; each < 3; each++)
+            editor.ViewModel.AddAnimationCommand.Execute(null);
+
+        editor.SetThumbnailMode(ThumbnailMode.Animations);
+
+        editor.ViewModel.Animations[0].Name = "Andar";
+        editor.ViewModel.Animations[1].Name = "Saltar";
+        editor.ViewModel.Animations[2].Name = "Caer";
+
+        editor.ViewModel.SelectedAnimation = editor.ViewModel.Animations[2];
+        Pump();
+
+        ClickButton(Arrow(editor, "AnimationUpButton"));
+
+        Assert.Equal(["Andar", "Caer", "Saltar"], editor.ViewModel.Animations.Select(one => one.Name));
+
+        // La del banco es la que se guarda: moviendo sólo la de la pestaña, al abrir el fichero
+        // volvería el orden de antes.
+        Assert.Equal(["Andar", "Caer", "Saltar"], editor.Bank.Animations.Select(one => one.Name));
+
+        // Y sigue elegida la misma animación, no la que ha ocupado su sitio.
+        Assert.Equal("Caer", editor.ViewModel.SelectedAnimation?.Name);
+    }
+
+    /// <summary>La primera no se puede subir más, y pulsar no la deshace ni la duplica.</summary>
+    [AvaloniaFact]
+    public void Subir_la_primera_no_hace_nada()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+
+        editor.ViewModel.AddAnimationCommand.Execute(null);
+        editor.ViewModel.AddAnimationCommand.Execute(null);
+
+        editor.SetThumbnailMode(ThumbnailMode.Animations);
+
+        editor.ViewModel.Animations[0].Name = "Andar";
+        editor.ViewModel.Animations[1].Name = "Saltar";
+
+        editor.ViewModel.SelectedAnimation = editor.ViewModel.Animations[0];
+        Pump();
+
+        ClickButton(Arrow(editor, "AnimationUpButton"));
+
+        Assert.Equal(["Andar", "Saltar"], editor.ViewModel.Animations.Select(one => one.Name));
+        Assert.Equal(["Andar", "Saltar"], editor.Bank.Animations.Select(one => one.Name));
+        Assert.Equal("Andar", editor.ViewModel.SelectedAnimation?.Name);
+    }
+
+    private static Button Arrow(SpriteCanvasHarness editor, string name) => editor.View
+        .GetVisualDescendants()
+        .OfType<Button>()
+        .Single(button => button.Name == name);
+
     /// <summary>La esquina de lo que enseña la vista previa, que en un patrón vacío es el fondo.</summary>
     private static int Corner(SpriteCanvasHarness editor)
     {

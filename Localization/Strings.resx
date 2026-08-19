@@ -622,6 +622,8 @@ Recuerda copiar cada tabla {2} veces en VRAM, una por tercio de pantalla.</value
   <data name="SpritesAnimationsTip" xml:space="preserve"><value>Las animaciones hechas con los patrones o los grupos de este banco</value></data>
   <data name="AnimAdd" xml:space="preserve"><value>Nueva animación</value></data>
   <data name="AnimRemove" xml:space="preserve"><value>Eliminar la animación</value></data>
+  <data name="AnimUp" xml:space="preserve"><value>Subir la animación en la lista</value></data>
+  <data name="AnimDown" xml:space="preserve"><value>Bajar la animación en la lista</value></data>
   <data name="AnimName" xml:space="preserve"><value>Nombre</value></data>
   <data name="AnimKind" xml:space="preserve"><value>Hecha con</value></data>
   <data name="AnimMode" xml:space="preserve"><value>Al acabar</value></data>

@@ -298,6 +298,8 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
             Player.Load(value?.Timeline ?? new Services.AnimationTimeline([], false, false));
 
             RemoveAnimationCommand.NotifyCanExecuteChanged();
+            MoveAnimationUpCommand.NotifyCanExecuteChanged();
+            MoveAnimationDownCommand.NotifyCanExecuteChanged();
         }
     }
 
@@ -333,6 +335,39 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
         SelectedAnimation = Animations.Count == 0
             ? null
             : Animations[Math.Min(at, Animations.Count - 1)];
+
+        Touch();
+    }
+
+    [RelayCommand(CanExecute = nameof(HasAnimation))]
+    private void MoveAnimationUp() => MoveAnimation(-1);
+
+    [RelayCommand(CanExecute = nameof(HasAnimation))]
+    private void MoveAnimationDown() => MoveAnimation(1);
+
+    /// <summary>
+    /// Cambia de sitio la animación elegida.
+    /// </summary>
+    /// <remarks>
+    /// Se mueven las dos listas: la del banco, que es la que se guarda y la que da el número por
+    /// el que el juego pedirá cada animación, y la de la pestaña. En los extremos no pasa nada.
+    /// </remarks>
+    private void MoveAnimation(int by)
+    {
+        if (SelectedAnimation is not { } moved)
+            return;
+
+        int at = Animations.IndexOf(moved);
+        int to = at + by;
+
+        if (at < 0 || (uint)to >= (uint)Animations.Count)
+            return;
+
+        _spriteBank.Animations.Move(at, to);
+        Animations.Move(at, to);
+
+        // La lista se queda con el sitio y no con la animación, así que hay que devolvérsela.
+        SelectedAnimation = moved;
 
         Touch();
     }
