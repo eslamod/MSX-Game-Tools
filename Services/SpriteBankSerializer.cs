@@ -30,7 +30,7 @@ public static class SpriteBankSerializer
     /// seguidos desde el 0, así que su posición en el fichero <b>era</b> su índice, y
     /// leyéndolos por posición caen exactamente donde estaban. Ni un número se mueve.
     /// </remarks>
-    public const int FormatVersion = 3;
+    public const int FormatVersion = 4;
 
     private const int PatternDigits = 4; // 16 columnas, cuatro dígitos hexadecimales
 
@@ -101,7 +101,25 @@ public static class SpriteBankSerializer
         PaletteSerializer.ToFile(palette),
         [.. Drawn(bank)],
         [.. bank.Groups.Select(ToFile)],
-        [.. backgrounds.Select(image => new ReferenceFile(image.Path, image.CellSize))]);
+        [.. backgrounds.Select(image => new ReferenceFile(image.Path, image.CellSize))],
+        [.. bank.Animations.Select(ToFile)]);
+
+    private static AnimationFile ToFile(SpriteAnimation animation) => new(
+        animation.Name,
+        animation.Kind.ToString(),
+        animation.Mode.ToString(),
+        [.. animation.Steps.Select(ToFile)]);
+
+    private static StepFile ToFile(AnimationStep step) => step switch
+    {
+        AnimationLoop loop => new StepFile(
+            LoopType, 0, 0, 0, 0, 0, loop.Times, [.. loop.Steps.Select(ToFile)]),
+
+        AnimationFrame frame => new StepFile(
+            FrameType, frame.Target, frame.Wait, frame.OffsetX, frame.OffsetY, frame.Event, 0, null),
+
+        _ => throw new FileFormatException($"No se sabe guardar un paso de tipo {step.GetType().Name}."),
+    };
 
     /// <summary>Los patrones que se han tocado, con su número delante.</summary>
     /// <remarks>
@@ -197,8 +215,77 @@ public static class SpriteBankSerializer
         foreach (GroupFile group in file.Groups ?? [])
             ReadGroup(group, bank);
 
+        foreach (AnimationFile animation in file.Animations ?? [])
+            bank.Animations.Add(ReadAnimation(animation));
+
         return bank;
     }
+
+    /// <summary>Los dos tipos de paso, tal y como se escriben en el fichero.</summary>
+    private const string FrameType = "frame";
+
+    /// <inheritdoc cref="FrameType"/>
+    private const string LoopType = "loop";
+
+    private static SpriteAnimation ReadAnimation(AnimationFile file)
+    {
+        var animation = new SpriteAnimation(
+            string.IsNullOrWhiteSpace(file.Name) ? "Animación sin nombre" : file.Name,
+            Parse<AnimationKind>(file.Kind, nameof(AnimationKind)))
+        {
+            Mode = Parse<AnimationMode>(file.Mode, nameof(AnimationMode)),
+        };
+
+        ReadSteps(file.Steps, animation.Steps);
+
+        return animation;
+    }
+
+    private static void ReadSteps(IReadOnlyList<StepFile>? files, IList<AnimationStep> steps)
+    {
+        foreach (StepFile file in files ?? [])
+            steps.Add(ReadStep(file));
+    }
+
+    private static AnimationStep ReadStep(StepFile file)
+    {
+        if (file.Type == LoopType)
+        {
+            var loop = new AnimationLoop { Times = file.Times };
+
+            ReadSteps(file.Steps, loop.Steps);
+
+            return loop;
+        }
+
+        if (file.Type != FrameType)
+        {
+            throw new FileFormatException(
+                $"Un paso de animación es «{FrameType}» o «{LoopType}», y el fichero trae «{file.Type}».");
+        }
+
+        return new AnimationFrame
+        {
+            Target = file.Target,
+            Wait = file.Wait,
+            OffsetX = file.OffsetX,
+            OffsetY = file.OffsetY,
+            Event = file.Event,
+        };
+    }
+
+    /// <summary>
+    /// Lee un valor de los que el editor entiende, o se planta.
+    /// </summary>
+    /// <remarks>
+    /// Sin distinguir mayúsculas: se escriben tal cual salen del enum, pero un fichero retocado a
+    /// mano no tiene por qué respetarlo y eso no es motivo para no abrirlo.
+    /// </remarks>
+    private static T Parse<T>(string? value, string what)
+        where T : struct, Enum =>
+        Enum.TryParse(value, ignoreCase: true, out T parsed)
+            ? parsed
+            : throw new FileFormatException($"El fichero trae «{value}» donde esperaba un {what}.");
 
     private static void ReadPattern(PatternFile file, Sprite pattern, int patternIndex)
     {
@@ -345,7 +432,34 @@ public static class SpriteBankSerializer
         PaletteSerializer.PaletteFile? Palette,
         IReadOnlyList<PatternFile>? Patterns,
         IReadOnlyList<GroupFile>? Groups,
-        IReadOnlyList<ReferenceFile>? Backgrounds);
+        IReadOnlyList<ReferenceFile>? Backgrounds,
+        IReadOnlyList<AnimationFile>? Animations);
+
+    /// <param name="Kind">Si sus pasos enseñan patrones o grupos.</param>
+    /// <param name="Mode">Qué pasa al llegar al final.</param>
+    private sealed record AnimationFile(
+        string? Name,
+        string? Kind,
+        string? Mode,
+        IReadOnlyList<StepFile>? Steps);
+
+    /// <summary>
+    /// Un paso: o un fotograma o un bucle con los suyos dentro.
+    /// </summary>
+    /// <param name="Type">
+    /// Cuál de los dos es. Escrito y no adivinado por qué campos vengan: un fichero se lee a
+    /// mano más veces de las que se cree, y adivinarlo obliga a conocer la regla para entenderlo.
+    /// </param>
+    private sealed record StepFile(
+        string? Type,
+        int Target,
+        int Wait,
+        int OffsetX,
+        int OffsetY,
+        int Event,
+        int Times,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        IReadOnlyList<StepFile>? Steps);
 
     /// <summary>Una imagen de referencia: dónde estaba y cómo se troceó.</summary>
     private sealed record ReferenceFile(string? Path, int CellSize);

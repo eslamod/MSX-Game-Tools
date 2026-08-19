@@ -117,6 +117,15 @@ public class SpriteBank
     /// <summary>Los personajes multicolor compuestos con los patrones de este banco.</summary>
     public ObservableCollection<SpriteGroup> Groups { get; } = [];
 
+    /// <summary>
+    /// Las animaciones hechas con los patrones o los grupos de este banco.
+    /// </summary>
+    /// <remarks>
+    /// Cuelgan del banco porque no significan nada sin él: sus pasos apuntan a patrones o a
+    /// grupos suyos, igual que los grupos apuntan a patrones.
+    /// </remarks>
+    public ObservableCollection<SpriteAnimation> Animations { get; } = [];
+
     public bool CanAddGroup => Groups.Count < MaxGroups;
 
     /// <summary>Crea un grupo con un único miembro. Devuelve <c>null</c> si ya no caben más.</summary>
