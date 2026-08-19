@@ -284,6 +284,95 @@ public class AnimationTabTests
         Assert.Equal(wanted, editor.ViewModel.SelectedGroup?.Group.Id);
     }
 
+    /// <summary>
+    /// La vista previa mueve el fotograma lo que diga su desplazamiento.
+    /// </summary>
+    /// <remarks>
+    /// En píxeles de la máquina por el zoom que haya puesto, que es lo que hace falta para ver
+    /// si una figura cojea al andar. Sin desplazamiento tiene que quedar centrada.
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_vista_previa_mueve_el_fotograma_desplazado()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+
+        editor.ViewModel.AddAnimationCommand.Execute(null);
+        editor.SetThumbnailMode(ThumbnailMode.Animations);
+
+        SpriteAnimationViewModel animation = editor.ViewModel.SelectedAnimation!;
+
+        animation.AddFrameCommand.Execute(null);
+        Pump();
+
+        Image preview = editor.View.GetVisualDescendants()
+            .OfType<Image>()
+            .Single(image => image.Name == "AnimationFrameImage");
+
+        Assert.Equal(0, Moved(preview).X, 1);
+        Assert.Equal(0, Moved(preview).Y, 1);
+
+        animation.Steps[0].OffsetX = 4;
+        animation.Steps[0].OffsetY = -2;
+        animation.Refresh();
+
+        Pump();
+
+        // Un patrón mide 16 y el recuadro abarca 32, así que cada píxel de la máquina son dos
+        // de pantalla al zoom de partida. El desplazamiento va en esos mismos píxeles.
+        double scale = editor.View.AnimationPreviewSize / 32;
+
+        Assert.Equal(4 * scale, Moved(preview).X, 1);
+        Assert.Equal(-2 * scale, Moved(preview).Y, 1);
+    }
+
+    /// <summary>
+    /// Y lo que se centra es la figura, no el dibujo.
+    /// </summary>
+    /// <remarks>
+    /// La composición de un grupo puede sobresalir por arriba o por la izquierda, y entonces su
+    /// centro no es el de la figura. Centrando el dibujo a secas, un grupo que asoma por arriba
+    /// se vería más bajo que un patrón suelto, y al cambiar de fotograma daría un salto.
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_figura_queda_centrada_aunque_el_grupo_sobresalga()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+
+        editor.ViewModel.AddGroupCommand.Execute(null);
+
+        SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
+
+        group.AddMemberCommand.Execute(null);
+        group.Group.Members[1].OffsetY = -Sprite.Rows;
+
+        editor.ViewModel.AddAnimationCommand.Execute(null);
+        editor.SetThumbnailMode(ThumbnailMode.Animations);
+
+        SpriteAnimationViewModel animation = editor.ViewModel.SelectedAnimation!;
+
+        animation.Kind = AnimationKind.Groups;
+        animation.AddFrameCommand.Execute(null);
+        animation.Steps[0].Target = group.Group.Id;
+        animation.Refresh();
+
+        Pump();
+
+        Image preview = editor.View.GetVisualDescendants()
+            .OfType<Image>()
+            .Single(image => image.Name == "AnimationFrameImage");
+
+        // El dibujo mide 32 de alto y el sprite sin desplazar es la mitad de abajo, así que hay
+        // que bajarlo 8 para que quede centrado él y no la composición entera.
+        double scale = editor.View.AnimationPreviewSize / 32;
+
+        Assert.Equal(Sprite.Rows / 2 * scale, Moved(preview).Y, 1);
+        Assert.Equal(0, Moved(preview).X, 1);
+    }
+
+    private static TranslateTransform Moved(Image preview) =>
+        preview.RenderTransform as TranslateTransform
+        ?? throw new InvalidOperationException("La vista previa no lleva desplazamiento.");
+
     private static Button Arrow(SpriteCanvasHarness editor, string name) => editor.View
         .GetVisualDescendants()
         .OfType<Button>()

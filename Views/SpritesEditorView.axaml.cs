@@ -4,6 +4,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using MSX_GameTools.Entities;
@@ -185,7 +186,7 @@ public partial class SpritesEditorView : UserControl
     }
 
     /// <summary>
-    /// Pone en la vista previa el dibujo del fotograma que toca.
+    /// Pone en la vista previa el dibujo del fotograma que toca, donde le toca.
     /// </summary>
     /// <remarks>
     /// El patrón o la composición del grupo, según de qué vaya la animación. Un número que ya
@@ -197,10 +198,41 @@ public partial class SpritesEditorView : UserControl
         if (Editor is not { } vm || AnimationFrameImage is null)
             return;
 
-        AnimationFrameImage.Source = Frame(vm)?.SpritePreview;
+        if (Frame(vm) is not { } drawing || vm.Player.Current is not { } frame)
+        {
+            AnimationFrameImage.Source = null;
+            return;
+        }
+
+        // Pixel de la maquina a pixel de la pantalla. El recuadro abarca siempre lo mismo,
+        // asi que un fotograma grande sale grande y uno pequeno, pequeno.
+        double scale = AnimationPreviewSize / AnimationPreviewCells;
+
+        AnimationFrameImage.Source = drawing.Image.SpritePreview;
+        AnimationFrameImage.Width = drawing.Image.Width * scale;
+        AnimationFrameImage.Height = drawing.Image.Height * scale;
+
+        AnimationFrameImage.RenderTransform = new TranslateTransform(
+            Displacement(drawing.OriginX, drawing.Image.Width, frame.OffsetX, SpriteRow.Columns) * scale,
+            Displacement(drawing.OriginY, drawing.Image.Height, frame.OffsetY, Sprite.Rows) * scale);
     }
 
-    private static ImageMini? Frame(SpritesEditorViewModel vm)
+    /// <summary>
+    /// Lo que hay que mover el dibujo dentro del recuadro, en píxeles de la máquina.
+    /// </summary>
+    /// <remarks>
+    /// El dibujo va centrado en el recuadro, pero lo que tiene que quedar centrado es el sprite
+    /// sin desplazar: la composición de un grupo puede sobresalir por arriba o por la izquierda,
+    /// y entonces su centro no es el de la figura. Eso lo corrige el origen. Encima va el
+    /// desplazamiento del fotograma, que es lo que se quiere ver.
+    /// </remarks>
+    private static double Displacement(int origin, int size, int offset, int nominal) =>
+        (nominal / 2.0) + origin - (size / 2.0) + offset;
+
+    /// <summary>Lo que se pinta de un fotograma: el dibujo y dónde cae su esquina.</summary>
+    private readonly record struct Drawing(ImageMini Image, int OriginX, int OriginY);
+
+    private static Drawing? Frame(SpritesEditorViewModel vm)
     {
         if (vm.Player.Current is not { } frame || vm.SelectedAnimation is not { } animation)
             return null;
@@ -209,10 +241,17 @@ public partial class SpritesEditorView : UserControl
         {
             // Por el número del grupo y no por su sitio en la lista: borrando uno, los que
             // quedan no se renumeran y buscarlos por su sitio enseñaría otro, o ninguno.
-            return vm.GroupWithId(frame.Target)?.Preview;
+            if (vm.GroupWithId(frame.Target) is not { } group)
+                return null;
+
+            (_, _, int originX, int originY) = SpriteGroupRenderer.CanvasOf(group.Group);
+
+            return new Drawing(group.Preview, originX, originY);
         }
 
-        return (uint)frame.Target < (uint)vm.ImagesMiniList.Count ? vm.ImagesMiniList[frame.Target] : null;
+        return (uint)frame.Target < (uint)vm.ImagesMiniList.Count
+            ? new Drawing(vm.ImagesMiniList[frame.Target], 0, 0)
+            : null;
     }
 
     private void OnAnimationPlay(object? sender, RoutedEventArgs e)
