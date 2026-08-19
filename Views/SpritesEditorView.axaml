@@ -917,12 +917,18 @@
         </Grid>
 
         <!-- La vista previa y los mandos, a la derecha. -->
-        <StackPanel Grid.Column="1" Width="200" Margin="8,0,0,0">
+        <StackPanel Grid.Column="1" MinWidth="200" Margin="8,0,0,0">
 
-          <Border Height="140" Background="{Binding BackgroundColor.Brush}"
+          <!-- Al zoom de las miniaturas, que es el que hay a mano arriba a la derecha: el
+               hueco da de sobra y quien pulsa X4 espera que le crezca esto tambien.
+               Estirada al hueco y no a su tamano real: los fotogramas de una animacion
+               pueden medir distinto entre si, y el recuadro no puede bailar con cada uno. -->
+          <Border MinHeight="140" Background="{Binding BackgroundColor.Brush}"
                   BorderBrush="{DynamicResource AppSeparator}" BorderThickness="1">
             <Image x:Name="AnimationFrameImage"
                    Stretch="Uniform" Margin="8"
+                   Width="{Binding $parent[views:SpritesEditorView].AnimationPreviewSize}"
+                   Height="{Binding $parent[views:SpritesEditorView].AnimationPreviewSize}"
                    RenderOptions.BitmapInterpolationMode="None" />
           </Border>
 

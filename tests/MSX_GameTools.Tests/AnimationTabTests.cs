@@ -122,4 +122,34 @@ public class AnimationTabTests
         .GetVisualDescendants()
         .OfType<Grid>()
         .Single(grid => grid.Name == "AnimationBoard");
+
+    /// <summary>
+    /// Los botones del zoom mueven también la vista previa de la animación.
+    /// </summary>
+    /// <remarks>
+    /// Son los que hay a mano arriba a la derecha y ya escalan las miniaturas; quien pulsa X4
+    /// espera que le crezca lo que está mirando, y en esta pestaña lo que se mira es la vista
+    /// previa. Además el hueco da de sobra.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_zoom_mueve_la_vista_previa_de_la_animacion()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+
+        editor.ViewModel.AddAnimationCommand.Execute(null);
+        editor.SetThumbnailMode(ThumbnailMode.Animations);
+
+        double before = editor.View.AnimationPreviewSize;
+
+        RadioButton bigger = editor.View.GetVisualDescendants()
+            .OfType<RadioButton>()
+            .Single(button => button.GroupName == "PreviewZoom" && (string?)button.Tag == "4");
+
+        bigger.IsChecked = true;
+        Pump();
+
+        Assert.True(
+            editor.View.AnimationPreviewSize > before,
+            $"antes {before} y despues {editor.View.AnimationPreviewSize}");
+    }
 }

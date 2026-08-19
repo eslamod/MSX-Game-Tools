@@ -56,6 +56,22 @@ public partial class SpritesEditorView : UserControl
             defaultValue: ThumbnailBaseScale);
 
     /// <summary>
+    /// Lado de la vista previa de la animación.
+    /// </summary>
+    /// <remarks>
+    /// Al mismo zoom que las miniaturas, que es el que hay a mano arriba a la derecha: el hueco
+    /// da de sobra y quien pulsa X4 espera que le crezca esto también. Más grande que una
+    /// miniatura porque es lo que se está mirando, no una de sesenta y cuatro.
+    /// </remarks>
+    public static readonly StyledProperty<double> AnimationPreviewSizeProperty =
+        AvaloniaProperty.Register<SpritesEditorView, double>(
+            nameof(AnimationPreviewSize),
+            defaultValue: AnimationPreviewCells * ThumbnailBaseScale);
+
+    /// <summary>Sprites de lado que mide la vista previa: cabe una figura de dos por dos.</summary>
+    private const int AnimationPreviewCells = GridSize * 2;
+
+    /// <summary>
     /// Alto de una fila del lienzo. La tira de colores por línea lo lee para quedar
     /// alineada con las filas del sprite sea cual sea el zoom.
     /// </summary>
@@ -99,6 +115,12 @@ public partial class SpritesEditorView : UserControl
     {
         get => GetValue(CellSizeProperty);
         set => SetValue(CellSizeProperty, value);
+    }
+
+    public double AnimationPreviewSize
+    {
+        get => GetValue(AnimationPreviewSizeProperty);
+        set => SetValue(AnimationPreviewSizeProperty, value);
     }
 
     public double GroupPixelSize
@@ -310,6 +332,7 @@ public partial class SpritesEditorView : UserControl
         ThumbnailSize = GridSize * scale;
         GroupThumbnailSize = SpriteGroupRenderer.NominalSize * scale;
         GroupPixelSize = scale;
+        AnimationPreviewSize = AnimationPreviewCells * scale;
     }
 
     private void OnThumbnailModeChanged(object? sender, RoutedEventArgs e)
