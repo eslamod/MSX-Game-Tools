@@ -8,6 +8,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Services;
 using MSX_GameTools.ViewModels;
 
 namespace MSX_GameTools.Views;
@@ -204,44 +205,90 @@ public partial class SpritesEditorView : UserControl
             return;
         }
 
-        // Pixel de la maquina a pixel de la pantalla. El recuadro abarca siempre lo mismo,
-        // asi que un fotograma grande sale grande y uno pequeno, pequeno.
-        double scale = AnimationPreviewSize / AnimationPreviewCells;
+        // Lo que ocupa la animacion entera, no este fotograma: asi el sitio de cada uno se
+        // mide contra lo mismo y la figura no da un salto al cambiar de fotograma.
+        Extent extent = ExtentOf(vm);
+
+        double scale = AnimationPreviewSize / Math.Max(1, Math.Max(extent.Width, extent.Height));
 
         AnimationFrameImage.Source = drawing.Image.SpritePreview;
         AnimationFrameImage.Width = drawing.Image.Width * scale;
         AnimationFrameImage.Height = drawing.Image.Height * scale;
 
         AnimationFrameImage.RenderTransform = new TranslateTransform(
-            Displacement(drawing.OriginX, drawing.Image.Width, frame.OffsetX, SpriteRow.Columns) * scale,
-            Displacement(drawing.OriginY, drawing.Image.Height, frame.OffsetY, Sprite.Rows) * scale);
+            scale * Place(drawing.Image.Width, extent.Width, frame.OffsetX - drawing.OriginX - extent.Left),
+            scale * Place(drawing.Image.Height, extent.Height, frame.OffsetY - drawing.OriginY - extent.Top));
     }
 
     /// <summary>
-    /// Lo que hay que mover el dibujo dentro del recuadro, en píxeles de la máquina.
+    /// Dónde cae el dibujo dentro del recuadro, en píxeles de la máquina.
     /// </summary>
     /// <remarks>
-    /// El dibujo va centrado en el recuadro, pero lo que tiene que quedar centrado es el sprite
-    /// sin desplazar: la composición de un grupo puede sobresalir por arriba o por la izquierda,
-    /// y entonces su centro no es el de la figura. Eso lo corrige el origen. Encima va el
-    /// desplazamiento del fotograma, que es lo que se quiere ver.
+    /// La imagen va centrada por el XAML, así que esto es lo que hay que corregir: primero
+    /// centrar lo que ocupa la animación entera en vez de este dibujo, y luego llevarlo a su
+    /// sitio dentro de eso. Con todos los fotogramas sin desplazar sale cero y la figura queda
+    /// centrada, que es lo que tiene que pasar.
     /// </remarks>
-    private static double Displacement(int origin, int size, int offset, int nominal) =>
-        (nominal / 2.0) + origin - (size / 2.0) + offset;
+    private static double Place(int size, int extent, int at) => ((size - extent) / 2.0) + at;
+
+    /// <summary>Lo que ocupa una animación entera, en píxeles de la máquina.</summary>
+    private readonly record struct Extent(int Left, int Top, int Width, int Height);
+
+    /// <summary>
+    /// El hueco que necesita la animación con todos sus fotogramas puestos donde les toca.
+    /// </summary>
+    /// <remarks>
+    /// De aquí sale la escala, y por eso nada se sale del recuadro: un fotograma desplazado
+    /// hacia abajo agranda el hueco por abajo y uno hacia arriba lo agranda por arriba, así que
+    /// el dibujo se ve entero y en su sitio en vez de recortado contra el borde.
+    /// </remarks>
+    private static Extent ExtentOf(SpritesEditorViewModel vm)
+    {
+        Extent nothing = new(0, 0, SpriteRow.Columns, Sprite.Rows);
+
+        if (vm.SelectedAnimation is not { } animation)
+            return nothing;
+
+        int left = int.MaxValue;
+        int top = int.MaxValue;
+        int right = int.MinValue;
+        int bottom = int.MinValue;
+
+        foreach (TimelineFrame frame in animation.Timeline.Frames)
+        {
+            if (DrawingOf(vm, animation, frame.Target) is not { } drawing)
+                continue;
+
+            int x = frame.OffsetX - drawing.OriginX;
+            int y = frame.OffsetY - drawing.OriginY;
+
+            left = Math.Min(left, x);
+            top = Math.Min(top, y);
+            right = Math.Max(right, x + drawing.Image.Width);
+            bottom = Math.Max(bottom, y + drawing.Image.Height);
+        }
+
+        return left == int.MaxValue ? nothing : new Extent(left, top, right - left, bottom - top);
+    }
 
     /// <summary>Lo que se pinta de un fotograma: el dibujo y dónde cae su esquina.</summary>
     private readonly record struct Drawing(ImageMini Image, int OriginX, int OriginY);
 
-    private static Drawing? Frame(SpritesEditorViewModel vm)
-    {
-        if (vm.Player.Current is not { } frame || vm.SelectedAnimation is not { } animation)
-            return null;
+    private static Drawing? Frame(SpritesEditorViewModel vm) =>
+        vm.Player.Current is { } frame && vm.SelectedAnimation is { } animation
+            ? DrawingOf(vm, animation, frame.Target)
+            : null;
 
+    private static Drawing? DrawingOf(
+        SpritesEditorViewModel vm,
+        SpriteAnimationViewModel animation,
+        int target)
+    {
         if (animation.Kind == AnimationKind.Groups)
         {
             // Por el número del grupo y no por su sitio en la lista: borrando uno, los que
             // quedan no se renumeran y buscarlos por su sitio enseñaría otro, o ninguno.
-            if (vm.GroupWithId(frame.Target) is not { } group)
+            if (vm.GroupWithId(target) is not { } group)
                 return null;
 
             (_, _, int originX, int originY) = SpriteGroupRenderer.CanvasOf(group.Group);
@@ -249,8 +296,8 @@ public partial class SpritesEditorView : UserControl
             return new Drawing(group.Preview, originX, originY);
         }
 
-        return (uint)frame.Target < (uint)vm.ImagesMiniList.Count
-            ? new Drawing(vm.ImagesMiniList[frame.Target], 0, 0)
+        return (uint)target < (uint)vm.ImagesMiniList.Count
+            ? new Drawing(vm.ImagesMiniList[target], 0, 0)
             : null;
     }
 

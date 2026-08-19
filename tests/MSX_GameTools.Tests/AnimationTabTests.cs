@@ -285,65 +285,142 @@ public class AnimationTabTests
     }
 
     /// <summary>
-    /// La vista previa mueve el fotograma lo que diga su desplazamiento.
+    /// Sin desplazamientos la figura queda centrada, mida lo que mida.
     /// </summary>
     /// <remarks>
-    /// En píxeles de la máquina por el zoom que haya puesto, que es lo que hace falta para ver
-    /// si una figura cojea al andar. Sin desplazamiento tiene que quedar centrada.
+    /// Una figura de dos sprites de alto es lo normal, y salía subida: se centraba la casilla
+    /// de 16x16 del primer sprite en vez de la figura, así que la mitad de abajo se iba por
+    /// fuera del recuadro. Lo que se centra es lo que ocupa la animación entera.
     /// </remarks>
     [AvaloniaFact]
-    public void La_vista_previa_mueve_el_fotograma_desplazado()
+    public void Sin_desplazamientos_la_figura_queda_centrada()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
 
-        editor.ViewModel.AddAnimationCommand.Execute(null);
-        editor.SetThumbnailMode(ThumbnailMode.Animations);
-
-        SpriteAnimationViewModel animation = editor.ViewModel.SelectedAnimation!;
+        SpriteAnimationViewModel animation = WithTallFigure(editor);
 
         animation.AddFrameCommand.Execute(null);
-        Pump();
-
-        Image preview = editor.View.GetVisualDescendants()
-            .OfType<Image>()
-            .Single(image => image.Name == "AnimationFrameImage");
-
-        Assert.Equal(0, Moved(preview).X, 1);
-        Assert.Equal(0, Moved(preview).Y, 1);
-
-        animation.Steps[0].OffsetX = 4;
-        animation.Steps[0].OffsetY = -2;
         animation.Refresh();
 
         Pump();
 
-        // Un patrón mide 16 y el recuadro abarca 32, así que cada píxel de la máquina son dos
-        // de pantalla al zoom de partida. El desplazamiento va en esos mismos píxeles.
-        double scale = editor.View.AnimationPreviewSize / 32;
+        Image preview = Preview(editor);
 
-        Assert.Equal(4 * scale, Moved(preview).X, 1);
-        Assert.Equal(-2 * scale, Moved(preview).Y, 1);
+        Assert.Equal(0, Moved(preview).X, 1);
+        Assert.Equal(0, Moved(preview).Y, 1);
+
+        Fits(preview);
     }
 
-    /// <summary>
-    /// Y lo que se centra es la figura, no el dibujo.
-    /// </summary>
-    /// <remarks>
-    /// La composición de un grupo puede sobresalir por arriba o por la izquierda, y entonces su
-    /// centro no es el de la figura. Centrando el dibujo a secas, un grupo que asoma por arriba
-    /// se vería más bajo que un patrón suelto, y al cambiar de fotograma daría un salto.
-    /// </remarks>
+    /// <summary>Y una que sobresale por arriba también, que su origen es el mismo.</summary>
     [AvaloniaFact]
-    public void La_figura_queda_centrada_aunque_el_grupo_sobresalga()
+    public void Una_figura_que_sobresale_por_arriba_tambien_queda_centrada()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
 
+        SpriteAnimationViewModel animation = WithTallFigure(editor, above: true);
+
+        animation.AddFrameCommand.Execute(null);
+        animation.Refresh();
+
+        Pump();
+
+        Image preview = Preview(editor);
+
+        Assert.Equal(0, Moved(preview).X, 1);
+        Assert.Equal(0, Moved(preview).Y, 1);
+
+        Fits(preview);
+    }
+
+    /// <summary>
+    /// El desplazamiento separa un fotograma del otro, y los dos caben.
+    /// </summary>
+    /// <remarks>
+    /// Lo que hace falta para ver si una figura cojea al andar: no dónde cae uno suelto, sino
+    /// cuánto se mueve respecto al de al lado. El hueco crece hacia donde vaya el
+    /// desplazamiento, así que ninguno de los dos se recorta contra el borde.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_desplazamiento_separa_un_fotograma_del_otro()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+
+        SpriteAnimationViewModel animation = WithTallFigure(editor);
+
+        animation.AddFrameCommand.Execute(null);
+        animation.AddFrameCommand.Execute(null);
+
+        animation.Steps[1].OffsetY = 4;
+        animation.Refresh();
+
+        Pump();
+
+        Image preview = Preview(editor);
+
+        double first = Moved(preview).Y;
+
+        Fits(preview);
+
+        editor.ViewModel.Player.Next();
+        Pump();
+
+        double second = Moved(preview).Y;
+
+        Fits(preview);
+
+        // Un pixel de la maquina son tantos de pantalla como diga la imagen: mide 16 de ancho.
+        double scale = preview.Width / SpriteRow.Columns;
+
+        Assert.Equal(4 * scale, second - first, 1);
+
+        // Y el par queda centrado: uno sube lo que el otro baja.
+        Assert.Equal(0, first + second, 1);
+    }
+
+    /// <summary>Un desplazamiento grande encoge la figura, pero no la recorta.</summary>
+    [AvaloniaTheory]
+    [InlineData("1")]
+    [InlineData("4")]
+    public void Un_desplazamiento_grande_no_recorta_nada(string zoom)
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+
+        SpriteAnimationViewModel animation = WithTallFigure(editor);
+
+        animation.AddFrameCommand.Execute(null);
+        animation.AddFrameCommand.Execute(null);
+
+        animation.Steps[1].OffsetY = 40;
+        animation.Steps[1].OffsetX = -24;
+        animation.Refresh();
+
+        editor.View.GetVisualDescendants()
+            .OfType<RadioButton>()
+            .Single(one => one.GroupName == "PreviewZoom" && (string?)one.Tag == zoom)
+            .IsChecked = true;
+
+        Pump();
+
+        Image preview = Preview(editor);
+
+        Fits(preview);
+
+        editor.ViewModel.Player.Next();
+        Pump();
+
+        Fits(preview);
+    }
+
+    /// <summary>Una figura de dos sprites de alto, que es lo corriente.</summary>
+    private static SpriteAnimationViewModel WithTallFigure(SpriteCanvasHarness editor, bool above = false)
+    {
         editor.ViewModel.AddGroupCommand.Execute(null);
 
         SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
 
         group.AddMemberCommand.Execute(null);
-        group.Group.Members[1].OffsetY = -Sprite.Rows;
+        group.Group.Members[1].OffsetY = above ? -Sprite.Rows : Sprite.Rows;
 
         editor.ViewModel.AddAnimationCommand.Execute(null);
         editor.SetThumbnailMode(ThumbnailMode.Animations);
@@ -351,22 +428,36 @@ public class AnimationTabTests
         SpriteAnimationViewModel animation = editor.ViewModel.SelectedAnimation!;
 
         animation.Kind = AnimationKind.Groups;
-        animation.AddFrameCommand.Execute(null);
-        animation.Steps[0].Target = group.Group.Id;
-        animation.Refresh();
 
-        Pump();
+        return animation;
+    }
 
-        Image preview = editor.View.GetVisualDescendants()
-            .OfType<Image>()
-            .Single(image => image.Name == "AnimationFrameImage");
+    private static Image Preview(SpriteCanvasHarness editor) => editor.View
+        .GetVisualDescendants()
+        .OfType<Image>()
+        .Single(image => image.Name == "AnimationFrameImage");
 
-        // El dibujo mide 32 de alto y el sprite sin desplazar es la mitad de abajo, así que hay
-        // que bajarlo 8 para que quede centrado él y no la composición entera.
-        double scale = editor.View.AnimationPreviewSize / 32;
+    /// <summary>Que el dibujo entre entero en el recuadro, con el desplazamiento puesto.</summary>
+    private static void Fits(Image preview)
+    {
+        Panel box = preview.GetVisualParent<Panel>()!;
+        TranslateTransform moved = Moved(preview);
 
-        Assert.Equal(Sprite.Rows / 2 * scale, Moved(preview).Y, 1);
-        Assert.Equal(0, Moved(preview).X, 1);
+        // Con las medidas pedidas y no con las que quedan después de redondear a píxel entero:
+        // medio píxel de redondeo no es un recorte, y lo que se comprueba aquí es la cuenta.
+        double top = ((box.Bounds.Height - preview.Height) / 2) + moved.Y;
+        double left = ((box.Bounds.Width - preview.Width) / 2) + moved.X;
+
+        Assert.True(top >= -0.01, $"se sale por arriba: {top}");
+        Assert.True(left >= -0.01, $"se sale por la izquierda: {left}");
+
+        Assert.True(
+            top + preview.Height <= box.Bounds.Height + 0.01,
+            $"se sale por abajo: {top + preview.Height} de {box.Bounds.Height}");
+
+        Assert.True(
+            left + preview.Width <= box.Bounds.Width + 0.01,
+            $"se sale por la derecha: {left + preview.Width} de {box.Bounds.Width}");
     }
 
     private static TranslateTransform Moved(Image preview) =>
