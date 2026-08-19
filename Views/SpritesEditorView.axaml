@@ -851,13 +851,13 @@
                 <Grid ColumnDefinitions="Auto,60,40,44,56,40" Margin="{Binding Indent}" Height="22">
                   <TextBlock Grid.Column="0" Text="{Binding Label}" VerticalAlignment="Center"
                              FontWeight="Bold" Margin="0,0,6,0" />
-                  <TextBlock Grid.Column="1" Text="{Binding Detail}" VerticalAlignment="Center"
+                  <TextBlock Grid.Column="1" Text="{Binding DetailText}" VerticalAlignment="Center"
                              FontFamily="Consolas" />
-                  <TextBlock Grid.Column="2" Text="{Binding Wait}" VerticalAlignment="Center"
+                  <TextBlock Grid.Column="2" Text="{Binding WaitText}" VerticalAlignment="Center"
                              FontFamily="Consolas" Foreground="{DynamicResource AppTextSecondary}" />
-                  <TextBlock Grid.Column="3" Text="{Binding Offset}" VerticalAlignment="Center"
+                  <TextBlock Grid.Column="3" Text="{Binding OffsetText}" VerticalAlignment="Center"
                              FontFamily="Consolas" Foreground="{DynamicResource AppTextSecondary}" />
-                  <TextBlock Grid.Column="4" Text="{Binding Event}" VerticalAlignment="Center"
+                  <TextBlock Grid.Column="4" Text="{Binding EventText}" VerticalAlignment="Center"
                              FontFamily="Consolas" Foreground="{DynamicResource AppTextSecondary}" />
                 </Grid>
               </DataTemplate>
@@ -877,35 +877,35 @@
                          Margin="0,0,6,0" />
               <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
                              Minimum="0" Maximum="{Binding SelectedAnimation.MaxTarget}" Increment="1"
-                             Value="{Binding SelectedAnimation.SelectedStep.Frame.Target}"
+                             Value="{Binding SelectedAnimation.SelectedStep.Target}"
                              ValueChanged="OnStepValueChanged" />
 
               <TextBlock Grid.Column="2" Text="{l:Localize AnimWait}" VerticalAlignment="Center"
                          Margin="10,0,6,0" ToolTip.Tip="{l:Localize AnimWaitTip}" />
               <NumericUpDown Grid.Column="3" ShowButtonSpinner="True" FormatString="0"
                              Minimum="1" Maximum="255" Increment="1"
-                             Value="{Binding SelectedAnimation.SelectedStep.Frame.Wait}"
+                             Value="{Binding SelectedAnimation.SelectedStep.Wait}"
                              ValueChanged="OnStepValueChanged" />
 
               <TextBlock Grid.Column="4" Text="X" VerticalAlignment="Center" Margin="10,0,6,0"
                          ToolTip.Tip="{l:Localize AnimOffset}" />
               <NumericUpDown Grid.Column="5" ShowButtonSpinner="False" FormatString="0"
                              Minimum="-128" Maximum="127" Increment="1"
-                             Value="{Binding SelectedAnimation.SelectedStep.Frame.OffsetX}"
+                             Value="{Binding SelectedAnimation.SelectedStep.OffsetX}"
                              ValueChanged="OnStepValueChanged" />
 
               <TextBlock Grid.Column="6" Text="Y" VerticalAlignment="Center" Margin="10,0,6,0"
                          ToolTip.Tip="{l:Localize AnimOffset}" />
               <NumericUpDown Grid.Column="7" ShowButtonSpinner="False" FormatString="0"
                              Minimum="-128" Maximum="127" Increment="1"
-                             Value="{Binding SelectedAnimation.SelectedStep.Frame.OffsetY}"
+                             Value="{Binding SelectedAnimation.SelectedStep.OffsetY}"
                              ValueChanged="OnStepValueChanged" />
 
               <TextBlock Grid.Column="8" Text="{l:Localize AnimEvent}" VerticalAlignment="Center"
                          Margin="10,0,6,0" ToolTip.Tip="{l:Localize AnimEventTip}" />
               <NumericUpDown Grid.Column="9" ShowButtonSpinner="False" FormatString="0"
                              Minimum="0" Maximum="255" Increment="1"
-                             Value="{Binding SelectedAnimation.SelectedStep.Frame.Event}"
+                             Value="{Binding SelectedAnimation.SelectedStep.Event}"
                              ValueChanged="OnStepValueChanged" />
             </Grid>
           </StackPanel>
@@ -913,9 +913,11 @@
           <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,6,0,0"
                       IsVisible="{Binding SelectedAnimation.SelectedStep.IsLoop, FallbackValue=False}">
             <TextBlock Text="{l:Localize AnimTimes}" VerticalAlignment="Center" Margin="0,0,6,0" />
-            <NumericUpDown Width="80" ShowButtonSpinner="True" FormatString="0"
+            <!-- Del mismo ancho que Ensena y Espera, y por lo mismo: con las flechas dentro,
+                 en 80 la caja de texto se queda en una ranura donde no hay donde pinchar. -->
+            <NumericUpDown Width="124" ShowButtonSpinner="True" FormatString="0"
                            Minimum="1" Maximum="255" Increment="1"
-                           Value="{Binding SelectedAnimation.SelectedStep.Loop.Times}"
+                           Value="{Binding SelectedAnimation.SelectedStep.Times}"
                            ValueChanged="OnStepValueChanged" />
           </StackPanel>
         </Grid>

@@ -41,10 +41,17 @@ public sealed class AnimationStepViewModel : ObservableObject
 
         step.PropertyChanged += (_, _) =>
         {
-            OnPropertyChanged(nameof(Detail));
+            OnPropertyChanged(nameof(DetailText));
+            OnPropertyChanged(nameof(WaitText));
+            OnPropertyChanged(nameof(OffsetText));
+            OnPropertyChanged(nameof(EventText));
+
+            OnPropertyChanged(nameof(Target));
             OnPropertyChanged(nameof(Wait));
-            OnPropertyChanged(nameof(Offset));
+            OnPropertyChanged(nameof(OffsetX));
+            OnPropertyChanged(nameof(OffsetY));
             OnPropertyChanged(nameof(Event));
+            OnPropertyChanged(nameof(Times));
         };
     }
 
@@ -79,18 +86,85 @@ public sealed class AnimationStepViewModel : ObservableObject
         : _kind == AnimationKind.Groups ? "AnimStepGroup" : "AnimStepPattern"];
 
     /// <summary>Y a qué apunta: el número, o las vueltas si es un bucle.</summary>
-    public string Detail => IsLoop ? $"x{Loop!.Times}" : $"{Frame!.Target}";
+    public string DetailText => IsLoop ? $"x{Loop!.Times}" : $"{Frame!.Target}";
 
     /// <summary>Lo que se queda en pantalla, que en un bucle no significa nada.</summary>
-    public string Wait => IsLoop ? string.Empty : $"{Frame!.Wait}";
+    public string WaitText => IsLoop ? string.Empty : $"{Frame!.Wait}";
 
     /// <summary>Dónde cae, si está desplazado. En blanco cuando está en su sitio.</summary>
-    public string Offset => IsLoop || (Frame!.OffsetX == 0 && Frame.OffsetY == 0)
+    public string OffsetText => IsLoop || (Frame!.OffsetX == 0 && Frame.OffsetY == 0)
         ? string.Empty
         : $"{Frame.OffsetX:+#;-#;0},{Frame.OffsetY:+#;-#;0}";
 
     /// <summary>El aviso al juego, si este paso avisa de algo.</summary>
-    public string Event => IsLoop || Frame!.Event == 0 ? string.Empty : $"!{Frame.Event}";
+    public string EventText => IsLoop || Frame!.Event == 0 ? string.Empty : $"!{Frame.Event}";
+
+    // ------------------------------------------------------------------ los numeros
+
+    /// <summary>
+    /// Los números del paso, admitiendo que estén vacíos.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Vacío no es cero: borrando el contenido de una casilla para escribir otro número, la
+    /// casilla se queda un momento sin nada, y eso no puede llegar al paso. Poniendo cero se
+    /// vería el patrón 0 de refilón cada vez que se teclea; reventando, que es lo que hacía,
+    /// el editor se llena de un error de conversión mientras escribes.
+    /// </para>
+    /// <para>
+    /// Así que el vacío se ignora y el paso se queda como estaba hasta que haya un número.
+    /// </para>
+    /// </remarks>
+    public int? Target
+    {
+        get => Frame?.Target;
+        set => Set(value, number => Frame!.Target = number);
+    }
+
+    /// <inheritdoc cref="Target"/>
+    public int? Wait
+    {
+        get => Frame?.Wait;
+        set => Set(value, number => Frame!.Wait = number);
+    }
+
+    /// <inheritdoc cref="Target"/>
+    public int? OffsetX
+    {
+        get => Frame?.OffsetX;
+        set => Set(value, number => Frame!.OffsetX = number);
+    }
+
+    /// <inheritdoc cref="Target"/>
+    public int? OffsetY
+    {
+        get => Frame?.OffsetY;
+        set => Set(value, number => Frame!.OffsetY = number);
+    }
+
+    /// <inheritdoc cref="Target"/>
+    public int? Event
+    {
+        get => Frame?.Event;
+        set => Set(value, number => Frame!.Event = number);
+    }
+
+    /// <inheritdoc cref="Target"/>
+    public int? Times
+    {
+        get => Loop?.Times;
+        set
+        {
+            if (value is { } number && Loop is not null)
+                Loop.Times = number;
+        }
+    }
+
+    private void Set(int? value, Action<int> apply)
+    {
+        if (value is { } number && Frame is not null)
+            apply(number);
+    }
 }
 
 /// <summary>

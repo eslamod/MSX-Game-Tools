@@ -213,10 +213,56 @@ public class AnimationEditingTests
 
         row.Frame!.Wait = 7;
 
-        Assert.Equal("7", row.Wait);
-        Assert.Contains(nameof(AnimationStepViewModel.Wait), changed);
+        Assert.Equal("7", row.WaitText);
+        Assert.Contains(nameof(AnimationStepViewModel.WaitText), changed);
 
         // Y la fila sigue siendo la misma: no se ha rehecho la lista por debajo.
         Assert.Same(row, panel.Steps[0]);
+    }
+
+    /// <summary>
+    /// Vaciar una casilla no revienta ni pone el paso a cero.
+    /// </summary>
+    /// <remarks>
+    /// Borrando el contenido para escribir otro número, la casilla se queda un momento sin nada.
+    /// Eso llegaba al paso como un nulo y el editor se llenaba de un error de conversión mientras
+    /// escribías. Poner cero tampoco vale: se vería el patrón 0 de refilón en cada tecleo.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Vaciar_una_casilla_deja_el_paso_como_estaba()
+    {
+        SpriteAnimationViewModel panel = Empty();
+
+        panel.AddFrameCommand.Execute(null);
+
+        AnimationStepViewModel row = panel.Steps[0];
+
+        row.Target = 18;
+        row.Wait = 6;
+
+        // Lo que hace la casilla al quedarse en blanco.
+        row.Target = null;
+        row.Wait = null;
+        row.OffsetX = null;
+        row.Event = null;
+
+        Assert.Equal(18, row.Frame!.Target);
+        Assert.Equal(6, row.Frame.Wait);
+    }
+
+    /// <summary>Y lo mismo con las vueltas de un bucle.</summary>
+    [AvaloniaFact]
+    public void Vaciar_las_vueltas_deja_el_bucle_como_estaba()
+    {
+        SpriteAnimationViewModel panel = Empty();
+
+        panel.AddLoopCommand.Execute(null);
+
+        AnimationStepViewModel row = panel.Steps[0];
+
+        row.Times = 5;
+        row.Times = null;
+
+        Assert.Equal(5, row.Loop!.Times);
     }
 }
