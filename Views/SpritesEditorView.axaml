@@ -868,7 +868,11 @@
                asi que se ensena uno u otro y no una fila con la mitad apagada. -->
           <StackPanel Grid.Row="2" Margin="0,6,0,0"
                       IsVisible="{Binding SelectedAnimation.SelectedStep.IsFrame, FallbackValue=False}">
-            <Grid ColumnDefinitions="Auto,80,Auto,72,Auto,64,Auto,64,Auto,64">
+            <!-- Enseña y Espera anchos: llevan flechas, y las flechas se comen la caja de
+                 texto. Con 80 quedaba una ranura de treinta pixeles donde el numero no se lee
+                 ni se puede pinchar, y al lado de X o Aviso -que van sin flechas y con la caja
+                 entera- ni siquiera parecia que se pudiera escribir en ellas. -->
+            <Grid ColumnDefinitions="Auto,124,Auto,116,Auto,64,Auto,64,Auto,64">
               <TextBlock Grid.Column="0" Text="{l:Localize AnimTarget}" VerticalAlignment="Center"
                          Margin="0,0,6,0" />
               <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
