@@ -442,6 +442,88 @@ public class AnimationTabTests
         Assert.Equal(box.Bounds.Height, preview.Height, 1);
     }
 
+    /// <summary>
+    /// Los Hz y la velocidad se cambian de un clic.
+    /// </summary>
+    /// <remarks>
+    /// Son cuatro valores y dos: con un desplegable hay que abrirlo primero y elegir después,
+    /// y con la tira de botones basta con pulsar el que se quiere.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Los_hz_y_la_velocidad_se_cambian_de_un_clic()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+
+        editor.ViewModel.AddAnimationCommand.Execute(null);
+        editor.SetThumbnailMode(ThumbnailMode.Animations);
+
+        Pump();
+
+        Assert.Equal(50, editor.ViewModel.Player.Hz);
+
+        ClickButton(Toggle(editor, "AnimHz", "60"));
+
+        Assert.Equal(60, editor.ViewModel.Player.Hz);
+
+        ClickButton(Toggle(editor, "AnimSlowdown", "4"));
+
+        Assert.Equal(4, editor.ViewModel.Player.Slowdown);
+    }
+
+    /// <summary>Y el botón encendido es el del valor que hay, lo ponga quien lo ponga.</summary>
+    [AvaloniaFact]
+    public void El_boton_encendido_es_el_del_valor_que_hay()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+
+        editor.ViewModel.AddAnimationCommand.Execute(null);
+        editor.SetThumbnailMode(ThumbnailMode.Animations);
+
+        editor.ViewModel.Player.Slowdown = 8;
+
+        Pump();
+
+        Assert.True(Toggle(editor, "AnimSlowdown", "8").IsChecked);
+        Assert.False(Toggle(editor, "AnimSlowdown", "1").IsChecked);
+    }
+
+    /// <summary>
+    /// Hay un botón por cada valor que admite el reproductor, y en su orden.
+    /// </summary>
+    /// <remarks>
+    /// Los valores viven en el reproductor y los botones en el XAML, que es donde tienen que
+    /// estar; esto es lo que impide que se separen. Añadir una frecuencia y olvidarse del botón
+    /// no daría ningún error: simplemente no habría forma de elegirla.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Hay_un_boton_por_cada_valor()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+
+        editor.ViewModel.AddAnimationCommand.Execute(null);
+        editor.SetThumbnailMode(ThumbnailMode.Animations);
+
+        Pump();
+
+        Assert.Equal(AnimationPlayerViewModel.Frequencies, Values(editor, "AnimHz"));
+        Assert.Equal(AnimationPlayerViewModel.Slowdowns, Values(editor, "AnimSlowdown"));
+    }
+
+    private static IReadOnlyList<int> Values(SpriteCanvasHarness editor, string group) =>
+    [
+        .. editor.View
+            .GetVisualDescendants()
+            .OfType<RadioButton>()
+            .Where(one => one.GroupName == group)
+            .Select(one => int.Parse((string)one.Content!)),
+    ];
+
+    private static RadioButton Toggle(SpriteCanvasHarness editor, string group, string content) =>
+        editor.View
+            .GetVisualDescendants()
+            .OfType<RadioButton>()
+            .Single(one => one.GroupName == group && (string?)one.Content == content);
+
     private static void Zoom(SpriteCanvasHarness editor, string factor)
     {
         editor.View.GetVisualDescendants()
