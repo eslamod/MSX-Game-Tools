@@ -46,12 +46,17 @@ tira de tiles y bloques abajo para coger con qué pintar.
   un color por línea y el bit CC del V9938 para mezclar planos.
 - **Grupos**: varios patrones colocados con desplazamiento para formar una figura mayor
   de lo que da un plano de sprite.
+- **Animaciones**: secuencias de patrones o de grupos, cada fotograma con su espera, su
+  desplazamiento y un número de aviso para que lo lea el juego. Bucles, anidados si hace
+  falta, y un final de una vez, en bucle o ping-pong. Un reproductor las enseña a 50 o 60
+  Hz, ralentizadas si se quiere.
 - Imágenes de referencia detrás del lienzo, con opacidad regulable, para calcar.
 - **Importa una hoja de sprites** desde un png: se marca un rectángulo y sale un banco con
   sus grupos, repartiendo cada color en el plano que le toca. Dice antes de importar
   cuántos planos hace falta y qué colores se estorban entre sí.
-- Exporta la tabla de patrones y los atributos, en binario y en `.asm`, enteros o sólo los
-  patrones que se digan.
+- Exporta la tabla de patrones, los atributos y las animaciones, en binario y en `.asm`,
+  enteros o sólo los patrones que se digan. Los bucles salen como bucles: uno de doscientas
+  vueltas no ocupa doscientas veces lo mismo en ROM.
 
 ### Juegos de tiles
 
@@ -207,10 +212,14 @@ y ficheros propios.
 ## Estado
 
 En desarrollo, y con el alcance ya decidido: esto es una suite de herramientas para hacer
-juegos, no un generador de juegos. Funcionan los bancos de sprites, los juegos de tiles con
-sus bloques, las paletas, el editor de mapas y el proyecto que los agrupa.
+juegos, no un generador de juegos. Funcionan los bancos de sprites con sus grupos y sus
+**animaciones**, los juegos de tiles con sus bloques, las paletas, el editor de mapas y el
+proyecto que los agrupa.
 
-Queda por hacer el editor de **animaciones**, que encaja con lo demás: son los patrones que
-ya existen, puestos en secuencia. Lo que había apuntado de comportamientos, sonidos y música
-se ha retirado. Sacar la ROM de un juego entero es otro programa, y mucho más difícil; un
-hueco vacío prometiéndolo sólo envejece mal.
+Lo que había apuntado de comportamientos, sonidos y música se ha retirado. Sacar la ROM de
+un juego entero es otro programa, y mucho más difícil; un hueco vacío prometiéndolo sólo
+envejece mal.
+
+El formato de las animaciones está comprobado como el de todos los exportadores de aquí: se
+ensambla el `.asm` con sass y se compara byte a byte con el binario. Queda la ROM de prueba
+que lo lleve a openMSX, que es lo único que dice que la máquina lo lee como creemos.

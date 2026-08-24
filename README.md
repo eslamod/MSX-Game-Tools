@@ -46,12 +46,16 @@ tiles and blocks along the bottom to pick what to paint with.
   with a colour per line and the V9938 CC bit for overlapping planes.
 - **Groups**: several patterns placed with offsets to build a figure bigger than a single
   sprite plane allows.
+- **Animations**: sequences of patterns or of groups, each frame with its wait, its offset
+  and an event number for the game to read. Loops, nested if need be, and an ending of
+  once, loop or ping-pong. A player shows them at 50 or 60 Hz, slowed down if you want.
 - Reference images behind the canvas, with adjustable opacity, for tracing.
 - **Imports a sprite sheet** from a png: mark a rectangle and out comes a bank with its
   groups, each colour dealt into the plane it belongs to. Before importing it says how many
   planes are needed and which colours get in each other's way.
-- Exports the pattern table and the attributes, as binary and as `.asm`, whole or only the
-  patterns you name.
+- Exports the pattern table, the attributes and the animations, as binary and as `.asm`,
+  whole or only the patterns you name. Loops are exported as loops: one of two hundred
+  turns does not take two hundred times the room in ROM.
 
 ### Tile sets
 
@@ -204,10 +208,13 @@ embedded data and your own files.
 ## Status
 
 Under development, with the scope already settled: this is a suite of tools for making
-games, not a game maker. Sprite banks, tile sets with their blocks, palettes, the map editor
-and the project that groups them all work.
+games, not a game maker. Sprite banks with their groups and their **animations**, tile sets
+with their blocks, palettes, the map editor and the project that groups them all work.
 
-The **animation** editor is still to come, and it fits with the rest: the patterns that are
-already there, put in sequence. What had been pencilled in for behaviours, sounds and music
-has been dropped. Producing a whole game's ROM is a different program, and a far harder one;
-an empty slot promising it only ages badly.
+What had been pencilled in for behaviours, sounds and music has been dropped. Producing a
+whole game's ROM is a different program, and a far harder one; an empty slot promising it
+only ages badly.
+
+The animation format is checked the way every exporter here is: the `.asm` is assembled
+with sass and compared byte for byte against the binary. What is left is the test ROM that
+takes it to openMSX, which is the only thing that says the machine reads it as we think.
