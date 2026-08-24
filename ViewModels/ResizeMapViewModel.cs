@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Localization;
 
 namespace MSX_GameTools.ViewModels;
 
@@ -71,7 +72,7 @@ public partial class ResizeMapViewModel : PanelBaseViewModel
     {
         if (Columns is < 1 || Rows is < 1 || Columns > MaxSide || Rows > MaxSide)
         {
-            ErrorMessage = $"El tamaño tiene que estar entre 1 y {MaxSide} en cada lado.";
+            ErrorMessage = Localizer.Instance.Format("NewMapSizeRange", MaxSide);
             return;
         }
 

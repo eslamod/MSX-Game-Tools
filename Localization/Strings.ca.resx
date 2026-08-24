@@ -339,6 +339,26 @@
   <data name="NewPaletteFrom" xml:space="preserve"><value>Copia de</value></data>
   <data name="NewPaletteFromTip" xml:space="preserve"><value>Els 16 colors surten d'aquesta. Els noms també es copien, tret dels de la paleta MSX, que són de la màquina.</value></data>
   <data name="NewPaletteNoName" xml:space="preserve"><value>El nom de la paleta no pot estar buit.</value></data>
+  <data name="NewMapNeedsTileSet" xml:space="preserve"><value>Abans d'un mapa cal un joc de tiles amb què dibuixar-lo.</value></data>
+  <data name="NewMapNoName" xml:space="preserve"><value>El nom del mapa no pot estar buit.</value></data>
+  <data name="NewMapNoTileSet" xml:space="preserve"><value>Cal triar el joc de tiles amb què es dibuixa.</value></data>
+  <data name="NewMapSizeRange" xml:space="preserve"><value>Cada costat ha d'estar entre 1 i {0}.</value></data>
+  <data name="NewSpriteBankNoName" xml:space="preserve"><value>El nom del banc de sprites no pot estar buit.</value></data>
+  <data name="NewTileSetNoName" xml:space="preserve"><value>El nom del joc de tiles no pot estar buit.</value></data>
+  <data name="NewTileSetSuperRange" xml:space="preserve"><value>Cada costat del supertile ha d'estar entre 1 i {0}.</value></data>
+  <data name="PropsNoName" xml:space="preserve"><value>El nom del {0} no pot estar buit.</value></data>
+  <data name="PropsNotSaved" xml:space="preserve"><value>Encara no s'ha desat a cap fitxer.</value></data>
+  <data name="PropsAffectedOne" xml:space="preserve"><value>Hi ha un mapa que es dibuixa amb ell i també quedarà sense desar.</value></data>
+  <data name="PropsAffectedMany" xml:space="preserve"><value>Hi ha {0} mapes que es dibuixen amb ell i també quedaran sense desar.</value></data>
+  <data name="PropsBlocksOne" xml:space="preserve"><value>El seu bloc passarà a fer {0}x{1}; el que sobri es retalla.</value></data>
+  <data name="PropsBlocksMany" xml:space="preserve"><value>Els seus {0} blocs passaran a fer {1}x{2}; el que sobri es retalla.</value></data>
+  <data name="PropsSuperOnOne" xml:space="preserve"><value>Les cel·les del mapa que es dibuixa amb ell passen a llegir-se com a números de supertile, així que es veurà diferent.</value></data>
+  <data name="PropsSuperOnMany" xml:space="preserve"><value>Les cel·les dels {0} mapes que es dibuixen amb ell passen a llegir-se com a números de supertile, així que es veuran diferents.</value></data>
+  <data name="PropsSuperOffOne" xml:space="preserve"><value>Les cel·les del mapa que es dibuixa amb ell tornen a llegir-se com a números de tile, així que es veurà diferent.</value></data>
+  <data name="PropsSuperOffMany" xml:space="preserve"><value>Les cel·les dels {0} mapes que es dibuixen amb ell tornen a llegir-se com a números de tile, així que es veuran diferents.</value></data>
+  <data name="ImportMoreProblems" xml:space="preserve"><value>...i algun més.</value></data>
+  <data name="PickCellTitle" xml:space="preserve"><value>Triar cel·la - {0}</value></data>
+  <data name="PickCellHeading" xml:space="preserve"><value>{0}x{1} cel·les de {2} píxels. Prem la que vulguis de fons.</value></data>
   <data name="NewPaletteRepeated" xml:space="preserve"><value>Ja hi ha una paleta que es diu «{0}».</value></data>
   <data name="PaletteApply" xml:space="preserve"><value>Aplica</value></data>
   <data name="PaletteApplyTitle" xml:space="preserve"><value>Aplica els colors intercanviats</value></data>

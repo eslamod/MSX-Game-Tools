@@ -49,7 +49,7 @@ public partial class EditMapViewModel : PanelBaseViewModel
         TileSet = TileSets.FirstOrDefault();
 
         if (TileSets.Count == 0)
-            ErrorMessage = "Antes de un mapa hace falta un juego de tiles con el que dibujarlo.";
+            ErrorMessage = Localizer.Instance["NewMapNeedsTileSet"];
     }
 
     /// <summary>Los juegos entre los que elegir, tal como estaban al abrir el formulario.</summary>
@@ -88,19 +88,19 @@ public partial class EditMapViewModel : PanelBaseViewModel
     {
         if (string.IsNullOrWhiteSpace(Name))
         {
-            ErrorMessage = "El nombre del mapa no puede estar vacío.";
+            ErrorMessage = Localizer.Instance["NewMapNoName"];
             return;
         }
 
         if (TileSet is not { } tiles)
         {
-            ErrorMessage = "Hace falta elegir el juego de tiles con el que se dibuja.";
+            ErrorMessage = Localizer.Instance["NewMapNoTileSet"];
             return;
         }
 
         if (Columns is < 1 || Rows is < 1 || Columns > MaxSide || Rows > MaxSide)
         {
-            ErrorMessage = $"El tamaño tiene que estar entre 1 y {MaxSide} en cada lado.";
+            ErrorMessage = Localizer.Instance.Format("NewMapSizeRange", MaxSide);
             return;
         }
 

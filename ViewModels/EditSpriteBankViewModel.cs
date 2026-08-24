@@ -66,7 +66,7 @@ public partial class EditSpriteBankViewModel : PanelBaseViewModel
     {
         if (string.IsNullOrWhiteSpace(Name))
         {
-            ErrorMessage = "El nombre del banco de sprites no puede estar vacío.";
+            ErrorMessage = Localizer.Instance["NewSpriteBankNoName"];
             return;
         }
 

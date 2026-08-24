@@ -95,7 +95,7 @@ public partial class EditPropertiesViewModel : PanelBaseViewModel
     public string Kind => Document.DocumentKind;
 
     /// <summary>Dónde está guardado, o que todavía no lo está.</summary>
-    public string Where => Document.FilePath ?? "Sin guardar en ningún fichero todavía.";
+    public string Where => Document.FilePath ?? Localizer.Instance["PropsNotSaved"];
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
@@ -119,8 +119,8 @@ public partial class EditPropertiesViewModel : PanelBaseViewModel
             return maps switch
             {
                 0 => string.Empty,
-                1 => "Hay un mapa que se dibuja con él y también quedará sin guardar.",
-                _ => $"Hay {maps} mapas que se dibujan con él y también quedarán sin guardar.",
+                1 => Localizer.Instance["PropsAffectedOne"],
+                _ => Localizer.Instance.Format("PropsAffectedMany", maps),
             };
         }
     }
@@ -162,17 +162,18 @@ public partial class EditPropertiesViewModel : PanelBaseViewModel
             if (UseSuperTiles && tileSet.Blocks.Count > 0)
             {
                 lines.Add(tileSet.Blocks.Count == 1
-                    ? $"Su bloque pasará a medir {SuperTileWidth}x{SuperTileHeight}; lo que sobre se recorta."
-                    : $"Sus {tileSet.Blocks.Count} bloques pasarán a medir {SuperTileWidth}x{SuperTileHeight}; lo que sobre se recorta.");
+                    ? Localizer.Instance.Format("PropsBlocksOne", SuperTileWidth, SuperTileHeight)
+                    : Localizer.Instance.Format(
+                        "PropsBlocksMany", tileSet.Blocks.Count, SuperTileWidth, SuperTileHeight));
             }
 
             int maps = _mainWindowVm.MapsOf(tiles).Count;
 
             if (maps > 0)
             {
-                lines.Add(UseSuperTiles
-                    ? $"Las celdas de {Written(maps)} pasan a leerse como números de supertile, así que se verán distintos."
-                    : $"Las celdas de {Written(maps)} vuelven a leerse como números de tile, así que se verán distintos.");
+                lines.Add(Localizer.Instance.Format(
+                    (UseSuperTiles ? "PropsSuperOn" : "PropsSuperOff") + (maps == 1 ? "One" : "Many"),
+                    maps));
             }
 
             return string.Join(" ", lines);
@@ -181,15 +182,12 @@ public partial class EditPropertiesViewModel : PanelBaseViewModel
 
     public bool HasSuperTileWarning => SuperTileWarning.Length > 0;
 
-    private static string Written(int maps) =>
-        maps == 1 ? "el mapa que se dibuja con él" : $"los {maps} mapas que se dibujan con él";
-
     [RelayCommand]
     private void AcceptProperties()
     {
         if (string.IsNullOrWhiteSpace(Name))
         {
-            ErrorMessage = $"El nombre del {Kind} no puede estar vacío.";
+            ErrorMessage = Localizer.Instance.Format("PropsNoName", Kind);
 
             return;
         }
@@ -198,7 +196,7 @@ public partial class EditPropertiesViewModel : PanelBaseViewModel
             && (SuperTileWidth is < 1 || SuperTileHeight is < 1
                 || SuperTileWidth > MaxSuperTileSide || SuperTileHeight > MaxSuperTileSide))
         {
-            ErrorMessage = $"El supertile tiene que medir entre 1 y {MaxSuperTileSide} en cada lado.";
+            ErrorMessage = Localizer.Instance.Format("NewTileSetSuperRange", MaxSuperTileSide);
 
             return;
         }

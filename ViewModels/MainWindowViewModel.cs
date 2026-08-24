@@ -2057,7 +2057,7 @@ public partial class MainWindowViewModel : ObservableObject
         string text = string.Join(Environment.NewLine, lines);
 
         return result.Problems.Count > TileSetPngConverter.MaxReportedProblems
-            ? $"{text}{Environment.NewLine}...y alguno más."
+            ? $"{text}{Environment.NewLine}{Text["ImportMoreProblems"]}"
             : text;
     }
 

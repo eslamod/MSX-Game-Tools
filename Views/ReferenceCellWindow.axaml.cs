@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Localization;
 
 namespace MSX_GameTools.Views;
 
@@ -32,10 +33,10 @@ public partial class ReferenceCellWindow : Window
         _image = image;
         _currentCell = currentCell;
 
-        Title = $"Elegir celda - {System.IO.Path.GetFileName(image.Path)}";
+        Title = Localizer.Instance.Format("PickCellTitle", System.IO.Path.GetFileName(image.Path));
 
-        HeadingText.Text =
-            $"{image.Columns}x{image.Rows} celdas de {image.CellSize} pixeles. Pulsa la que quieras de fondo.";
+        HeadingText.Text = Localizer.Instance.Format(
+            "PickCellHeading", image.Columns, image.Rows, image.CellSize);
 
         Build();
     }

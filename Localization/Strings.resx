@@ -364,6 +364,26 @@
   <data name="NewPaletteFrom" xml:space="preserve"><value>Copiar de</value></data>
   <data name="NewPaletteFromTip" xml:space="preserve"><value>Los 16 colores salen de ésa. Los nombres se copian, salvo los de la paleta MSX, que son de la máquina.</value></data>
   <data name="NewPaletteNoName" xml:space="preserve"><value>El nombre de la paleta no puede estar vacío.</value></data>
+  <data name="NewMapNeedsTileSet" xml:space="preserve"><value>Antes de un mapa hace falta un juego de tiles con el que dibujarlo.</value></data>
+  <data name="NewMapNoName" xml:space="preserve"><value>El nombre del mapa no puede estar vacío.</value></data>
+  <data name="NewMapNoTileSet" xml:space="preserve"><value>Hace falta elegir el juego de tiles con el que se dibuja.</value></data>
+  <data name="NewMapSizeRange" xml:space="preserve"><value>El tamaño tiene que estar entre 1 y {0} en cada lado.</value></data>
+  <data name="NewSpriteBankNoName" xml:space="preserve"><value>El nombre del banco de sprites no puede estar vacío.</value></data>
+  <data name="NewTileSetNoName" xml:space="preserve"><value>El nombre del juego de tiles no puede estar vacío.</value></data>
+  <data name="NewTileSetSuperRange" xml:space="preserve"><value>El supertile tiene que medir entre 1 y {0} en cada lado.</value></data>
+  <data name="PropsNoName" xml:space="preserve"><value>El nombre del {0} no puede estar vacío.</value></data>
+  <data name="PropsNotSaved" xml:space="preserve"><value>Sin guardar en ningún fichero todavía.</value></data>
+  <data name="PropsAffectedOne" xml:space="preserve"><value>Hay un mapa que se dibuja con él y también quedará sin guardar.</value></data>
+  <data name="PropsAffectedMany" xml:space="preserve"><value>Hay {0} mapas que se dibujan con él y también quedarán sin guardar.</value></data>
+  <data name="PropsBlocksOne" xml:space="preserve"><value>Su bloque pasará a medir {0}x{1}; lo que sobre se recorta.</value></data>
+  <data name="PropsBlocksMany" xml:space="preserve"><value>Sus {0} bloques pasarán a medir {1}x{2}; lo que sobre se recorta.</value></data>
+  <data name="PropsSuperOnOne" xml:space="preserve"><value>Las celdas del mapa que se dibuja con él pasan a leerse como números de supertile, así que se verá distinto.</value></data>
+  <data name="PropsSuperOnMany" xml:space="preserve"><value>Las celdas de los {0} mapas que se dibujan con él pasan a leerse como números de supertile, así que se verán distintos.</value></data>
+  <data name="PropsSuperOffOne" xml:space="preserve"><value>Las celdas del mapa que se dibuja con él vuelven a leerse como números de tile, así que se verá distinto.</value></data>
+  <data name="PropsSuperOffMany" xml:space="preserve"><value>Las celdas de los {0} mapas que se dibujan con él vuelven a leerse como números de tile, así que se verán distintos.</value></data>
+  <data name="ImportMoreProblems" xml:space="preserve"><value>...y alguno más.</value></data>
+  <data name="PickCellTitle" xml:space="preserve"><value>Elegir celda - {0}</value></data>
+  <data name="PickCellHeading" xml:space="preserve"><value>{0}x{1} celdas de {2} píxeles. Pulsa la que quieras de fondo.</value></data>
   <data name="NewPaletteRepeated" xml:space="preserve"><value>Ya hay una paleta que se llama «{0}».</value></data>
   <data name="PaletteApply" xml:space="preserve"><value>Aplicar</value></data>
   <data name="PaletteApplyTitle" xml:space="preserve"><value>Aplicar los colores intercambiados</value></data>

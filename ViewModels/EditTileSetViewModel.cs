@@ -116,7 +116,7 @@ public partial class EditTileSetViewModel : PanelBaseViewModel
     {
         if (string.IsNullOrWhiteSpace(Name))
         {
-            ErrorMessage = "El nombre del juego de tiles no puede estar vacío.";
+            ErrorMessage = Localizer.Instance["NewTileSetNoName"];
             return;
         }
 
@@ -124,7 +124,7 @@ public partial class EditTileSetViewModel : PanelBaseViewModel
             && (SuperTileWidth is < 1 || SuperTileHeight is < 1
                 || SuperTileWidth > MaxSuperTileSide || SuperTileHeight > MaxSuperTileSide))
         {
-            ErrorMessage = $"El supertile tiene que medir entre 1 y {MaxSuperTileSide} en cada lado.";
+            ErrorMessage = Localizer.Instance.Format("NewTileSetSuperRange", MaxSuperTileSide);
             return;
         }
 
