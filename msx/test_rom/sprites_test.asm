@@ -115,9 +115,20 @@ Start:
                 call LoadPalette
                 call ClearScreen
                 call LoadPatterns
-                call BuildSprites
 
+                ; Antes de montar la rejilla, que es quien decide desde que
+                ; plano empieza: la animacion se queda con los primeros.
+                call AnimInit
+
+                call BuildSprites
+                call AnimShow
+
+; El halt es lo que le da el reloj a la animacion: sus esperas se cuentan en
+; interrupciones. Sin animacion tambien viene bien, que el barrido de teclado
+; deja de ser una espera activa a toda velocidad.
 MainLoop:
+                halt
+                call AnimTick
                 call ScanColorKeys
                 call ScanF1
                 jr MainLoop
@@ -268,7 +279,15 @@ BuildSprites:
                 call FillVram   ; todos los planos escondidos de entrada
 
                 ld ix,GroupsData
-                ld iy,0
+
+                ; Y no siempre desde el plano 0: con animacion, los primeros son
+                ; suyos. IY por la pila porque ld iyl,a no es Z80 documentado.
+                ld a,(ANIM_FIRST)
+                ld l,a
+                ld h,0
+                push hl
+                pop iy
+
                 ld c,0
 
                 xor a
@@ -574,6 +593,7 @@ ScanF1:
                 ; Los sprites miden el doble, asi que las distancias entre ellos
                 ; tambien: se rehace la tabla de atributos con la nueva escala.
                 call BuildSprites
+                call AnimShow
 
 WaitRelease:
                 ld a,6
@@ -654,6 +674,19 @@ GroupsData:
                ; .incbin "bank_groups.bin"
                .include "kick_off_sprites_groups.asm"
 GroupsEnd:
+
+; Las animaciones del banco, y este bloque puede quedarse vacio: sin datos, la
+; ROM se comporta como antes -los grupos puestos en la rejilla, sin gastar
+; planos en nada mas- y el reproductor no llega ni a arrancar. Se mira en
+; ejecucion comparando las dos etiquetas, asi que no hay que tocar nada mas.
+AnimationsData:
+               ; .incbin "bank_animations.bin"
+               ; .include "kick_off_sprites_animations.asm"
+AnimationsEnd:
+
+; El reproductor de animaciones, aparte: es la rutina que se copia a un juego de
+; verdad, asi que vive como una pieza y no repartida por aqui.
+                .include "animation_player.asm"
 
 ; Relleno hasta 16K, que es el tamano que espera un cartucho en la pagina 1.
 ; Con una etiqueta y no con $, porque en sass el $ dentro de una expresion no

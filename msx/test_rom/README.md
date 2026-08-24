@@ -154,6 +154,44 @@ La cuenta va con 16 bits con signo a propósito: con 8 bits, un desplazamiento
 grande duplicado daría la vuelta y colocaría el sprite arriba del todo en vez de
 quitarlo de en medio.
 
+## Las animaciones
+
+El bloque `AnimationsData` de `sprites_test.asm` **puede quedarse vacío**, y ese
+es el estado en el que viene. Sin datos, la ROM hace exactamente lo de siempre:
+la rejilla de grupos desde el plano 0 y ni un plano gastado en otra cosa. No hay
+que tocar ninguna directiva ni definir nada al ensamblar; se mira en ejecución
+comparando `AnimationsEnd` con `AnimationsData`.
+
+Con datos —**Sprites → Exportar** deja un tercer fichero `..._animations`— se
+reservan los **ocho primeros planos** para la animación y la rejilla empieza en
+el noveno, así que se ven ocho grupos menos. La figura va abajo a la izquierda y
+no arriba a propósito: el VDP saca ocho sprites por línea de barrido, y
+compartiendo líneas con la rejilla se comería del cupo que esta ROM está
+midiendo.
+
+El reproductor vive aparte, en `animation_player.asm`, porque es la rutina que
+se acaba copiando a un juego de verdad. Al arrancar recorre la tira una vez y
+deja los fotogramas en una lista plana en RAM, cinco bytes cada uno. Un juego se
+ahorraría esa RAM interpretando la tira sobre la marcha —para los bucles vale
+igual—, pero el **ping-pong** pide recorrerla hacia atrás, y una tira de pasos de
+tamaño variable no se recorre hacia atrás sin haber apuntado por dónde se pasó.
+
+El reloj es el `halt` del bucle principal: las esperas del formato se cuentan en
+interrupciones, así que una espera de 6 son seis interrupciones, 50 o 60 por
+segundo según la máquina. Eso es justamente lo que no se puede comprobar
+comparando bytes.
+
+Lo que hay que mirar cuando corre:
+
+- Que cada fotograma enseñe **la figura que toca**. Las animaciones apuntan a los
+  grupos por el sitio que ocupan en la tabla, no por el número que enseña el
+  editor, y ésa es la traducción que puede estar mal.
+- Que la **cadencia** sea la que se ve en la vista previa del editor a los mismos
+  Hz. Si va al doble o a la mitad, la espera se está contando mal.
+- Que un **ping-pong** no repita los fotogramas de los extremos al dar la vuelta.
+- Que los **desplazamientos** coloquen la figura donde toca y no se vayan
+  acumulando: cada uno sustituye al anterior, no se suma.
+
 ## Mapa de VRAM
 
 GRAPHIC 3, página 0. El manual del V9938 propone el generador de sprites en
