@@ -178,6 +178,16 @@ no arriba a propósito: el VDP saca ocho sprites por línea de barrido, y
 compartiendo líneas con la rejilla se comería del cupo que esta ROM está
 midiendo.
 
+Cada animación empieza por dos bytes de cabecera: **de qué está hecha** —patrones
+o grupos— y qué hace al acabar. El primero hace falta porque el 38 de una
+animación de patrones y el 38 de una de grupos son dos cosas distintas y en la
+tira se ven igual. Lo destapó esta misma ROM: buscaba el grupo 38 de un banco que
+tiene dieciséis y no enseñaba nada.
+
+Una animación de patrones se pinta de un color fijo, `ANIM_PATTERN_COLOR`. Los
+colores del banco viajan dentro de los grupos, así que un patrón suelto no trae
+ninguno: en un juego de verdad lo pone quien la reproduce.
+
 El reproductor vive aparte, en `animation_player.asm`, porque es la rutina que
 se acaba copiando a un juego de verdad. Al arrancar recorre la tira una vez y
 deja los fotogramas en una lista plana en RAM, cinco bytes cada uno. Un juego se

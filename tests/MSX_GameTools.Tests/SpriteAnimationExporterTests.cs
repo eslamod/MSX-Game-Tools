@@ -28,14 +28,18 @@ public class SpriteAnimationExporterTests
         bank.Animations.Add(animation);
 
         Assert.Equal(
-            [0x00, SpriteAnimationExporter.Frame, 0x03, 0x06, SpriteAnimationExporter.End],
+            [
+                SpriteAnimationExporter.OfPatterns, 0x00,
+                SpriteAnimationExporter.Frame, 0x03, 0x06,
+                SpriteAnimationExporter.End,
+            ],
             SpriteAnimationExporter.ToBinary(bank));
 
         animation.Steps.Add(new AnimationFrame { Target = 4, Wait = 6, OffsetX = 2 });
 
         Assert.Equal(
             [
-                0x00,
+                SpriteAnimationExporter.OfPatterns, 0x00,
                 SpriteAnimationExporter.Frame, 0x03, 0x06,
                 SpriteAnimationExporter.MovedFrame, 0x04, 0x06, 0x00, 0x02, 0x00,
                 SpriteAnimationExporter.End,
@@ -56,8 +60,8 @@ public class SpriteAnimationExporterTests
 
         byte[] bytes = SpriteAnimationExporter.ToBinary(bank);
 
-        Assert.Equal(0x80, bytes[4]); // Y, que va primero como en la tabla de atributos
-        Assert.Equal(0xFF, bytes[5]); // X
+        Assert.Equal(0x80, bytes[5]); // Y, que va primero como en la tabla de atributos
+        Assert.Equal(0xFF, bytes[6]); // X
     }
 
     /// <summary>
@@ -81,7 +85,7 @@ public class SpriteAnimationExporterTests
 
         Assert.Equal(
             [
-                0x00,
+                SpriteAnimationExporter.OfPatterns, 0x00,
                 SpriteAnimationExporter.LoopStart, 200,
                 SpriteAnimationExporter.Frame, 0x01, 0x04,
                 SpriteAnimationExporter.LoopEnd,
@@ -107,7 +111,7 @@ public class SpriteAnimationExporterTests
 
         Assert.Equal(
             [
-                0x00,
+                SpriteAnimationExporter.OfPatterns, 0x00,
                 SpriteAnimationExporter.LoopStart, 0x02,
                 SpriteAnimationExporter.LoopStart, 0x03,
                 SpriteAnimationExporter.Frame, 0x01, 0x01,
@@ -118,16 +122,37 @@ public class SpriteAnimationExporterTests
             SpriteAnimationExporter.ToBinary(bank));
     }
 
-    /// <summary>Lo que hacer al acabar va en un byte por delante de cada animación.</summary>
+    /// <summary>Lo que hacer al acabar va en la cabecera de cada animación.</summary>
     [AvaloniaTheory]
     [InlineData(AnimationMode.Single, 0x00)]
     [InlineData(AnimationMode.Loop, 0x01)]
     [InlineData(AnimationMode.PingPong, 0x02)]
-    public void El_final_va_en_el_primer_byte(AnimationMode mode, byte expected)
+    public void El_final_va_en_la_cabecera(AnimationMode mode, byte expected)
     {
         var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho");
 
         bank.Animations.Add(new SpriteAnimation("Andar") { Mode = mode });
+
+        Assert.Equal(expected, SpriteAnimationExporter.ToBinary(bank)[1]);
+    }
+
+    /// <summary>
+    /// Y de qué están hechos los destinos, delante del todo.
+    /// </summary>
+    /// <remarks>
+    /// Sin esto la tira no se puede leer: el 38 de una animación de patrones y el 38 de una de
+    /// grupos son dos cosas distintas y en los bytes se veían igual. Lo destapó la ROM de
+    /// prueba, que buscaba el grupo 38 de un banco que tiene dieciséis y no enseñaba nada.
+    /// </remarks>
+    [AvaloniaTheory]
+    [InlineData(AnimationKind.Patterns, SpriteAnimationExporter.OfPatterns)]
+    [InlineData(AnimationKind.Groups, SpriteAnimationExporter.OfGroups)]
+    public void De_que_esta_hecha_va_delante_del_todo(AnimationKind kind, byte expected)
+    {
+        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho");
+
+        bank.NewGroup(0);
+        bank.Animations.Add(new SpriteAnimation("Andar") { Kind = kind });
 
         Assert.Equal(expected, SpriteAnimationExporter.ToBinary(bank)[0]);
     }
@@ -157,7 +182,7 @@ public class SpriteAnimationExporterTests
         animation.Steps.Add(new AnimationFrame { Target = number, Wait = 1 });
         bank.Animations.Add(animation);
 
-        Assert.Equal(1, SpriteAnimationExporter.ToBinary(bank)[2]);
+        Assert.Equal(1, SpriteAnimationExporter.ToBinary(bank)[3]);
         Assert.Empty(SpriteAnimationExporter.MissingGroups(bank));
     }
 
@@ -179,7 +204,7 @@ public class SpriteAnimationExporterTests
         animation.Steps.Add(new AnimationFrame { Target = 9, Wait = 1 });
         bank.Animations.Add(animation);
 
-        Assert.Equal(SpriteAnimationExporter.NoGroup, SpriteAnimationExporter.ToBinary(bank)[2]);
+        Assert.Equal(SpriteAnimationExporter.NoGroup, SpriteAnimationExporter.ToBinary(bank)[3]);
 
         SpriteAnimationExporter.MissingGroup missing =
             Assert.Single(SpriteAnimationExporter.MissingGroups(bank));

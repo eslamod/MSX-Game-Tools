@@ -48,6 +48,12 @@ public static class SpriteAnimationExporter
     /// <summary>Un grupo que ya no está. No es el sitio de ninguno: no caben tantos.</summary>
     public const byte NoGroup = 0xFF;
 
+    /// <summary>Los destinos son números de patrón.</summary>
+    public const byte OfPatterns = 0x00;
+
+    /// <summary>Los destinos son sitios de la tabla de grupos.</summary>
+    public const byte OfGroups = 0x01;
+
     /// <summary>Una animación que apunta a un grupo que ya no existe.</summary>
     public sealed record MissingGroup(string Animation, int Group);
 
@@ -84,6 +90,7 @@ public static class SpriteAnimationExporter
 
         foreach (SpriteAnimation animation in bank.Animations)
         {
+            bytes.Add(MadeOf(animation.Kind));
             bytes.Add(EndingOf(animation.Mode));
 
             Emit(bytes, bank, animation, animation.Steps);
@@ -100,8 +107,9 @@ public static class SpriteAnimationExporter
         string label = SpriteBankExporter.LabelOf(bank.Name);
 
         text.AppendLine($"; Sprite animations - {bank.Name} ({bank.Type})");
-        text.AppendLine("; Per animation: 1 byte with what to do when it ends, then its steps.");
-        text.AppendLine(";   ending: 0x00 once, 0x01 loop, 0x02 ping-pong");
+        text.AppendLine("; Per animation: 2 bytes of heading, then its steps.");
+        text.AppendLine(";   made of: 0x00 patterns, 0x01 groups");
+        text.AppendLine(";   ending:  0x00 once, 0x01 loop, 0x02 ping-pong");
         text.AppendLine("; Steps:");
         text.AppendLine(";   0x01, target, wait                             show it and hold");
         text.AppendLine(";   0x02, target, wait, offset Y, offset X, event  the same, but moved");
@@ -113,6 +121,8 @@ public static class SpriteAnimationExporter
         text.AppendLine("; before it, they are not added up.");
         text.AppendLine("; A target is a pattern number, or the position of the group in the group");
         text.AppendLine($"; table - not the number shown in the editor. {Hex(NoGroup)} is a group that is gone.");
+        text.AppendLine("; Pattern numbers are NOT multiplied by 4: a bank can hold more than 64, and");
+        text.AppendLine("; then the number for the attribute table would not fit in a byte.");
         text.AppendLine("; Loops can nest. There is no animation count: walk from");
         text.AppendLine($"; {label}_animations to {label}_animations_end.");
         text.AppendLine();
@@ -126,6 +136,7 @@ public static class SpriteAnimationExporter
             text.AppendLine();
             text.AppendLine($"{label}_animation_{index}:      ; {animation.Name} ({made})");
 
+            Line(text, 1, [MadeOf(animation.Kind)], made);
             Line(text, 1, [EndingOf(animation.Mode)], Ending(animation.Mode));
 
             Write(text, bank, animation, animation.Steps, 1);
@@ -142,6 +153,18 @@ public static class SpriteAnimationExporter
     private static string Data => SpriteBankExporter.DataDirective;
 
     private static string Hex(byte value) => SpriteBankExporter.HexOf(value);
+
+    /// <summary>
+    /// De qué están hechos los destinos.
+    /// </summary>
+    /// <remarks>
+    /// Sin esto la tira no se puede leer: el 38 de una animación de patrones y el 38 de una de
+    /// grupos son dos cosas distintas y en los bytes se veían igual. Quien la lea tenía que
+    /// saberlo por fuera del fichero, y una tabla cuyo significado no está en la tabla es una
+    /// trampa. Lo destapó la ROM de prueba, que es para lo que está.
+    /// </remarks>
+    private static byte MadeOf(AnimationKind kind) =>
+        kind == AnimationKind.Groups ? OfGroups : OfPatterns;
 
     /// <summary>
     /// El byte del final, puesto a mano y no sacado del número del enumerado.

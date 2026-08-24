@@ -38,6 +38,16 @@ ANIM_MOVED      .equ 0x02
 ANIM_LOOP       .equ 0x03
 ANIM_LOOP_END   .equ 0x04
 
+; --- De que estan hechos los destinos ----------------------------------------
+; El 38 de una animacion de patrones y el 38 de una de grupos son dos cosas
+; distintas, y en la tira se ven igual: por eso lo dice la cabecera.
+ANIM_OF_PATTERNS .equ 0x00
+ANIM_OF_GROUPS   .equ 0x01
+
+; Una animacion de patrones no trae color: los colores del banco van dentro de
+; los grupos, y un patron suelto no esta en ninguno. Aqui se pinta de uno fijo.
+ANIM_PATTERN_COLOR .equ 1       ; negro
+
 ; --- Que hacer al acabar -----------------------------------------------------
 ANIM_ONCE       .equ 0x00
 ANIM_REPEAT     .equ 0x01
@@ -75,6 +85,7 @@ ANIM_OFF_X      .equ 0xC00B
 ; el 0xC00C es de la rejilla
 ANIM_TOTAL      .equ 0xC00D     ; cuantas animaciones trae el bloque
 ANIM_CURRENT    .equ 0xC00E     ; cual se esta ensenando
+ANIM_MADE       .equ 0xC00F     ; de que estan hechos sus destinos
 
 ANIM_STACK      .equ 0xC010     ; 3 bytes por bucle: a donde volver y vueltas
 ANIM_TIMELINE   .equ 0xC040     ; 5 por fotograma: apunta, espera, Y, X, aviso
@@ -128,7 +139,11 @@ AnimSelected:
                 ld (ANIM_INDEX),a
                 ld (ANIM_DEPTH),a
 
-                ld a,(hl)
+                ld a,(hl)               ; de que esta hecha
+                ld (ANIM_MADE),a
+                inc hl
+
+                ld a,(hl)               ; y que hace al acabar
                 ld (ANIM_ENDING),a
                 inc hl
 
@@ -316,7 +331,8 @@ AnimCountDone:
 
 ; HL = principio de una animacion -> HL = principio de la siguiente.
 AnimSkip:
-                inc hl                  ; el byte de que hacer al acabar
+                inc hl                  ; de que esta hecha
+                inc hl                  ; y que hace al acabar
 
 AnimSkipNext:
                 ld a,(hl)
@@ -464,6 +480,10 @@ AnimShow:
                 ld a,(hl)
                 ld (ANIM_OFF_X),a
 
+                ld a,(ANIM_MADE)
+                cp ANIM_OF_GROUPS
+                jr nz,AnimShowPattern
+
                 ld a,(ANIM_TARGET)
                 call AnimGroupAt        ; IX = sus miembros, B = cuantos
                 jr c,AnimShowNone       ; ese grupo no esta en el fichero
@@ -483,6 +503,46 @@ AnimMemberNext:
                 push iy
                 pop hl
                 ld a,l
+                jr AnimHideFrom
+
+; Un patron suelto: un sprite y ya, sin miembros ni desplazamientos de grupo.
+AnimShowPattern:
+                ld hl,SPRITE_COLOR      ; los 16 bytes de color del plano 0
+                di
+                call SetVramWrite
+                ld b,16
+                ld a,ANIM_PATTERN_COLOR
+AnimPatternColor:
+                out (VDP_DATA),a
+                djnz AnimPatternColor
+
+                ld hl,SPRITE_ATTR
+                call SetVramWrite
+
+                ld a,(ANIM_OFF_Y)
+                call AnimScale
+                add a,ANIM_Y
+                out (VDP_DATA),a
+
+                ld a,(ANIM_OFF_X)
+                call AnimScale
+                add a,ANIM_X
+                out (VDP_DATA),a
+
+                ; El numero de patron se multiplica por cuatro para la tabla de
+                ; atributos, que en 16x16 cada patron ocupa cuatro de los de 8x8.
+                ; El fichero lo trae sin multiplicar porque un banco puede tener
+                ; mas de 64 y entonces no cabria en un byte.
+                ld a,(ANIM_TARGET)
+                add a,a
+                add a,a
+                out (VDP_DATA),a
+
+                xor a
+                out (VDP_DATA),a
+                ei
+
+                ld a,1                  ; el plano 0 gastado; el resto, fuera
                 jr AnimHideFrom
 
 AnimShowNone:
