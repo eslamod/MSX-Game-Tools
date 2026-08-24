@@ -117,7 +117,14 @@ Los grupos se colocan por filas, llenando cada fila mientras quepan. El VDP saca
 que corre esta ROM—, así que mientras lo que la fila lleva gastado más lo que
 pide el grupo no pase de ese cupo, el grupo va **al lado** del anterior y no
 debajo. Cuando no cabe, o cuando se acaban las tres columnas que entran de ancho,
-se empieza otra fila `GROUP_Y_STEP` píxeles más abajo.
+se empieza otra fila más abajo.
+
+Lo que baja cada fila **se mide de los grupos que traiga el banco**, no es una
+constante: se recorren los offsets Y de todos los miembros y la fila baja lo que
+mida el grupo más alto, más cuatro de margen. Con grupos de un solo sprite salen
+20 píxeles, que es lo que estaba escrito a mano antes de medirlo; con figuras de
+dos sprites de alto, 36. Con el 20 fijo, esas figuras se pisaban doce píxeles
+entre filas y no había forma de ver si los offsets del grupo estaban bien.
 
 Así se ve de una pasada lo que de verdad importa al montar una pantalla: cuántos
 de estos personajes caben juntos a la misma altura. Con grupos de tres planos
@@ -141,7 +148,7 @@ comprobar que los offsets del editor son los correctos.
 Un sprite que al duplicar se sale de la pantalla se aparca en Y=200, debajo del
 área visible. No se recorta ni se deja a medias, y no vale cualquier valor: 216
 es el terminador de la lista de planos en modo 2 y dejaría sin dibujar todos los
-sprites de detrás. Con `CENTRE_Y`=10 y `GROUP_Y_STEP`=20 esto empieza a pasar a
+sprites de detrás. Con `CENTRE_Y`=10 y figuras de un sprite esto empieza a pasar a
 partir de la quinta fila cuando está ampliado, porque allí lo que se dobla es
 también lo que baja cada fila.
 

@@ -20,7 +20,8 @@
 ;     VDP saca SPRITES_PER_LINE sprites por linea de barrido, asi que mientras
 ;     lo que lleva la fila mas lo que pide el grupo no pase de ese cupo, el
 ;     grupo va al lado y no debajo. Cuando no cabe -o cuando se acaban las
-;     columnas que entran de ancho- se empieza otra fila GROUP_Y_STEP mas abajo.
+;     columnas que entran de ancho- se empieza otra fila mas abajo, lo que mida
+;     de alto el grupo mas alto del banco.
 ;     A la posicion de la fila y la columna se le suman los offsets de cada
 ;     sprite del grupo.
 ;   - Asi se ve de una pasada lo que de verdad importa al montar una pantalla:
@@ -55,6 +56,7 @@ SPRITE_ATTR     .equ 0x3E00     ;  128  tabla de atributos (32 x 4)
 
 ; --- Constantes de la prueba -------------------------------------------------
 MAX_PLANES      .equ 32
+Sprite_Rows     .equ 16         ; lo que mide un sprite de alto
 SPRITE_END_Y    .equ 0xD8       ; 216: en modo 2 corta el resto de planos
 
 ; Sprites que el VDP saca por linea de barrido. Ocho en modo 2, que es el unico
@@ -73,7 +75,11 @@ ROW_X_LIMIT     .equ 216
 ; ultima empieza en 170 y el sprite acaba en 186-, que son mas de las que dan los
 ; 32 planos por muchos grupos de uno que haya.
 CENTRE_Y        .equ 10
-GROUP_Y_STEP    .equ 20
+; Lo que baja cada fila se mide de los grupos que traiga el banco, no es fijo:
+; una figura de dos sprites de alto mide 32 y con un paso de 20 las filas se
+; solapan doce pixeles. Aqui solo esta el margen que se le deja encima.
+GROUP_MARGIN    .equ 4
+GROUP_STEP      .equ 0xC00C     ; y aqui lo que sale de medirlos
 ; Pantalla activa, sprites 16x16, MAG=0, y el bit 5 puesto: IE0, la interrupcion
 ; de barrido. Sin ella el VDP no interrumpe nunca y el halt del bucle principal
 ; se queda esperando algo que no llega, con la ROM colgada y sin responder a
@@ -277,6 +283,8 @@ LoadPatterns:
 ; IX recorre el fichero, IY es el plano que toca, C el desplazamiento vertical
 ; que lleva acumulado el grupo actual.
 BuildSprites:
+                call MeasureGroups
+
                 ld a,SPRITE_END_Y
                 ld hl,SPRITE_ATTR
                 ld bc,128
@@ -340,8 +348,9 @@ NextGroup:
                 jr c,GroupFits      ; y ademas queda ancho
 
 NextRow:
+                ld hl,GROUP_STEP
                 ld a,c
-                add a,GROUP_Y_STEP
+                add a,(hl)
                 ld c,a
 
                 xor a
@@ -383,6 +392,64 @@ SpritesDone:
                 ld a,SPRITE_END_Y
                 out (VDP_DATA),a
                 ei
+                ret
+
+; Lo alto que es el grupo mas alto del banco, mas un margen, en GROUP_STEP.
+;
+; Se recorren los offsets Y de todos los miembros: la figura llega desde el mas
+; alto hasta el mas bajo mas los 16 que mide un sprite. Con grupos de un solo
+; sprite sale 20, que es lo que habia escrito a mano; con los de dos de alto,
+; 36, y las filas dejan de pisarse.
+;
+; Los offsets llevan signo y aqui se comparan con un sesgo de 128 para poder
+; hacerlo sin signo, que en Z80 comparar con signo pide mirar el desbordamiento.
+; El sesgo se va solo al restar el uno del otro.
+MeasureGroups:
+                ld ix,GroupsData
+                ld d,128        ; el mas bajo visto, y de entrada el propio cero
+                ld e,128        ; el mas alto
+
+MeasureGroup:
+                push ix
+                pop hl
+                ld bc,GroupsEnd
+                or a
+                sbc hl,bc
+                jr nc,MeasureDone
+
+                ld b,(ix+0)
+                inc ix
+                ld a,b
+                or a
+                jr z,MeasureGroup       ; un grupo vacio no mide nada
+
+MeasureMember:
+                ld a,(ix+16)
+                add a,128
+
+                cp d
+                jr c,MeasureNotLower
+                ld d,a                  ; baja mas que ninguno
+
+MeasureNotLower:
+                cp e
+                jr nc,MeasureNotHigher
+                ld e,a                  ; o sube mas
+
+MeasureNotHigher:
+                push de
+                ld de,19
+                add ix,de
+                pop de
+                djnz MeasureMember
+                jr MeasureGroup
+
+MeasureDone:
+                ld a,d
+                sub e                   ; lo que va del mas alto al mas bajo
+                add a,Sprite_Rows       ; y lo que mide el sprite de abajo
+                add a,GROUP_MARGIN
+                ld (GROUP_STEP),a
                 ret
 
 ; IX = miembro, IY = plano, C = desplazamiento del grupo, B = miembros que faltan
@@ -451,7 +518,7 @@ ColorNext:
 ; todo a 256, fuera de la pantalla.
 ;
 ; Se calcula con 16 bits con signo a proposito. Un desplazamiento de grupo alto
-; (GROUP_Y_STEP por 32 planos) duplicado se sale de 8 bits mucho antes de salirse
+; (lo que baja cada fila por 32 planos) duplicado se sale de 8 bits antes de salirse
 ; de la pantalla, y con 8 bits el desbordamiento daria la vuelta y colocaria el
 ; sprite arriba en lugar de quitarlo de en medio.
 ;
