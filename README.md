@@ -22,6 +22,12 @@ CC bit, and the composed group is shown on the right.
 
 ![Sprite groups](Screenshots/en_SpriteBankGroups.png)
 
+And the **animations**: the steps down the left of the board, each with what it shows and
+how long it holds, the player on the right, and under the form what it is going to cost the
+machine —frames, interrupts and groups used. This walk is four groups on a loop at 50 Hz.
+
+![Sprite animations](Screenshots/en_SpriteBankAnimations.png)
+
 ### Tile sets
 
 The tile magnified on the left, all 256 in their 32-column grid, and the set's properties

@@ -22,6 +22,13 @@ bit CC del V9938, y a la derecha se ve el grupo compuesto.
 
 ![Grupos de sprites](Screenshots/SpriteBankGroups.png)
 
+Y las **animaciones**: los pasos a la izquierda del tablero, cada uno con qué enseña y
+cuánto se queda, el reproductor a la derecha y, debajo del formulario, lo que le va a costar
+a la máquina —fotogramas, interrupciones y grupos usados. Este andar son cuatro grupos en
+bucle a 50 Hz.
+
+![Animaciones de sprites](Screenshots/SpriteBankAnimations.png)
+
 ### Juegos de tiles
 
 El tile ampliado a la izquierda, los 256 en su rejilla de 32 columnas, y a la derecha las
