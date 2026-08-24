@@ -111,6 +111,8 @@ hay, así que la única forma de recorrerlo es ir hasta el final.
 - **0-9** y **A-F** cambian el color de fondo (R#7). La pantalla está entera a
   color 0, o sea transparente, así que se ve el fondo por todas partes.
 - **F1** alterna el bit MAG de R#1: sprites a tamaño doble.
+- **Cursores izquierda y derecha** cambian de animación, si el banco trae más de
+  una. Dan la vuelta por los dos lados.
 
 Los grupos se colocan por filas, llenando cada fila mientras quepan. El VDP saca
 `SPRITES_PER_LINE` sprites por línea de barrido —ocho en modo 2, que es el único

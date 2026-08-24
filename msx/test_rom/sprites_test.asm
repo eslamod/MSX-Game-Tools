@@ -27,6 +27,7 @@
 ;   - Asi se ve de una pasada lo que de verdad importa al montar una pantalla:
 ;     cuantos personajes de estos caben juntos a la misma altura.
 ;   - Teclas 0-9 y A-F cambian el color de fondo.
+;   - Los cursores izquierda y derecha cambian de animacion, si hay mas de una.
 ;   - F1 alterna el bit de ampliacion (sprites a x2) y rehace la tabla de
 ;     atributos: al doblar el tamano se doblan tambien las distancias al
 ;     centro, y el que se salga de la pantalla se aparca fuera.
@@ -141,6 +142,7 @@ MainLoop:
                 call AnimTick
                 call ScanColorKeys
                 call ScanF1
+                call ScanAnimationKeys
                 jr MainLoop
 
 ;-----------------------------------------------------------------------------

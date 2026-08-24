@@ -72,6 +72,9 @@ ANIM_DEPTH      .equ 0xC008     ; bucles abiertos mientras se resuelve
 ANIM_TARGET     .equ 0xC009     ; el grupo del fotograma de ahora
 ANIM_OFF_Y      .equ 0xC00A     ; y su desplazamiento
 ANIM_OFF_X      .equ 0xC00B
+; el 0xC00C es de la rejilla
+ANIM_TOTAL      .equ 0xC00D     ; cuantas animaciones trae el bloque
+ANIM_CURRENT    .equ 0xC00E     ; cual se esta ensenando
 
 ANIM_STACK      .equ 0xC010     ; 3 bytes por bucle: a donde volver y vueltas
 ANIM_TIMELINE   .equ 0xC040     ; 5 por fotograma: apunta, espera, Y, X, aviso
@@ -87,6 +90,7 @@ AnimInit:
                 ld (ANIM_COUNT),a
                 ld (ANIM_INDEX),a
                 ld (ANIM_DEPTH),a
+                ld (ANIM_TOTAL),a
                 ld (ANIM_FIRST),a       ; sin animacion, la rejilla desde el 0
 
                 ld hl,AnimationsEnd
@@ -98,7 +102,32 @@ AnimInit:
                 ld a,ANIM_PLANES
                 ld (ANIM_FIRST),a       ; la rejilla empieza detras de los suyos
 
+                call AnimCountAll
+
+                xor a
+                ; y cae en AnimSelect, que deja lista la primera
+
+;-----------------------------------------------------------------------------
+; A = cual se ensena. La deja resuelta y lista para reproducir.
+;-----------------------------------------------------------------------------
+AnimSelect:
+                ld (ANIM_CURRENT),a
+
                 ld hl,AnimationsData
+                or a
+                jr z,AnimSelected
+
+                ld b,a
+AnimSelectSkip:
+                call AnimSkip
+                djnz AnimSelectSkip
+
+AnimSelected:
+                xor a
+                ld (ANIM_COUNT),a
+                ld (ANIM_INDEX),a
+                ld (ANIM_DEPTH),a
+
                 ld a,(hl)
                 ld (ANIM_ENDING),a
                 inc hl
@@ -258,6 +287,118 @@ AnimMirrorNext:
                 ret
 
 ;-----------------------------------------------------------------------------
+; Cuantas animaciones trae el bloque, en ANIM_TOTAL.
+;
+; Recorriendo los pasos y no contando bytes a cero: el 0x00 que cierra una
+; animacion es el mismo valor que puede llevar dentro un fotograma -el grupo 0,
+; un desplazamiento de cero, un aviso de cero-, asi que hay que andarlas.
+;-----------------------------------------------------------------------------
+AnimCountAll:
+                ld hl,AnimationsData
+                ld c,0
+
+AnimCountNext:
+                push hl
+                ld de,AnimationsEnd
+                or a
+                sbc hl,de
+                pop hl
+                jr nc,AnimCountDone
+
+                call AnimSkip
+                inc c
+                jr AnimCountNext
+
+AnimCountDone:
+                ld a,c
+                ld (ANIM_TOTAL),a
+                ret
+
+; HL = principio de una animacion -> HL = principio de la siguiente.
+AnimSkip:
+                inc hl                  ; el byte de que hacer al acabar
+
+AnimSkipNext:
+                ld a,(hl)
+                inc hl
+                cp ANIM_FRAME
+                jr z,AnimSkipTwo
+                cp ANIM_MOVED
+                jr z,AnimSkipFive
+                cp ANIM_LOOP
+                jr z,AnimSkipOne
+                cp ANIM_LOOP_END
+                jr z,AnimSkipNext
+                ret                     ; el 0x00, y HL ya esta detras
+
+AnimSkipOne:
+                inc hl
+                jr AnimSkipNext
+
+AnimSkipTwo:
+                inc hl
+                inc hl
+                jr AnimSkipNext
+
+AnimSkipFive:
+                push de
+                ld de,5
+                add hl,de
+                pop de
+                jr AnimSkipNext
+
+;-----------------------------------------------------------------------------
+; Los cursores cambian de animacion, si el banco trae mas de una.
+;-----------------------------------------------------------------------------
+ANIM_KEY_ROW    .equ 8          ; la fila del teclado con los cursores
+ANIM_KEY_LEFT   .equ 4
+ANIM_KEY_RIGHT  .equ 7
+
+ScanAnimationKeys:
+                ld a,(ANIM_TOTAL)
+                cp 2
+                ret c                   ; con una sola no hay nada que elegir
+
+                ld a,ANIM_KEY_ROW
+                call KeyRow
+                bit ANIM_KEY_RIGHT,a
+                jr z,AnimKeyNext
+                bit ANIM_KEY_LEFT,a
+                jr z,AnimKeyPrevious
+                ret
+
+AnimKeyNext:
+                ld a,(ANIM_CURRENT)
+                inc a
+                ld hl,ANIM_TOTAL
+                cp (hl)
+                jr c,AnimKeyGo
+                xor a                   ; de la ultima, a la primera
+                jr AnimKeyGo
+
+AnimKeyPrevious:
+                ld a,(ANIM_CURRENT)
+                or a
+                jr nz,AnimKeyBack
+                ld a,(ANIM_TOTAL)       ; de la primera, a la ultima
+AnimKeyBack:
+                dec a
+
+AnimKeyGo:
+                call AnimSelect
+                call AnimShow
+
+; A esperar a que se suelte: sin esto pasaria una animacion por interrupcion y
+; no habria forma de pararse en ninguna.
+AnimKeyRelease:
+                ld a,ANIM_KEY_ROW
+                call KeyRow
+                and (1 << ANIM_KEY_LEFT) | (1 << ANIM_KEY_RIGHT)
+                cp (1 << ANIM_KEY_LEFT) | (1 << ANIM_KEY_RIGHT)
+                jr nz,AnimKeyRelease
+                ret
+
+;-----------------------------------------------------------------------------
 ; Una interrupcion menos. Cuando la espera se acaba, pasa al siguiente.
 ;-----------------------------------------------------------------------------
 AnimTick:
@@ -299,9 +440,16 @@ AnimTickShow:
 ; Pinta el fotograma que toca en los planos reservados.
 ;-----------------------------------------------------------------------------
 AnimShow:
+                ld a,(ANIM_TOTAL)
+                or a
+                ret z                   ; sin animaciones los planos son de la rejilla
+
+                ; Una animacion sin pasos si tiene que borrar: se puede llegar a
+                ; ella con los cursores, y sin esto se quedaria en pantalla la
+                ; figura de la anterior como si siguiera puesta.
                 ld a,(ANIM_COUNT)
                 or a
-                ret z
+                jr z,AnimShowNone
 
                 ld a,(ANIM_INDEX)
                 call AnimAt
