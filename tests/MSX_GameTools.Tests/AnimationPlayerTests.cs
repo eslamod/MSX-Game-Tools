@@ -202,6 +202,53 @@ public class AnimationPlayerTests
         Assert.Null(player.Current);
     }
 
+    /// <summary>
+    /// La animación avanza por el tiempo que ha pasado, no por pulsos del temporizador.
+    /// </summary>
+    /// <remarks>
+    /// El temporizador de la interfaz no da el intervalo que se le pide: en Windows la
+    /// resolución del reloj del sistema son unos 15,6 ms, así que pidiendo 16,7 llegan cada 26 y
+    /// pico. Contando pulsos, la vista previa iba a la mitad y media de la velocidad que decía
+    /// —medido sobre una captura: 156 ms por fotograma donde tocaban 100—, y eso es justo lo que
+    /// se está mirando ahí, si una figura cojea al andar.
+    /// </remarks>
+    [Fact]
+    public void La_animacion_avanza_por_el_tiempo_y_no_por_pulsos()
+    {
+        AnimationPlayerViewModel player = Playing(Frames((1, 6), (2, 6)), AnimationMode.Loop);
+
+        // Un temporizador que llega tarde: 26 ms a 60 Hz son 1,56 interrupciones por pulso.
+        const double Late = 26.0 * 60 / 1000;
+
+        player.Advance(Late);
+        player.Advance(Late);
+        player.Advance(Late);
+
+        Assert.Equal(0, player.FrameIndex);     // 4,68 interrupciones de las 6
+
+        player.Advance(Late);
+
+        Assert.Equal(1, player.FrameIndex);     // 6,24: ya toca
+    }
+
+    /// <summary>
+    /// Y si el programa se ha quedado parado, se saltan fotogramas en vez de ir con retraso.
+    /// </summary>
+    /// <remarks>
+    /// Lo que tiene que salir bien es el ritmo, no verlos todos: una animación que se recupera
+    /// despacio de un parón enseñaría una cadencia que la máquina no va a tener.
+    /// </remarks>
+    [Fact]
+    public void Un_paron_salta_fotogramas_en_vez_de_ir_con_retraso()
+    {
+        AnimationPlayerViewModel player = Playing(Frames((1, 6), (2, 6)), AnimationMode.Loop);
+
+        // Un segundo entero de golpe: son cinco vueltas justas de doce interrupciones.
+        player.Advance(60);
+
+        Assert.Equal(0, player.FrameIndex);
+    }
+
     // ------------------------------------------------------------------ los andamios
 
     private static SpriteAnimation Frames(params (int Target, int Wait)[] frames)

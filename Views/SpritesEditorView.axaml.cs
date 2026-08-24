@@ -94,6 +94,17 @@ public partial class SpritesEditorView : UserControl
     private DispatcherTimer? _beats;
 
     /// <summary>
+    /// Desde cuándo no se adelanta la animación.
+    /// </summary>
+    /// <remarks>
+    /// Hace falta porque el temporizador no da el intervalo que se le pide: en Windows la
+    /// resolución del reloj del sistema son unos 15,6 ms y los avisos se agrupan, así que
+    /// pidiendo 16,7 llegan cada 26 y pico. Contando pulsos, la vista previa iba a media
+    /// velocidad larga; contando el tiempo que ha pasado de verdad, da igual.
+    /// </remarks>
+    private readonly System.Diagnostics.Stopwatch _since = new();
+
+    /// <summary>
     /// Donde vive el zoom entre pestañas. El TabControl reconstruye la vista cada vez que
     /// se cambia, asi que la vista no puede recordarlo por su cuenta.
     /// </summary>
@@ -166,6 +177,8 @@ public partial class SpritesEditorView : UserControl
         _beats.Tick += OnBeat;
         _beats.Start();
 
+        _since.Restart();
+
         vm.Player.PropertyChanged += OnPlayerChanged;
 
         ShowFrame();
@@ -173,10 +186,27 @@ public partial class SpritesEditorView : UserControl
 
     private SpritesEditorViewModel? Editor => DataContext as SpritesEditorViewModel;
 
+    /// <summary>
+    /// Lo que ha pasado desde el pulso anterior, en interrupciones de la máquina.
+    /// </summary>
+    /// <remarks>
+    /// Con un tope: si el programa se ha quedado parado —moviendo la ventana, o cargando algo—
+    /// no tiene sentido adelantar medio segundo de animación de golpe. Se pierde ese trozo y ya.
+    /// </remarks>
     private void OnBeat(object? sender, EventArgs e)
     {
-        Editor?.Player.Beat();
+        if (Editor is not { } vm)
+            return;
+
+        double seconds = Math.Min(_since.Elapsed.TotalSeconds, MaxCatchUp);
+
+        _since.Restart();
+
+        vm.Player.Advance(seconds * vm.Player.Hz);
     }
+
+    /// <summary>Lo más que se adelanta de una vez, en segundos.</summary>
+    private const double MaxCatchUp = 0.25;
 
     private void OnPlayerChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {

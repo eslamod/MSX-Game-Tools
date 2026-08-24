@@ -28,7 +28,7 @@ public partial class AnimationPlayerViewModel : ObservableObject
     private AnimationTimeline _timeline = new([], false, false);
 
     /// <summary>Pulsos que llevamos dentro del fotograma que se está viendo.</summary>
-    private int _waited;
+    private double _waited;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Current))]
@@ -97,22 +97,46 @@ public partial class AnimationPlayerViewModel : ObservableObject
             FrameIndex = 0;
     }
 
+    /// <summary>Un pulso del reloj de la máquina.</summary>
+    public void Beat() => Advance(1);
+
     /// <summary>
-    /// Un pulso del reloj de la máquina.
+    /// Adelanta la animación las interrupciones que hayan pasado de verdad.
     /// </summary>
     /// <remarks>
+    /// <para>
+    /// Por tiempo pasado y no contando pulsos: el temporizador de la interfaz no da 16,7 ms
+    /// aunque se le pidan —en Windows la resolución del reloj del sistema es de unos 15,6 y los
+    /// avisos se agrupan—, así que contando pulsos la vista previa iba a la mitad y media de la
+    /// velocidad que decía. Medido sobre una captura: 156 ms por fotograma donde tocaban 100.
+    /// Y eso es justo lo que se está mirando aquí, si una figura cojea al andar.
+    /// </para>
+    /// <para>
+    /// Si el programa se ha quedado parado un rato, se saltan fotogramas en vez de ir con
+    /// retraso: lo que tiene que salir bien es el ritmo, no verlos todos.
+    /// </para>
+    /// <para>
     /// Ralentizar multiplica lo que dura cada fotograma, así que las proporciones entre ellos se
     /// mantienen: uno que dure el doble que otro lo sigue durando a cualquier velocidad.
+    /// </para>
     /// </remarks>
-    public void Beat()
+    public void Advance(double interrupts)
     {
-        if (!IsPlaying || !HasFrames)
+        if (!IsPlaying || !HasFrames || interrupts <= 0)
             return;
 
-        if (++_waited < (Current?.Wait ?? 1) * Slowdown)
-            return;
+        _waited += interrupts;
 
-        Next();
+        // El sobrante se guarda y se repone: Next pone la cuenta a cero, que es lo que hace
+        // falta cuando se avanza a mano, y aqui se comeria lo que llevabamos de mas.
+        while (IsPlaying && _waited >= (Current?.Wait ?? 1) * Slowdown)
+        {
+            double left = _waited - ((Current?.Wait ?? 1) * Slowdown);
+
+            Next();
+
+            _waited = left;
+        }
     }
 
     /// <summary>Al siguiente fotograma. Al final, o vuelve a empezar o para.</summary>
