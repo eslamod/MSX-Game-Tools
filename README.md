@@ -1,212 +1,213 @@
 # MSX Game Tools
 
-*[Read in English](README.en.md)*
+*[Leer en español](README.es.md)*
 
-Herramientas de creación de gráficos y mapas para juegos de MSX: sprites, juegos de
-tiles, paletas, bloques y mapas, con exportación a los formatos que espera el VDP.
+Graphics and map authoring tools for MSX games: sprites, tile sets, palettes, blocks and
+maps, exporting to the formats the VDP expects.
 
-Escrito en C# sobre Avalonia 12.1 y .NET 10. Funciona en Windows, Linux y macOS.
+Written in C# on Avalonia 12.1 and .NET 10. Runs on Windows, Linux and macOS.
 
-## Cómo se ve
+## What it looks like
 
-### Bancos de sprites
+### Sprite banks
 
-Los patrones de 16x16, con los dos colores de cada línea a la derecha del lienzo y el
-banco entero arriba.
+The 16x16 patterns, with each line's two colours down the right of the canvas and the
+whole bank across the top.
 
-![Editor de patrones de sprites](Screenshots/SpriteBankPatterns.png)
+![Sprite pattern editor](Screenshots/en_SpriteBankPatterns.png)
 
-Y los **grupos**, que colocan varios patrones con desplazamiento para formar una figura
-mayor de lo que da un plano. La columna `OR` marca las líneas que mezclan planos con el
-bit CC del V9938, y a la derecha se ve el grupo compuesto.
+And the **groups**, which place several patterns with offsets to build a figure bigger
+than one plane allows. The `OR` column marks the lines that mix planes through the V9938
+CC bit, and the composed group is shown on the right.
 
-![Grupos de sprites](Screenshots/SpriteBankGroups.png)
+![Sprite groups](Screenshots/en_SpriteBankGroups.png)
 
-### Juegos de tiles
+### Tile sets
 
-El tile ampliado a la izquierda, los 256 en su rejilla de 32 columnas, y a la derecha las
-propiedades del juego con sus **atributos**. El ojo de un atributo tiñe los tiles que ya
-lo tienen puesto —aquí los dos marcados como colisión—, para verlos de golpe en vez de ir
-abriéndolos uno a uno. Abajo del lienzo, las banderas del tile que se está editando.
+The tile magnified on the left, all 256 in their 32-column grid, and the set's properties
+on the right with its **attributes**. An attribute's eye tints the tiles that already have
+it set —here the two marked as collision— to spot them all at once instead of opening them
+one by one. Under the canvas, the flags of the tile being edited.
 
-![Editor de tiles](Screenshots/TileEditor.png)
+![Tile set editor](Screenshots/en_TileEditor.png)
 
-### Mapas
+### Maps
 
-El mapa con sus capas, los bloques del juego a la derecha —aquí un árbol de 3x3— y la
-tira de tiles y bloques abajo para coger con qué pintar.
+The map with its layers, the set's blocks on the right —a 3x3 tree here— and the strip of
+tiles and blocks along the bottom to pick what to paint with.
 
-![Editor de mapas](Screenshots/MapEditor.png)
+![Map editor](Screenshots/en_MapEditor.png)
 
-## Qué hace
+## What it does
 
-### Bancos de sprites
+### Sprite banks
 
-- Sprites de 16x16 en dos variantes: MSX, con un color para todo el sprite, y MSX2, con
-  un color por línea y el bit CC del V9938 para mezclar planos.
-- **Grupos**: varios patrones colocados con desplazamiento para formar una figura mayor
-  de lo que da un plano de sprite.
-- Imágenes de referencia detrás del lienzo, con opacidad regulable, para calcar.
-- **Importa una hoja de sprites** desde un png: se marca un rectángulo y sale un banco con
-  sus grupos, repartiendo cada color en el plano que le toca. Dice antes de importar
-  cuántos planos hace falta y qué colores se estorban entre sí.
-- Exporta la tabla de patrones y los atributos, en binario y en `.asm`, enteros o sólo los
-  patrones que se digan.
+- 16x16 sprites in two flavours: MSX, with one colour for the whole sprite, and MSX2,
+  with a colour per line and the V9938 CC bit for overlapping planes.
+- **Groups**: several patterns placed with offsets to build a figure bigger than a single
+  sprite plane allows.
+- Reference images behind the canvas, with adjustable opacity, for tracing.
+- **Imports a sprite sheet** from a png: mark a rectangle and out comes a bank with its
+  groups, each colour dealt into the plane it belongs to. Before importing it says how many
+  planes are needed and which colours get in each other's way.
+- Exports the pattern table and the attributes, as binary and as `.asm`, whole or only the
+  patterns you name.
 
-### Juegos de tiles
+### Tile sets
 
-- 256 tiles de 8x8 para GRAPHIC 2 y 3, con sus dos colores por línea.
-- **Un solo juego, no tres.** El VDP parte la pantalla en tres tercios con su propia
-  tabla cada uno; aquí se define uno y la exportación se replica, para que un tile se vea
-  igual esté donde esté.
-- Importa y exporta **png** para poder trabajar en GIMP o Photoshop. Al importar
-  comprueba lo que la máquina no admite —más de dos colores en una línea de ocho
-  píxeles— y dice en qué tile y en qué línea está el problema.
-- **Bloques**: grupos de tiles de hasta 16x16 colocados como van a quedar en el mapa, un
-  árbol de 3x3 o un supertile de 2x2. Sirven de brocha en el editor de mapas.
-- **Atributos por tile**: ocho banderas con el nombre que se les quiera dar —sólido,
-  escalera, agua— que salen en una tabla de un byte por tile, con sus máscaras como
-  constantes `equ` para no traducir bits a mano. Son opcionales: mientras no se defina
-  ninguno no aparecen por ninguna parte. Un ojo al lado de cada nombre tiñe en la rejilla
-  los tiles que ya lo tienen puesto, para verlos de golpe.
+- 256 tiles of 8x8 for GRAPHIC 2 and 3, with their two colours per line.
+- **One set, not three.** The VDP splits the screen into three thirds, each with its own
+  tables; here you define one set and the export replicates it, so a tile looks the same
+  wherever the map puts it.
+- Imports and exports **png**, so the work can move to GIMP or Photoshop. On import it
+  checks what the machine cannot do —more than two colours in a line of eight pixels—
+  and says which tile and which line is at fault.
+- **Blocks**: groups of tiles up to 16x16, arranged as they will look on the map: a 3x3
+  tree, or a 2x2 supertile. They work as brushes in the map editor.
+- **Per-tile attributes**: eight flags with whatever names you give them —solid, ladder,
+  water— exported as a one-byte-per-tile table, with their masks as `equ` constants so
+  nobody has to translate bits by hand. They are optional: until one is named, they show
+  up nowhere. An eye next to each name tints the tiles that already have it set, to see
+  them all at once.
 
-### Mapas
+### Maps
 
-- Tamaño libre hasta 1024 por lado, con **capas** que se aplastan al exportar.
-- Estampar tiles sueltos, rectángulos de tiles o bloques enteros, con vista previa
-  translúcida bajo el ratón.
-- Seleccionar un rectángulo y rellenarlo, copiarlo o vaciarlo.
-- Redimensionar con ancla, y sustituir rangos de tiles por otros.
-- **Deshacer y rehacer**, veinte pasos.
-- **Informe de desplazamiento**: saca del mapa la tabla que hace falta para el scroll suave
-  de un pixel, dice en qué celdas se va a notar y lleva la vista a cada una.
-- Entra y sale en json, csv (compatible con Tiled) y binario; y sale también en `.asm`.
+- Any size up to 1024 per side, with **layers** that are flattened on export.
+- Stamp single tiles, rectangles of tiles or whole blocks, with a translucent preview
+  under the pointer.
+- Select a rectangle and fill it, copy it or clear it.
+- Resize with an anchor, and replace ranges of tiles with others.
+- **Undo and redo**, twenty steps.
+- **Shift report**: derives from the map the table needed for one-pixel smooth scrolling,
+  says in which cells it will show, and takes the view to each one.
+- Reads and writes json, csv (Tiled compatible) and binary; also writes `.asm`.
 
-### El programa
+### The application
 
-- En **español, inglés y catalán**, con cambio en caliente desde Preferencias, que también
-  guarda con qué zoom arranca cada sitio. Los ajustes viven en la carpeta del usuario, no
-  en el proyecto: compartir un proyecto no le cambia el idioma a nadie. Se quedan en
-  español los mensajes de fichero mal formado, que son diagnóstico y sólo salen cuando
-  algo está roto.
-- **Escala de la interfaz** en Preferencias, del 100 al 200%, que agranda todo el programa
-  por encima de lo que ya haga el sistema. El escalado por DPI funciona solo en Windows y
-  macOS; esto es para trabajar al 100% en una pantalla densa, y en Linux con X11 —donde
-  Avalonia se queda en factor 1 si el escritorio no pone `Xft.dpi`— puede ser la única
-  salida sin tocar variables de entorno.
-- Los menús van **por cosa** —Sprites, Tiles, Mapas, Paleta— igual que el árbol, así que lo
-  que se exporta de tiles está al lado de lo que se importa de tiles.
-- **Abrir** es uno solo: mira el fichero y sabe si es un banco, un juego, un mapa o una
-  paleta. Y **Abrir reciente** guarda los diez últimos, sin repetidos, para no volver a
-  buscarlos.
-- **Aspecto** claro u oscuro, con variantes azuladas y anaranjadas de los dos.
+- In **Spanish, English and Catalan**, switched live from Preferences, which also stores
+  the zoom each area starts at. Settings live in the user's folder, not in the project:
+  sharing a project does not change anybody's language. Malformed-file messages stay in
+  Spanish: they are diagnostics and only show up when something is broken.
+- **Interface scale** in Preferences, from 100 to 200%, making the whole application bigger
+  on top of whatever the system already does. DPI scaling works on its own on Windows and
+  macOS; this is for working at 100% on a dense screen, and on Linux with X11 — where
+  Avalonia stays at factor 1 unless the desktop sets `Xft.dpi` — it may be the only way out
+  short of environment variables.
+- Menus are grouped **by thing** — Sprites, Tiles, Maps, Palette — like the tree, so what
+  you export from tiles sits next to what you import into tiles.
+- **Open** is a single entry: it looks at the file and knows whether it is a bank, a set, a
+  map or a palette. And **Open recent** keeps the last ten, without repeats, so they need
+  not be hunted down again.
+- **Appearance** light or dark, with blue and orange variants of both.
 
-### El proyecto y sus ficheros
+### The project and its files
 
-- **Propiedades** en el nodo del árbol, o F2, para cambiarle el nombre a lo que sea. El
-  fichero no se toca: cómo se llama un mapa es del mapa, y dónde vive lo decide quien lo
-  guarda.
+- **Properties** on the tree node, or F2, to rename anything. The file is left alone: what
+  a map is called belongs to the map, and where it lives is decided by whoever saves it.
 
-- **Guardar** escribe el documento que esté delante en el fichero del que salió, sea un
-  banco, un juego de tiles o un mapa; sólo pregunta la ruta la primera vez.
-- La pestaña de lo que está sin guardar lleva un asterisco, y al salir se avisa de lo que
-  se perdería, con la opción de guardarlo antes.
-- El **proyecto** (`.msxproj`) agrupa todo lo que hay abierto. Es un índice de rutas, no
-  un fichero con todo dentro: cada juego, banco y mapa sigue en su `.json`, y a los que
-  no tienen fichero todavía se les pone uno con su nombre junto al proyecto. Guardarlo
-  guarda de una vez lo que se haya tocado, y abrirlo lo devuelve todo, cada mapa
-  enganchado a su juego de tiles.
+- **Save** writes whatever document is in front — a bank, a tile set or a map — back to
+  the file it came from, and only asks for a path the first time.
+- Tabs with unsaved work carry an asterisk, and quitting warns about what would be lost,
+  offering to save it first.
+- The **project** (`.msxproj`) groups everything that is open. It is an index of paths,
+  not a file with everything inside: each set, bank and map stays in its own `.json`, and
+  anything without a file yet gets one named after it, next to the project. Saving it
+  writes whatever has been touched in one go, and opening it brings it all back, each map
+  attached to its tile set.
 
-### Paletas
+### Palettes
 
-- Las quince del MSX1 más el índice transparente, y paletas propias para MSX2 con los
-  512 colores del V9938.
-- Cada juego de tiles y cada banco lleva la suya, y la guarda dentro de su fichero: los
-  patrones son índices, no colores. Se elige al crearlo, en el mismo formulario que el
-  nombre. Después, la barra de arriba enseña la del documento que esté delante, y elegir
-  otra ahí se la cambia sólo a ése.
-- Se exportan en el formato de dos bytes por color que espera el registro 16.
+- The fifteen MSX1 colours plus the transparent index, and custom MSX2 palettes from the
+  512 colours of the V9938.
+- Every tile set and every sprite bank carries its own, stored inside its file: patterns
+  are indices, not colours. It is chosen when you create it, in the same form as the name.
+  After that, the bar at the top shows the palette of whichever document is in front, and
+  picking another there changes that one only.
+- Exported in the two-bytes-per-colour format that register 16 expects.
 
-## Cómo se ejecuta
+## Running it
 
 ```bash
 dotnet run
 ```
 
-Los tests:
+The tests:
 
 ```bash
 dotnet test
 ```
 
-## Decisiones que conviene conocer
+## Decisions worth knowing
 
-Estas son las que más condicionan el código, y están explicadas con detalle en los
-comentarios y en los mensajes de commit.
+These shape the code the most. They are explained in detail in the comments and in the
+commit messages.
 
-**El color 0 es transparente, en sprites y en tiles.** Deja ver el color del borde
-(registro 7), no es un color más de la paleta. El editor lo pinta así para enseñar lo
-que se va a ver en la máquina.
+**Colour 0 is transparent, in sprites and in tiles.** It shows the border colour
+(register 7); it is not just another palette entry. The editor draws it that way so you
+see what the machine will show.
 
-**La celda vacía no es el tile 0.** El tile 0 es un tile de verdad, así que bloques y
-mapas distinguen «aquí no hay nada» de «aquí va el primero del juego». Al estampar, lo
-vacío deja ver lo que hubiera debajo. En csv se escribe `-1`; en binario no cabe, porque
-la tabla de nombres siempre dibuja algo, así que cada mapa lleva un tile de relleno.
+**An empty cell is not tile 0.** Tile 0 is a real tile, so blocks and maps tell "nothing
+here" apart from "the first tile of the set". When stamping, an empty cell lets whatever
+is underneath show through. In csv it is written as `-1`; in binary there is no room for
+it, because the name table always draws something, so every map carries a filler tile.
 
-**Las capas no existen en la máquina.** Son ayuda de edición: al exportar se funden en
-una sola tabla de nombres, ganando la celda no vacía más alta.
+**Layers do not exist on the machine.** They are an authoring aid: on export they are
+merged into a single name table, the topmost non-empty cell winning.
 
-**Un bloque y una capa son la misma estructura.** Un bloque es una tabla de nombres
-pequeña y un mapa la misma tabla más grande, así que estampar un bloque en el mapa no
-necesita ninguna traducción.
+**A block and a layer are the same structure.** A block is a small name table and a map
+is the same table, bigger, so stamping a block onto a map needs no translation.
 
-**El desplazamiento suave es un informe y no una comprobación.** El scroll de un pixel
-guarda ocho copias del juego de tiles corridas una a una, y por cada tile hay que decidir
-qué entra por su borde derecho: ceros, unos o la columna del tile siguiente. Lo dicta el
-mapa, así que un tile puesto junto a vecinos distintos no tiene respuesta buena para todos.
-Eso es la técnica, no un fallo del mapa: lo que hace falta saber es cuál es la opción
-mayoritaria y cuántos sitios cuesta. Y se compara el **color** que se ve, no el bit: en
-screen 1 el mismo azul puede ser la tinta de un tile y el papel de su vecino.
+**Smooth scrolling is a report, not a check.** One-pixel scrolling keeps eight copies of the
+tile set, each shifted one more pixel, and for every tile something has to enter from the
+right: zeros, ones or the next tile's column. The map dictates which, so a tile placed next
+to different neighbours has no answer that is good for all of them. That is the technique,
+not a fault in the map: what you need to know is the majority option and how many places it
+costs. And it compares the **colour** you see, not the bit: in screen 1 the same blue can be
+one tile's ink and its neighbour's paper.
 
-**Los tiles se enseñan siempre en 32 columnas.** Es la disposición del editor y la del
-png, y la única en la que coger un rectángulo significa algo: un árbol dibujado en tres
-filas sólo es un rectángulo si las filas miden lo que medían al dibujarlo.
+**Tiles are always shown in 32 columns.** That is the layout of the editor and of the
+png, and the only one where picking a rectangle means anything: a tree drawn across three
+rows is only a rectangle if the rows are as wide as they were when it was drawn.
 
-## Cómo se comprueba
+**The comments are in Spanish.** The names, the assembly that is exported and this README
+are in English; the comments explain the *why* behind each decision, and there are some
+94,000 words of them, so they stay as they were written. New ones are written in English.
 
-Más de novecientas pruebas automáticas, que se ejecutan con la interfaz montada de verdad
-(Avalonia headless con Skia) cuando lo que se prueba es la interfaz.
+## How it is checked
 
-Dos costumbres que han salvado bastantes fallos:
+Over nine hundred automated tests, run with the interface actually mounted (Avalonia
+headless with Skia) whenever the interface is what is under test.
 
-- **Una prueba que no se ha visto fallar no vale.** Antes de dar por bueno un arreglo se
-  vuelve a poner el fallo y se comprueba que la prueba cae. Y tiene que caer *por el
-  camino que usa el usuario*: probar el ViewModel suelto ha dejado pasar más de un fallo
-  que estaba en el punto de entrada.
-- **Los exportadores se validan ensamblando de verdad.** El `.asm` que sale se pasa por
-  el ensamblador cruzado sasSX y se compara byte a byte con el binario. Si los dos
-  coinciden, el fichero sirve.
+Two habits that have caught a fair number of bugs:
 
-## ROMs de prueba
+- **A test you have not seen fail is worth nothing.** Before accepting a fix, the bug is
+  put back to check that the test falls. And it has to fall *through the path the user
+  takes*: testing the ViewModel on its own has let more than one bug through that lived
+  in the entry point.
+- **Exporters are validated by actually assembling.** The `.asm` produced is run through
+  the sasSX cross-assembler and compared byte for byte against the binary. If the two
+  match, the file is good.
 
-En `msx/test_rom` hay dos ROMs en ensamblador Z80 que cargan lo exportado y lo enseñan en
-un MSX de verdad o en openMSX:
+## Test ROMs
 
-- `sprites_test.asm` — GRAPHIC 3 y sprites de modo 2, con los grupos colocados. Las
-  teclas 0-F cambian el color del borde y F1 conmuta la magnificación.
-- `tileset_test.asm` — GRAPHIC 2 con el juego de tiles replicado en los tres tercios.
+`msx/test_rom` holds two Z80 assembly ROMs that load the exported data and show it on a
+real MSX or on openMSX:
 
-Las dos detectan en ejecución si están en un MSX1 o en un MSX2 para cargar la paleta sólo
-donde se puede. Su README explica los mapas de VRAM y cómo cambiar entre datos incrustados
-y ficheros propios.
+- `sprites_test.asm` — GRAPHIC 3 and sprite mode 2, with the groups laid out. Keys 0-F
+  change the border colour and F1 toggles magnification.
+- `tileset_test.asm` — GRAPHIC 2 with the tile set replicated across the three thirds.
 
-## Estado
+Both detect at runtime whether they are on an MSX1 or an MSX2, so the palette is only
+loaded where it can be. Their README explains the VRAM maps and how to switch between
+embedded data and your own files.
 
-En desarrollo, y con el alcance ya decidido: esto es una suite de herramientas para hacer
-juegos, no un generador de juegos. Funcionan los bancos de sprites, los juegos de tiles con
-sus bloques, las paletas, el editor de mapas y el proyecto que los agrupa.
+## Status
 
-Queda por hacer el editor de **animaciones**, que encaja con lo demás: son los patrones que
-ya existen, puestos en secuencia. Lo que había apuntado de comportamientos, sonidos y música
-se ha retirado. Sacar la ROM de un juego entero es otro programa, y mucho más difícil; un
-hueco vacío prometiéndolo sólo envejece mal.
+Under development, with the scope already settled: this is a suite of tools for making
+games, not a game maker. Sprite banks, tile sets with their blocks, palettes, the map editor
+and the project that groups them all work.
+
+The **animation** editor is still to come, and it fits with the rest: the patterns that are
+already there, put in sequence. What had been pencilled in for behaviours, sounds and music
+has been dropped. Producing a whole game's ROM is a different program, and a far harder one;
+an empty slot promising it only ages badly.
