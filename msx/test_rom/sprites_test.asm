@@ -74,7 +74,11 @@ ROW_X_LIMIT     .equ 216
 ; 32 planos por muchos grupos de uno que haya.
 CENTRE_Y        .equ 10
 GROUP_Y_STEP    .equ 20
-REG1_BASE       .equ 0x42       ; pantalla activa, sprites 16x16, MAG=0
+; Pantalla activa, sprites 16x16, MAG=0, y el bit 5 puesto: IE0, la interrupcion
+; de barrido. Sin ella el VDP no interrumpe nunca y el halt del bucle principal
+; se queda esperando algo que no llega, con la ROM colgada y sin responder a
+; ninguna tecla. Antes daba igual porque nadie esperaba a nada.
+REG1_BASE       .equ 0x62
 SCREEN_LINES    .equ 192
 HIDDEN_Y        .equ 200        ; debajo de la pantalla, y no es 208 ni 216
 
@@ -662,17 +666,17 @@ PaletteNext:
 ; y descomenta el .include de al lado. El resultado es el mismo byte a byte.
 PaletteData:
                ; .incbin "msx_palette.bin"
-               .include "kickoff_palette.asm"
+               .include "walking_sprite_palette.asm"
 PaletteEnd:
 
 PatternsData:
               ;  .incbin "bank_patterns.bin"
-               .include "kick_off_sprites_patterns.asm"
+               .include "walking_sprite_patterns.asm"
 PatternsEnd:
 
 GroupsData:
                ; .incbin "bank_groups.bin"
-               .include "kick_off_sprites_groups.asm"
+               .include "walking_sprite_groups.asm"
 GroupsEnd:
 
 ; Las animaciones del banco, y este bloque puede quedarse vacio: sin datos, la
@@ -681,7 +685,7 @@ GroupsEnd:
 ; ejecucion comparando las dos etiquetas, asi que no hay que tocar nada mas.
 AnimationsData:
                ; .incbin "bank_animations.bin"
-               ; .include "kick_off_sprites_animations.asm"
+                .include "walking_sprite_animations.asm"
 AnimationsEnd:
 
 ; El reproductor de animaciones, aparte: es la rutina que se copia a un juego de
