@@ -90,7 +90,7 @@ public static class ProjectSerializer
         }
 
         return new Project(
-            string.IsNullOrWhiteSpace(file.Name) ? "Proyecto sin nombre" : file.Name,
+            string.IsNullOrWhiteSpace(file.Name) ? "Unnamed project" : file.Name,
             [.. (file.Items ?? []).Select(ReadItem)],
             [.. (file.Palettes ?? []).Select(PaletteSerializer.FromFile)],
             [.. (file.Backgrounds ?? [])

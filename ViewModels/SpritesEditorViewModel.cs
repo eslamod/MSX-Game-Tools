@@ -438,10 +438,10 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
     {
         int number = 1;
 
-        while (_spriteBank.Animations.Any(other => other.Name == $"Animación {number}"))
+        while (_spriteBank.Animations.Any(other => other.Name == $"Animation {number}"))
             number++;
 
-        return $"Animación {number}";
+        return $"Animation {number}";
     }
 
     /// <summary>La columna de colores por línea es del patrón, no del grupo.</summary>

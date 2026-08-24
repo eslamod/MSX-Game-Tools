@@ -191,7 +191,7 @@ public static class SpriteBankSerializer
         }
 
         var bank = new SpriteBank(
-            type, string.IsNullOrWhiteSpace(file.Name) ? "Banco sin nombre" : file.Name, capacity);
+            type, string.IsNullOrWhiteSpace(file.Name) ? "Unnamed bank" : file.Name, capacity);
 
         // El banco ya viene con sus 64 huecos hechos: aqui solo se rellenan los que traiga
         // el fichero, cada uno en el suyo.
@@ -242,7 +242,7 @@ public static class SpriteBankSerializer
     private static SpriteAnimation ReadAnimation(AnimationFile file)
     {
         var animation = new SpriteAnimation(
-            string.IsNullOrWhiteSpace(file.Name) ? "Animación sin nombre" : file.Name,
+            string.IsNullOrWhiteSpace(file.Name) ? "Unnamed animation" : file.Name,
             Parse<AnimationKind>(file.Kind, nameof(AnimationKind)))
         {
             Mode = Parse<AnimationMode>(file.Mode, nameof(AnimationMode)),

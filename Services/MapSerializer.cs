@@ -56,7 +56,7 @@ public static class MapSerializer
         }
 
         var map = new TileMap(
-            string.IsNullOrWhiteSpace(file.Name) ? "Mapa sin nombre" : file.Name,
+            string.IsNullOrWhiteSpace(file.Name) ? "Unnamed map" : file.Name,
             file.Width,
             file.Height)
         {

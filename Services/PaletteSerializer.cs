@@ -81,7 +81,7 @@ public static class PaletteSerializer
             colors.Add(new PaletteColor(index, entry.Name ?? string.Empty, red, green, blue));
         }
 
-        string name = string.IsNullOrWhiteSpace(file.Name) ? "Paleta sin nombre" : file.Name;
+        string name = string.IsNullOrWhiteSpace(file.Name) ? "Unnamed palette" : file.Name;
 
         return new ColorPalette(name, isReadOnly: false, colors);
     }

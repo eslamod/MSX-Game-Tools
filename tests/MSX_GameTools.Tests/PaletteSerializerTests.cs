@@ -154,7 +154,7 @@ public class PaletteSerializerTests
     {
         string json = BuildJson(colorAt3: """{"rgb":"111"}""", name: "");
 
-        Assert.Equal("Paleta sin nombre", PaletteSerializer.Deserialize(json).Name);
+        Assert.Equal("Unnamed palette", PaletteSerializer.Deserialize(json).Name);
     }
 
     /// <summary>16 colores en negro, salvo el 3 que se sustituye por lo que se pase.</summary>

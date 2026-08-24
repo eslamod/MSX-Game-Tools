@@ -80,7 +80,7 @@ public static class TileSetSerializer
         // El modo se decide aquí y ya no se toca: los ficheros de antes de la 6 no lo traen y
         // son GRAPHIC 2, que era el único que había cuando se escribieron.
         var tileSet = new TileSet(
-            string.IsNullOrWhiteSpace(file.Name) ? "Tiles sin nombre" : file.Name, file.Mode);
+            string.IsNullOrWhiteSpace(file.Name) ? "Unnamed tile set" : file.Name, file.Mode);
 
         // Los ficheros anteriores a la versión 3 no la traen y se quedan con la que el
         // juego se acaba de hacer al construirse.

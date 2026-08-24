@@ -2066,7 +2066,7 @@ public partial class MainWindowViewModel : ObservableObject
     {
         string clean = string.Concat(name.Split(Path.GetInvalidFileNameChars())).Trim();
 
-        return clean.Length == 0 ? "sin nombre" : clean;
+        return clean.Length == 0 ? "unnamed" : clean;
     }
 
     /// <summary>Lo que se propone al guardar un documento, que siempre va en json.</summary>
