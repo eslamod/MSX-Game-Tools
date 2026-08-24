@@ -50,7 +50,7 @@ public static class TileSetExporter
         tileSet,
         row => row.PatternByte,
         "patterns",
-        "; Un byte por linea: la mascara de bits, con la columna 0 en el bit mas alto.");
+        "; One byte per line: the bit mask, with column 0 in the highest bit.");
 
     public static string ColorsToAssembler(TileSet tileSet) => tileSet.IsGraphic1
         ? GroupColorsToAssembler(tileSet)
@@ -58,7 +58,7 @@ public static class TileSetExporter
             tileSet,
             row => row.ColorByte,
             "colors",
-            "; Un byte por linea: color de frente en el nibble alto y de fondo en el bajo.");
+            "; One byte per line: foreground colour in the high nibble, background in the low one.");
 
     /// <summary>
     /// Los 32 bytes de color de GRAPHIC 1, con el rango de tiles de cada uno al lado.

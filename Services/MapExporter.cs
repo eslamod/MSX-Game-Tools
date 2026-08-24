@@ -65,7 +65,7 @@ public static class MapExporter
 
         // La cabecera tambien en .db y no en .dw: asi el fichero no depende de que el
         // ensamblador tenga la directiva, y todos los bytes se leen igual.
-        AppendBytes(text, [.. Word(flat.Width), .. Word(flat.Height)], "tamaño");
+        AppendBytes(text, [.. Word(flat.Width), .. Word(flat.Height)], "size");
         text.AppendLine();
 
         for (int row = 0; row < flat.Height; row++)
