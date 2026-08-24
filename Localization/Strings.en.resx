@@ -338,6 +338,25 @@
   <data name="NewPaletteFrom" xml:space="preserve"><value>Copy from</value></data>
   <data name="NewPaletteFromTip" xml:space="preserve"><value>The 16 colours come from that one. Names are copied too, except the MSX palette's, which belong to the machine.</value></data>
   <data name="NewPaletteNoName" xml:space="preserve"><value>The palette name cannot be empty.</value></data>
+  <data name="SheetAllTransparent" xml:space="preserve"><value>The chosen rectangle is all in the transparent colour.</value></data>
+  <data name="SheetTooManyColors" xml:space="preserve"><value>The chosen rectangle brings {0} colours and {1} fit in the palette, because index 0 is the transparent one.</value></data>
+  <data name="SheetMsx1TooManyPlanes" xml:space="preserve"><value>Cell {0},{1} brings {2} colours and on MSX1 each sprite is one colour, so {2} of them would have to overlap and {3} were asked for.</value></data>
+  <data name="SheetPaletteCrowded" xml:space="preserve"><value>The palette there is cannot hold every colour of the sheet on its own: {0}. Retouch the sheet, make room in the palette, or import with a new palette.</value></data>
+  <data name="SheetPaletteCrowdedItem" xml:space="preserve"><value>{0} ({1}) takes {2}</value></data>
+  <data name="SheetBadCellSize" xml:space="preserve"><value>The cell is {0} and only {1} can be read.</value></data>
+  <data name="SheetOutside" xml:space="preserve"><value>The chosen rectangle falls outside the sheet, which is {0}x{1} cells of {2}.</value></data>
+  <data name="SheetPlanesGeneral" xml:space="preserve"><value>With {0} sprites overlapping, {1} colours fit on the same line, and the sharing covers the whole selection at once because there is a single palette.</value></data>
+  <data name="SheetPlanesNone" xml:space="preserve"><value>These {0} colours do not come out.</value></data>
+  <data name="SheetPlanesClash" xml:space="preserve"><value>{0} of them meet on one line: {1}.</value></data>
+  <data name="SheetPlanesShared" xml:space="preserve"><value>{0} meet some colours on one line and others on another, so all {1} have to fit in the same planes: {2}.</value></data>
+  <data name="SheetNoRoom" xml:space="preserve"><value>{0} patterns would be needed and the largest bank holds {1}. Pick fewer cells.</value></data>
+  <data name="SheetCellNoRoom" xml:space="preserve"><value>Cell {0},{1} does not fit: the bank has run out of room.</value></data>
+  <data name="PngBadSize" xml:space="preserve"><value>The image is {0}x{1} and both sides have to be multiples of {2}, which is what a tile measures.</value></data>
+  <data name="PngTooManyTiles" xml:space="preserve"><value>The image brings {0} tiles and a set only has {1}.</value></data>
+  <data name="PngGroupColors" xml:space="preserve"><value>Tiles {0}-{1} use {2} colours, and on screen 1 every {3} tiles share {4}. They are: {5}.</value></data>
+  <data name="PngLineColors" xml:space="preserve"><value>Tile {0}, line {1}, uses {2} colours and only {3} fit.</value></data>
+  <data name="ListAnd" xml:space="preserve"><value> and </value></data>
+  <data name="ListOr" xml:space="preserve"><value> or </value></data>
   <data name="NewMapNeedsTileSet" xml:space="preserve"><value>A map needs a tile set to draw it with.</value></data>
   <data name="NewMapNoName" xml:space="preserve"><value>The map name cannot be empty.</value></data>
   <data name="NewMapNoTileSet" xml:space="preserve"><value>Pick the tile set it is drawn with.</value></data>

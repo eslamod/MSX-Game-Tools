@@ -1,5 +1,7 @@
 using Avalonia.Headless.XUnit;
+using Avalonia;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Services;
 using MSX_GameTools.Localization;
 using MSX_GameTools.ViewModels;
 using Xunit;
@@ -92,6 +94,40 @@ public class FormMessagesLanguageTests : IDisposable
         Assert.NotEmpty(warning);
         Assert.DoesNotContain("PropsSuper", warning);
         Assert.Contains(useSuperTiles ? "supertile" : "tile", warning);
+    }
+
+    /// <summary>
+    /// Y los avisos del importador de hojas, que son de los que más se leen.
+    /// </summary>
+    /// <remarks>
+    /// Estos viven en un servicio y no en un modelo de vista, pero acaban igual en pantalla:
+    /// son lo que se lee cuando una hoja no entra, y estaban en español para todo el mundo.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Los_avisos_del_importador_van_en_el_idioma_elegido()
+    {
+        Localizer.Instance.Language = "es";
+        string spanish = BadCellSize();
+
+        Localizer.Instance.Language = "en";
+        string english = BadCellSize();
+
+        Assert.NotEqual(spanish, english);
+        Assert.Equal(Localizer.Instance.Format("SheetBadCellSize", 7, "8 or 16"), english);
+    }
+
+    /// <summary>El aviso de una celda de un tamaño que no se sabe leer.</summary>
+    private static string BadCellSize()
+    {
+        SheetAnalysis analysis = SpriteSheetAnalysis.Analyse(
+            new int[64],
+            new PixelSize(8, 8),
+            7,
+            null,
+            new SheetSelection(0, 0, 1, 1),
+            1);
+
+        return Assert.Single(analysis.Problems);
     }
 
     private static string EmptyNameError()

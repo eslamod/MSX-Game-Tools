@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Media;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Localization;
 
 namespace MSX_GameTools.Services;
 
@@ -59,8 +60,8 @@ public static class SpriteSheetImporter
         {
             return new SheetImport(null, null, analysis,
             [
-                $"Harían falta {analysis.Patterns} patrones y el banco más grande tiene "
-                + $"{SpriteBank.Capacities[^1]}. Elige menos celdas.",
+                Localizer.Instance.Format(
+                    "SheetNoRoom", analysis.Patterns, SpriteBank.Capacities[^1]),
             ]);
         }
 
@@ -99,10 +100,10 @@ public static class SpriteSheetImporter
 
                         if (!Place(bank, planes, cellSize, placed, ref next, out List<int> patterns))
                         {
-                            problems.Add(
-                                $"La celda {selection.Left + column + slice},"
-                                + $"{selection.Top + row + band} no cabe: "
-                                + $"el banco se ha quedado sin huecos.");
+                            problems.Add(Localizer.Instance.Format(
+                                "SheetCellNoRoom",
+                                selection.Left + column + slice,
+                                selection.Top + row + band));
 
                             return new SheetImport(null, null, analysis, problems);
                         }
@@ -169,8 +170,8 @@ public static class SpriteSheetImporter
         {
             return new SheetImport(null, null, analysis,
             [
-                $"Harían falta {analysis.Patterns} patrones y el banco más grande tiene "
-                + $"{SpriteBank.Capacities[^1]}. Elige menos celdas.",
+                Localizer.Instance.Format(
+                    "SheetNoRoom", analysis.Patterns, SpriteBank.Capacities[^1]),
             ]);
         }
 

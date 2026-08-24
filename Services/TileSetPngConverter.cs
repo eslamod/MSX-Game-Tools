@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Media;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Localization;
 
 namespace MSX_GameTools.Services;
 
@@ -147,9 +148,8 @@ public static class TileSetPngConverter
 
         if (size.Width % TileRow.Columns != 0 || size.Height % Tile.Rows != 0)
         {
-            problems.Add(new TileSetImportProblem(
-                $"La imagen mide {size.Width}x{size.Height} y sus dos lados tienen que ser múltiplos de "
-                + $"{TileRow.Columns}, que es lo que mide un tile."));
+            problems.Add(new TileSetImportProblem(Localizer.Instance.Format(
+                "PngBadSize", size.Width, size.Height, TileRow.Columns)));
 
             return new TileSetImportResult(null, problems);
         }
@@ -160,8 +160,8 @@ public static class TileSetPngConverter
 
         if (count > TileSet.TileCount)
         {
-            problems.Add(new TileSetImportProblem(
-                $"La imagen trae {count} tiles y un juego sólo tiene {TileSet.TileCount}."));
+            problems.Add(new TileSetImportProblem(Localizer.Instance.Format(
+                "PngTooManyTiles", count, TileSet.TileCount)));
 
             return new TileSetImportResult(null, problems);
         }
@@ -273,9 +273,14 @@ public static class TileSetPngConverter
             if (uses.Count > ColorsPerLine)
             {
                 problems.Add(new TileSetImportProblem(
-                    $"Los tiles {first}-{last} usan {uses.Count} colores, y en screen 1 cada "
-                    + $"{TileSet.ColorGroupSize} tiles comparten {ColorsPerLine}. "
-                    + $"Son: {Names(uses, palette)}.",
+                    Localizer.Instance.Format(
+                        "PngGroupColors",
+                        first,
+                        last,
+                        uses.Count,
+                        TileSet.ColorGroupSize,
+                        ColorsPerLine,
+                        Names(uses, palette)),
                     first));
 
                 if (problems.Count > MaxReportedProblems)
@@ -381,7 +386,8 @@ public static class TileSetPngConverter
             if (distinct.Count > ColorsPerLine)
             {
                 problems.Add(new TileSetImportProblem(
-                    $"El tile {index}, línea {row}, usa {distinct.Count} colores y sólo caben {ColorsPerLine}.",
+                    Localizer.Instance.Format(
+                        "PngLineColors", index, row, distinct.Count, ColorsPerLine),
                     index,
                     row));
 

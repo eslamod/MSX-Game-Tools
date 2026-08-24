@@ -339,6 +339,25 @@
   <data name="NewPaletteFrom" xml:space="preserve"><value>Copia de</value></data>
   <data name="NewPaletteFromTip" xml:space="preserve"><value>Els 16 colors surten d'aquesta. Els noms també es copien, tret dels de la paleta MSX, que són de la màquina.</value></data>
   <data name="NewPaletteNoName" xml:space="preserve"><value>El nom de la paleta no pot estar buit.</value></data>
+  <data name="SheetAllTransparent" xml:space="preserve"><value>El rectangle triat és tot del color transparent.</value></data>
+  <data name="SheetTooManyColors" xml:space="preserve"><value>El rectangle triat porta {0} colors i a la paleta en caben {1}, perquè l'índex 0 és el transparent.</value></data>
+  <data name="SheetMsx1TooManyPlanes" xml:space="preserve"><value>La cel·la {0},{1} porta {2} colors i a l'MSX1 cada sprite és d'un color, així que en caldrien {2} de superposats i se n'han demanat {3}.</value></data>
+  <data name="SheetPaletteCrowded" xml:space="preserve"><value>A la paleta que hi ha no hi caben tots els colors del full per separat: {0}. Retoca el full, fes-los lloc a la paleta, o porta'l amb paleta nova.</value></data>
+  <data name="SheetPaletteCrowdedItem" xml:space="preserve"><value>el {0} ({1}) s'emporta {2}</value></data>
+  <data name="SheetBadCellSize" xml:space="preserve"><value>La cel·la fa {0} i només se sap llegir de {1}.</value></data>
+  <data name="SheetOutside" xml:space="preserve"><value>El rectangle triat surt del full, que fa {0}x{1} cel·les de {2}.</value></data>
+  <data name="SheetPlanesGeneral" xml:space="preserve"><value>Amb {0} sprites superposats hi caben {1} colors a la mateixa línia, i el repartiment és de tota la selecció alhora perquè la paleta és una de sola.</value></data>
+  <data name="SheetPlanesNone" xml:space="preserve"><value>Aquests {0} colors no surten.</value></data>
+  <data name="SheetPlanesClash" xml:space="preserve"><value>En una mateixa línia en coincideixen {0}: {1}.</value></data>
+  <data name="SheetPlanesShared" xml:space="preserve"><value>{0} coincideixen en una línia amb uns colors i en una altra amb uns altres, així que els {1} han de cabre als mateixos plans: {2}.</value></data>
+  <data name="SheetNoRoom" xml:space="preserve"><value>Caldrien {0} patrons i el banc més gran en té {1}. Tria menys cel·les.</value></data>
+  <data name="SheetCellNoRoom" xml:space="preserve"><value>La cel·la {0},{1} no hi cap: el banc s'ha quedat sense forats.</value></data>
+  <data name="PngBadSize" xml:space="preserve"><value>La imatge fa {0}x{1} i tots dos costats han de ser múltiples de {2}, que és el que fa un tile.</value></data>
+  <data name="PngTooManyTiles" xml:space="preserve"><value>La imatge porta {0} tiles i un joc només en té {1}.</value></data>
+  <data name="PngGroupColors" xml:space="preserve"><value>Els tiles {0}-{1} fan servir {2} colors, i a la screen 1 cada {3} tiles en comparteixen {4}. Són: {5}.</value></data>
+  <data name="PngLineColors" xml:space="preserve"><value>El tile {0}, línia {1}, fa servir {2} colors i només n'hi caben {3}.</value></data>
+  <data name="ListAnd" xml:space="preserve"><value> i </value></data>
+  <data name="ListOr" xml:space="preserve"><value> o </value></data>
   <data name="NewMapNeedsTileSet" xml:space="preserve"><value>Abans d'un mapa cal un joc de tiles amb què dibuixar-lo.</value></data>
   <data name="NewMapNoName" xml:space="preserve"><value>El nom del mapa no pot estar buit.</value></data>
   <data name="NewMapNoTileSet" xml:space="preserve"><value>Cal triar el joc de tiles amb què es dibuixa.</value></data>

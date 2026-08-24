@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Media;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Localization;
 
 namespace MSX_GameTools.Services;
 
@@ -121,16 +122,15 @@ public static class SpriteSheetAnalysis
 
         if (colors.Count == 0)
         {
-            problems.Add("El rectángulo elegido está entero en el color transparente.");
+            problems.Add(Localizer.Instance["SheetAllTransparent"]);
 
             return Empty(problems);
         }
 
         if (colors.Count > SpritePlaneAssignment.MaxColors)
         {
-            problems.Add(
-                $"El rectángulo elegido trae {colors.Count} colores y en la paleta caben "
-                + $"{SpritePlaneAssignment.MaxColors}, porque el índice 0 es el transparente.");
+            problems.Add(Localizer.Instance.Format(
+                "SheetTooManyColors", colors.Count, SpritePlaneAssignment.MaxColors));
 
             return Empty(problems);
         }
@@ -158,10 +158,8 @@ public static class SpriteSheetAnalysis
 
             if (flat.FirstOrDefault(cell => cell.Planes > maxPlanes) is { } tight)
             {
-                problems.Add(
-                    $"La celda {tight.Column},{tight.Row} trae {tight.Planes} colores y en MSX1 "
-                    + $"cada sprite es de un color, así que harían falta {tight.Planes} "
-                    + $"superpuestos y se han pedido {maxPlanes}.");
+                problems.Add(Localizer.Instance.Format(
+                    "SheetMsx1TooManyPlanes", tight.Column, tight.Row, tight.Planes, maxPlanes));
 
                 return Empty(problems);
             }
@@ -214,13 +212,15 @@ public static class SpriteSheetAnalysis
             .Select((mask, color) => (mask, color))
             .GroupBy(pair => pair.mask)
             .Where(group => group.Count() > 1)
-            .Select(group =>
-                $"el {group.Key} ({palette.GetColor(group.Key)}) se lleva "
-                + string.Join(" y ", group.Select(pair => Name(colors[pair.color]))));
+            .Select(group => Localizer.Instance.Format(
+                "SheetPaletteCrowdedItem",
+                group.Key,
+                palette.GetColor(group.Key),
+                string.Join(
+                    Localizer.Instance["ListAnd"],
+                    group.Select(pair => Name(colors[pair.color])))));
 
-        return "En la paleta que hay no caben todos los colores de la hoja por separado: "
-            + string.Join("; ", clashes)
-            + ". Retoca la hoja, hazles sitio en la paleta, o trae con paleta nueva.";
+        return Localizer.Instance.Format("SheetPaletteCrowded", string.Join("; ", clashes));
     }
 
     private static string Name(Color color) => $"#{color.R:X2}{color.G:X2}{color.B:X2}";
@@ -334,15 +334,20 @@ public static class SpriteSheetAnalysis
         if (!CellSizes.Contains(cellSize))
         {
             return Empty(
-                [$"La celda mide {cellSize} y sólo se sabe leer de {string.Join(" o ", CellSizes)}."]);
+            [
+                Localizer.Instance.Format(
+                    "SheetBadCellSize",
+                    cellSize,
+                    string.Join(Localizer.Instance["ListOr"], CellSizes)),
+            ]);
         }
 
         if (!Inside(size, cellSize, selection))
         {
             return Empty(
             [
-                $"El rectángulo elegido se sale de la hoja, que mide "
-                + $"{size.Width / cellSize}x{size.Height / cellSize} celdas de {cellSize}.",
+                Localizer.Instance.Format(
+                    "SheetOutside", size.Width / cellSize, size.Height / cellSize, cellSize),
             ]);
         }
 
@@ -365,21 +370,20 @@ public static class SpriteSheetAnalysis
     {
         int fit = (1 << maxPlanes) - 1;
 
-        string general =
-            $"Con {maxPlanes} sprites superpuestos caben {fit} colores en la misma línea, y el "
-            + $"reparto es de toda la selección a la vez porque la paleta es una sola.";
+        string general = Localizer.Instance.Format("SheetPlanesGeneral", maxPlanes, fit);
 
         if (SpritePlaneAssignment.Explain(lines, colors.Count, maxPlanes) is not { } clash)
-            return $"{general} Estos {colors.Count} colores no salen.";
+            return $"{general} {Localizer.Instance.Format("SheetPlanesNone", colors.Count)}";
 
         string offending = Names(clash.Colors, colors);
 
         if (clash.Shared.Count == 0)
-            return $"{general} En una misma línea coinciden {clash.Colors.Count}: {offending}.";
+            return $"{general} "
+                + Localizer.Instance.Format("SheetPlanesClash", clash.Colors.Count, offending);
 
-        return $"{general} {Names(clash.Shared, colors)} coinciden en una línea con unos colores "
-            + $"y en otra con otros, así que los {clash.Colors.Count} tienen que caber en los "
-            + $"mismos planos: {offending}.";
+        return $"{general} "
+            + Localizer.Instance.Format(
+                "SheetPlanesShared", Names(clash.Shared, colors), clash.Colors.Count, offending);
     }
 
     /// <summary>Los colores en hexadecimal, que es como se reconocen en el editor de imágenes.</summary>

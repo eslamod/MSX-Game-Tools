@@ -364,6 +364,25 @@
   <data name="NewPaletteFrom" xml:space="preserve"><value>Copiar de</value></data>
   <data name="NewPaletteFromTip" xml:space="preserve"><value>Los 16 colores salen de ésa. Los nombres se copian, salvo los de la paleta MSX, que son de la máquina.</value></data>
   <data name="NewPaletteNoName" xml:space="preserve"><value>El nombre de la paleta no puede estar vacío.</value></data>
+  <data name="SheetAllTransparent" xml:space="preserve"><value>El rectángulo elegido está entero en el color transparente.</value></data>
+  <data name="SheetTooManyColors" xml:space="preserve"><value>El rectángulo elegido trae {0} colores y en la paleta caben {1}, porque el índice 0 es el transparente.</value></data>
+  <data name="SheetMsx1TooManyPlanes" xml:space="preserve"><value>La celda {0},{1} trae {2} colores y en MSX1 cada sprite es de un color, así que harían falta {2} superpuestos y se han pedido {3}.</value></data>
+  <data name="SheetPaletteCrowded" xml:space="preserve"><value>En la paleta que hay no caben todos los colores de la hoja por separado: {0}. Retoca la hoja, hazles sitio en la paleta, o trae con paleta nueva.</value></data>
+  <data name="SheetPaletteCrowdedItem" xml:space="preserve"><value>el {0} ({1}) se lleva {2}</value></data>
+  <data name="SheetBadCellSize" xml:space="preserve"><value>La celda mide {0} y sólo se sabe leer de {1}.</value></data>
+  <data name="SheetOutside" xml:space="preserve"><value>El rectángulo elegido se sale de la hoja, que mide {0}x{1} celdas de {2}.</value></data>
+  <data name="SheetPlanesGeneral" xml:space="preserve"><value>Con {0} sprites superpuestos caben {1} colores en la misma línea, y el reparto es de toda la selección a la vez porque la paleta es una sola.</value></data>
+  <data name="SheetPlanesNone" xml:space="preserve"><value>Estos {0} colores no salen.</value></data>
+  <data name="SheetPlanesClash" xml:space="preserve"><value>En una misma línea coinciden {0}: {1}.</value></data>
+  <data name="SheetPlanesShared" xml:space="preserve"><value>{0} coinciden en una línea con unos colores y en otra con otros, así que los {1} tienen que caber en los mismos planos: {2}.</value></data>
+  <data name="SheetNoRoom" xml:space="preserve"><value>Harían falta {0} patrones y el banco más grande tiene {1}. Elige menos celdas.</value></data>
+  <data name="SheetCellNoRoom" xml:space="preserve"><value>La celda {0},{1} no cabe: el banco se ha quedado sin huecos.</value></data>
+  <data name="PngBadSize" xml:space="preserve"><value>La imagen mide {0}x{1} y sus dos lados tienen que ser múltiplos de {2}, que es lo que mide un tile.</value></data>
+  <data name="PngTooManyTiles" xml:space="preserve"><value>La imagen trae {0} tiles y un juego sólo tiene {1}.</value></data>
+  <data name="PngGroupColors" xml:space="preserve"><value>Los tiles {0}-{1} usan {2} colores, y en screen 1 cada {3} tiles comparten {4}. Son: {5}.</value></data>
+  <data name="PngLineColors" xml:space="preserve"><value>El tile {0}, línea {1}, usa {2} colores y sólo caben {3}.</value></data>
+  <data name="ListAnd" xml:space="preserve"><value> y </value></data>
+  <data name="ListOr" xml:space="preserve"><value> o </value></data>
   <data name="NewMapNeedsTileSet" xml:space="preserve"><value>Antes de un mapa hace falta un juego de tiles con el que dibujarlo.</value></data>
   <data name="NewMapNoName" xml:space="preserve"><value>El nombre del mapa no puede estar vacío.</value></data>
   <data name="NewMapNoTileSet" xml:space="preserve"><value>Hace falta elegir el juego de tiles con el que se dibuja.</value></data>
