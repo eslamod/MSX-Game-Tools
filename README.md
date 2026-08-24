@@ -200,14 +200,23 @@ Two habits that have caught a fair number of bugs:
 
 ## Test ROMs
 
-`msx/test_rom` holds two Z80 assembly ROMs that load the exported data and show it on a
+`msx/test_rom` holds four Z80 assembly ROMs that load the exported data and show it on a
 real MSX or on openMSX:
 
 - `sprites_test.asm` — GRAPHIC 3 and sprite mode 2, with the groups laid out. Keys 0-F
   change the border colour and F1 toggles magnification.
 - `tileset_test.asm` — GRAPHIC 2 with the tile set replicated across the three thirds.
+- `map_test.asm` — a map painted over its tile set, with the cursor keys to move around
+  one that is bigger than the screen. What it really checks is the four header bytes the
+  map exporter writes: it reads them the way a game would and works everything out from
+  them. The sample map is 96x160 on purpose, so its table crosses `8000H` and the page
+  switching gets exercised; and it carries a frame of tile 255, because a border that comes
+  out crooked says the width is wrong at a glance.
+- `supertile_test.asm` — the same, over a map whose cells are supertiles. It checks the
+  supertile table, with rectangular supertiles on purpose: a square one hides a swapped
+  width and height.
 
-Both detect at runtime whether they are on an MSX1 or an MSX2, so the palette is only
+All four detect at runtime whether they are on an MSX1 or an MSX2, so the palette is only
 loaded where it can be. Their README explains the VRAM maps and how to switch between
 embedded data and your own files.
 

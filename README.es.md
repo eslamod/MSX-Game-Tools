@@ -205,14 +205,23 @@ Dos costumbres que han salvado bastantes fallos:
 
 ## ROMs de prueba
 
-En `msx/test_rom` hay dos ROMs en ensamblador Z80 que cargan lo exportado y lo enseñan en
+En `msx/test_rom` hay cuatro ROMs en ensamblador Z80 que cargan lo exportado y lo enseñan en
 un MSX de verdad o en openMSX:
 
 - `sprites_test.asm` — GRAPHIC 3 y sprites de modo 2, con los grupos colocados. Las
   teclas 0-F cambian el color del borde y F1 conmuta la magnificación.
 - `tileset_test.asm` — GRAPHIC 2 con el juego de tiles replicado en los tres tercios.
+- `map_test.asm` — un mapa pintado sobre su juego de tiles, con los cursores para moverse si
+  es más grande que la pantalla. Lo que comprueba de verdad son los cuatro bytes de cabecera
+  que escribe el exportador de mapas: los lee como los leería un juego y saca de ahí todo lo
+  demás. El mapa de ejemplo es de 96x160 a propósito, para que su tabla cruce `8000H` y se
+  ejercite la conmutación de página; y lleva un marco de tile 255, porque un borde torcido
+  delata al instante que el ancho no es el que dice la cabecera.
+- `supertile_test.asm` — lo mismo, sobre un mapa cuyas celdas son supertiles. Comprueba la
+  tabla de supertiles, y con supertiles rectangulares a propósito: uno cuadrado disimularía
+  un ancho y un alto intercambiados.
 
-Las dos detectan en ejecución si están en un MSX1 o en un MSX2 para cargar la paleta sólo
+Las cuatro detectan en ejecución si están en un MSX1 o en un MSX2 para cargar la paleta sólo
 donde se puede. Su README explica los mapas de VRAM y cómo cambiar entre datos incrustados
 y ficheros propios.
 
