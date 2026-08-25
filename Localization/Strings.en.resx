@@ -338,6 +338,7 @@
   <data name="NewPaletteFrom" xml:space="preserve"><value>Copy from</value></data>
   <data name="NewPaletteFromTip" xml:space="preserve"><value>The 16 colours come from that one. Names are copied too, except the MSX palette's, which belong to the machine.</value></data>
   <data name="NewPaletteNoName" xml:space="preserve"><value>The palette name cannot be empty.</value></data>
+  <data name="VramSmallSprites" xml:space="preserve"><value>The sprites are 8x8 and a bank only holds 16x16 ones, so they are not imported.</value></data>
   <data name="VramTileSetName" xml:space="preserve"><value>Tiles from VRAM</value></data>
   <data name="VramSpriteBankName" xml:space="preserve"><value>Sprites from VRAM</value></data>
   <data name="VramNoTiles" xml:space="preserve"><value>The tile tables ({0} and {1}) do not fit in a {2} byte dump.</value></data>

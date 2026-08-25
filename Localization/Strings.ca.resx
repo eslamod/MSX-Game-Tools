@@ -339,6 +339,7 @@
   <data name="NewPaletteFrom" xml:space="preserve"><value>Copia de</value></data>
   <data name="NewPaletteFromTip" xml:space="preserve"><value>Els 16 colors surten d'aquesta. Els noms també es copien, tret dels de la paleta MSX, que són de la màquina.</value></data>
   <data name="NewPaletteNoName" xml:space="preserve"><value>El nom de la paleta no pot estar buit.</value></data>
+  <data name="VramSmallSprites" xml:space="preserve"><value>Els sprites són de 8x8 i un banc només en desa de 16x16, així que no es porten.</value></data>
   <data name="VramTileSetName" xml:space="preserve"><value>Tiles de la VRAM</value></data>
   <data name="VramSpriteBankName" xml:space="preserve"><value>Sprites de la VRAM</value></data>
   <data name="VramNoTiles" xml:space="preserve"><value>Les taules de tiles ({0} i {1}) no caben en un bolcat de {2} bytes.</value></data>

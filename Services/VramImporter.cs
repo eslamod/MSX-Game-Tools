@@ -12,6 +12,11 @@ namespace MSX_GameTools.Services;
 /// dibujó otro, o lo propio cuando el fichero del editor se ha perdido.
 /// </para>
 /// <para>
+/// <b>Screen 1 no tiene tercios.</b> Allí la tabla de patrones son 2048 bytes —los 256 tiles,
+/// una vez— y la de colores 32: un par de colores por cada ocho tiles seguidos. Así que sale
+/// un solo juego y el color se pone en el grupo, que ya se encarga de bajarlo a sus tiles.
+/// </para>
+/// <para>
 /// <b>Los tres tercios.</b> En GRAPHIC 2 la tabla de patrones son 6144 bytes: tres bancos de
 /// 256 tiles, uno por cada tercio de la pantalla. Muchos juegos repiten el mismo en los tres
 /// —es lo que hacen las ROMs de prueba de aquí—, y entonces traerlos por separado daría tres
@@ -31,6 +36,9 @@ public static class VramImporter
     /// <summary>32 bytes por patrón de 16x16, y 2 KB de tabla.</summary>
     public const int SpriteTableBytes = 2048;
 
+    /// <summary>Los 32 bytes de color de GRAPHIC 1: uno por cada ocho tiles.</summary>
+    public const int ColorGroupBytes = TileSet.ColorGroupCount;
+
     /// <summary>Dónde está cada tabla dentro del volcado.</summary>
     /// <remarks>
     /// Los valores de partida son los de siempre en SCREEN 2, que son los que documentan las
@@ -40,12 +48,27 @@ public static class VramImporter
     /// </remarks>
     public sealed record VramLayout
     {
+        public VdpRegisters.ScreenMode Mode { get; init; } = VdpRegisters.ScreenMode.Graphic2;
+
+        /// <summary>Sprites de 16x16, que es lo único que sabe guardar un banco de aquí.</summary>
+        public bool BigSprites { get; init; } = true;
+
         public int Patterns { get; init; }
 
         public int Colors { get; init; } = 0x2000;
 
         public int SpritePatterns { get; init; } = 0x3800;
     }
+
+    /// <summary>Lo que dicen los registros del VDP, listo para leer el volcado.</summary>
+    public static VramLayout LayoutOf(VdpRegisters.Layout registers) => new()
+    {
+        Mode = registers.Mode,
+        BigSprites = registers.BigSprites,
+        Patterns = registers.Patterns,
+        Colors = registers.Colors,
+        SpritePatterns = registers.SpritePatterns,
+    };
 
     /// <summary>Lo que se ha podido sacar del volcado.</summary>
     public sealed record VramImport(
@@ -71,6 +94,42 @@ public static class VramImporter
     }
 
     private static IReadOnlyList<TileSet> ReadTileSets(
+        byte[] vram, VramLayout layout, List<string> problems) =>
+        layout.Mode == VdpRegisters.ScreenMode.Graphic1
+            ? ReadGraphic1(vram, layout, problems)
+            : ReadGraphic2(vram, layout, problems);
+
+    /// <summary>Un juego, y el color por grupos de ocho tiles.</summary>
+    private static IReadOnlyList<TileSet> ReadGraphic1(
+        byte[] vram, VramLayout layout, List<string> problems)
+    {
+        if (!Fits(vram, layout.Patterns, ThirdBytes) || !Fits(vram, layout.Colors, ColorGroupBytes))
+        {
+            problems.Add(Localization.Localizer.Instance.Format(
+                "VramNoTiles", Hex(layout.Patterns), Hex(layout.Colors), vram.Length));
+
+            return [];
+        }
+
+        var tileSet = new TileSet(
+            Localization.Localizer.Instance["VramTileSetName"], TileSet.GraphicMode.Graphic1);
+
+        ReadPatterns(vram, layout.Patterns, tileSet);
+
+        for (int group = 0; group < TileSet.ColorGroupCount; group++)
+        {
+            byte color = vram[layout.Colors + group];
+
+            // Al grupo y no a cada tile: el grupo se encarga de bajarselo a los suyos, que es
+            // justo la limitacion del modo y lo que el editor ensena en vez de esconder.
+            tileSet.ColorGroups[group].ForeColor = color >> 4;
+            tileSet.ColorGroups[group].BackColor = color & 0x0F;
+        }
+
+        return [tileSet];
+    }
+
+    private static IReadOnlyList<TileSet> ReadGraphic2(
         byte[] vram, VramLayout layout, List<string> problems)
     {
         if (!Fits(vram, layout.Patterns, TableBytes) || !Fits(vram, layout.Colors, TableBytes))
@@ -113,28 +172,47 @@ public static class VramImporter
         int patterns = layout.Patterns + (third * ThirdBytes);
         int colors = layout.Colors + (third * ThirdBytes);
 
+        ReadPatterns(vram, patterns, tileSet);
+
         for (int index = 0; index < TileSet.TileCount; index++)
         {
-            Tile tile = tileSet.ListOfTiles[index];
-
             for (int row = 0; row < Tile.Rows; row++)
             {
-                int at = (index * Tile.Rows) + row;
+                byte color = vram[colors + (index * Tile.Rows) + row];
 
-                Bits(vram[patterns + at], tile.ArrayTileRows[row].ArrayPattern);
-
-                byte color = vram[colors + at];
-
-                tile.ArrayTileRows[row].ForeColor = color >> 4;
-                tile.ArrayTileRows[row].BackColor = color & 0x0F;
+                tileSet.ListOfTiles[index].ArrayTileRows[row].ForeColor = color >> 4;
+                tileSet.ListOfTiles[index].ArrayTileRows[row].BackColor = color & 0x0F;
             }
         }
 
         return tileSet;
     }
 
+    /// <summary>Los 2048 bytes de dibujo, que son los mismos en los dos modos.</summary>
+    private static void ReadPatterns(byte[] vram, int at, TileSet tileSet)
+    {
+        for (int index = 0; index < TileSet.TileCount; index++)
+        {
+            for (int row = 0; row < Tile.Rows; row++)
+            {
+                Bits(
+                    vram[at + (index * Tile.Rows) + row],
+                    tileSet.ListOfTiles[index].ArrayTileRows[row].ArrayPattern);
+            }
+        }
+    }
+
     private static SpriteBank? ReadSprites(byte[] vram, VramLayout layout, List<string> problems)
     {
+        if (!layout.BigSprites)
+        {
+            // Un banco de aqui guarda sprites de 16x16 y nada mas, asi que los de 8x8 no
+            // tienen donde ir. Mejor decirlo que traerlos partidos por la mitad.
+            problems.Add(Localization.Localizer.Instance["VramSmallSprites"]);
+
+            return null;
+        }
+
         if (!Fits(vram, layout.SpritePatterns, SpriteTableBytes))
         {
             problems.Add(Localization.Localizer.Instance.Format(
