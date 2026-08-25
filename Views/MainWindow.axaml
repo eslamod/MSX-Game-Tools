@@ -62,6 +62,10 @@
         <!-- Abrir es uno solo: mira el fichero y sabe de que es. -->
         <MenuItem Header="{l:Localize MenuOpen}" Command="{Binding OpenCommand}" />
 
+        <!-- De un volcado salen tiles y sprites a la vez, asi que va aqui y no en sus
+             menus de cada cosa. -->
+        <MenuItem Header="{l:Localize MenuImportVram}" Command="{Binding ImportVramCommand}" />
+
         <!-- Los recientes salen de una lista, asi que este submenu no puede llevar ademas
              una entrada suya escrita a mano: ItemsSource sustituye a los hijos. Por eso
              vaciar la lista va fuera, aqui debajo. -->

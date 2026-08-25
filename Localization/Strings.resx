@@ -364,6 +364,26 @@
   <data name="NewPaletteFrom" xml:space="preserve"><value>Copiar de</value></data>
   <data name="NewPaletteFromTip" xml:space="preserve"><value>Los 16 colores salen de ésa. Los nombres se copian, salvo los de la paleta MSX, que son de la máquina.</value></data>
   <data name="NewPaletteNoName" xml:space="preserve"><value>El nombre de la paleta no puede estar vacío.</value></data>
+  <data name="ImportVramTitle" xml:space="preserve"><value>Traer de un volcado de VRAM</value></data>
+  <data name="ImportVramFile" xml:space="preserve"><value>Volcado</value></data>
+  <data name="ImportVramMode" xml:space="preserve"><value>Modo</value></data>
+  <data name="ImportVramPatterns" xml:space="preserve"><value>Patrones</value></data>
+  <data name="ImportVramColors" xml:space="preserve"><value>Colores</value></data>
+  <data name="ImportVramSprites" xml:space="preserve"><value>Sprites</value></data>
+  <data name="ImportVramBigSprites" xml:space="preserve"><value>Sprites de 16x16</value></data>
+  <data name="ImportVramWantsTiles" xml:space="preserve"><value>Traer los tiles</value></data>
+  <data name="ImportVramWantsSprites" xml:space="preserve"><value>Traer los sprites</value></data>
+  <data name="ImportVramLoadRegisters" xml:space="preserve"><value>Cargar registros del VDP…</value></data>
+  <data name="ImportVramNoRegisters" xml:space="preserve"><value>Sin registros: las direcciones son las de siempre y puede que esta ROM no las use.</value></data>
+  <data name="ImportVramFromRegisters" xml:space="preserve"><value>Direcciones sacadas de {0}.</value></data>
+  <data name="ImportVramOtherMode" xml:space="preserve"><value>{0} dice un modo que no se sabe leer; se deja en GRAPHIC 2.</value></data>
+  <data name="ImportVramBadRegisters" xml:space="preserve"><value>Ese fichero no es un volcado de registros: tiene que traer {0} bytes.</value></data>
+  <data name="ImportVramNoTileSets" xml:space="preserve"><value>No sale ningún juego de tiles.</value></data>
+  <data name="ImportVramOneTileSet" xml:space="preserve"><value>Sale un juego de tiles.</value></data>
+  <data name="ImportVramManyTileSets" xml:space="preserve"><value>Salen {0} juegos de tiles, uno por tercio.</value></data>
+  <data name="PickVdpRegisters" xml:space="preserve"><value>Elegir el volcado de registros del VDP</value></data>
+  <data name="PickImportVram" xml:space="preserve"><value>Elegir el volcado de VRAM</value></data>
+  <data name="MenuImportVram" xml:space="preserve"><value>Traer de un volcado de VRAM…</value></data>
   <data name="VramSmallSprites" xml:space="preserve"><value>Los sprites son de 8x8 y un banco sólo guarda de 16x16, así que no se traen.</value></data>
   <data name="VramTileSetName" xml:space="preserve"><value>Tiles de la VRAM</value></data>
   <data name="VramSpriteBankName" xml:space="preserve"><value>Sprites de la VRAM</value></data>

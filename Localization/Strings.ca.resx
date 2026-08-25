@@ -339,6 +339,26 @@
   <data name="NewPaletteFrom" xml:space="preserve"><value>Copia de</value></data>
   <data name="NewPaletteFromTip" xml:space="preserve"><value>Els 16 colors surten d'aquesta. Els noms també es copien, tret dels de la paleta MSX, que són de la màquina.</value></data>
   <data name="NewPaletteNoName" xml:space="preserve"><value>El nom de la paleta no pot estar buit.</value></data>
+  <data name="ImportVramTitle" xml:space="preserve"><value>Portar d'un bolcat de VRAM</value></data>
+  <data name="ImportVramFile" xml:space="preserve"><value>Bolcat</value></data>
+  <data name="ImportVramMode" xml:space="preserve"><value>Mode</value></data>
+  <data name="ImportVramPatterns" xml:space="preserve"><value>Patrons</value></data>
+  <data name="ImportVramColors" xml:space="preserve"><value>Colors</value></data>
+  <data name="ImportVramSprites" xml:space="preserve"><value>Sprites</value></data>
+  <data name="ImportVramBigSprites" xml:space="preserve"><value>Sprites de 16x16</value></data>
+  <data name="ImportVramWantsTiles" xml:space="preserve"><value>Portar els tiles</value></data>
+  <data name="ImportVramWantsSprites" xml:space="preserve"><value>Portar els sprites</value></data>
+  <data name="ImportVramLoadRegisters" xml:space="preserve"><value>Carrega els registres del VDP…</value></data>
+  <data name="ImportVramNoRegisters" xml:space="preserve"><value>Sense registres: les adreces són les de sempre i potser aquesta ROM no les fa servir.</value></data>
+  <data name="ImportVramFromRegisters" xml:space="preserve"><value>Adreces tretes de {0}.</value></data>
+  <data name="ImportVramOtherMode" xml:space="preserve"><value>{0} diu un mode que no se sap llegir; es deixa en GRAPHIC 2.</value></data>
+  <data name="ImportVramBadRegisters" xml:space="preserve"><value>Aquest fitxer no és un bolcat de registres: ha de portar {0} bytes.</value></data>
+  <data name="ImportVramNoTileSets" xml:space="preserve"><value>No en surt cap joc de tiles.</value></data>
+  <data name="ImportVramOneTileSet" xml:space="preserve"><value>En surt un joc de tiles.</value></data>
+  <data name="ImportVramManyTileSets" xml:space="preserve"><value>En surten {0} jocs de tiles, un per terç.</value></data>
+  <data name="PickVdpRegisters" xml:space="preserve"><value>Tria el bolcat de registres del VDP</value></data>
+  <data name="PickImportVram" xml:space="preserve"><value>Tria el bolcat de VRAM</value></data>
+  <data name="MenuImportVram" xml:space="preserve"><value>Portar d'un bolcat de VRAM…</value></data>
   <data name="VramSmallSprites" xml:space="preserve"><value>Els sprites són de 8x8 i un banc només en desa de 16x16, així que no es porten.</value></data>
   <data name="VramTileSetName" xml:space="preserve"><value>Tiles de la VRAM</value></data>
   <data name="VramSpriteBankName" xml:space="preserve"><value>Sprites de la VRAM</value></data>

@@ -338,6 +338,26 @@
   <data name="NewPaletteFrom" xml:space="preserve"><value>Copy from</value></data>
   <data name="NewPaletteFromTip" xml:space="preserve"><value>The 16 colours come from that one. Names are copied too, except the MSX palette's, which belong to the machine.</value></data>
   <data name="NewPaletteNoName" xml:space="preserve"><value>The palette name cannot be empty.</value></data>
+  <data name="ImportVramTitle" xml:space="preserve"><value>Import from a VRAM dump</value></data>
+  <data name="ImportVramFile" xml:space="preserve"><value>Dump</value></data>
+  <data name="ImportVramMode" xml:space="preserve"><value>Mode</value></data>
+  <data name="ImportVramPatterns" xml:space="preserve"><value>Patterns</value></data>
+  <data name="ImportVramColors" xml:space="preserve"><value>Colours</value></data>
+  <data name="ImportVramSprites" xml:space="preserve"><value>Sprites</value></data>
+  <data name="ImportVramBigSprites" xml:space="preserve"><value>16x16 sprites</value></data>
+  <data name="ImportVramWantsTiles" xml:space="preserve"><value>Import the tiles</value></data>
+  <data name="ImportVramWantsSprites" xml:space="preserve"><value>Import the sprites</value></data>
+  <data name="ImportVramLoadRegisters" xml:space="preserve"><value>Load VDP registers…</value></data>
+  <data name="ImportVramNoRegisters" xml:space="preserve"><value>No registers: the addresses are the usual ones and this ROM may not use them.</value></data>
+  <data name="ImportVramFromRegisters" xml:space="preserve"><value>Addresses read from {0}.</value></data>
+  <data name="ImportVramOtherMode" xml:space="preserve"><value>{0} says a mode that cannot be read; left as GRAPHIC 2.</value></data>
+  <data name="ImportVramBadRegisters" xml:space="preserve"><value>That file is not a register dump: it has to bring {0} bytes.</value></data>
+  <data name="ImportVramNoTileSets" xml:space="preserve"><value>No tile set comes out.</value></data>
+  <data name="ImportVramOneTileSet" xml:space="preserve"><value>One tile set comes out.</value></data>
+  <data name="ImportVramManyTileSets" xml:space="preserve"><value>{0} tile sets come out, one per third.</value></data>
+  <data name="PickVdpRegisters" xml:space="preserve"><value>Pick the VDP register dump</value></data>
+  <data name="PickImportVram" xml:space="preserve"><value>Pick the VRAM dump</value></data>
+  <data name="MenuImportVram" xml:space="preserve"><value>Import from a VRAM dump…</value></data>
   <data name="VramSmallSprites" xml:space="preserve"><value>The sprites are 8x8 and a bank only holds 16x16 ones, so they are not imported.</value></data>
   <data name="VramTileSetName" xml:space="preserve"><value>Tiles from VRAM</value></data>
   <data name="VramSpriteBankName" xml:space="preserve"><value>Sprites from VRAM</value></data>

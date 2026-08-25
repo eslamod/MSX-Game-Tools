@@ -1,0 +1,99 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:l="clr-namespace:MSX_GameTools.Localization"
+             xmlns:converters="clr-namespace:MSX_GameTools.Converters"
+             mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="460"
+             x:Class="MSX_GameTools.Views.ImportVramView"
+             x:DataType="vm:ImportVramViewModel"
+             Background="{DynamicResource AppPanelBackground}">
+
+  <Grid Margin="10" RowDefinitions="Auto,*,Auto">
+
+    <TextBlock Grid.Row="0" Text="{l:Localize ImportVramTitle}" FontWeight="Bold" Margin="0,0,0,10" />
+
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel>
+
+        <Grid ColumnDefinitions="90,*" Margin="0,0,0,10">
+          <TextBlock Grid.Column="0" Text="{l:Localize ImportVramFile}" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="1" Text="{Binding FileName}" TextWrapping="Wrap"
+                     Foreground="{DynamicResource AppTextSecondary}" />
+        </Grid>
+
+        <!-- Los registros primero: cargandolos no hay nada que acertar, y lo que rellenan se
+             ve aqui debajo antes de aceptar. -->
+        <Button Content="{l:Localize ImportVramLoadRegisters}" HorizontalAlignment="Stretch"
+                Command="{Binding LoadRegistersCommand}" />
+
+        <TextBlock Text="{Binding Detected}" TextWrapping="Wrap" Margin="0,6,0,10"
+                   Foreground="{DynamicResource AppTextSecondary}" />
+
+        <Grid ColumnDefinitions="90,*" Margin="0,0,0,6">
+          <TextBlock Grid.Column="0" Text="{l:Localize ImportVramMode}" VerticalAlignment="Center" />
+          <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                    ItemsSource="{Binding Modes}" SelectedItem="{Binding Mode}" />
+        </Grid>
+
+        <!-- Desplegables y no cajas: en GRAPHIC 2 y 3 estas dos tablas solo pueden empezar en
+             0000H o en 2000H, porque los bits bajos de R#4 y R#3 son mascara y no direccion.
+             Una direccion imposible no se puede ni escribir. -->
+        <Grid ColumnDefinitions="90,*" Margin="0,0,0,6">
+          <TextBlock Grid.Column="0" Text="{l:Localize ImportVramPatterns}" VerticalAlignment="Center" />
+          <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                    ItemsSource="{Binding TableChoices}" SelectedItem="{Binding Patterns}">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="x:Int32">
+                <TextBlock Text="{Binding Converter={x:Static converters:AddressConverter.Instance}}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+        </Grid>
+
+        <Grid ColumnDefinitions="90,*" Margin="0,0,0,6">
+          <TextBlock Grid.Column="0" Text="{l:Localize ImportVramColors}" VerticalAlignment="Center" />
+          <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                    ItemsSource="{Binding TableChoices}" SelectedItem="{Binding Colors}">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="x:Int32">
+                <TextBlock Text="{Binding Converter={x:Static converters:AddressConverter.Instance}}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+        </Grid>
+
+        <Grid ColumnDefinitions="90,*" Margin="0,0,0,6">
+          <TextBlock Grid.Column="0" Text="{l:Localize ImportVramSprites}" VerticalAlignment="Center" />
+          <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                    ItemsSource="{Binding SpriteChoices}" SelectedItem="{Binding SpritePatterns}">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="x:Int32">
+                <TextBlock Text="{Binding Converter={x:Static converters:AddressConverter.Instance}}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+        </Grid>
+
+        <CheckBox Content="{l:Localize ImportVramBigSprites}" IsChecked="{Binding BigSprites}"
+                  Margin="0,0,0,10" />
+
+        <CheckBox Content="{l:Localize ImportVramWantsTiles}" IsChecked="{Binding WantsTiles}" />
+        <CheckBox Content="{l:Localize ImportVramWantsSprites}" IsChecked="{Binding WantsSprites}"
+                  Margin="0,0,0,10" />
+
+        <TextBlock Text="{Binding Report}" TextWrapping="Wrap"
+                   Foreground="{DynamicResource AppTextSecondary}" />
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right"
+                Margin="0,10,0,0">
+      <Button Content="{l:Localize FormAccept}" MinWidth="90" Command="{Binding AcceptImportCommand}" />
+      <Button Content="{l:Localize FormCancel}" MinWidth="90" Margin="8,0,0,0"
+              Command="{Binding CancelImportCommand}" />
+    </StackPanel>
+  </Grid>
+</UserControl>

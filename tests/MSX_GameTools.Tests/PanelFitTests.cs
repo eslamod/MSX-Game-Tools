@@ -103,6 +103,7 @@ public class PanelFitTests
     [InlineData("Palette")]
     [InlineData("NewPalette")]
     [InlineData("ImportSheet")]
+    [InlineData("ImportVram")]
     public void Los_botones_de_los_formularios_caben(string form)
     {
         var main = new MainWindowViewModel(new TestDialogService { ChooseAnswer = false });
@@ -166,6 +167,7 @@ public class PanelFitTests
     [InlineData("Palette")]
     [InlineData("NewPalette")]
     [InlineData("ImportSheet")]
+    [InlineData("ImportVram")]
     public void Ningun_rotulo_de_los_formularios_sale_cortado(string form)
     {
         string before = Localizer.Instance.Language;
@@ -473,6 +475,12 @@ public class PanelFitTests
         {
             case "Preferences":
                 main.ShowPreferencesCommand.Execute(null);
+                break;
+
+            // Se monta a mano y no por el comando: ése pide un fichero, y aquí sólo se
+            // están midiendo los rótulos y los botones.
+            case "ImportVram":
+                main.RightPanViewModel = new ImportVramViewModel(main, "volcado.bin", new byte[16384]);
                 break;
 
             case "TileSet":

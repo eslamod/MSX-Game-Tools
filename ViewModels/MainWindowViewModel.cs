@@ -1958,6 +1958,32 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Trae tiles y sprites de un volcado de VRAM de openMSX.
+    /// </summary>
+    /// <remarks>
+    /// Aquí sólo se lee el fichero: dónde está cada tabla se decide en el panel, porque no
+    /// todas las ROMs usan las direcciones de siempre y hay que poder verlas y cambiarlas. En
+    /// el menú Fichero y no en Tiles ni en Sprites porque de un mismo volcado salen las dos
+    /// cosas a la vez.
+    /// </remarks>
+    [RelayCommand]
+    private async Task ImportVramAsync()
+    {
+        string? path = await Dialogs.PickFileToOpenAsync(Text["PickImportVram"], PickerFileKind.Any);
+        if (path is null)
+            return;
+
+        try
+        {
+            RightPanViewModel = new ImportVramViewModel(this, path, await File.ReadAllBytesAsync(path));
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync(Text["ErrorOpenFile"], exception.Message);
+        }
+    }
+
     [RelayCommand]
     private async Task ImportTileSetPngAsync()
     {
