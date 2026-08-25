@@ -339,6 +339,12 @@
   <data name="NewPaletteFrom" xml:space="preserve"><value>Copia de</value></data>
   <data name="NewPaletteFromTip" xml:space="preserve"><value>Els 16 colors surten d'aquesta. Els noms també es copien, tret dels de la paleta MSX, que són de la màquina.</value></data>
   <data name="NewPaletteNoName" xml:space="preserve"><value>El nom de la paleta no pot estar buit.</value></data>
+  <data name="MenuImportMapCapture" xml:space="preserve"><value>Portar un mapa capturat…</value></data>
+  <data name="PickImportMapCapture" xml:space="preserve"><value>Tria la captura de pantalles</value></data>
+  <data name="NoTileSetCaptureBody" xml:space="preserve"><value>Una captura són números de tile i no diu de quin joc són. Ves a la pestanya del joc que li correspon, o a la d'un mapa que ja el faci servir, i torna a portar-lo.</value></data>
+  <data name="ErrorCaptureImport" xml:space="preserve"><value>No s'ha pogut llegir la captura</value></data>
+  <data name="CaptureEmptyTitle" xml:space="preserve"><value>Res a portar</value></data>
+  <data name="CaptureEmptyBody" xml:space="preserve"><value>La captura no porta cap zona recorreguda: calen com a mínim dues pantalles seguides que encaixin perquè en surti un mapa.</value></data>
   <data name="ImportVramTitle" xml:space="preserve"><value>Portar d'un bolcat de VRAM</value></data>
   <data name="ImportVramFile" xml:space="preserve"><value>Bolcat</value></data>
   <data name="ImportVramMode" xml:space="preserve"><value>Mode</value></data>

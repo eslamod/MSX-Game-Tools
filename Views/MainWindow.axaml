@@ -65,6 +65,7 @@
         <!-- De un volcado salen tiles y sprites a la vez, asi que va aqui y no en sus
              menus de cada cosa. -->
         <MenuItem Header="{l:Localize MenuImportVram}" Command="{Binding ImportVramCommand}" />
+        <MenuItem Header="{l:Localize MenuImportMapCapture}" Command="{Binding ImportMapCaptureCommand}" />
 
         <!-- Los recientes salen de una lista, asi que este submenu no puede llevar ademas
              una entrada suya escrita a mano: ItemsSource sustituye a los hijos. Por eso

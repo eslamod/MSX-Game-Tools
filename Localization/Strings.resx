@@ -364,6 +364,12 @@
   <data name="NewPaletteFrom" xml:space="preserve"><value>Copiar de</value></data>
   <data name="NewPaletteFromTip" xml:space="preserve"><value>Los 16 colores salen de ésa. Los nombres se copian, salvo los de la paleta MSX, que son de la máquina.</value></data>
   <data name="NewPaletteNoName" xml:space="preserve"><value>El nombre de la paleta no puede estar vacío.</value></data>
+  <data name="MenuImportMapCapture" xml:space="preserve"><value>Traer un mapa capturado…</value></data>
+  <data name="PickImportMapCapture" xml:space="preserve"><value>Elegir la captura de pantallas</value></data>
+  <data name="NoTileSetCaptureBody" xml:space="preserve"><value>Una captura son números de tile y no dice de qué juego son. Ponte en la pestaña del juego que le corresponde, o en la de un mapa que ya lo use, y vuelve a importar.</value></data>
+  <data name="ErrorCaptureImport" xml:space="preserve"><value>No se ha podido leer la captura</value></data>
+  <data name="CaptureEmptyTitle" xml:space="preserve"><value>Nada que traer</value></data>
+  <data name="CaptureEmptyBody" xml:space="preserve"><value>La captura no trae ninguna zona recorrida: hacen falta al menos dos pantallas seguidas que encajen para que salga un mapa.</value></data>
   <data name="ImportVramTitle" xml:space="preserve"><value>Traer de un volcado de VRAM</value></data>
   <data name="ImportVramFile" xml:space="preserve"><value>Volcado</value></data>
   <data name="ImportVramMode" xml:space="preserve"><value>Modo</value></data>

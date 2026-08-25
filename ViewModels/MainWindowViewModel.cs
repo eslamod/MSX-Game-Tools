@@ -1621,6 +1621,58 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Trae los mapas de una captura de pantallas de openMSX.
+    /// </summary>
+    /// <remarks>
+    /// De una captura salen varios: cada vez que el juego cambia de sala o carga otro juego de
+    /// tiles hay que cortar, porque los mismos números pasan a dibujar otra cosa. Se abren
+    /// todos y ya se mira cuál interesa, que distinguirlos por el nombre no se puede.
+    /// </remarks>
+    [RelayCommand]
+    private async Task ImportMapCaptureAsync()
+    {
+        if (TileSetForImport() is not { } tileSet)
+        {
+            await Dialogs.ShowMessageAsync(Text["NoTileSetTitle"], Text["NoTileSetCaptureBody"]);
+
+            return;
+        }
+
+        string? path = await Dialogs.PickFileToOpenAsync(Text["PickImportMapCapture"], PickerFileKind.Any);
+        if (path is null)
+            return;
+
+        try
+        {
+            IReadOnlyList<TileMap> maps = MapCapture.Stitch(
+                MapCapture.Read(await File.ReadAllTextAsync(path)),
+                Path.GetFileNameWithoutExtension(path));
+
+            if (maps.Count == 0)
+            {
+                await Dialogs.ShowMessageAsync(Text["CaptureEmptyTitle"], Text["CaptureEmptyBody"]);
+
+                return;
+            }
+
+            foreach (TileMap map in maps)
+            {
+                map.BackgroundColorIndex = tileSet.ColorPalette.DefaultBackgroundIndex;
+
+                OpenMap(map, tileSet);
+            }
+        }
+        catch (FileFormatException exception)
+        {
+            await Dialogs.ShowMessageAsync(Text["ErrorCaptureImport"], exception.Message);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync(Text["ErrorOpenFile"], exception.Message);
+        }
+    }
+
     [RelayCommand(CanExecute = nameof(IsMapSelected))]
     private void ResizeMap()
     {

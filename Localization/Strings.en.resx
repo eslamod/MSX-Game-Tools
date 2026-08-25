@@ -338,6 +338,12 @@
   <data name="NewPaletteFrom" xml:space="preserve"><value>Copy from</value></data>
   <data name="NewPaletteFromTip" xml:space="preserve"><value>The 16 colours come from that one. Names are copied too, except the MSX palette's, which belong to the machine.</value></data>
   <data name="NewPaletteNoName" xml:space="preserve"><value>The palette name cannot be empty.</value></data>
+  <data name="MenuImportMapCapture" xml:space="preserve"><value>Import a captured map…</value></data>
+  <data name="PickImportMapCapture" xml:space="preserve"><value>Pick the screen capture</value></data>
+  <data name="NoTileSetCaptureBody" xml:space="preserve"><value>A capture is tile numbers and does not say which set they belong to. Go to the tab of the set it belongs to, or of a map that already uses it, and import again.</value></data>
+  <data name="ErrorCaptureImport" xml:space="preserve"><value>The capture could not be read</value></data>
+  <data name="CaptureEmptyTitle" xml:space="preserve"><value>Nothing to import</value></data>
+  <data name="CaptureEmptyBody" xml:space="preserve"><value>The capture holds no walked area: at least two screens in a row that fit together are needed for a map to come out.</value></data>
   <data name="ImportVramTitle" xml:space="preserve"><value>Import from a VRAM dump</value></data>
   <data name="ImportVramFile" xml:space="preserve"><value>Dump</value></data>
   <data name="ImportVramMode" xml:space="preserve"><value>Mode</value></data>
