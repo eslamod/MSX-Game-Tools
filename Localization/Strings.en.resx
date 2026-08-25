@@ -338,6 +338,10 @@
   <data name="NewPaletteFrom" xml:space="preserve"><value>Copy from</value></data>
   <data name="NewPaletteFromTip" xml:space="preserve"><value>The 16 colours come from that one. Names are copied too, except the MSX palette's, which belong to the machine.</value></data>
   <data name="NewPaletteNoName" xml:space="preserve"><value>The palette name cannot be empty.</value></data>
+  <data name="VramTileSetName" xml:space="preserve"><value>Tiles from VRAM</value></data>
+  <data name="VramSpriteBankName" xml:space="preserve"><value>Sprites from VRAM</value></data>
+  <data name="VramNoTiles" xml:space="preserve"><value>The tile tables ({0} and {1}) do not fit in a {2} byte dump.</value></data>
+  <data name="VramNoSprites" xml:space="preserve"><value>The sprite pattern table ({0}) does not fit in a {1} byte dump.</value></data>
   <data name="SheetAllTransparent" xml:space="preserve"><value>The chosen rectangle is all in the transparent colour.</value></data>
   <data name="SheetTooManyColors" xml:space="preserve"><value>The chosen rectangle brings {0} colours and {1} fit in the palette, because index 0 is the transparent one.</value></data>
   <data name="SheetMsx1TooManyPlanes" xml:space="preserve"><value>Cell {0},{1} brings {2} colours and on MSX1 each sprite is one colour, so {2} of them would have to overlap and {3} were asked for.</value></data>

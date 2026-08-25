@@ -364,6 +364,10 @@
   <data name="NewPaletteFrom" xml:space="preserve"><value>Copiar de</value></data>
   <data name="NewPaletteFromTip" xml:space="preserve"><value>Los 16 colores salen de ésa. Los nombres se copian, salvo los de la paleta MSX, que son de la máquina.</value></data>
   <data name="NewPaletteNoName" xml:space="preserve"><value>El nombre de la paleta no puede estar vacío.</value></data>
+  <data name="VramTileSetName" xml:space="preserve"><value>Tiles de la VRAM</value></data>
+  <data name="VramSpriteBankName" xml:space="preserve"><value>Sprites de la VRAM</value></data>
+  <data name="VramNoTiles" xml:space="preserve"><value>Las tablas de tiles ({0} y {1}) no caben en un volcado de {2} bytes.</value></data>
+  <data name="VramNoSprites" xml:space="preserve"><value>La tabla de patrones de sprite ({0}) no cabe en un volcado de {1} bytes.</value></data>
   <data name="SheetAllTransparent" xml:space="preserve"><value>El rectángulo elegido está entero en el color transparente.</value></data>
   <data name="SheetTooManyColors" xml:space="preserve"><value>El rectángulo elegido trae {0} colores y en la paleta caben {1}, porque el índice 0 es el transparente.</value></data>
   <data name="SheetMsx1TooManyPlanes" xml:space="preserve"><value>La celda {0},{1} trae {2} colores y en MSX1 cada sprite es de un color, así que harían falta {2} superpuestos y se han pedido {3}.</value></data>

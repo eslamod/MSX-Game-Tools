@@ -339,6 +339,10 @@
   <data name="NewPaletteFrom" xml:space="preserve"><value>Copia de</value></data>
   <data name="NewPaletteFromTip" xml:space="preserve"><value>Els 16 colors surten d'aquesta. Els noms també es copien, tret dels de la paleta MSX, que són de la màquina.</value></data>
   <data name="NewPaletteNoName" xml:space="preserve"><value>El nom de la paleta no pot estar buit.</value></data>
+  <data name="VramTileSetName" xml:space="preserve"><value>Tiles de la VRAM</value></data>
+  <data name="VramSpriteBankName" xml:space="preserve"><value>Sprites de la VRAM</value></data>
+  <data name="VramNoTiles" xml:space="preserve"><value>Les taules de tiles ({0} i {1}) no caben en un bolcat de {2} bytes.</value></data>
+  <data name="VramNoSprites" xml:space="preserve"><value>La taula de patrons de sprite ({0}) no cap en un bolcat de {1} bytes.</value></data>
   <data name="SheetAllTransparent" xml:space="preserve"><value>El rectangle triat és tot del color transparent.</value></data>
   <data name="SheetTooManyColors" xml:space="preserve"><value>El rectangle triat porta {0} colors i a la paleta en caben {1}, perquè l'índex 0 és el transparent.</value></data>
   <data name="SheetMsx1TooManyPlanes" xml:space="preserve"><value>La cel·la {0},{1} porta {2} colors i a l'MSX1 cada sprite és d'un color, així que en caldrien {2} de superposats i se n'han demanat {3}.</value></data>
