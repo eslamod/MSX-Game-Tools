@@ -1622,12 +1622,12 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Trae los mapas de una captura de pantallas de openMSX.
+    /// Abre el formulario para traer los mapas de una captura de pantallas de openMSX.
     /// </summary>
     /// <remarks>
-    /// De una captura salen varios: cada vez que el juego cambia de sala o carga otro juego de
-    /// tiles hay que cortar, porque los mismos números pasan a dibujar otra cosa. Se abren
-    /// todos y ya se mira cuál interesa, que distinguirlos por el nombre no se puede.
+    /// No importa aquí mismo porque hay algo que decidir: qué parte de la pantalla es mapa y
+    /// qué parte es marcador. El formulario lo propone y enseña lo que va a salir, que
+    /// acertarlo a la primera es difícil y volver a importar cuesta.
     /// </remarks>
     [RelayCommand]
     private async Task ImportMapCaptureAsync()
@@ -1645,23 +1645,9 @@ public partial class MainWindowViewModel : ObservableObject
 
         try
         {
-            IReadOnlyList<TileMap> maps = MapCapture.Stitch(
-                MapCapture.Read(await File.ReadAllTextAsync(path)),
-                Path.GetFileNameWithoutExtension(path));
+            MapCapture.Capture capture = MapCapture.Read(await File.ReadAllTextAsync(path));
 
-            if (maps.Count == 0)
-            {
-                await Dialogs.ShowMessageAsync(Text["CaptureEmptyTitle"], Text["CaptureEmptyBody"]);
-
-                return;
-            }
-
-            foreach (TileMap map in maps)
-            {
-                map.BackgroundColorIndex = tileSet.ColorPalette.DefaultBackgroundIndex;
-
-                OpenMap(map, tileSet);
-            }
+            RightPanViewModel = new ImportMapCaptureViewModel(this, tileSet, path, capture);
         }
         catch (FileFormatException exception)
         {

@@ -1,0 +1,86 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:l="clr-namespace:MSX_GameTools.Localization"
+             mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="460"
+             x:Class="MSX_GameTools.Views.ImportMapCaptureView"
+             x:DataType="vm:ImportMapCaptureViewModel"
+             Background="{DynamicResource AppPanelBackground}">
+
+  <Grid Margin="10" RowDefinitions="Auto,*,Auto">
+
+    <TextBlock Grid.Row="0" Text="{l:Localize ImportCaptureTitle}" FontWeight="Bold" Margin="0,0,0,10" />
+
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel>
+
+        <Grid ColumnDefinitions="90,*" Margin="0,0,0,6">
+          <TextBlock Grid.Column="0" Text="{l:Localize ImportCaptureFile}" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="1" Text="{Binding FileName}" TextWrapping="Wrap"
+                     Foreground="{DynamicResource AppTextSecondary}" />
+        </Grid>
+
+        <Grid ColumnDefinitions="90,*" Margin="0,0,0,10">
+          <TextBlock Grid.Column="0" Text="{l:Localize ImportCaptureScreens}" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="1" Text="{Binding Screens}"
+                     Foreground="{DynamicResource AppTextSecondary}" />
+        </Grid>
+
+        <!-- El marcador es lo unico que hay que decidir aqui, asi que se explica: metido en el
+             cosido no encaja nunca y ademas deja un reguero por todo el mapa. -->
+        <TextBlock Text="{l:Localize ImportCaptureHint}" TextWrapping="Wrap" Margin="0,0,0,10"
+                   Foreground="{DynamicResource AppTextSecondary}" />
+
+        <Grid ColumnDefinitions="90,*" Margin="0,0,0,6">
+          <TextBlock Grid.Column="0" Text="{l:Localize ImportCaptureLeft}" VerticalAlignment="Center" />
+          <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
+                         Minimum="0" Maximum="{Binding ScreenColumns}" Increment="1"
+                         Value="{Binding Left}" />
+        </Grid>
+
+        <Grid ColumnDefinitions="90,*" Margin="0,0,0,6">
+          <TextBlock Grid.Column="0" Text="{l:Localize ImportCaptureTop}" VerticalAlignment="Center" />
+          <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
+                         Minimum="0" Maximum="{Binding ScreenRows}" Increment="1"
+                         Value="{Binding Top}" />
+        </Grid>
+
+        <Grid ColumnDefinitions="90,*" Margin="0,0,0,6">
+          <TextBlock Grid.Column="0" Text="{l:Localize ImportCaptureColumns}" VerticalAlignment="Center" />
+          <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
+                         Minimum="1" Maximum="{Binding ScreenColumns}" Increment="1"
+                         Value="{Binding Columns}" />
+        </Grid>
+
+        <Grid ColumnDefinitions="90,*" Margin="0,0,0,10">
+          <TextBlock Grid.Column="0" Text="{l:Localize ImportCaptureRows}" VerticalAlignment="Center" />
+          <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0"
+                         Minimum="1" Maximum="{Binding ScreenRows}" Increment="1"
+                         Value="{Binding Rows}" />
+        </Grid>
+
+        <UniformGrid Columns="2" Margin="0,0,0,10">
+          <Button Content="{l:Localize ImportCaptureSuggest}" HorizontalAlignment="Stretch"
+                  HorizontalContentAlignment="Center" Margin="0,0,4,0"
+                  Command="{Binding SuggestRegionCommand}" />
+          <Button Content="{l:Localize ImportCaptureWhole}" HorizontalAlignment="Stretch"
+                  HorizontalContentAlignment="Center" Margin="4,0,0,0"
+                  Command="{Binding WholeScreenCommand}" />
+        </UniformGrid>
+
+        <TextBlock Text="{Binding Report}" TextWrapping="Wrap"
+                   Foreground="{DynamicResource AppTextSecondary}" />
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right"
+                Margin="0,10,0,0">
+      <Button Content="{l:Localize FormAccept}" MinWidth="90" Command="{Binding AcceptImportCommand}" />
+      <Button Content="{l:Localize FormCancel}" MinWidth="90" Margin="8,0,0,0"
+              Command="{Binding CancelImportCommand}" />
+    </StackPanel>
+  </Grid>
+</UserControl>

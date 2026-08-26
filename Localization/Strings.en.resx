@@ -342,8 +342,21 @@
   <data name="PickImportMapCapture" xml:space="preserve"><value>Pick the screen capture</value></data>
   <data name="NoTileSetCaptureBody" xml:space="preserve"><value>A capture is tile numbers and does not say which set they belong to. Go to the tab of the set it belongs to, or of a map that already uses it, and import again.</value></data>
   <data name="ErrorCaptureImport" xml:space="preserve"><value>The capture could not be read</value></data>
-  <data name="CaptureEmptyTitle" xml:space="preserve"><value>Nothing to import</value></data>
   <data name="CaptureEmptyBody" xml:space="preserve"><value>The capture holds no walked area: at least two screens in a row that fit together are needed for a map to come out.</value></data>
+  <data name="ImportCaptureTitle" xml:space="preserve"><value>Import a captured map</value></data>
+  <data name="ImportCaptureFile" xml:space="preserve"><value>Capture</value></data>
+  <data name="ImportCaptureScreens" xml:space="preserve"><value>Screens</value></data>
+  <data name="ImportCaptureHint" xml:space="preserve"><value>The scoreboard does not move with the camera: inside the map it never matches and gets stamped again at every position. Say here which cells are terrain.</value></data>
+  <data name="ImportCaptureLeft" xml:space="preserve"><value>Column</value></data>
+  <data name="ImportCaptureTop" xml:space="preserve"><value>Row</value></data>
+  <data name="ImportCaptureColumns" xml:space="preserve"><value>Width</value></data>
+  <data name="ImportCaptureRows" xml:space="preserve"><value>Height</value></data>
+  <data name="ImportCaptureSuggest" xml:space="preserve"><value>Suggest</value></data>
+  <data name="ImportCaptureWhole" xml:space="preserve"><value>Whole screen</value></data>
+  <data name="ImportCaptureOneMap" xml:space="preserve"><value>One map comes out.</value></data>
+  <data name="ImportCaptureManyMaps" xml:space="preserve"><value>{0} maps come out.</value></data>
+  <data name="ImportCaptureBiggest" xml:space="preserve"><value>The largest is {0}×{1}.</value></data>
+  <data name="ImportCaptureBadRegion" xml:space="preserve"><value>The area falls outside the screen.</value></data>
   <data name="ImportVramTitle" xml:space="preserve"><value>Import from a VRAM dump</value></data>
   <data name="ImportVramFile" xml:space="preserve"><value>Dump</value></data>
   <data name="ImportVramMode" xml:space="preserve"><value>Mode</value></data>

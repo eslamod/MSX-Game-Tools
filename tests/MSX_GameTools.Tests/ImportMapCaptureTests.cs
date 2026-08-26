@@ -1,7 +1,10 @@
 using Avalonia.Headless.XUnit;
+using Avalonia.VisualTree;
 using MSX_GameTools.Entities;
 using MSX_GameTools.Localization;
+using MSX_GameTools.Services;
 using MSX_GameTools.ViewModels;
+using MSX_GameTools.Views;
 using Xunit;
 
 namespace MSX_GameTools.Tests;
@@ -11,8 +14,9 @@ namespace MSX_GameTools.Tests;
 /// </summary>
 /// <remarks>
 /// El cosido tiene sus pruebas aparte; lo que se mira aquí es lo que rodea al comando: que
-/// abra todos los mapas que salen, que pida un juego de tiles antes, y que lo que no se puede
-/// leer se diga en vez de dejar la ventana igual.
+/// abra el formulario con la zona propuesta, que abra todos los mapas que salen, que pida un
+/// juego de tiles antes, y que lo que no se puede leer se diga en vez de dejar la ventana
+/// igual.
 /// </remarks>
 public class ImportMapCaptureTests : IDisposable
 {
@@ -40,10 +44,15 @@ public class ImportMapCaptureTests : IDisposable
 
         int before = main.Tabs.Count;
 
-        await main.ImportMapCaptureCommand.ExecuteAsync(null);
+        ImportMapCaptureViewModel form = await Form(main);
+
+        form.AcceptImportCommand.Execute(null);
 
         Assert.Equal(before + 2, main.Tabs.Count);
         Assert.Equal(2, main.Tabs.OfType<MapEditorViewModel>().Count());
+
+        // Y el formulario se cierra al aceptar.
+        Assert.Null(main.RightPanViewModel);
     }
 
     /// <summary>Sin un juego de tiles delante no se importa, y se dice por qué.</summary>
@@ -83,14 +92,14 @@ public class ImportMapCaptureTests : IDisposable
     }
 
     /// <summary>
-    /// Una captura de la que no sale ningún mapa se dice en vez de no hacer nada.
+    /// Una captura de la que no sale ningún mapa lo dice el informe, y no deja aceptar.
     /// </summary>
     /// <remarks>
     /// Pasa con una partida en la que no se llegó a recorrer nada: pantallas sueltas que no
-    /// encajan entre sí. Sin decirlo, el menú parecería roto.
+    /// encajan entre sí. Sin decirlo, el formulario parecería roto.
     /// </remarks>
     [AvaloniaFact]
-    public async Task Una_captura_sin_zonas_se_dice()
+    public async Task Una_captura_sin_zonas_lo_dice_el_informe()
     {
         string path = Path.Combine(_folder, "suelta.txt");
 
@@ -101,13 +110,145 @@ public class ImportMapCaptureTests : IDisposable
 
         main.OpenTileSet(new TileSet("Bosque"));
 
-        await main.ImportMapCaptureCommand.ExecuteAsync(null);
+        ImportMapCaptureViewModel form = await Form(main);
 
-        Assert.Empty(main.Tabs.OfType<MapEditorViewModel>());
-        Assert.Contains(Localizer.Instance["CaptureEmptyBody"], dialogs.Messages);
+        Assert.Equal(Localizer.Instance["CaptureEmptyBody"], form.Report);
+        Assert.False(form.AcceptImportCommand.CanExecute(null));
+    }
+
+    /// <summary>
+    /// La zona viene propuesta con el marcador fuera.
+    /// </summary>
+    /// <remarks>
+    /// Es lo que hay que decidir aquí y lo que más cuesta acertar: si el formulario se abriera
+    /// con la pantalla entera, el primer intento de todo el mundo saldría con el reguero de
+    /// marcadores dentro.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task La_zona_viene_propuesta_con_el_marcador_fuera()
+    {
+        var dialogs = new TestDialogService { OpenPath = Falling() };
+        var main = new MainWindowViewModel(dialogs);
+
+        main.OpenTileSet(new TileSet("Bosque"));
+
+        ImportMapCaptureViewModel form = await Form(main);
+
+        Assert.Equal(new MapCapture.Region(0, 0, Columns, Rows - Marker), form.Region);
+    }
+
+    /// <summary>Y aceptando, el mapa que se abre no trae ni rastro del marcador.</summary>
+    [AvaloniaFact]
+    public async Task El_mapa_que_se_trae_no_lleva_marcador()
+    {
+        var dialogs = new TestDialogService { OpenPath = Falling() };
+        var main = new MainWindowViewModel(dialogs);
+
+        main.OpenTileSet(new TileSet("Bosque"));
+
+        ImportMapCaptureViewModel form = await Form(main);
+
+        form.AcceptImportCommand.Execute(null);
+
+        TileMap map = Assert.Single(main.Tabs.OfType<MapEditorViewModel>()).Map;
+
+        Assert.Equal(Rows - Marker + 3, map.Height);
+
+        for (int column = 0; column < map.Width; column++)
+        {
+            for (int row = 0; row < map.Height; row++)
+            {
+                int cell = map.Layers[0].Grid[column, row] ?? 0;
+
+                Assert.NotEqual(Labels + column, cell);
+                Assert.NotEqual(Values + column, cell);
+            }
+        }
+    }
+
+    /// <summary>
+    /// El formulario sale por el ViewLocator, con sus enlaces vivos.
+    /// </summary>
+    /// <remarks>
+    /// Un nombre mal escrito en el XAML no lo caza nadie más: el modelo de vista puede estar
+    /// perfecto y el panel salir vacío.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task El_panel_sale_montado()
+    {
+        var dialogs = new TestDialogService { OpenPath = Capture() };
+        var main = new MainWindowViewModel(dialogs);
+
+        main.OpenTileSet(new TileSet("Bosque"));
+
+        await Form(main);
+
+        var window = new MainWindow { DataContext = main, Width = 1280, Height = 800 };
+
+        window.Show();
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+
+        Assert.Single(window.GetVisualDescendants().OfType<ImportMapCaptureView>());
+
+        window.Close();
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
     }
 
     // ------------------------------------------------------------------ los andamios
+
+    /// <summary>Las dos filas de marcador de abajo: los rótulos y los números.</summary>
+    private const int Marker = 2;
+
+    private const int Labels = 500;
+    private const int Values = 700;
+
+    /// <summary>El formulario que abre el menú.</summary>
+    private static async Task<ImportMapCaptureViewModel> Form(MainWindowViewModel main)
+    {
+        await main.ImportMapCaptureCommand.ExecuteAsync(null);
+
+        return Assert.IsType<ImportMapCaptureViewModel>(main.RightPanViewModel);
+    }
+
+    /// <summary>Una captura bajando por un mundo, con el marcador quieto abajo.</summary>
+    private string Falling(int screens = 4)
+    {
+        int[,] world = Tall(Rows + screens);
+
+        string path = Path.Combine(_folder, "bajando.txt");
+
+        File.WriteAllText(path, Written([.. Enumerable.Range(0, screens).Select(at =>
+        {
+            var screen = new int[Columns, Rows];
+
+            for (int column = 0; column < Columns; column++)
+            {
+                for (int row = 0; row < Rows; row++)
+                    screen[column, row] = world[column, at + row];
+
+                screen[column, Rows - 2] = Labels + column;
+                screen[column, Rows - 1] = Values + column;
+            }
+
+            return ((long)1, screen);
+        })]));
+
+        return path;
+    }
+
+    private static int[,] Tall(int rows)
+    {
+        var world = new int[Columns, rows];
+        var random = new Random(77);
+
+        for (int column = 0; column < Columns; column++)
+        {
+            for (int row = 0; row < rows; row++)
+                world[column, row] = random.Next(1, 256);
+        }
+
+        return world;
+    }
 
     /// <summary>Una captura con dos zonas recorridas, cortadas por un cambio de tileset.</summary>
     private string Capture()
