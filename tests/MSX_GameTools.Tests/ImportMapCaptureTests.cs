@@ -167,6 +167,45 @@ public class ImportMapCaptureTests : IDisposable
     }
 
     /// <summary>
+    /// De una captura con muchas zonas sólo se traen las mayores.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Una partida por un juego de salas da cientos de trozos de dos pantallas. Abrirlos todos
+    /// deja la aplicación inservible: al cerrar sale la lista de lo que hay que guardar con
+    /// trescientas líneas y los botones se van de la pantalla.
+    /// </para>
+    /// <para>
+    /// Los mayores y no los primeros: los grandes son los que interesan, y los de dos
+    /// pantallas son sitios por los que se pasó.
+    /// </para>
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task De_una_captura_con_muchas_zonas_solo_se_traen_las_mayores()
+    {
+        var dialogs = new TestDialogService { OpenPath = Many(Zones) };
+        var main = new MainWindowViewModel(dialogs);
+
+        main.OpenTileSet(new TileSet("Bosque"));
+
+        ImportMapCaptureViewModel form = await Form(main);
+
+        Assert.Contains(
+            Localizer.Instance.Format(
+                "ImportCaptureTooMany", Zones, ImportMapCaptureViewModel.MostMaps),
+            form.Report);
+
+        form.AcceptImportCommand.Execute(null);
+
+        List<MapEditorViewModel> maps = [.. main.Tabs.OfType<MapEditorViewModel>()];
+
+        Assert.Equal(ImportMapCaptureViewModel.MostMaps, maps.Count);
+
+        // La mayor va la ultima de la captura, asi que cogiendo las primeras se perderia.
+        Assert.Contains(maps, editor => editor.Map.Width == Columns + 3);
+    }
+
+    /// <summary>
     /// El formulario sale por el ViewLocator, con sus enlaces vivos.
     /// </summary>
     /// <remarks>
@@ -248,6 +287,35 @@ public class ImportMapCaptureTests : IDisposable
         }
 
         return world;
+    }
+
+    /// <summary>Zonas de sobra para que el tope se note.</summary>
+    private const int Zones = ImportMapCaptureViewModel.MostMaps + 2;
+
+    /// <summary>
+    /// Una captura con muchas zonas sueltas, la mayor la última.
+    /// </summary>
+    /// <remarks>
+    /// Cada zona sale de un mundo distinto, así que ninguna encaja con la anterior y el cosido
+    /// corta entre ellas. Todas son de dos pantallas menos la última, de cuatro.
+    /// </remarks>
+    private string Many(int zones)
+    {
+        var screens = new List<(long, int[,])>();
+
+        for (int zone = 0; zone < zones; zone++)
+        {
+            int[,] world = World(100 + zone);
+
+            for (int at = 0; at < (zone == zones - 1 ? 4 : 2); at++)
+                screens.Add((1, Cut(world, at)));
+        }
+
+        string path = Path.Combine(_folder, "muchas.txt");
+
+        File.WriteAllText(path, Written([.. screens]));
+
+        return path;
     }
 
     /// <summary>Una captura con dos zonas recorridas, cortadas por un cambio de tileset.</summary>

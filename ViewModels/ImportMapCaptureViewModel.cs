@@ -26,6 +26,13 @@ namespace MSX_GameTools.ViewModels;
 /// Debajo se ve lo que va a salir con la zona puesta: cuántos mapas y lo que mide el mayor.
 /// Así se prueba a recortar sin tener que aceptar y deshacer.
 /// </para>
+/// <para>
+/// Y se traen <see cref="MostMaps"/> como mucho, los mayores. Una partida por un juego de
+/// salas puede dar cientos de trozos de dos pantallas, y abrirlos todos deja la aplicación
+/// inservible: al cerrar sale la lista de lo que hay que guardar con trescientas líneas y los
+/// botones se van de la pantalla. Los grandes son además los que interesan; los de dos
+/// pantallas son sitios por los que se pasó.
+/// </para>
 /// </remarks>
 public partial class ImportMapCaptureViewModel : PanelBaseViewModel
 {
@@ -90,6 +97,10 @@ public partial class ImportMapCaptureViewModel : PanelBaseViewModel
     public int ScreenRows => _capture.Rows;
 
     /// <summary>Lo que va a salir con la zona puesta, antes de aceptar.</summary>
+    /// <summary>Cuántos mapas se traen como mucho.</summary>
+    /// <remarks>Veinte caben en la lista de guardar sin echar los botones fuera.</remarks>
+    public const int MostMaps = 20;
+
     public string Report
     {
         get
@@ -100,18 +111,28 @@ public partial class ImportMapCaptureViewModel : PanelBaseViewModel
             if (Maps.Count == 0)
                 return Localizer.Instance["CaptureEmptyBody"];
 
-            TileMap biggest = Maps.MaxBy(map => map.Width * map.Height)!;
+            TileMap biggest = Kept[0];
+
+            string many = Maps.Count switch
+            {
+                1 => Localizer.Instance["ImportCaptureOneMap"],
+                _ when Maps.Count > MostMaps =>
+                    Localizer.Instance.Format("ImportCaptureTooMany", Maps.Count, MostMaps),
+                _ => Localizer.Instance.Format("ImportCaptureManyMaps", Maps.Count),
+            };
 
             return string.Join(
                 Environment.NewLine,
-                Maps.Count == 1
-                    ? Localizer.Instance["ImportCaptureOneMap"]
-                    : Localizer.Instance.Format("ImportCaptureManyMaps", Maps.Count),
+                many,
                 Localizer.Instance.Format("ImportCaptureBiggest", biggest.Width, biggest.Height));
         }
     }
 
     public bool CanAccept => Maps.Count > 0;
+
+    /// <summary>Los que se van a abrir: los mayores, y no más de <see cref="MostMaps"/>.</summary>
+    public IReadOnlyList<TileMap> Kept =>
+        [.. Maps.OrderByDescending(map => map.Width * map.Height).Take(MostMaps)];
 
     /// <summary>
     /// Los mapas que salen con la zona puesta, cosidos una sola vez.
@@ -163,7 +184,7 @@ public partial class ImportMapCaptureViewModel : PanelBaseViewModel
     [RelayCommand(CanExecute = nameof(CanAccept))]
     private void AcceptImport()
     {
-        foreach (TileMap map in Maps)
+        foreach (TileMap map in Kept)
         {
             map.BackgroundColorIndex = _tileSet.ColorPalette.DefaultBackgroundIndex;
 
