@@ -38,23 +38,26 @@ public class MapCaptureTests
     }
 
     /// <summary>
-    /// Cambiar de juego de tiles corta el mapa, aunque las pantallas encajaran.
+    /// Cambiar el sello del juego de tiles no corta el mapa.
     /// </summary>
     /// <remarks>
-    /// Es el caso que no se ve mirando sólo las pantallas: al cargar otro nivel, los mismos
-    /// números pasan a dibujar otra cosa. Cosidos seguidos saldría un mapa con dos zonas
-    /// pegadas que en la máquina no se parecen en nada.
+    /// Al principio sí cortaba, y estaba mal. El sello cambia con cualquier tile animado y con
+    /// los patrones que muchos juegos redefinen para el scroll suave: cortaba cada pocos
+    /// fotogramas y una partida salía en miles de trozos de dos pantallas. Lo que de verdad
+    /// dice que se ha cambiado de sitio es que la pantalla no encaje, y eso ya se mira.
     /// </remarks>
     [Fact]
-    public void Cambiar_de_juego_de_tiles_corta_el_mapa()
+    public void Cambiar_de_juego_de_tiles_no_corta_el_mapa()
     {
         int[,] world = World(16, Rows);
 
-        // Las mismas pantallas, pero a la mitad les cambia el sello.
+        // Las mismas pantallas, encajando todas, pero con el sello cambiando a cada una.
         string text = Written(
-            [(1, Cut(world, 0)), (1, Cut(world, 1)), (2, Cut(world, 2)), (2, Cut(world, 3))]);
+            [(1, Cut(world, 0)), (2, Cut(world, 1)), (3, Cut(world, 2)), (4, Cut(world, 3))]);
 
-        Assert.Equal(2, MapCapture.Stitch(MapCapture.Read(text), "Zona").Count);
+        TileMap map = Assert.Single(MapCapture.Stitch(MapCapture.Read(text), "Zona"));
+
+        Assert.Equal(Columns + 3, map.Width);
     }
 
     /// <summary>Y cambiar de sala también, aunque el juego de tiles siga siendo el mismo.</summary>

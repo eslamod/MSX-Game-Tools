@@ -13,10 +13,20 @@ namespace MSX_GameTools.Services;
 /// que es donde están las decisiones, se hace aquí con <see cref="MapStitcher"/>.
 /// </para>
 /// <para>
-/// <b>Se corta en varios mapas.</b> Cuando una pantalla no encaja con la anterior es que se ha
-/// cambiado de sala, y cuando cambia el sello es que se ha cargado otro juego de tiles y los
-/// mismos números ya no significan lo mismo. En los dos casos se cierra el mapa y se empieza
-/// otro: pegarlos sería mezclar zonas que no se tocan.
+/// <b>Se corta cuando una pantalla no encaja con la anterior</b>, que es lo que pasa al cambiar
+/// de sala: entonces se cierra el mapa y se empieza otro, porque pegarlos sería mezclar zonas
+/// que no se tocan.
+/// </para>
+/// <para>
+/// <b>Y no se corta por el sello del juego de tiles</b>, aunque el fichero lo traiga. Se hizo
+/// así al principio y estaba mal: el sello cambia con cualquier tile animado —una cascada, un
+/// objeto parpadeando— y con los patrones que muchos juegos redefinen para el scroll suave, así
+/// que cortaba cada pocos fotogramas y una partida entera salía en miles de trozos. El cambio
+/// de nivel ya lo caza la propia pantalla, que al cargar otro no se parece en nada.
+/// </para>
+/// <para>
+/// El sello se sigue leyendo y guardando: dice con qué juego de tiles se dibujaba cada trozo, y
+/// eso no se puede recuperar después sin volver a jugar la partida.
 /// </para>
 /// </remarks>
 public static class MapCapture
@@ -129,21 +139,16 @@ public static class MapCapture
         var maps = new List<TileMap>();
 
         MapStitcher stitcher = new();
-        long stamp = capture.Screens.Count == 0 ? 0 : capture.Screens[0].Stamp;
 
         foreach (Screen screen in capture.Screens)
         {
-            // Otro juego de tiles: los mismos numeros ya no dibujan lo mismo.
-            bool cut = screen.Stamp != stamp || !stitcher.Feed(screen.Cells);
-
-            if (!cut)
+            if (stitcher.Feed(screen.Cells))
                 continue;
 
             Keep(maps, stitcher, name);
 
             stitcher = new MapStitcher();
             stitcher.Feed(screen.Cells);
-            stamp = screen.Stamp;
         }
 
         Keep(maps, stitcher, name);
