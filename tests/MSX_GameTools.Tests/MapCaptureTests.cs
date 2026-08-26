@@ -15,7 +15,7 @@ namespace MSX_GameTools.Tests;
 public class MapCaptureTests
 {
     private const int Columns = 8;
-    private const int Rows = 4;
+    private const int Rows = 24;
 
     /// <summary>Una captura de una zona que se recorre sale como un mapa más ancho.</summary>
     [Fact]
@@ -116,6 +116,95 @@ public class MapCaptureTests
             Assert.Throws<FileFormatException>(() => MapCapture.Read(text));
 
         Assert.Contains("32", failed.Message);
+    }
+
+    /// <summary>
+    /// Un marcador que no scrollea deja de estropear el mapa si se recorta.
+    /// </summary>
+    /// <remarks>
+    /// Es lo que pasó con Knightmare: el marcador se queda quieto abajo, así que cada vez que
+    /// la cámara baja una celda se vuelve a estampar una fila más abajo y deja un reguero. Un
+    /// mapa de 32x239 del que casi todo eran puntuaciones repetidas.
+    /// </remarks>
+    /// <remarks>
+    /// Que llegara a coser es de suerte: son dos filas de veinticuatro, un 8% de la pantalla,
+    /// así que el encaje se queda en el 91% y pasa por poco el listón del 90%. Con una fila más
+    /// no habría cosido nada y el fallo habría sido otro.
+    /// </remarks>
+    [Fact]
+    public void Recortando_el_marcador_el_mapa_sale_limpio()
+    {
+        // Scroll vertical, que es donde el marcador hace el estropicio: bajando la camara se
+        // estampa una fila mas abajo cada vez.
+        MapCapture.Capture capture = MapCapture.Read(Written(Falling(4)));
+
+        TileMap whole = Assert.Single(MapCapture.Stitch(capture, "Zona"));
+
+        // Sin recortar, el marcador va cosido dentro del mapa.
+        Assert.Equal(Rows + 3, whole.Height);
+        Assert.Equal(Values, whole.Layers[0].Grid[0, whole.Height - 1]);
+
+        // Recortandolo, el mapa es solo terreno y no queda ni rastro del marcador.
+        TileMap cut = Assert.Single(
+            MapCapture.Stitch(capture, "Zona", new MapCapture.Region(0, 0, Columns, Rows - Marker)));
+
+        Assert.Equal(Rows - Marker + 3, cut.Height);
+        Assert.Equal(Columns, cut.Width);
+
+        for (int column = 0; column < cut.Width; column++)
+        {
+            for (int row = 0; row < cut.Height; row++)
+            {
+                int cell = cut.Layers[0].Grid[column, row] ?? 0;
+
+                Assert.NotEqual(Labels + column, cell);
+                Assert.NotEqual(Values + column, cell);
+            }
+        }
+    }
+
+    /// <summary>Y la zona se propone sola, mirando qué se mueve.</summary>
+    /// <remarks>
+    /// El marcador se delata porque sus filas siguen siendo las mismas de una captura a la
+    /// siguiente mientras las del terreno cambian.
+    /// </remarks>
+    [Fact]
+    public void La_zona_del_mapa_se_propone_sola()
+    {
+        MapCapture.Region region =
+            MapCapture.Suggest(MapCapture.Read(Written(Falling(4))));
+
+        Assert.Equal(0, region.Top);
+        Assert.Equal(Rows - Marker, region.Rows);
+        Assert.Equal(Columns, region.Columns);
+    }
+
+    /// <summary>Las dos filas de marcador de abajo: los rotulos y los numeros.</summary>
+    private const int Marker = 2;
+
+    private const int Labels = 500;
+    private const int Values = 700;
+
+    /// <summary>La camara bajando por un mundo, con el marcador quieto abajo.</summary>
+    private static (long Stamp, int[,] Cells)[] Falling(int screens)
+    {
+        int[,] world = World(Columns, Rows + screens);
+
+        return [.. Enumerable.Range(0, screens).Select(at =>
+        {
+            var screen = new int[Columns, Rows];
+
+            for (int column = 0; column < Columns; column++)
+            {
+                for (int row = 0; row < Rows; row++)
+                    screen[column, row] = world[column, at + row];
+
+                screen[column, Rows - 2] = Labels + column;
+                screen[column, Rows - 1] = Values + column;
+            }
+
+            return ((long)1, screen);
+        })];
     }
 
     // ------------------------------------------------------------------ los andamios

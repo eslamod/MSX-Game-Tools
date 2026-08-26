@@ -28,6 +28,17 @@ namespace MSX_GameTools.Services;
 /// El sello se sigue leyendo y guardando: dice con qué juego de tiles se dibujaba cada trozo, y
 /// eso no se puede recuperar después sin volver a jugar la partida.
 /// </para>
+/// <para>
+/// <b>El marcador hay que dejarlo fuera.</b> Casi todos los juegos tienen una franja que no
+/// scrollea —la puntuación, las vidas—, y si entra en el cosido pasan dos cosas malas: no
+/// coincide nunca, así que baja el porcentaje y hace que dos pantallas seguidas dejen de
+/// encajar; y se estampa otra vez en cada posición nueva, dejando un reguero de marcadores por
+/// todo el mapa. Por eso se cosen sólo las celdas de <see cref="Region"/>.
+/// </para>
+/// <para>
+/// La zona se dice al importar y no al capturar, a propósito: acertarla a la primera es difícil
+/// y cambiarla aquí no obliga a volver a jugarse la partida.
+/// </para>
 /// </remarks>
 public static class MapCapture
 {
@@ -43,6 +54,19 @@ public static class MapCapture
 
     /// <summary>Una pantalla capturada, con el juego de tiles que había puesto.</summary>
     public sealed record Screen(long Stamp, int[,] Cells);
+
+    /// <summary>Las celdas de la pantalla que son mapa, sin el marcador.</summary>
+    public sealed record Region(int Left, int Top, int Columns, int Rows)
+    {
+        /// <summary>La pantalla entera, que es lo que vale mientras no se sepa qué recortar.</summary>
+        public static Region Whole(Capture capture) => new(0, 0, capture.Columns, capture.Rows);
+
+        /// <summary>Dentro de la pantalla y con algo dentro.</summary>
+        public bool FitsIn(Capture capture) =>
+            Left >= 0 && Top >= 0 && Columns > 0 && Rows > 0
+            && Left + Columns <= capture.Columns
+            && Top + Rows <= capture.Rows;
+    }
 
     /// <summary>Lo que trae el fichero.</summary>
     public sealed record Capture(
@@ -134,26 +158,130 @@ public static class MapCapture
     /// El nombre lleva el número porque de una captura salen varios y hay que distinguirlos;
     /// cuál es cuál se ve abriéndolos, que es más rápido que cualquier nombre que me invente.
     /// </remarks>
-    public static IReadOnlyList<TileMap> Stitch(Capture capture, string name)
+    /// <summary>
+    /// La zona que parece mapa, mirando qué se mueve y qué se queda quieto.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Una franja de marcador se delata sola: mientras el juego scrollea, sus filas siguen
+    /// siendo las mismas de una captura a la siguiente, y las del terreno cambian casi todas
+    /// las veces. Así que se mira, fila por fila y columna por columna, cuántas veces se quedó
+    /// igual, y se propone el trozo grande que sí se mueve.
+    /// </para>
+    /// <para>
+    /// Es una propuesta, no una certeza: un juego con un trozo de cielo raso que nunca cambia
+    /// lo daría por marcador. Por eso se enseña en el formulario y se puede corregir.
+    /// </para>
+    /// </remarks>
+    public static Region Suggest(Capture capture)
     {
+        if (capture.Screens.Count < 2)
+            return Region.Whole(capture);
+
+        (int first, int count) columns = Moving(capture, byColumn: true);
+        (int first, int count) rows = Moving(capture, byColumn: false);
+
+        return new Region(columns.first, rows.first, columns.count, rows.count);
+    }
+
+    /// <summary>El trozo seguido más grande que cambia de una captura a la siguiente.</summary>
+    private static (int First, int Count) Moving(Capture capture, bool byColumn)
+    {
+        int many = byColumn ? capture.Columns : capture.Rows;
+        int across = byColumn ? capture.Rows : capture.Columns;
+
+        var still = new int[many];
+
+        for (int screen = 1; screen < capture.Screens.Count; screen++)
+        {
+            int[,] before = capture.Screens[screen - 1].Cells;
+            int[,] after = capture.Screens[screen].Cells;
+
+            for (int line = 0; line < many; line++)
+            {
+                bool same = true;
+
+                for (int at = 0; at < across && same; at++)
+                {
+                    same = byColumn
+                        ? before[line, at] == after[line, at]
+                        : before[at, line] == after[at, line];
+                }
+
+                if (same)
+                    still[line]++;
+            }
+        }
+
+        int pairs = capture.Screens.Count - 1;
+        int bestFirst = 0;
+        int best = 0;
+        int runFirst = 0;
+        int run = 0;
+
+        for (int line = 0; line < many; line++)
+        {
+            // La mitad de las veces: una linea de terreno cambia casi siempre, y una de
+            // marcador casi nunca. Lo que caiga en medio no se sabe y no se recorta.
+            if (still[line] * 2 < pairs)
+            {
+                if (run++ == 0)
+                    runFirst = line;
+
+                if (run > best)
+                {
+                    best = run;
+                    bestFirst = runFirst;
+                }
+            }
+            else
+            {
+                run = 0;
+            }
+        }
+
+        return best == 0 ? (0, many) : (bestFirst, best);
+    }
+
+    public static IReadOnlyList<TileMap> Stitch(Capture capture, string name, Region? region = null)
+    {
+        Region cut = region is not null && region.FitsIn(capture)
+            ? region
+            : Region.Whole(capture);
+
         var maps = new List<TileMap>();
 
         MapStitcher stitcher = new();
 
         foreach (Screen screen in capture.Screens)
         {
-            if (stitcher.Feed(screen.Cells))
+            int[,] cells = Crop(screen.Cells, cut);
+
+            if (stitcher.Feed(cells))
                 continue;
 
             Keep(maps, stitcher, name);
 
             stitcher = new MapStitcher();
-            stitcher.Feed(screen.Cells);
+            stitcher.Feed(cells);
         }
 
         Keep(maps, stitcher, name);
 
         return maps;
+    }
+
+    private static int[,] Crop(int[,] cells, Region region)
+    {
+        var cut = new int[region.Columns, region.Rows];
+
+        for (int column = 0; column < region.Columns; column++)
+        {
+            for (int row = 0; row < region.Rows; row++)
+                cut[column, row] = cells[region.Left + column, region.Top + row];
+        }
+
+        return cut;
     }
 
     private static void Keep(List<TileMap> maps, MapStitcher stitcher, string name)
