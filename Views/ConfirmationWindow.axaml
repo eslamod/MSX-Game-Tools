@@ -14,8 +14,13 @@
   <Grid Margin="20" RowDefinitions="Auto,Auto,Auto" MinWidth="340">
     <TextBlock x:Name="HeadingText" Grid.Row="0" FontWeight="Bold" Margin="0,0,0,8" />
 
-    <TextBlock x:Name="MessageText" Grid.Row="1"
-               TextWrapping="Wrap" MaxWidth="380" />
+    <!-- Con tope de alto y su scroll: el mensaje lo pone quien abre el dialogo, y al salir
+         con muchos documentos sin guardar es una linea por documento. La ventana se ajusta a
+         su contenido, asi que sin tope crecia hasta pasarse de la pantalla y los botones
+         quedaban fuera, sin manera de contestar ni de cancelar. -->
+    <ScrollViewer Grid.Row="1" MaxHeight="360" HorizontalScrollBarVisibility="Disabled">
+      <TextBlock x:Name="MessageText" TextWrapping="Wrap" MaxWidth="380" />
+    </ScrollViewer>
 
     <StackPanel Grid.Row="2" Orientation="Horizontal"
                 HorizontalAlignment="Right" Spacing="8" Margin="0,20,0,0">

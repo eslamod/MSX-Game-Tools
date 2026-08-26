@@ -77,6 +77,42 @@ public class ConfirmationWindowTests
         await result;
     }
 
+    /// <summary>
+    /// Una lista larguísima no echa los botones fuera de la pantalla.
+    /// </summary>
+    /// <remarks>
+    /// El mensaje lo pone quien abre el diálogo, y al salir con documentos sin guardar es una
+    /// línea por documento. La ventana se ajusta a su contenido, así que sin ponerle tope
+    /// crecía con el texto: con trescientos mapas traídos de una captura, los botones se iban
+    /// de la pantalla y no había manera de contestar ni de cancelar.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Un_mensaje_larguisimo_no_estira_la_ventana()
+    {
+        using var owner = new OwnerWindow();
+
+        string many = string.Join(
+            Environment.NewLine,
+            Enumerable.Range(0, 300).Select(at => $"  · Mapa {at} (Mapa)"));
+
+        ConfirmationWindow dialog = new("Salir", many, "Guardar y salir", "Salir", threeWay: true);
+
+        Task<bool?> result = dialog.ShowDialog<bool?>(owner.Window);
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.True(dialog.Bounds.Height < 600, $"la ventana mide {dialog.Bounds.Height} de alto");
+
+        // Y no es que lo recorte: el texto entero sigue ahí, se llega bajando.
+        string shown = dialog.GetVisualDescendants().OfType<TextBlock>()
+            .Select(one => one.Text ?? string.Empty)
+            .First(text => text.Contains("Mapa 0"));
+
+        Assert.Contains("Mapa 299", shown);
+
+        dialog.Close();
+        await result;
+    }
+
     private static void ClickButton(Window window, string content)
     {
         Button button = window.GetVisualDescendants()
