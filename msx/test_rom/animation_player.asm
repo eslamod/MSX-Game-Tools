@@ -17,13 +17,21 @@
 ;   0x02, apunta, espera, Y, X, aviso             lo mismo, desplazado
 ;   0x03, vueltas                                 empieza un bucle
 ;   0x04                                          y aqui acaba
+;   0x05, color                                   el color de aqui en adelante
 ;
 ; Las esperas van en interrupciones y nunca son cero. Los desplazamientos son en
 ; complemento a dos y absolutos: cada uno sustituye al anterior, no se suman.
 ;
+; El color solo lo traen las animaciones de patrones: un grupo ya trae el color
+; de cada uno de sus sprites. Va aparte y no dentro del fotograma para pagarlo
+; solo cuando cambia. Es un indice de color y nada mas: donde se escribe depende
+; del modo de sprites, y eso lo decide ANIM_COLOR_TABLE aqui abajo.
+;
 ; --- Por que se resuelve en una tabla ------------------------------------------
 ; Se recorre la tira una vez al arrancar y se deja una lista plana de fotogramas
-; en RAM, cinco bytes cada uno. Un juego de verdad se ahorraria esa RAM
+; en RAM, seis bytes cada uno. El color va dentro de cada fotograma y no como un
+; estado aparte, que es lo que hace que el ping-pong salga bien: yendo hacia
+; atras cada fotograma lleva puesto el color que le tocaba. Un juego de verdad se ahorraria esa RAM
 ; interpretando la tira sobre la marcha, y para los bucles vale igual; pero el
 ; ping-pong pide recorrerla hacia atras, y una tira de pasos de tamano variable
 ; no se recorre hacia atras sin guardar por donde se ha pasado. Que es esta
@@ -37,6 +45,7 @@ ANIM_FRAME      .equ 0x01
 ANIM_MOVED      .equ 0x02
 ANIM_LOOP       .equ 0x03
 ANIM_LOOP_END   .equ 0x04
+ANIM_PAINT      .equ 0x05
 
 ; --- De que estan hechos los destinos ----------------------------------------
 ; El 38 de una animacion de patrones y el 38 de una de grupos son dos cosas
@@ -44,9 +53,25 @@ ANIM_LOOP_END   .equ 0x04
 ANIM_OF_PATTERNS .equ 0x00
 ANIM_OF_GROUPS   .equ 0x01
 
-; Una animacion de patrones no trae color: los colores del banco van dentro de
-; los grupos, y un patron suelto no esta en ninguno. Aqui se pinta de uno fijo.
+; Con el que sale un patron si la tira no trae ningun 0x05. El exportador pone
+; uno siempre, asi que esto es para una tira escrita a mano.
 ANIM_PATTERN_COLOR .equ 1       ; negro
+
+; Donde va el color de un sprite, que no es el mismo sitio en las dos maquinas:
+;
+;   1 = modo 2, los 16 bytes de la tabla de color del plano (lo que pone esta ROM)
+;   0 = modo 1, el cuarto byte del atributo
+;
+; Se elige al ensamblar y no se mira en marcha. Se podria: el byte de version de
+; la Main ROM esta en 0x002D y desde un cartucho se lee directo. Pero la pregunta
+; no seria esa, porque lo que manda es el modo de sprites que el juego haya
+; puesto -un MSX2 corre en modo 1 perfectamente- y eso el juego ya lo sabe, que
+; lo ha puesto el.
+;
+; Solo manda en las animaciones de patrones. Los grupos de esta ROM son de modo 2
+; y ya: un grupo de MSX1 trae cuatro bytes por miembro en vez de diecinueve, que
+; es otro formato y no un if.
+ANIM_COLOR_TABLE .equ 1
 
 ; --- Que hacer al acabar -----------------------------------------------------
 ANIM_ONCE       .equ 0x00
@@ -88,7 +113,9 @@ ANIM_CURRENT    .equ 0xC00E     ; cual se esta ensenando
 ANIM_MADE       .equ 0xC00F     ; de que estan hechos sus destinos
 
 ANIM_STACK      .equ 0xC010     ; 3 bytes por bucle: a donde volver y vueltas
-ANIM_TIMELINE   .equ 0xC040     ; 5 por fotograma: apunta, espera, Y, X, aviso
+ANIM_INK        .equ 0xC030     ; el color que va fijando el 0x05 al resolver
+ANIM_COLOR      .equ 0xC031     ; y el del fotograma que se esta pintando
+ANIM_TIMELINE   .equ 0xC040     ; 6 por fotograma: apunta, espera, Y, X, aviso, color
 
 ;-----------------------------------------------------------------------------
 ; Deja lista la primera animacion del bloque.
@@ -139,6 +166,11 @@ AnimSelected:
                 ld (ANIM_INDEX),a
                 ld (ANIM_DEPTH),a
 
+                ; Cada animacion empieza sin color heredado: a esta se puede
+                ; haber saltado desde cualquier otra.
+                ld a,ANIM_PATTERN_COLOR
+                ld (ANIM_INK),a
+
                 ld a,(hl)               ; de que esta hecha
                 ld (ANIM_MADE),a
                 inc hl
@@ -161,7 +193,19 @@ AnimStep:
                 jr z,AnimStepLoop
                 cp ANIM_LOOP_END
                 jr z,AnimStepLoopEnd
+                cp ANIM_PAINT
+                jr z,AnimStepPaint
                 jr AnimResolved         ; el 0x00, o un byte que no se entiende
+
+; Dos bytes: el color de aqui en adelante. No es un fotograma, asi que no cuenta
+; ni ocupa sitio en la tabla; se queda apuntado y lo llevan puesto los que vengan
+; detras. En la segunda vuelta de un bucle se pasa otra vez por aqui y se vuelve
+; a fijar el mismo, que es justo lo que hace falta.
+AnimStepPaint:
+                ld a,(hl)
+                inc hl
+                ld (ANIM_INK),a
+                jr AnimStep
 
 ; Tres bytes: a que apunta y cuanto espera. Lo demas, a cero.
 AnimStepFrame:
@@ -184,6 +228,7 @@ AnimStepFrame:
                 ld (de),a               ; ni aviso
                 inc de
 
+                call AnimInk
                 call AnimCounted
                 jr AnimStep
 
@@ -200,8 +245,16 @@ AnimMovedByte:
                 inc de
                 djnz AnimMovedByte
 
+                call AnimInk
                 call AnimCounted
                 jr AnimStep
+
+; Sella el color de ahora en el fotograma recien escrito. DE queda detras.
+AnimInk:
+                ld a,(ANIM_INK)
+                ld (de),a
+                inc de
+                ret
 
 AnimStepLoop:
                 ld a,(ANIM_DEPTH)
@@ -250,11 +303,11 @@ AnimStepLoopEnd:
                 inc a
                 ld (ANIM_DEPTH),a
                 pop bc                  ; y se tira el "por donde seguir"
-                jr AnimStep
+                jp AnimStep             ; jp: desde aqui ya no alcanza un jr
 
 AnimLoopOver:
                 pop hl                  ; por donde seguir
-                jr AnimStep
+                jp AnimStep
 
 ;-----------------------------------------------------------------------------
 ; Se acabo la tira. Si es ping-pong, se pega la vuelta.
@@ -291,7 +344,7 @@ AnimMirrorNext:
                 push bc
 
                 call AnimAt             ; HL = ese fotograma
-                ld bc,5
+                ld bc,6
                 ldir                    ; a la cola, y DE queda detras solo
 
                 call AnimCounted
@@ -345,6 +398,8 @@ AnimSkipNext:
                 jr z,AnimSkipOne
                 cp ANIM_LOOP_END
                 jr z,AnimSkipNext
+                cp ANIM_PAINT
+                jr z,AnimSkipOne
                 ret                     ; el 0x00, y HL ya esta detras
 
 AnimSkipOne:
@@ -479,6 +534,10 @@ AnimShow:
                 inc hl
                 ld a,(hl)
                 ld (ANIM_OFF_X),a
+                inc hl
+                inc hl                  ; el aviso, que esta ROM no lo usa
+                ld a,(hl)
+                ld (ANIM_COLOR),a
 
                 ld a,(ANIM_MADE)
                 cp ANIM_OF_GROUPS
@@ -507,14 +566,20 @@ AnimMemberNext:
 
 ; Un patron suelto: un sprite y ya, sin miembros ni desplazamientos de grupo.
 AnimShowPattern:
-                ld hl,SPRITE_COLOR      ; los 16 bytes de color del plano 0
                 di
+
+    .if ANIM_COLOR_TABLE
+                ; En modo 2 el color de un sprite son 16 bytes, uno por linea. La
+                ; animacion trae uno solo, asi que van las 16 del mismo: el color
+                ; por linea vive en los grupos, no aqui.
+                ld hl,SPRITE_COLOR      ; los 16 bytes de color del plano 0
                 call SetVramWrite
                 ld b,16
-                ld a,ANIM_PATTERN_COLOR
+                ld a,(ANIM_COLOR)
 AnimPatternColor:
                 out (VDP_DATA),a
                 djnz AnimPatternColor
+    .endif
 
                 ld hl,SPRITE_ATTR
                 call SetVramWrite
@@ -538,7 +603,11 @@ AnimPatternColor:
                 add a,a
                 out (VDP_DATA),a
 
-                xor a
+    .if ANIM_COLOR_TABLE
+                xor a                   ; en modo 2 el color ya esta en la tabla
+    .else
+                ld a,(ANIM_COLOR)       ; y en modo 1 va aqui
+    .endif
                 out (VDP_DATA),a
                 ei
 
@@ -695,11 +764,11 @@ AnimGroupNone:
 AnimAt:
                 ld l,a
                 ld h,0
-                add hl,hl
+                add hl,hl               ; x2
+                ld c,l
+                ld b,h
                 add hl,hl               ; x4
-                ld c,a
-                ld b,0
-                add hl,bc               ; x5
+                add hl,bc               ; x6
                 ld bc,ANIM_TIMELINE
                 add hl,bc
                 ret

@@ -30,6 +30,7 @@ public class SpriteAnimationExporterTests
         Assert.Equal(
             [
                 SpriteAnimationExporter.OfPatterns, 0x00,
+                SpriteAnimationExporter.Paint, Fresh,
                 SpriteAnimationExporter.Frame, 0x03, 0x06,
                 SpriteAnimationExporter.End,
             ],
@@ -40,6 +41,7 @@ public class SpriteAnimationExporterTests
         Assert.Equal(
             [
                 SpriteAnimationExporter.OfPatterns, 0x00,
+                SpriteAnimationExporter.Paint, Fresh,
                 SpriteAnimationExporter.Frame, 0x03, 0x06,
                 SpriteAnimationExporter.MovedFrame, 0x04, 0x06, 0x00, 0x02, 0x00,
                 SpriteAnimationExporter.End,
@@ -58,10 +60,17 @@ public class SpriteAnimationExporterTests
 
         bank.Animations.Add(animation);
 
-        byte[] bytes = SpriteAnimationExporter.ToBinary(bank);
-
-        Assert.Equal(0x80, bytes[5]); // Y, que va primero como en la tabla de atributos
-        Assert.Equal(0xFF, bytes[6]); // X
+        Assert.Equal(
+            [
+                SpriteAnimationExporter.OfPatterns, 0x00,
+                SpriteAnimationExporter.Paint, Fresh,
+                SpriteAnimationExporter.MovedFrame, 0x00, 0x01,
+                0x80,   // Y, que va primero como en la tabla de atributos
+                0xFF,   // X
+                0x00,
+                SpriteAnimationExporter.End,
+            ],
+            SpriteAnimationExporter.ToBinary(bank));
     }
 
     /// <summary>
@@ -87,6 +96,7 @@ public class SpriteAnimationExporterTests
             [
                 SpriteAnimationExporter.OfPatterns, 0x00,
                 SpriteAnimationExporter.LoopStart, 200,
+                SpriteAnimationExporter.Paint, Fresh,
                 SpriteAnimationExporter.Frame, 0x01, 0x04,
                 SpriteAnimationExporter.LoopEnd,
                 SpriteAnimationExporter.End,
@@ -114,12 +124,185 @@ public class SpriteAnimationExporterTests
                 SpriteAnimationExporter.OfPatterns, 0x00,
                 SpriteAnimationExporter.LoopStart, 0x02,
                 SpriteAnimationExporter.LoopStart, 0x03,
+                SpriteAnimationExporter.Paint, Fresh,
                 SpriteAnimationExporter.Frame, 0x01, 0x01,
                 SpriteAnimationExporter.LoopEnd,
                 SpriteAnimationExporter.LoopEnd,
                 SpriteAnimationExporter.End,
             ],
             SpriteAnimationExporter.ToBinary(bank));
+    }
+
+    /// <summary>
+    /// El color se fija una vez y no en cada fotograma.
+    /// </summary>
+    /// <remarks>
+    /// Es la razón de que sea un paso aparte: un byte por fotograma se paga siempre, y esto
+    /// sólo cuando cambia. Una animación entera del mismo color son dos bytes.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_color_se_fija_una_vez_y_no_en_cada_fotograma()
+    {
+        SpriteBank bank = Painted([1, 1, 7]);
+        var animation = new SpriteAnimation("Andar");
+
+        animation.Steps.Add(new AnimationFrame { Target = 0, Wait = 1 });
+        animation.Steps.Add(new AnimationFrame { Target = 1, Wait = 1 });
+        animation.Steps.Add(new AnimationFrame { Target = 2, Wait = 1 });
+
+        bank.Animations.Add(animation);
+
+        Assert.Equal(
+            [
+                SpriteAnimationExporter.OfPatterns, 0x00,
+                SpriteAnimationExporter.Paint, 0x01,
+                SpriteAnimationExporter.Frame, 0x00, 0x01,
+                SpriteAnimationExporter.Frame, 0x01, 0x01,   // el mismo color: no se repite
+                SpriteAnimationExporter.Paint, 0x07,
+                SpriteAnimationExporter.Frame, 0x02, 0x01,
+                SpriteAnimationExporter.End,
+            ],
+            SpriteAnimationExporter.ToBinary(bank));
+    }
+
+    /// <summary>
+    /// Un bucle fija su color al entrar.
+    /// </summary>
+    /// <remarks>
+    /// Dentro de un bucle no vale con mirar lo que había antes: se entra más de una vez, y de
+    /// la segunda en adelante se entra con el color que dejó la vuelta anterior. Sin fijarlo,
+    /// un bucle que cambia de color sale bien la primera vuelta y mal todas las demás.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Un_bucle_fija_su_color_al_entrar()
+    {
+        SpriteBank bank = Painted([1, 8]);
+        var animation = new SpriteAnimation("Andar");
+        var loop = new AnimationLoop { Times = 3 };
+
+        loop.Steps.Add(new AnimationFrame { Target = 0, Wait = 1 });
+        loop.Steps.Add(new AnimationFrame { Target = 1, Wait = 1 });
+
+        animation.Steps.Add(new AnimationFrame { Target = 0, Wait = 1 });
+        animation.Steps.Add(loop);
+
+        bank.Animations.Add(animation);
+
+        Assert.Equal(
+            [
+                SpriteAnimationExporter.OfPatterns, 0x00,
+                SpriteAnimationExporter.Paint, 0x01,
+                SpriteAnimationExporter.Frame, 0x00, 0x01,
+                SpriteAnimationExporter.LoopStart, 0x03,
+                SpriteAnimationExporter.Paint, 0x01,   // otra vez: la vuelta anterior deja el 8
+                SpriteAnimationExporter.Frame, 0x00, 0x01,
+                SpriteAnimationExporter.Paint, 0x08,
+                SpriteAnimationExporter.Frame, 0x01, 0x01,
+                SpriteAnimationExporter.LoopEnd,
+                SpriteAnimationExporter.End,
+            ],
+            SpriteAnimationExporter.ToBinary(bank));
+    }
+
+    /// <summary>
+    /// Cada animación fija su color desde cero.
+    /// </summary>
+    /// <remarks>
+    /// El juego no lee la tira de corrido: salta a la animación que le pidan. Si una diera por
+    /// sabido el color de la anterior, se vería del color de la que se enseñó antes.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Cada_animacion_fija_su_color_desde_cero()
+    {
+        SpriteBank bank = Painted([4]);
+
+        foreach (string name in (string[])["Andar", "Saltar"])
+        {
+            var animation = new SpriteAnimation(name);
+
+            animation.Steps.Add(new AnimationFrame { Target = 0, Wait = 1 });
+
+            bank.Animations.Add(animation);
+        }
+
+        Assert.Equal(
+            [
+                SpriteAnimationExporter.OfPatterns, 0x00,
+                SpriteAnimationExporter.Paint, 0x04,
+                SpriteAnimationExporter.Frame, 0x00, 0x01,
+                SpriteAnimationExporter.End,
+                SpriteAnimationExporter.OfPatterns, 0x00,
+                SpriteAnimationExporter.Paint, 0x04,   // otra vez, que a esta se puede saltar
+                SpriteAnimationExporter.Frame, 0x00, 0x01,
+                SpriteAnimationExporter.End,
+            ],
+            SpriteAnimationExporter.ToBinary(bank));
+    }
+
+    /// <summary>
+    /// Una animación de grupos no lleva color.
+    /// </summary>
+    /// <remarks>
+    /// El grupo ya exporta el color de cada uno de sus sprites. Decirlo otra vez aquí sería la
+    /// misma cosa en dos sitios, con dos respuestas posibles y ninguna manera de saber cuál
+    /// manda.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Una_animacion_de_grupos_no_lleva_color()
+    {
+        SpriteBank bank = WithGroups(2);
+        var animation = new SpriteAnimation("Andar", AnimationKind.Groups);
+
+        animation.Steps.Add(new AnimationFrame { Target = 0, Wait = 1 });
+
+        bank.Animations.Add(animation);
+
+        Assert.DoesNotContain(
+            SpriteAnimationExporter.Paint, SpriteAnimationExporter.ToBinary(bank));
+    }
+
+    /// <summary>
+    /// De un patrón de varios colores sale el de su primera línea.
+    /// </summary>
+    /// <remarks>
+    /// En MSX2 un patrón puede llevar 16 colores, uno por línea, y en un byte no caben. El
+    /// color por línea se queda en los grupos, que es donde se edita; aquí se exporta el
+    /// primero y el juego pinta con él las 16.
+    /// </remarks>
+    [AvaloniaFact]
+    public void De_un_patron_de_varios_colores_sale_el_de_la_primera_linea()
+    {
+        SpriteBank bank = Painted([6]);
+        var animation = new SpriteAnimation("Andar");
+
+        bank.SpritesList[0].ArraySpriteRows[9].Color = 11;
+
+        animation.Steps.Add(new AnimationFrame { Target = 0, Wait = 1 });
+
+        bank.Animations.Add(animation);
+
+        Assert.Equal(
+            [
+                SpriteAnimationExporter.OfPatterns, 0x00,
+                SpriteAnimationExporter.Paint, 0x06,
+                SpriteAnimationExporter.Frame, 0x00, 0x01,
+                SpriteAnimationExporter.End,
+            ],
+            SpriteAnimationExporter.ToBinary(bank));
+    }
+
+    /// <summary>Un banco con los primeros patrones de los colores que se le digan.</summary>
+    private static SpriteBank Painted(int[] colors)
+    {
+        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho");
+
+        for (int at = 0; at < colors.Length; at++)
+        {
+            foreach (SpriteRow row in bank.SpritesList[at].ArraySpriteRows)
+                row.Color = colors[at];
+        }
+
+        return bank;
     }
 
     /// <summary>Lo que hacer al acabar va en la cabecera de cada animación.</summary>
@@ -261,6 +444,15 @@ public class SpriteAnimationExporterTests
         Assert.Contains("bicho_malo_animation_1:", text);
         Assert.Contains("bicho_malo_animations_end:", text);
     }
+
+    /// <summary>
+    /// El color de un patrón sin tocar, que es con el que nace cada línea.
+    /// </summary>
+    /// <remarks>
+    /// Sale en la tira aunque nadie haya elegido nada: es el color que enseña la vista previa,
+    /// y no exportarlo era justamente el fallo.
+    /// </remarks>
+    private const byte Fresh = 15;
 
     private static SpriteBank WithGroups(int many)
     {

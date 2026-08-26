@@ -24,6 +24,19 @@ namespace MSX_GameTools.Services;
 /// tantos, y además se puede preguntar antes con <see cref="MissingGroups"/>.
 /// </para>
 /// <para>
+/// <b>El color va en un paso aparte y no dentro del fotograma.</b> Sólo lo llevan las
+/// animaciones de patrones: un grupo ya exporta el color de cada uno de sus sprites, y
+/// repetirlo aquí sería decir dos veces lo mismo con dos respuestas posibles. Aparte se paga
+/// sólo cuando cambia, en vez de un byte en cada fotograma, y no multiplica los casos: ya hay
+/// fotograma quieto y desplazado, y metiendo el color dentro serían cuatro.
+/// </para>
+/// <para>
+/// Es un byte —el índice de color— y vale para las dos máquinas: en MSX1 va al cuarto byte del
+/// atributo, y en MSX2 el juego rellena con él los 16 de la tabla de color del plano. Lo que no
+/// sale es el color <em>por línea</em> de MSX2: de un patrón se exporta el de su primera línea,
+/// porque el color por línea vive en los grupos, que es donde se puede editar.
+/// </para>
+/// <para>
 /// <b>No hay cuenta de animaciones</b>, igual que en los grupos: se recorre de
 /// <c>_animations</c> a <c>_animations_end</c> y cada una acaba en su <see cref="End"/>.
 /// </para>
@@ -44,6 +57,9 @@ public static class SpriteAnimationExporter
 
     /// <summary>Ahí acaba el bucle.</summary>
     public const byte LoopEnd = 0x04;
+
+    /// <summary>El color de los sprites de aquí en adelante.</summary>
+    public const byte Paint = 0x05;
 
     /// <summary>Un grupo que ya no está. No es el sitio de ninguno: no caben tantos.</summary>
     public const byte NoGroup = 0xFF;
@@ -93,7 +109,7 @@ public static class SpriteAnimationExporter
             bytes.Add(MadeOf(animation.Kind));
             bytes.Add(EndingOf(animation.Mode));
 
-            Emit(bytes, bank, animation, animation.Steps);
+            Emit(bytes, bank, animation, animation.Steps, new Painter());
 
             bytes.Add(End);
         }
@@ -115,6 +131,7 @@ public static class SpriteAnimationExporter
         text.AppendLine(";   0x02, target, wait, offset Y, offset X, event  the same, but moved");
         text.AppendLine(";   0x03, times                                    start of a loop");
         text.AppendLine(";   0x04                                           end of a loop");
+        text.AppendLine(";   0x05, colour                                   the colour from here on");
         text.AppendLine(";   0x00                                           end of the animation");
         text.AppendLine("; Waits are in interrupts and are never zero.");
         text.AppendLine("; Offsets are two's complement and absolute: each one replaces the one");
@@ -123,6 +140,11 @@ public static class SpriteAnimationExporter
         text.AppendLine($"; table - not the number shown in the editor. {Hex(NoGroup)} is a group that is gone.");
         text.AppendLine("; Pattern numbers are NOT multiplied by 4: a bank can hold more than 64, and");
         text.AppendLine("; then the number for the attribute table would not fit in a byte.");
+        text.AppendLine("; Only animations made of patterns carry a colour: a group already exports the");
+        text.AppendLine("; colour of each of its sprites. It is set before the first frame and then only");
+        text.AppendLine("; when it changes, and it holds until the next 0x05. In sprite mode 1 it goes in");
+        text.AppendLine("; the fourth byte of the attribute; in mode 2, fill the 16 colour bytes of the");
+        text.AppendLine("; plane with it. It is a colour index: EC, CC and IC are the game's business.");
         text.AppendLine("; Loops can nest. There is no animation count: walk from");
         text.AppendLine($"; {label}_animations to {label}_animations_end.");
         text.AppendLine();
@@ -139,7 +161,7 @@ public static class SpriteAnimationExporter
             Line(text, 1, [MadeOf(animation.Kind)], made);
             Line(text, 1, [EndingOf(animation.Mode)], Ending(animation.Mode));
 
-            Write(text, bank, animation, animation.Steps, 1);
+            Write(text, bank, animation, animation.Steps, 1, new Painter());
 
             Line(text, 1, [End], "end");
         }
@@ -209,13 +231,20 @@ public static class SpriteAnimationExporter
         List<byte> bytes,
         SpriteBank bank,
         SpriteAnimation animation,
-        IEnumerable<AnimationStep> steps)
+        IEnumerable<AnimationStep> steps,
+        Painter painter)
     {
         foreach (AnimationStep step in steps)
         {
             switch (step)
             {
                 case AnimationFrame frame:
+                    if (painter.Before(bank, animation, frame) is { } color)
+                    {
+                        bytes.Add(Paint);
+                        bytes.Add((byte)color);
+                    }
+
                     bytes.AddRange(BytesOf(bank, animation, frame));
                     break;
 
@@ -223,7 +252,9 @@ public static class SpriteAnimationExporter
                     bytes.Add(LoopStart);
                     bytes.Add((byte)loop.Times);
 
-                    Emit(bytes, bank, animation, loop.Steps);
+                    painter.EnterLoop();
+
+                    Emit(bytes, bank, animation, loop.Steps, painter);
 
                     bytes.Add(LoopEnd);
                     break;
@@ -236,7 +267,8 @@ public static class SpriteAnimationExporter
         SpriteBank bank,
         SpriteAnimation animation,
         IEnumerable<AnimationStep> steps,
-        int depth)
+        int depth,
+        Painter painter)
     {
         string indent = new(' ', 4 * depth);
 
@@ -246,6 +278,9 @@ public static class SpriteAnimationExporter
             {
                 case AnimationFrame frame:
                     string what = animation.Kind == AnimationKind.Groups ? "group" : "pattern";
+
+                    if (painter.Before(bank, animation, frame) is { } color)
+                        Line(text, depth, [Paint, (byte)color], $"colour {color}");
 
                     Line(
                         text,
@@ -258,12 +293,78 @@ public static class SpriteAnimationExporter
                 case AnimationLoop loop:
                     Line(text, depth, [LoopStart, (byte)loop.Times], $"loop x{loop.Times}");
 
-                    Write(text, bank, animation, loop.Steps, depth + 1);
+                    painter.EnterLoop();
+
+                    Write(text, bank, animation, loop.Steps, depth + 1, painter);
 
                     Line(text, depth, [LoopEnd], "end of the loop");
                     break;
             }
         }
+    }
+
+    /// <summary>
+    /// El color que llevan puestos los sprites según se va leyendo la tira.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Se sigue el orden de los bytes, que es como la lee quien la recorre, y no el del juego.
+    /// </para>
+    /// <para>
+    /// Empieza sin ninguno, así que toda animación de patrones fija el suyo antes del primer
+    /// fotograma: cuesta dos bytes una vez y a cambio ninguna hereda el color de la anterior,
+    /// que a una animación se le puede saltar desde cualquier otra.
+    /// </para>
+    /// <para>
+    /// <b>Y un bucle entra igual, sin ninguno.</b> Dentro de un bucle no vale con mirar lo que
+    /// había antes: se entra más de una vez, y de la segunda en adelante se entra con el color
+    /// que dejó la vuelta anterior. Sin esto, un bucle que cambia de color sale bien la primera
+    /// vuelta y mal todas las demás. Cuesta dos bytes por bucle, que se pagan una vez y no en
+    /// cada vuelta.
+    /// </para>
+    /// </remarks>
+    private sealed class Painter
+    {
+        private int _last = Unknown;
+
+        private const int Unknown = -1;
+
+        /// <summary>El color que hay que fijar antes de este fotograma, si hay que fijar alguno.</summary>
+        public int? Before(SpriteBank bank, SpriteAnimation animation, AnimationFrame frame)
+        {
+            if (ColorOf(bank, animation, frame.Target) is not { } color || color == _last)
+                return null;
+
+            _last = color;
+
+            return color;
+        }
+
+        /// <inheritdoc cref="Painter"/>
+        public void EnterLoop() => _last = Unknown;
+    }
+
+    /// <summary>
+    /// El color con el que se pinta un fotograma, o <c>null</c> si no lleva ninguno.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// El de la primera línea del patrón. En un banco MSX1 las 16 van del mismo color y no hay
+    /// más que contar; en uno MSX2 un patrón puede llevar 16 y aquí sale sólo el de la primera,
+    /// que es lo que cabe en un byte. El color por línea se queda en los grupos.
+    /// </para>
+    /// <para>
+    /// Las animaciones de grupos no llevan: el grupo ya exporta el color de cada sprite suyo.
+    /// </para>
+    /// </remarks>
+    private static int? ColorOf(SpriteBank bank, SpriteAnimation animation, int target)
+    {
+        if (animation.Kind == AnimationKind.Groups)
+            return null;
+
+        return target >= 0 && target < bank.SpritesList.Count
+            ? bank.SpritesList[target].ArraySpriteRows[0].Color
+            : null;
     }
 
     /// <summary>
