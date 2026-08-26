@@ -79,39 +79,86 @@ public sealed class MapStitcher
     /// </remarks>
     public static Shift? Between(int[,] before, int[,] after, int reach = Reach)
     {
-        int columns = before.GetLength(0);
-        int rows = before.GetLength(1);
-
-        if (columns != after.GetLength(0) || rows != after.GetLength(1))
+        if (!SameSize(before, after))
             return null;
 
         // De menos movimiento a mas, para que empatando gane quedarse quieto.
         foreach ((int dc, int dr) in Candidates(reach))
         {
-            int overlap = (columns - Math.Abs(dc)) * (rows - Math.Abs(dr));
-
-            if (overlap < LeastOverlap * columns * rows)
-                continue;
-
-            int same = 0;
-
-            for (int column = Math.Max(0, -dc); column < Math.Min(columns, columns - dc); column++)
-            {
-                for (int row = Math.Max(0, -dr); row < Math.Min(rows, rows - dr); row++)
-                {
-                    if (after[column, row] == before[column + dc, row + dr])
-                        same++;
-                }
-            }
-
-            double match = (double)same / overlap;
-
-            if (match >= LeastMatch)
+            if (Match(before, after, dc, dr) is { } match && match >= LeastMatch)
                 return new Shift(dc, dr, match);
         }
 
         return null;
     }
+
+    /// <summary>
+    /// El desplazamiento que mejor encaja sin contar quedarse quieto.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// No es lo mismo que <see cref="Between"/> y no sirve para coser: aquí no hay listón, se
+    /// devuelve el mejor de todos aunque encaje mal. Es para preguntarle a un par de pantallas
+    /// <em>si la cámara se movió, hacia dónde fue</em>, que es una pregunta que se puede
+    /// contestar aunque media pantalla sea marcador y el encaje no llegue al listón.
+    /// </para>
+    /// <para>
+    /// Quedarse quieto queda fuera a propósito: es la respuesta que siempre gana cuando la
+    /// pantalla apenas ha cambiado, y justamente esos pares son los que no dicen nada.
+    /// </para>
+    /// </remarks>
+    public static Shift? Travelled(int[,] before, int[,] after, int reach = Reach)
+    {
+        if (!SameSize(before, after))
+            return null;
+
+        Shift? best = null;
+
+        // El mismo orden que Between: empatando gana el que menos se mueve.
+        foreach ((int dc, int dr) in Candidates(reach))
+        {
+            if (dc == 0 && dr == 0)
+                continue;
+
+            if (Match(before, after, dc, dr) is not { } match)
+                continue;
+
+            if (best is null || match > best.Match)
+                best = new Shift(dc, dr, match);
+        }
+
+        return best;
+    }
+
+    /// <summary>
+    /// Qué parte del solape coincide con ese desplazamiento, o <c>null</c> si solapan poco.
+    /// </summary>
+    public static double? Match(int[,] before, int[,] after, int dc, int dr)
+    {
+        int columns = before.GetLength(0);
+        int rows = before.GetLength(1);
+
+        int overlap = (columns - Math.Abs(dc)) * (rows - Math.Abs(dr));
+
+        if (overlap < LeastOverlap * columns * rows)
+            return null;
+
+        int same = 0;
+
+        for (int column = Math.Max(0, -dc); column < Math.Min(columns, columns - dc); column++)
+        {
+            for (int row = Math.Max(0, -dr); row < Math.Min(rows, rows - dr); row++)
+            {
+                if (after[column, row] == before[column + dc, row + dr])
+                    same++;
+            }
+        }
+
+        return (double)same / overlap;
+    }
+
+    private static bool SameSize(int[,] before, int[,] after) =>
+        before.GetLength(0) == after.GetLength(0) && before.GetLength(1) == after.GetLength(1);
 
     /// <summary>
     /// Pega una pantalla. Devuelve <c>false</c> si no encaja con la anterior.

@@ -159,18 +159,44 @@ public static class MapCapture
     /// cuál es cuál se ve abriéndolos, que es más rápido que cualquier nombre que me invente.
     /// </remarks>
     /// <summary>
-    /// La zona que parece mapa, mirando qué se mueve y qué se queda quieto.
+    /// Lo quieta que hay que estar para dar una línea por marcador.
+    /// </summary>
+    /// <remarks>
+    /// No es <c>1.0</c> porque los marcadores llevan números que suben: la fila de los dígitos
+    /// cambia una o dos celdas de treinta y dos cada vez, y sigue siendo marcador.
+    /// </remarks>
+    public const double LeastStill = 0.90;
+
+    /// <summary>
+    /// La zona que parece mapa, mirando qué se mueve con la cámara y qué se queda clavado.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Una franja de marcador se delata sola: mientras el juego scrollea, sus filas siguen
-    /// siendo las mismas de una captura a la siguiente, y las del terreno cambian casi todas
-    /// las veces. Así que se mira, fila por fila y columna por columna, cuántas veces se quedó
-    /// igual, y se propone el trozo grande que sí se mueve.
+    /// La primera versión miraba <em>cuánto cambia</em> cada línea y daba por marcador las que
+    /// menos cambian. Estaba mal, y con Knightmare se veía: proponía nueve celdas de una fila,
+    /// que eran justo los dígitos de la puntuación. El marcador cambia <b>más</b> que el
+    /// terreno, no menos —la puntuación sube a cada fotograma y el terreno sólo cambia cuando
+    /// entra una fila de tiles entera—, así que ese criterio elegía precisamente lo peor.
     /// </para>
     /// <para>
-    /// Es una propuesta, no una certeza: un juego con un trozo de cielo raso que nunca cambia
-    /// lo daría por marcador. Por eso se enseña en el formulario y se puede corregir.
+    /// Lo que de verdad separa una cosa de la otra no es cuánto cambia una línea, sino si se
+    /// mueve con la cámara. Así que por cada par de pantallas se busca hacia dónde fue la
+    /// cámara, y después se le pregunta a cada fila y a cada columna si se parece más a lo que
+    /// había <em>desplazado</em> o a lo que había <em>en el mismo sitio</em>. El terreno se
+    /// parece a lo desplazado; el marcador, a lo de su sitio.
+    /// </para>
+    /// <para>
+    /// Los pares en los que la cámara no se movió se tiran: ahí todo se parece a lo de su
+    /// sitio, marcador y terreno, y contarlos sería dar por marcador la pantalla entera. Y
+    /// cada eje sólo cuenta cuando la cámara se movió en ese eje, que en un juego de scroll
+    /// vertical ninguna columna se mueve de sitio y preguntárselo sale que todas están
+    /// quietas.
+    /// </para>
+    /// <para>
+    /// Es una propuesta, no una certeza: una franja de cielo raso que nunca cambia se parece a
+    /// las dos cosas por igual, y en el empate gana quedarse fuera, que colar el marcador
+    /// estropea el mapa entero y perder una fila rasa no. Por eso se enseña en el formulario y
+    /// se puede corregir.
     /// </para>
     /// </remarks>
     public static Region Suggest(Capture capture)
@@ -178,69 +204,154 @@ public static class MapCapture
         if (capture.Screens.Count < 2)
             return Region.Whole(capture);
 
-        (int first, int count) columns = Moving(capture, byColumn: true);
-        (int first, int count) rows = Moving(capture, byColumn: false);
-
-        return new Region(columns.first, rows.first, columns.count, rows.count);
-    }
-
-    /// <summary>El trozo seguido más grande que cambia de una captura a la siguiente.</summary>
-    private static (int First, int Count) Moving(Capture capture, bool byColumn)
-    {
-        int many = byColumn ? capture.Columns : capture.Rows;
-        int across = byColumn ? capture.Rows : capture.Columns;
-
-        var still = new int[many];
+        var columns = new Votes(capture.Columns);
+        var rows = new Votes(capture.Rows);
 
         for (int screen = 1; screen < capture.Screens.Count; screen++)
         {
             int[,] before = capture.Screens[screen - 1].Cells;
             int[,] after = capture.Screens[screen].Cells;
 
-            for (int line = 0; line < many; line++)
+            if (MapStitcher.Travelled(before, after) is not { } shift)
+                continue;
+
+            // Un par en el que la camara no se movio no dice nada de nadie.
+            if (MapStitcher.Match(before, after, 0, 0) is { } still && still >= shift.Match)
+                continue;
+
+            // Cada eje solo se puede juzgar si la camara se movio en ese eje: con un scroll
+            // vertical no hay manera de saber si una columna se mueve, porque ninguna se ha
+            // movido de sitio. Preguntarselo igual da que todas estan quietas y recorta el
+            // ancho entero.
+            if (shift.Columns != 0)
             {
-                bool same = true;
+                columns.Seen++;
 
-                for (int at = 0; at < across && same; at++)
-                {
-                    same = byColumn
-                        ? before[line, at] == after[line, at]
-                        : before[at, line] == after[at, line];
-                }
+                Vote(before, after, shift, byColumn: true, columns);
+            }
 
-                if (same)
-                    still[line]++;
+            if (shift.Rows != 0)
+            {
+                rows.Seen++;
+
+                Vote(before, after, shift, byColumn: false, rows);
             }
         }
 
-        int pairs = capture.Screens.Count - 1;
-        int bestFirst = 0;
-        int best = 0;
-        int runFirst = 0;
-        int run = 0;
+        (int first, int count) wide = columns.Band();
+        (int first, int count) high = rows.Band();
+
+        return new Region(wide.first, high.first, wide.count, high.count);
+    }
+
+    /// <summary>Cuántas veces se quedó clavada cada línea, de las veces que se pudo mirar.</summary>
+    private sealed class Votes(int lines)
+    {
+        public int[] Stills { get; } = new int[lines];
+
+        /// <summary>Los pares de pantallas en los que la cámara se movió, que son los que valen.</summary>
+        public int Seen { get; set; }
+
+        /// <summary>
+        /// El trozo seguido más grande que no se ha ganado la fama de marcador.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Por mayoría y no por un voto suelto. La fila por donde entra el scroll no tiene de
+        /// dónde venir, así que nunca puede votar que se mueve: sus únicos votos posibles son
+        /// los de quedarse quieta, y con dos casualidades de doscientas la primera versión daba
+        /// la fila de arriba de Knightmare por marcador y recortaba terreno bueno.
+        /// </para>
+        /// <para>
+        /// Marcador es lo que se queda clavado <b>la mayoría</b> de las veces que la cámara se
+        /// movió. Una línea que no se pudo mirar nunca cuenta como terreno.
+        /// </para>
+        /// </remarks>
+        public (int First, int Count) Band()
+        {
+            int bestFirst = 0;
+            int best = 0;
+            int runFirst = 0;
+            int run = 0;
+
+            for (int line = 0; line < Stills.Length; line++)
+            {
+                if (Stills[line] * 2 <= Seen)
+                {
+                    if (run++ == 0)
+                        runFirst = line;
+
+                    if (run > best)
+                    {
+                        best = run;
+                        bestFirst = runFirst;
+                    }
+                }
+                else
+                {
+                    run = 0;
+                }
+            }
+
+            return best == 0 ? (0, Stills.Length) : (bestFirst, best);
+        }
+    }
+
+    /// <summary>Le pregunta a cada línea si se parece más a lo desplazado o a lo de su sitio.</summary>
+    private static void Vote(
+        int[,] before, int[,] after, MapStitcher.Shift shift, bool byColumn, Votes votes)
+    {
+        int columns = before.GetLength(0);
+        int rows = before.GetLength(1);
+
+        int many = byColumn ? columns : rows;
+        int across = byColumn ? rows : columns;
 
         for (int line = 0; line < many; line++)
         {
-            // La mitad de las veces: una linea de terreno cambia casi siempre, y una de
-            // marcador casi nunca. Lo que caiga en medio no se sabe y no se recorta.
-            if (still[line] * 2 < pairs)
-            {
-                if (run++ == 0)
-                    runFirst = line;
+            int moved = 0;
+            int still = 0;
+            int counted = 0;
 
-                if (run > best)
-                {
-                    best = run;
-                    bestFirst = runFirst;
-                }
-            }
-            else
+            for (int at = 0; at < across; at++)
             {
-                run = 0;
+                int column = byColumn ? line : at;
+                int row = byColumn ? at : line;
+
+                if (after[column, row] == before[column, row])
+                    still++;
+
+                int fromColumn = column + shift.Columns;
+                int fromRow = row + shift.Rows;
+
+                if (fromColumn < 0 || fromColumn >= columns || fromRow < 0 || fromRow >= rows)
+                    continue;
+
+                counted++;
+
+                if (after[column, row] == before[fromColumn, fromRow])
+                    moved++;
             }
+
+            double stillRate = (double)still / across;
+
+            // La linea del borde por donde entra el scroll no tiene de donde venir, asi que
+            // no se le puede preguntar si se movio. Ahi solo se la condena si es identica: un
+            // cielo raso se queda casi igual al scrollear sin ser marcador, y con el liston de
+            // las demas se recortaria la fila de arriba de medio catalogo.
+            if (counted == 0)
+            {
+                if (still == across)
+                    votes.Stills[line]++;
+
+                continue;
+            }
+
+            // Parecerse mas a lo desplazado que a lo de su sitio la salva aunque este quieta:
+            // una franja de un solo tile se parece a las dos cosas y no delata a nadie.
+            if ((double)moved / counted <= stillRate && stillRate >= LeastStill)
+                votes.Stills[line]++;
         }
-
-        return best == 0 ? (0, many) : (bestFirst, best);
     }
 
     public static IReadOnlyList<TileMap> Stitch(Capture capture, string name, Region? region = null)

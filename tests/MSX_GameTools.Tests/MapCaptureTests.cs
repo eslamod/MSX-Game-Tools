@@ -163,10 +163,10 @@ public class MapCaptureTests
         }
     }
 
-    /// <summary>Y la zona se propone sola, mirando qué se mueve.</summary>
+    /// <summary>Y la zona se propone sola, mirando qué se mueve con la cámara.</summary>
     /// <remarks>
-    /// El marcador se delata porque sus filas siguen siendo las mismas de una captura a la
-    /// siguiente mientras las del terreno cambian.
+    /// El marcador se delata porque se queda clavado en su sitio mientras el terreno se
+    /// desplaza: no porque cambie más o menos.
     /// </remarks>
     [Fact]
     public void La_zona_del_mapa_se_propone_sola()
@@ -174,9 +174,162 @@ public class MapCaptureTests
         MapCapture.Region region =
             MapCapture.Suggest(MapCapture.Read(Written(Falling(4))));
 
-        Assert.Equal(0, region.Top);
-        Assert.Equal(Rows - Marker, region.Rows);
-        Assert.Equal(Columns, region.Columns);
+        Assert.Equal(new MapCapture.Region(0, 0, Columns, Rows - Marker), region);
+    }
+
+    /// <summary>
+    /// Una partida de verdad tampoco la engaña.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Las tres trampas juntas, que son las que tenía la captura de Knightmare y las que se
+    /// llevaron por delante la primera versión de la propuesta.
+    /// </para>
+    /// <para>
+    /// <b>La puntuación sube todo el rato.</b> El marcador cambia más que el terreno, no
+    /// menos: la primera versión buscaba las líneas que más cambian y proponía nueve celdas de
+    /// una fila, que eran justo los dígitos.
+    /// </para>
+    /// <para>
+    /// <b>La mayoría de los pares están quietos.</b> Se capturó más a menudo de lo que el
+    /// juego scrollea, así que en más de la mitad de los pares la cámara no se movió. Contando
+    /// esos, todo parece marcador.
+    /// </para>
+    /// <para>
+    /// <b>La fila por donde entra el scroll no tiene de dónde venir</b>, así que nunca puede
+    /// votar que se mueve. Como además el mundo tiene dos filas iguales, alguna vez parece
+    /// quieta de casualidad, y eso bastaba para recortar terreno bueno.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void Una_puntuacion_que_sube_no_pasa_por_terreno()
+    {
+        MapCapture.Region region = MapCapture.Suggest(MapCapture.Read(Written(Climbing())));
+
+        Assert.Equal(new MapCapture.Region(0, 0, Columns, Rows - Marker), region);
+    }
+
+    /// <summary>
+    /// Un cielo raso no pasa por marcador aunque apenas cambie.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Es la diferencia entre cambiar y moverse. Una franja casi vacía —un cielo con una
+    /// estrella— se queda casi igual de una captura a la siguiente, así que por lo poco que
+    /// cambia parecería marcador; pero se parece todavía más a lo desplazado que a lo de su
+    /// sitio, y eso la salva.
+    /// </para>
+    /// <para>
+    /// Sin mirarlo, un juego con mucho cielo perdería medio mapa.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void Un_cielo_raso_no_pasa_por_marcador()
+    {
+        MapCapture.Region region = MapCapture.Suggest(MapCapture.Read(Written(Sky())));
+
+        Assert.Equal(new MapCapture.Region(0, 0, Wide, Rows - 1), region);
+    }
+
+    /// <summary>Lo ancha que es la pantalla del cielo, que con ocho columnas no da la talla.</summary>
+    /// <remarks>
+    /// Con ocho, una estrella que se mueve ya es la octava parte de la fila y la deja por
+    /// debajo del listón de quedarse quieta. Un marcador de verdad son treinta y dos.
+    /// </remarks>
+    private const int Wide = 32;
+
+    /// <summary>
+    /// Un mundo de cielo raso: todo la misma celda menos tres estrellas.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Una estrella por fila, cambiando de columna, para que entre dos filas seguidas se muevan
+    /// dos celdas de treinta y dos: lo justo para que la fila siga pareciendo quieta y aun así
+    /// se sepa cuál es cuál.
+    /// </para>
+    /// <para>
+    /// Y en columnas distintas para que las columnas tampoco sean degeneradas: en un cielo con
+    /// las estrellas siempre en el mismo sitio, las columnas vacías no cambian jamás y son
+    /// marcador con todas las de la ley.
+    /// </para>
+    /// </remarks>
+    private static (long Stamp, int[,] Cells)[] Sky()
+    {
+        const int travel = 6;
+        const int empty = 1;
+
+        var world = new int[Wide, Rows + travel];
+
+        for (int row = 0; row < Rows + travel; row++)
+        {
+            for (int column = 0; column < Wide; column++)
+                world[column, row] = empty;
+
+            world[row * 7 % Wide, row] = 300 + row;
+        }
+
+        // Un marcador de una fila y no de dos: con dos, un cielo encaja mejor quedandose
+        // quieto que desplazandose, y entonces el par entero se tira por no decir nada.
+        return [.. Enumerable.Range(0, travel + 1).Select(step =>
+        {
+            int at = travel - step;
+            var screen = new int[Wide, Rows];
+
+            for (int column = 0; column < Wide; column++)
+            {
+                for (int row = 0; row < Rows - 1; row++)
+                    screen[column, row] = world[column, at + row];
+
+                screen[column, Rows - 1] = Labels + column;
+            }
+
+            return ((long)1, screen);
+        })];
+    }
+
+    /// <summary>
+    /// La cámara subiendo por un mundo, como Knightmare.
+    /// </summary>
+    /// <remarks>
+    /// El terreno entra por arriba, el marcador se queda abajo con la puntuación subiendo, y
+    /// por cada posición se capturan dos pantallas: en la segunda sólo sube el marcador.
+    /// </remarks>
+    private static (long Stamp, int[,] Cells)[] Climbing()
+    {
+        const int travel = 8;
+
+        int[,] world = World(Columns, Rows + travel);
+
+        // Dos filas del mundo iguales: al pasar por ahi, la fila de arriba de la pantalla se
+        // repite y parece quieta sin serlo.
+        for (int column = 0; column < Columns; column++)
+            world[column, 3] = world[column, 4];
+
+        var screens = new List<(long, int[,])>();
+        int score = 0;
+
+        for (int at = travel; at >= 0; at--)
+        {
+            for (int twice = 0; twice < 2; twice++)
+            {
+                var screen = new int[Columns, Rows];
+
+                for (int column = 0; column < Columns; column++)
+                {
+                    for (int row = 0; row < Rows - Marker; row++)
+                        screen[column, row] = world[column, at + row];
+
+                    screen[column, Rows - 2] = Labels + column;
+                    screen[column, Rows - 1] = Values + column;
+                }
+
+                screen[0, Rows - 1] = 900 + score++;
+
+                screens.Add((1, screen));
+            }
+        }
+
+        return [.. screens];
     }
 
     /// <summary>Las dos filas de marcador de abajo: los rotulos y los numeros.</summary>
@@ -245,11 +398,14 @@ public class MapCaptureTests
     /// <summary>El mismo formato que escribe el script.</summary>
     private static string Written((long Stamp, int[,] Cells)[] screens)
     {
+        int columns = screens[0].Cells.GetLength(0);
+        int rows = screens[0].Cells.GetLength(1);
+
         var text = new System.Text.StringBuilder();
 
         text.AppendLine("msxmap 1");
-        text.AppendLine($"columns {Columns}");
-        text.AppendLine($"rows {Rows}");
+        text.AppendLine($"columns {columns}");
+        text.AppendLine($"rows {rows}");
         text.AppendLine("mode 2");
         text.AppendLine("names 6144");
         text.AppendLine("patterns 0");
@@ -260,9 +416,9 @@ public class MapCaptureTests
         {
             var numbers = new List<string> { stamp.ToString() };
 
-            for (int row = 0; row < Rows; row++)
+            for (int row = 0; row < rows; row++)
             {
-                for (int column = 0; column < Columns; column++)
+                for (int column = 0; column < columns; column++)
                     numbers.Add(cells[column, row].ToString());
             }
 
