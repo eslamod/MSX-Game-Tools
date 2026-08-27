@@ -139,7 +139,8 @@ tiles and blocks along the bottom to pick what to paint with.
 
 Clone with `git clone --recurse-submodules` (or run `git submodule update --init`
 afterwards): `tools/sass-MSX` is a submodule with the cross-assembler the test
-ROMs are built with. The application itself does not need it.
+ROMs are built with (`dotnet build tools/sass-MSX`, same SDK as the editor). The
+application itself does not need it.
 
 ```bash
 dotnet run

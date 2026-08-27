@@ -143,7 +143,8 @@ tira de tiles y bloques abajo para coger con qué pintar.
 
 Clona con `git clone --recurse-submodules` (o ejecuta `git submodule update --init`
 después): `tools/sass-MSX` es un submódulo con el ensamblador cruzado con el que se
-montan las ROMs de prueba. El programa en sí no lo necesita.
+montan las ROMs de prueba (`dotnet build tools/sass-MSX`, el mismo SDK que el
+editor). El programa en sí no lo necesita.
 
 ```bash
 dotnet run

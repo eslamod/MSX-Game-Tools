@@ -32,14 +32,17 @@ El ensamblador `sasSX` es el submódulo `tools/sass-MSX` (el fork MSX de
 git submodule update --init tools/sass-MSX
 ```
 
-o clonar de entrada con `git clone --recurse-submodules`. Para compilarlo, desde
-`tools/sass-MSX/` hacer `make` en Linux/macOS —necesita `mono` y `xbuild`, del
-paquete `mono-devel`— o `msbuild` en Windows. Sale
-`tools/sass-MSX/sass/bin/Debug/sasSX.exe`.
+o clonar de entrada con `git clone --recurse-submodules`. El submódulo sigue la
+rama `net10`, que es un proyecto SDK-style: se compila con el mismo `.NET` SDK
+que el editor, sin Mono ni nada más:
 
-En los ejemplos de abajo, `sasSX.exe` es ese fichero. En Linux/macOS se invoca
-`mono tools/sass-MSX/sass/bin/Debug/sasSX.exe ...`; lo cómodo es ponerlo en el
-`PATH` o hacerse un alias.
+```bash
+dotnet build tools/sass-MSX -c Release
+```
+
+Sale `tools/sass-MSX/sass/bin/Release/sasSX.exe`. En los ejemplos de abajo,
+`sasSX.exe` es ese fichero; lo cómodo es ponerlo en el `PATH` o hacerse un alias.
+También vale `dotnet run --project tools/sass-MSX/sass -- sprites_test.asm ...`.
 
 ```bash
 sasSX.exe sprites_test.asm --output sprites_test.rom
