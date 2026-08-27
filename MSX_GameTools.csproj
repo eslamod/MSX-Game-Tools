@@ -13,13 +13,14 @@
   </PropertyGroup>
 
   <!-- Este proyecto vive en la raiz del repositorio, asi que sus globs por defecto
-       (**/*.cs, **/*.axaml) se tragarian los ficheros del proyecto de tests. -->
+       (**/*.cs, **/*.axaml) se tragarian los ficheros del proyecto de tests y los del
+       submodulo tools/sass-MSX (el ensamblador de las ROMs de prueba, C# tambien). -->
   <ItemGroup>
-    <Compile Remove="tests/**" />
-    <None Remove="tests/**" />
-    <EmbeddedResource Remove="tests/**" />
-    <AvaloniaXaml Remove="tests/**" />
-    <AvaloniaResource Remove="tests/**" />
+    <Compile Remove="tests/**;tools/**" />
+    <None Remove="tests/**;tools/**" />
+    <EmbeddedResource Remove="tests/**;tools/**" />
+    <AvaloniaXaml Remove="tests/**;tools/**" />
+    <AvaloniaResource Remove="tests/**;tools/**" />
   </ItemGroup>
 
   <ItemGroup>

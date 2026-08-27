@@ -25,6 +25,22 @@ y el verde en el segundo.
 
 ## Ensamblar
 
+El ensamblador `sasSX` es el submódulo `tools/sass-MSX` (el fork MSX de
+*SirCmpwn's Assembler*). Tras clonar el repo:
+
+```bash
+git submodule update --init tools/sass-MSX
+```
+
+o clonar de entrada con `git clone --recurse-submodules`. Para compilarlo, desde
+`tools/sass-MSX/` hacer `make` en Linux/macOS —necesita `mono` y `xbuild`, del
+paquete `mono-devel`— o `msbuild` en Windows. Sale
+`tools/sass-MSX/sass/bin/Debug/sasSX.exe`.
+
+En los ejemplos de abajo, `sasSX.exe` es ese fichero. En Linux/macOS se invoca
+`mono tools/sass-MSX/sass/bin/Debug/sasSX.exe ...`; lo cómodo es ponerlo en el
+`PATH` o hacerse un alias.
+
 ```bash
 sasSX.exe sprites_test.asm --output sprites_test.rom
 ```
