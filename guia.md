@@ -105,42 +105,47 @@ git push -u origin mi-cambio
 ```
 
 Abres el PR en `Libertium/sass-MSX` como cualquier otro. Cuando se fusione, vuelves al
-repo padre a **actualizar el puntero**:
+repo padre a **actualizar el puntero**, en su propia rama + PR (igual que cualquier
+cambio del padre):
 
 ```bash
 cd ../..                       # raíz de MSX-Game-Tools
-cd tools/sass-MSX && git switch master && git pull && cd ../..
+git switch main && git pull
+git switch -c actualizar-sass-msx
+git -C tools/sass-MSX switch master && git -C tools/sass-MSX pull
 git add tools/sass-MSX         # esto graba el nuevo commit apuntado
 git commit -m "Actualizar sass-MSX"
+git push -u origin actualizar-sass-msx
 ```
 
 Ese `git add tools/sass-MSX` en el repo padre es lo que mueve el puntero. Sin él, el
 padre sigue clavado en el commit viejo aunque el submódulo esté actualizado en disco.
 
+Ojo: al cambiar de rama en el padre, la carpeta `tools/sass-MSX` en disco no se toca. Si
+te pones en una rama que aún no conoce el submódulo (p. ej. `main` antes de fusionar el
+primer PR), `git status` la marcará como *sin seguir* — no la borres ni hagas
+`git add tools/`, sólo vuelve a la rama que sí lo tiene.
+
 ---
 
 ## Situación actual (agosto 2026)
 
-Trabajo hecho, pendiente de convertir en PRs:
+- **`sass-MSX`**: el port a .NET 10 ya está **fusionado en `master`** (PR con *Rebase and
+  merge*; la rama `net10` se borró). El submódulo sigue `master`.
+- **`MSX-Game-Tools`**: dos PRs abiertos, pendientes de fusionar:
 
-| Rama | Repo | Qué lleva | Siguiente paso |
-| --- | --- | --- | --- |
-| `net10` | `sass-MSX` | Port del ensamblador a proyecto SDK-style .NET 10 | Ya empujada. PR `net10 → master` en GitHub. |
-| `submodulo-sasSX` | `MSX-Game-Tools` | Traer `tools/sass-MSX` como submódulo (rama `net10`) | Empujar y abrir PR `→ main`. |
-| `guia-git` | `MSX-Game-Tools` | Este fichero | Empujar y abrir PR `→ main`. |
-
-URLs para abrir los PRs (tras empujar cada rama):
+| Rama | Qué lleva | Siguiente paso |
+| --- | --- | --- |
+| `submodulo-sasSX` | Traer `tools/sass-MSX` como submódulo (sigue `master`) | Fusionar el PR `→ main`. |
+| `guia-git` | Este fichero | Fusionar el PR `→ main`. |
 
 ```
-https://github.com/Libertium/sass-MSX/compare/master...net10?expand=1
 https://github.com/eslamod/MSX-Game-Tools/compare/main...submodulo-sasSX?expand=1
 https://github.com/eslamod/MSX-Game-Tools/compare/main...guia-git?expand=1
 ```
 
-Cuando el PR de `net10` esté fusionado en `master`, conviene repuntar el submódulo de
-`net10` a `master` (en otra rama + PR): editar `.gitmodules` (`branch = master`), hacer
-`git -C tools/sass-MSX switch master && git -C tools/sass-MSX pull`, y
-`git add .gitmodules tools/sass-MSX`.
+Al fusionar cada PR: `git switch main && git pull`, y borrar la rama (local con
+`git branch -d`, remota con `git push origin --delete`).
 
 ---
 
