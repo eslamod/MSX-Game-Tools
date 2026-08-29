@@ -221,10 +221,17 @@ public static class VramImporter
             return null;
         }
 
-        // MSX2 por lo que trae el volcado: los colores de sprite viven en otra tabla y aqui
-        // solo se leen los dibujos, asi que el banco sale con los colores por defecto.
+        // La maquina sale del modo de pantalla, que es lo unico que la dice: el modo 2 de
+        // sprites -el del color por linea- solo existe de GRAPHIC 3 en adelante, asi que un
+        // volcado de SCREEN 1 o 2 es de sprites de un color y el banco tiene que ser MSX1.
+        //
+        // Los colores no se leen de ningun sitio: viven en la tabla de atributos, que dice
+        // como estaban puestos los sprites en esa pantalla y no de que color es cada dibujo.
+        // El banco sale con los de por defecto.
         var bank = new SpriteBank(
-            SpriteBank.SpriteType.MSX2,
+            layout.Mode == VdpRegisters.ScreenMode.Graphic3
+                ? SpriteBank.SpriteType.MSX2
+                : SpriteBank.SpriteType.MSX,
             Localization.Localizer.Instance["VramSpriteBankName"]);
 
         int patterns = SpriteTableBytes / SpriteBankExporter.PatternBytes;
