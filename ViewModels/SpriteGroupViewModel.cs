@@ -110,6 +110,13 @@ public partial class SpriteGroupViewModel : ObservableObject
 
     public bool IsMsx2 => !IsMsx1;
 
+    /// <summary>El banco ha cambiado de máquina, y con ella lo que se enseña de un grupo.</summary>
+    public void MachineChanged()
+    {
+        OnPropertyChanged(nameof(IsMsx1));
+        OnPropertyChanged(nameof(IsMsx2));
+    }
+
     /// <summary>El color del miembro en MSX1, donde las 16 líneas comparten el mismo.</summary>
     public PaletteColor? MemberColor =>
         SelectedMember is null ? null : _palette()[SelectedMember.Rows[0].Color];

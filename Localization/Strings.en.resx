@@ -68,6 +68,12 @@
     <value>New sprite bank</value>
   </data>
   <data name="MenuImportSpriteSheet" xml:space="preserve"><value>Import from a sprite sheet (png)...</value></data>
+  <data name="MenuSpriteBankToMsx1" xml:space="preserve"><value>Convert to MSX1…</value></data>
+  <data name="MenuSpriteBankToMsx2" xml:space="preserve"><value>Convert to MSX2</value></data>
+  <data name="ToMsx1Title" xml:space="preserve"><value>Convert to MSX1</value></data>
+  <data name="ToMsx1Body" xml:space="preserve"><value>On MSX1 a sprite has a single colour, so every drawing keeps the one of its first line. “{0}” has {1} using several, and they lose them.</value></data>
+  <data name="ToMsx1BodyClean" xml:space="preserve"><value>On MSX1 a sprite has a single colour. Nothing in “{0}” uses several, so no colour is lost; what changes is the export, which goes to 4 bytes per group member instead of 19.</value></data>
+  <data name="ToMsx1Label" xml:space="preserve"><value>Convert</value></data>
   <data name="PickImportSpriteSheet" xml:space="preserve"><value>Choose the sprite sheet</value></data>
   <data name="ImportSheetTitle" xml:space="preserve"><value>Import from a sheet</value></data>
   <data name="ImportSheetCell" xml:space="preserve"><value>Cell</value></data>

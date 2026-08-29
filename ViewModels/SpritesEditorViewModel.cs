@@ -223,6 +223,34 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
     public SpriteBank SpritesBank => _spriteBank;
 
+    /// <summary>
+    /// Pasa el banco a la otra máquina y refresca lo que dependía de la que había.
+    /// </summary>
+    /// <remarks>
+    /// Media pantalla cambia: en MSX1 el color es uno por sprite y en MSX2 uno por línea, y
+    /// eso son controles distintos en el panel de patrones y en el de grupos. Ninguna de esas
+    /// propiedades avisa por su cuenta —se calculan del banco—, así que hay que decirlo aquí.
+    /// </remarks>
+    public void ConvertTo(SpriteBank.SpriteType type)
+    {
+        if (type == _spriteBank.Type)
+            return;
+
+        _spriteBank.ConvertTo(type);
+
+        OnPropertyChanged(nameof(IsMsx1));
+        OnPropertyChanged(nameof(IsMsx2));
+        OnPropertyChanged(nameof(ShowsRowColors));
+        OnPropertyChanged(nameof(ShowsSpriteColor));
+
+        foreach (SpriteGroupViewModel group in Groups)
+            group.MachineChanged();
+
+        RefreshRequested?.Invoke(CurrentSprite);
+
+        Touch();
+    }
+
     /// <inheritdoc/>
     /// <remarks>Cambiarla repinta todo el banco: patrones, grupos y lienzo.</remarks>
     public ColorPalette ColorPalette

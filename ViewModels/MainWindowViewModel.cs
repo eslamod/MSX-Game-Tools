@@ -25,6 +25,8 @@ public partial class MainWindowViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(ExportSpriteBankBinaryCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportSpriteBankAssemblerCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportPatternRangeCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ConvertSpriteBankToMsx1Command))]
+    [NotifyCanExecuteChangedFor(nameof(ConvertSpriteBankToMsx2Command))]
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetBinaryCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetAssemblerCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetPngCommand))]
@@ -1091,6 +1093,64 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     private bool IsSpriteBankSelected() => SelectedTab is SpritesEditorViewModel;
+
+    private bool IsMsx2BankSelected() =>
+        SelectedTab is SpritesEditorViewModel editor && editor.IsMsx2;
+
+    private bool IsMsx1BankSelected() =>
+        SelectedTab is SpritesEditorViewModel editor && editor.IsMsx1;
+
+    /// <summary>
+    /// Pasa el banco de sprites de delante a MSX1, diciendo antes lo que se pierde.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Hace falta porque un banco puede acabar con la máquina que no es. Un volcado de VRAM
+    /// trae los dibujos de los sprites pero no sus colores —viven en otra tabla—, así que la
+    /// importación no puede saberlo por ahí y lo saca del modo de pantalla, que no siempre
+    /// está bien puesto en el volcado.
+    /// </para>
+    /// <para>
+    /// Se avisa siempre, también cuando no se pierde nada: cambia el formato de exportación
+    /// —de 19 bytes por miembro de grupo a 4— y eso no es un detalle que deba pasar callando.
+    /// </para>
+    /// </remarks>
+    [RelayCommand(CanExecute = nameof(IsMsx2BankSelected))]
+    private async Task ConvertSpriteBankToMsx1Async()
+    {
+        if (SelectedTab is not SpritesEditorViewModel editor)
+            return;
+
+        int lost = editor.SpritesBank.ColorsAtStake;
+
+        bool go = await Dialogs.ConfirmAsync(
+            Text["ToMsx1Title"],
+            lost == 0
+                ? Text.Format("ToMsx1BodyClean", editor.DocumentName)
+                : Text.Format("ToMsx1Body", editor.DocumentName, lost),
+            Text["ToMsx1Label"]);
+
+        if (!go)
+            return;
+
+        editor.ConvertTo(SpriteBank.SpriteType.MSX);
+
+        ConvertSpriteBankToMsx1Command.NotifyCanExecuteChanged();
+        ConvertSpriteBankToMsx2Command.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>Y a MSX2, que no pierde nada: allí el color por línea existe.</summary>
+    [RelayCommand(CanExecute = nameof(IsMsx1BankSelected))]
+    private void ConvertSpriteBankToMsx2()
+    {
+        if (SelectedTab is not SpritesEditorViewModel editor)
+            return;
+
+        editor.ConvertTo(SpriteBank.SpriteType.MSX2);
+
+        ConvertSpriteBankToMsx1Command.NotifyCanExecuteChanged();
+        ConvertSpriteBankToMsx2Command.NotifyCanExecuteChanged();
+    }
 
     /// <summary>Abre un banco que ya se ha leído del disco.</summary>
     private async Task ReadSpriteBankAsync(string json, string path)

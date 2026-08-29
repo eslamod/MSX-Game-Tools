@@ -79,6 +79,12 @@
     <value>Nuevo banco de sprites</value>
   </data>
   <data name="MenuImportSpriteSheet" xml:space="preserve"><value>Traer de una hoja de sprites (png)...</value></data>
+  <data name="MenuSpriteBankToMsx1" xml:space="preserve"><value>Convertir a MSX1…</value></data>
+  <data name="MenuSpriteBankToMsx2" xml:space="preserve"><value>Convertir a MSX2</value></data>
+  <data name="ToMsx1Title" xml:space="preserve"><value>Convertir a MSX1</value></data>
+  <data name="ToMsx1Body" xml:space="preserve"><value>En MSX1 un sprite es de un solo color, así que cada dibujo se queda con el de su primera línea. En «{0}» hay {1} que van de varios y lo pierden.</value></data>
+  <data name="ToMsx1BodyClean" xml:space="preserve"><value>En MSX1 un sprite es de un solo color. En «{0}» no hay ninguno de varios, así que no se pierde ninguno; lo que cambia es la exportación, que pasa a 4 bytes por miembro de grupo en vez de 19.</value></data>
+  <data name="ToMsx1Label" xml:space="preserve"><value>Convertir</value></data>
   <data name="PickImportSpriteSheet" xml:space="preserve"><value>Elegir la hoja de sprites</value></data>
   <data name="ImportSheetTitle" xml:space="preserve"><value>Traer de una hoja</value></data>
   <data name="ImportSheetCell" xml:space="preserve"><value>Celda</value></data>

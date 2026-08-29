@@ -69,6 +69,12 @@
     <value>Banc de sprites nou</value>
   </data>
   <data name="MenuImportSpriteSheet" xml:space="preserve"><value>Porta d'un full de sprites (png)...</value></data>
+  <data name="MenuSpriteBankToMsx1" xml:space="preserve"><value>Convertir a MSX1…</value></data>
+  <data name="MenuSpriteBankToMsx2" xml:space="preserve"><value>Convertir a MSX2</value></data>
+  <data name="ToMsx1Title" xml:space="preserve"><value>Convertir a MSX1</value></data>
+  <data name="ToMsx1Body" xml:space="preserve"><value>A MSX1 un sprite és d’un sol color, així que cada dibuix es queda amb el de la primera línia. A «{0}» n’hi ha {1} que en fan servir uns quants i el perden.</value></data>
+  <data name="ToMsx1BodyClean" xml:space="preserve"><value>A MSX1 un sprite és d’un sol color. A «{0}» no n’hi ha cap de diversos colors, així que no es perd cap; el que canvia és l’exportació, que passa a 4 bytes per membre de grup en comptes de 19.</value></data>
+  <data name="ToMsx1Label" xml:space="preserve"><value>Convertir</value></data>
   <data name="PickImportSpriteSheet" xml:space="preserve"><value>Tria el full de sprites</value></data>
   <data name="ImportSheetTitle" xml:space="preserve"><value>Porta d'un full</value></data>
   <data name="ImportSheetCell" xml:space="preserve"><value>Cel·la</value></data>

@@ -61,7 +61,7 @@ public class SpriteBank
 
     /// <summary>El siguiente número libre de grupo. No se reaprovechan los de los borrados.</summary>
     private int _nextGroupId;
-    private readonly SpriteType _spriteType;
+    private SpriteType _spriteType;
 
     // En la versión WPF el constructor con SpriteType no inicializaba la lista,
     // así que cualquier uso distinto del constructor por defecto reventaba.
@@ -198,6 +198,53 @@ public class SpriteBank
     }
 
     public SpriteType Type => _spriteType;
+
+    /// <summary>Cuántos dibujos perderían color al pasar a MSX1.</summary>
+    /// <remarks>
+    /// Patrones y miembros de grupo, que llevan el suyo por separado: un miembro se siembra
+    /// del patrón al crearse y a partir de ahí va por su cuenta.
+    /// </remarks>
+    public int ColorsAtStake =>
+        _sprites.Count(sprite => sprite.HasSeveralColors)
+        + Groups.Sum(group => group.Members.Count(member => member.HasSeveralColors));
+
+    /// <summary>
+    /// Pasa el banco de una máquina a la otra.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Hacia MSX1 se pierde color: allí un sprite es de un color y aquí cada línea lleva el
+    /// suyo, así que cada dibujo se queda con el de su primera línea. Es lo mismo que ya hacía
+    /// un banco MSX1 con cualquier patrón que le llegara pegado, y conserva el color de los
+    /// que ya iban de uno solo. Hacia MSX2 no se pierde nada: el color por línea existe y
+    /// todas las líneas empiezan iguales.
+    /// </para>
+    /// <para>
+    /// Los patrones se quedan con la clase que tenían. <see cref="SpriteMSX"/> y
+    /// <see cref="SpriteMSX2"/> están vacías y nadie las mira —lo que manda es
+    /// <see cref="Type"/>—, y cambiarlas obligaría a crear otros objetos y dejaría colgada
+    /// cualquier referencia que tenga puesta la ventana.
+    /// </para>
+    /// </remarks>
+    public void ConvertTo(SpriteType type)
+    {
+        if (type == _spriteType)
+            return;
+
+        _spriteType = type;
+
+        if (type != SpriteType.MSX)
+            return;
+
+        foreach (Sprite sprite in _sprites)
+            sprite.FlattenColor();
+
+        foreach (SpriteGroup group in Groups)
+        {
+            foreach (SpriteGroupMember member in group.Members)
+                member.FlattenColor();
+        }
+    }
 
     /// <summary>El primer patrón sin dibujar, o -1 si están todos ocupados.</summary>
     public int FirstEmpty()

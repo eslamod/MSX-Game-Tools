@@ -83,6 +83,24 @@ public partial class SpriteGroupMember : ObservableObject
     public SpriteAttributeRow[] Rows { get; }
 
     /// <summary>Vuelve a sembrar los colores desde el patrón indicado.</summary>
+    /// <summary>Si las líneas no van todas del mismo color, que es lo que MSX1 no puede.</summary>
+    public bool HasSeveralColors => Rows.Any(row => row.Color != Rows[0].Color);
+
+    /// <summary>
+    /// Deja las 16 líneas del color de la primera.
+    /// </summary>
+    /// <remarks>
+    /// Lo mismo que <see cref="Sprite.FlattenColor"/> y por lo mismo: en MSX1 el color va en
+    /// el atributo y es uno por sprite, no uno por línea.
+    /// </remarks>
+    public void FlattenColor()
+    {
+        int color = Rows[0].Color;
+
+        foreach (SpriteAttributeRow row in Rows)
+            row.Color = color;
+    }
+
     public void CopyColorsFrom(Sprite pattern)
     {
         for (int row = 0; row < Sprite.Rows; row++)
