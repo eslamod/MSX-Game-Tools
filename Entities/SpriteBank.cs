@@ -73,7 +73,7 @@ public class SpriteBank
 
         for (int index = 0; index < Capacity; index++)
         {
-            Sprite sprite = _spriteType == SpriteType.MSX ? new SpriteMSX() : new SpriteMSX2();
+            var sprite = new Sprite();
 
             sprite.ImageMini = new ImageMini(ImageMini.ImagePreviewType.ImagePreview16x16);
 
@@ -220,10 +220,10 @@ public class SpriteBank
     /// todas las líneas empiezan iguales.
     /// </para>
     /// <para>
-    /// Los patrones se quedan con la clase que tenían. <see cref="SpriteMSX"/> y
-    /// <see cref="SpriteMSX2"/> están vacías y nadie las mira —lo que manda es
-    /// <see cref="Type"/>—, y cambiarlas obligaría a crear otros objetos y dejaría colgada
-    /// cualquier referencia que tenga puesta la ventana.
+    /// Los patrones no se tocan más que en el color: la máquina de un banco es
+    /// <see cref="Type"/> y nada más. Hubo un <c>SpriteMSX</c> y un <c>SpriteMSX2</c>, dos
+    /// clases vacías que no leía nadie, y con ellas convertir habría obligado a crear otros
+    /// objetos y a dejar colgada cualquier referencia que tuviera puesta la ventana.
     /// </para>
     /// </remarks>
     public void ConvertTo(SpriteType type)
