@@ -10,6 +10,22 @@
 #
 # Then open the file with MSX Game Tools, which does the stitching.
 #
+# --- When the name table has to be given by hand -----------------------------
+# By default the name table is the one R#2 points at. Some games move it during
+# the frame with the line interrupt -one table for the scoreboard at the top,
+# another for the play area- and then reading it once a frame gets whichever was
+# left set, which may well be the scoreboard's.
+#
+# Space Manbow does this: R#2 reads 0x1F at the end of the frame, and the
+# terrain is in the table at 0x3F * 0x400 = 0xFC00. Give the address and it
+# reads that one and no other:
+#
+#     mapgrab::start capture.txt 0xFC00
+#
+# To find it, dump the VRAM and the VDP registers from openMSX and open the dump
+# with the VRAM import: it draws what each table holds, so it can be seen which
+# one is the map.
+#
 # --- Why this script does not stitch anything --------------------------------
 # It only writes down what the screen showed. Putting those screens together is
 # the part with the interesting decisions -how much did the camera move, is this
@@ -44,6 +60,9 @@ namespace eval mapgrab {
 
     # The pattern table of one third, which is what the checksum covers.
     variable pattern_bytes 2048
+
+    # The name table to read, or -1 to follow R#2. See the note at the top.
+    variable names_at -1
 }
 
 # Reads a block of VRAM as a list of numbers.
@@ -83,25 +102,36 @@ proc mapgrab::tables {} {
     set m3 [expr {($r0 & 0x02) != 0}]
     set m4 [expr {($r0 & 0x04) != 0}]
 
-    if {$m4} {
+    # GRAPHIC 3 is M3 and M4 together, which is the R#0 = 0x06 row of the
+    # manual. M4 on its own is TEXT 2, which this does not capture.
+    if {$m3 && $m4} {
         set mode 3
+    } elseif {$m4} {
+        set mode 0
     } elseif {$m3} {
         set mode 2
     } else {
         set mode 1
     }
 
+    # In GRAPHIC 2 and 3 the low bits of R#4 and R#3 are a mask over the thirds
+    # and not part of the address, but the high ones are address: R#4 is six
+    # bits, A16 to A11. On a V9938 with 128 KB the table goes well past 16 KB,
+    # and looking at bit 2 alone -which is all an MSX1 needs- read the wrong
+    # one. R#10 carries the top three bits of the colour table.
+    set r10 [debug read "VDP regs" 10]
+
     if {$mode == 1} {
-        set patterns [expr {$r4 * 0x800}]
-        set colors [expr {$r3 * 0x40}]
+        set patterns [expr {($r4 & 0x3F) * 0x800}]
+        set colors [expr {(($r10 & 0x07) << 14) | ($r3 * 0x40)}]
     } else {
-        set patterns [expr {($r4 & 0x04) * 0x800}]
-        set colors [expr {($r3 & 0x80) * 0x40}]
+        set patterns [expr {($r4 & 0x3C) * 0x800}]
+        set colors [expr {(($r10 & 0x07) << 14) | (($r3 & 0x80) * 0x40)}]
     }
 
     return [list \
         mode $mode \
-        names [expr {$r2 * 0x400}] \
+        names [expr {($r2 & 0x7F) * 0x400}] \
         patterns $patterns \
         colors $colors]
 }
@@ -132,9 +162,12 @@ proc mapgrab::tick {} {
         return
     }
 
+    variable names_at
+
     array set at [tables]
 
-    set names [read_vram $at(names) [expr {$columns * $rows}]]
+    set from [expr {$names_at >= 0 ? $names_at : $at(names)}]
+    set names [read_vram $from [expr {$columns * $rows}]]
 
     if {$names ne $previous} {
         set stamp [checksum [read_vram $at(patterns) $pattern_bytes]]
@@ -149,12 +182,15 @@ proc mapgrab::tick {} {
 }
 
 # Starts capturing into a file.
-proc mapgrab::start {path} {
+# Starts capturing. Give an address to read the name table from there instead of
+# from wherever R#2 points; see the note at the top about games that move it.
+proc mapgrab::start {path {names -1}} {
     variable file
     variable previous
     variable screens
     variable columns
     variable rows
+    variable names_at
 
     if {$file ne ""} {
         error "already capturing; call mapgrab::stop first"
@@ -164,6 +200,12 @@ proc mapgrab::start {path} {
 
     if {$at(mode) != 1 && $at(mode) != 2 && $at(mode) != 3} {
         error "this only captures SCREEN 1, 2 and 4"
+    }
+
+    set names_at $names
+
+    if {$names >= 0} {
+        set at(names) $names
     }
 
     set file [open $path w]
