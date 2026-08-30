@@ -353,6 +353,7 @@
   <data name="NoTileSetCaptureBody" xml:space="preserve"><value>Una captura són números de tile i no diu de quin joc són. Ves a la pestanya del joc que li correspon, o a la d'un mapa que ja el faci servir, i torna a portar-lo.</value></data>
   <data name="ErrorCaptureImport" xml:space="preserve"><value>No s'ha pogut llegir la captura</value></data>
   <data name="CaptureEmptyBody" xml:space="preserve"><value>La captura no porta cap zona recorreguda: calen com a mínim dues pantalles seguides que encaixin perquè en surti un mapa.</value></data>
+  <data name="CaptureStillBody" xml:space="preserve"><value>Cap pantalla no es mou respecte de l’anterior, així que no hi ha recorregut per recompondre. Sol passar per dos motius: que la captura llegeixi la taula de noms equivocada —hi ha jocs que la canvien a mitja pantalla amb la interrupció de línia, una per al marcador i una altra per al terreny—, o que el joc es desplaci reescrivint els patrons en comptes de moure la taula, i llavors el mapa no hi és.</value></data>
   <data name="ImportCaptureTitle" xml:space="preserve"><value>Portar un mapa capturat</value></data>
   <data name="ImportCaptureFile" xml:space="preserve"><value>Captura</value></data>
   <data name="ImportCaptureScreens" xml:space="preserve"><value>Pantalles</value></data>

@@ -207,18 +207,8 @@ public static class MapCapture
         var columns = new Votes(capture.Columns);
         var rows = new Votes(capture.Rows);
 
-        for (int screen = 1; screen < capture.Screens.Count; screen++)
+        foreach ((int[,] before, int[,] after, MapStitcher.Shift shift) in Moving(capture))
         {
-            int[,] before = capture.Screens[screen - 1].Cells;
-            int[,] after = capture.Screens[screen].Cells;
-
-            if (MapStitcher.Travelled(before, after) is not { } shift)
-                continue;
-
-            // Un par en el que la camara no se movio no dice nada de nadie.
-            if (MapStitcher.Match(before, after, 0, 0) is { } still && still >= shift.Match)
-                continue;
-
             // Cada eje solo se puede juzgar si la camara se movio en ese eje: con un scroll
             // vertical no hay manera de saber si una columna se mueve, porque ninguna se ha
             // movido de sitio. Preguntarselo igual da que todas estan quietas y recorta el
@@ -242,6 +232,38 @@ public static class MapCapture
         (int first, int count) high = rows.Band();
 
         return new Region(wide.first, high.first, wide.count, high.count);
+    }
+
+    /// <summary>
+    /// En cuántos pares de pantallas seguidas se movió la cámara.
+    /// </summary>
+    /// <remarks>
+    /// Cero quiere decir que no hay nada que recomponer, y conviene decirlo con esas palabras:
+    /// pasa cuando la captura está leyendo la tabla de nombres equivocada —hay juegos que la
+    /// cambian a media pantalla con la interrupción de línea, una para el marcador y otra para
+    /// el terreno— y también cuando el juego scrollea reescribiendo los patrones en vez de
+    /// mover la tabla. Sin esto, lo único que se ve es que no sale ningún mapa.
+    /// </remarks>
+    public static int Moves(Capture capture) => Moving(capture).Count();
+
+    /// <summary>Los pares de pantallas en los que la cámara se movió, y hacia dónde.</summary>
+    private static IEnumerable<(int[,] Before, int[,] After, MapStitcher.Shift Shift)> Moving(
+        Capture capture)
+    {
+        for (int screen = 1; screen < capture.Screens.Count; screen++)
+        {
+            int[,] before = capture.Screens[screen - 1].Cells;
+            int[,] after = capture.Screens[screen].Cells;
+
+            if (MapStitcher.Travelled(before, after) is not { } shift)
+                continue;
+
+            // Un par en el que la camara no se movio no dice nada de nadie.
+            if (MapStitcher.Match(before, after, 0, 0) is { } still && still >= shift.Match)
+                continue;
+
+            yield return (before, after, shift);
+        }
     }
 
     /// <summary>Cuántas veces se quedó clavada cada línea, de las veces que se pudo mirar.</summary>

@@ -95,6 +95,33 @@ public class MapCaptureTests
         Assert.Equal(Columns + 1, map.Width);
     }
 
+    /// <summary>
+    /// Una captura en la que la cámara nunca se mueve se sabe.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Es lo que sale cuando la captura lee la tabla de nombres equivocada —hay juegos que la
+    /// cambian a media pantalla con la interrupción de línea, una para el marcador y otra para
+    /// el terreno— y también cuando el juego scrollea reescribiendo los patrones.
+    /// </para>
+    /// <para>
+    /// Se cuenta aparte de que salgan o no mapas porque no es lo mismo: sin ningún mapa lo
+    /// único que se sabe es que no salió nada, y esto dice además que no había nada que sacar.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void Una_captura_que_no_se_mueve_se_sabe()
+    {
+        Assert.Equal(0, MapCapture.Moves(MapCapture.Read(Written(Frozen(6)))));
+    }
+
+    /// <summary>Y una que se recorre cuenta los pares en los que se movió.</summary>
+    [Fact]
+    public void Una_captura_que_se_recorre_cuenta_sus_pasos()
+    {
+        Assert.Equal(3, MapCapture.Moves(MapCapture.Read(Written(Falling(4)))));
+    }
+
     /// <summary>Un fichero que no es una captura se rechaza diciendo por qué.</summary>
     [Fact]
     public void Un_fichero_que_no_es_una_captura_se_rechaza()
@@ -330,6 +357,34 @@ public class MapCaptureTests
         }
 
         return [.. screens];
+    }
+
+    /// <summary>
+    /// La misma pantalla una y otra vez, con sólo el marcador cambiando.
+    /// </summary>
+    /// <remarks>
+    /// Como la captura de Space Manbow leyendo la tabla del marcador: el terreno clavado y dos
+    /// celdas de puntuación moviéndose. Cambia lo justo para que el script la dé por pantalla
+    /// nueva y la escriba.
+    /// </remarks>
+    private static (long Stamp, int[,] Cells)[] Frozen(int screens)
+    {
+        int[,] world = World(Columns, Rows);
+
+        return [.. Enumerable.Range(0, screens).Select(at =>
+        {
+            var screen = new int[Columns, Rows];
+
+            for (int column = 0; column < Columns; column++)
+            {
+                for (int row = 0; row < Rows; row++)
+                    screen[column, row] = world[column, row];
+            }
+
+            screen[0, Rows - 1] = 900 + at;
+
+            return ((long)1, screen);
+        })];
     }
 
     /// <summary>Las dos filas de marcador de abajo: los rotulos y los numeros.</summary>

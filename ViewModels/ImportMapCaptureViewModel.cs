@@ -46,6 +46,9 @@ public partial class ImportMapCaptureViewModel : PanelBaseViewModel
 
     private IReadOnlyList<TileMap> _maps = [];
 
+    /// <summary>En cuántos pares de pantallas se movió la cámara.</summary>
+    private readonly int _moves;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Report))]
     [NotifyPropertyChangedFor(nameof(CanAccept))]
@@ -81,6 +84,10 @@ public partial class ImportMapCaptureViewModel : PanelBaseViewModel
         _capture = capture;
         _name = Path.GetFileNameWithoutExtension(path);
 
+        // Una vez y no en cada informe: la captura no cambia, y recorrer sus pares buscando
+        // hacia donde fue la camara cuesta lo mismo que proponer la zona.
+        _moves = MapCapture.Moves(capture);
+
         Header = Localizer.Instance["ImportCaptureTitle"];
         FileName = Path.GetFileName(path);
 
@@ -108,8 +115,18 @@ public partial class ImportMapCaptureViewModel : PanelBaseViewModel
             if (!Region.FitsIn(_capture))
                 return Localizer.Instance["ImportCaptureBadRegion"];
 
+            // Que ninguna pantalla se mueva sobre la anterior va por delante de todo: sin
+            // recorrido no hay mapa que recomponer, y lo que salga son pantallas sueltas
+            // cosidas consigo mismas. Sin decirlo, se ve «sale un mapa de 32x24» y no hay
+            // manera de saber por que.
+            string still = _moves == 0 ? Localizer.Instance["CaptureStillBody"] : string.Empty;
+
             if (Maps.Count == 0)
-                return Localizer.Instance["CaptureEmptyBody"];
+            {
+                return _moves == 0
+                    ? still
+                    : Localizer.Instance["CaptureEmptyBody"];
+            }
 
             TileMap biggest = Kept[0];
 
@@ -123,8 +140,12 @@ public partial class ImportMapCaptureViewModel : PanelBaseViewModel
 
             return string.Join(
                 Environment.NewLine,
-                many,
-                Localizer.Instance.Format("ImportCaptureBiggest", biggest.Width, biggest.Height));
+                [.. new[]
+                {
+                    still,
+                    many,
+                    Localizer.Instance.Format("ImportCaptureBiggest", biggest.Width, biggest.Height),
+                }.Where(line => line.Length > 0)]);
         }
     }
 

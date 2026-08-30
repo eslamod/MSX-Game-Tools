@@ -95,15 +95,22 @@ public class ImportMapCaptureTests : IDisposable
     /// Una captura de la que no sale ningún mapa lo dice el informe, y no deja aceptar.
     /// </summary>
     /// <remarks>
-    /// Pasa con una partida en la que no se llegó a recorrer nada: pantallas sueltas que no
-    /// encajan entre sí. Sin decirlo, el formulario parecería roto.
+    /// <para>
+    /// Pasa con una partida en la que se anduvo pero nunca lo bastante limpio como para que
+    /// dos pantallas encajen: la cámara se mueve y aun así no sale mapa. Sin decirlo, el
+    /// formulario parecería roto.
+    /// </para>
+    /// <para>
+    /// Las pantallas se mueven a propósito, que si no el informe daría el otro aviso —el de
+    /// que no se mueve nada— y la prueba pasaría por el motivo equivocado.
+    /// </para>
     /// </remarks>
     [AvaloniaFact]
     public async Task Una_captura_sin_zonas_lo_dice_el_informe()
     {
         string path = Path.Combine(_folder, "suelta.txt");
 
-        await File.WriteAllTextAsync(path, Written([Screen(1), Screen(2)]));
+        await File.WriteAllTextAsync(path, Written(Noisy()));
 
         var dialogs = new TestDialogService { OpenPath = path };
         var main = new MainWindowViewModel(dialogs);
@@ -114,6 +121,34 @@ public class ImportMapCaptureTests : IDisposable
 
         Assert.Equal(Localizer.Instance["CaptureEmptyBody"], form.Report);
         Assert.False(form.AcceptImportCommand.CanExecute(null));
+    }
+
+    /// <summary>
+    /// Y si además ninguna pantalla se movió, se dice eso, que es otra cosa.
+    /// </summary>
+    /// <remarks>
+    /// Es lo que pasó con Space Manbow: la captura leía la tabla de nombres del marcador
+    /// porque el juego la cambia a media pantalla con la interrupción de línea, y salían
+    /// cientos de pantallas idénticas. «No sale ningún mapa» no ayudaba a dar con eso.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Una_captura_que_no_se_mueve_lo_dice_el_informe()
+    {
+        string path = Path.Combine(_folder, "quieta.txt");
+
+        await File.WriteAllTextAsync(path, Written(Frozen()));
+
+        var dialogs = new TestDialogService { OpenPath = path };
+        var main = new MainWindowViewModel(dialogs);
+
+        main.OpenTileSet(new TileSet("Bosque"));
+
+        ImportMapCaptureViewModel form = await Form(main);
+
+        // Por delante, y lo demas detras: seis pantallas identicas cosen entre si y sale
+        // un mapa del tamano de una, que sin el aviso no se explica solo.
+        Assert.StartsWith(Localizer.Instance["CaptureStillBody"], form.Report);
+        Assert.Contains(Localizer.Instance["ImportCaptureOneMap"], form.Report);
     }
 
     /// <summary>
@@ -247,6 +282,44 @@ public class ImportMapCaptureTests : IDisposable
         await main.ImportMapCaptureCommand.ExecuteAsync(null);
 
         return Assert.IsType<ImportMapCaptureViewModel>(main.RightPanViewModel);
+    }
+
+    /// <summary>
+    /// Pantallas que se desplazan pero encajan mal: la camara anda y no sale mapa.
+    /// </summary>
+    /// <remarks>
+    /// Un tercio de las celdas cambiadas al azar en cada paso. El desplazamiento se sigue
+    /// notando —es el que mejor encaja de largo— pero no llega al listón del cosido.
+    /// </remarks>
+    private static (long Stamp, int[,] Cells)[] Noisy()
+    {
+        int[,] world = World(11);
+        var random = new Random(31);
+
+        return [.. Enumerable.Range(0, 4).Select(at =>
+        {
+            int[,] screen = Cut(world, at);
+
+            for (int each = 0; each < Columns * Rows / 3; each++)
+                screen[random.Next(Columns), random.Next(Rows)] = random.Next(1, 256);
+
+            return ((long)1, screen);
+        })];
+    }
+
+    /// <summary>La misma pantalla una y otra vez, con sólo el marcador cambiando.</summary>
+    private static (long Stamp, int[,] Cells)[] Frozen()
+    {
+        int[,] world = World(7);
+
+        return [.. Enumerable.Range(0, 6).Select(at =>
+        {
+            int[,] screen = Cut(world, 0);
+
+            screen[0, Rows - 1] = 900 + at;
+
+            return ((long)1, screen);
+        })];
     }
 
     /// <summary>Una captura bajando por un mundo, con el marcador quieto abajo.</summary>

@@ -378,6 +378,7 @@
   <data name="NoTileSetCaptureBody" xml:space="preserve"><value>Una captura son números de tile y no dice de qué juego son. Ponte en la pestaña del juego que le corresponde, o en la de un mapa que ya lo use, y vuelve a importar.</value></data>
   <data name="ErrorCaptureImport" xml:space="preserve"><value>No se ha podido leer la captura</value></data>
   <data name="CaptureEmptyBody" xml:space="preserve"><value>La captura no trae ninguna zona recorrida: hacen falta al menos dos pantallas seguidas que encajen para que salga un mapa.</value></data>
+  <data name="CaptureStillBody" xml:space="preserve"><value>Ninguna pantalla se mueve sobre la anterior, así que no hay recorrido que recomponer. Suele pasar por dos motivos: que la captura esté leyendo la tabla de nombres equivocada —hay juegos que la cambian a media pantalla con la interrupción de línea, una para el marcador y otra para el terreno—, o que el juego scrollee reescribiendo los patrones en vez de mover la tabla, y entonces el mapa no está ahí.</value></data>
   <data name="ImportCaptureTitle" xml:space="preserve"><value>Traer un mapa capturado</value></data>
   <data name="ImportCaptureFile" xml:space="preserve"><value>Captura</value></data>
   <data name="ImportCaptureScreens" xml:space="preserve"><value>Pantallas</value></data>

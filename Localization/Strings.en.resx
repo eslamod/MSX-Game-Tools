@@ -352,6 +352,7 @@
   <data name="NoTileSetCaptureBody" xml:space="preserve"><value>A capture is tile numbers and does not say which set they belong to. Go to the tab of the set it belongs to, or of a map that already uses it, and import again.</value></data>
   <data name="ErrorCaptureImport" xml:space="preserve"><value>The capture could not be read</value></data>
   <data name="CaptureEmptyBody" xml:space="preserve"><value>The capture holds no walked area: at least two screens in a row that fit together are needed for a map to come out.</value></data>
+  <data name="CaptureStillBody" xml:space="preserve"><value>No screen moves against the one before it, so there is no journey to piece together. Usually one of two things: the capture is reading the wrong name table —some games swap it mid-screen with the line interrupt, one for the scoreboard and another for the terrain—, or the game scrolls by rewriting the patterns instead of moving the table, and then the map is not there.</value></data>
   <data name="ImportCaptureTitle" xml:space="preserve"><value>Import a captured map</value></data>
   <data name="ImportCaptureFile" xml:space="preserve"><value>Capture</value></data>
   <data name="ImportCaptureScreens" xml:space="preserve"><value>Screens</value></data>
