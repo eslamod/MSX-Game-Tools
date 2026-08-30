@@ -1173,6 +1173,40 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void AddPalette() => OpenForm(() => new NewPaletteViewModel(this));
 
+    /// <summary>
+    /// Trae una paleta del texto que escribe la consola de openMSX.
+    /// </summary>
+    /// <remarks>
+    /// Entra como una paleta más y se abre para verla: es lo mismo que hace crear una, y así
+    /// se ve enseguida si lo que ha entrado es lo que se esperaba.
+    /// </remarks>
+    [RelayCommand]
+    private async Task ImportOpenMsxPaletteAsync()
+    {
+        string? path = await Dialogs.PickFileToOpenAsync(
+            Text["PickImportOpenMsxPalette"], PickerFileKind.Any);
+
+        if (path is null)
+            return;
+
+        try
+        {
+            ColorPalette palette = OpenMsxPalette.Read(
+                await File.ReadAllTextAsync(path),
+                Path.GetFileNameWithoutExtension(path));
+
+            OpenPaletteEditor(Palettes.Import(palette));
+        }
+        catch (FileFormatException exception)
+        {
+            await Dialogs.ShowMessageAsync(Text["ErrorPaletteImport"], exception.Message);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ShowMessageAsync(Text["ErrorOpenFile"], exception.Message);
+        }
+    }
+
     /// <summary>Crea la paleta que pide el formulario y la deja abierta para editarla.</summary>
     public void CreatePalette(string name, ColorPalette from) =>
         OpenPaletteEditor(Palettes.Add(name, from));

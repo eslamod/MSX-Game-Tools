@@ -144,6 +144,7 @@
       <!-- Cargar una paleta no esta aqui: la trae Abrir, como todo lo demas. -->
       <MenuItem Header="{l:Localize MenuPalette}">
         <MenuItem Header="{l:Localize MenuNewPalette}" Command="{Binding AddPaletteCommand}" />
+        <MenuItem Header="{l:Localize MenuImportOpenMsxPalette}" Command="{Binding ImportOpenMsxPaletteCommand}" />
         <MenuItem Header="{l:Localize MenuEditPalette}" Command="{Binding EditPaletteCommand}" />
         <MenuItem Header="{l:Localize MenuDeletePalette}" Command="{Binding DeletePaletteCommand}" />
         <Separator />

@@ -126,6 +126,9 @@
   <data name="MenuNewPalette" xml:space="preserve">
     <value>New palette</value>
   </data>
+  <data name="MenuImportOpenMsxPalette" xml:space="preserve"><value>Import a palette from openMSX…</value></data>
+  <data name="PickImportOpenMsxPalette" xml:space="preserve"><value>Choose the openMSX palette</value></data>
+  <data name="ErrorPaletteImport" xml:space="preserve"><value>The palette could not be read</value></data>
   <data name="MenuEditPalette" xml:space="preserve">
     <value>Edit palette</value>
   </data>
