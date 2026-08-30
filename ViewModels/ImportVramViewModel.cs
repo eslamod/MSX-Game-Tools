@@ -25,28 +25,46 @@ namespace MSX_GameTools.ViewModels;
 /// los tercios y no parte de la dirección. Por eso son desplegables y no cajas de texto: una
 /// dirección imposible no se puede ni escribir.
 /// </para>
+/// <para>
+/// <b>Y se dibuja la tabla de nombres</b>, que no se importa: está para mirarla. Un volcado no
+/// dice cuál estaba enseñando el juego —R#2 lo diría, pero hay juegos que la cambian a media
+/// pantalla con la interrupción de línea, una para el marcador y otra para el terreno—, así
+/// que se prueban direcciones y se ve cuál es. Esa es la que hay que darle al capturador de
+/// mapas.
+/// </para>
 /// </remarks>
 public partial class ImportVramViewModel : PanelBaseViewModel
 {
     private readonly MainWindowViewModel _mainWindowVm;
     private readonly byte[] _vram;
 
+    private VramImporter.VramImport? _read;
+    private VramImporter.VramLayout? _readWith;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Report))]
     [NotifyPropertyChangedFor(nameof(TableChoices))]
+    [NotifyPropertyChangedFor(nameof(Screen))]
     private VdpRegisters.ScreenMode _mode = VdpRegisters.ScreenMode.Graphic2;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Report))]
+    [NotifyPropertyChangedFor(nameof(Screen))]
     private int _patterns;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Report))]
+    [NotifyPropertyChangedFor(nameof(Screen))]
     private int _colors = 0x2000;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Report))]
     private int _spritePatterns = 0x3800;
+
+    /// <summary>La tabla de nombres que se dibuja. No se importa: está para mirarla.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Screen))]
+    private int _names = 0x1800;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Report))]
@@ -96,6 +114,20 @@ public partial class ImportVramViewModel : PanelBaseViewModel
     /// <summary>Los sitios donde puede empezar la tabla de patrones de sprite: cada 2 KB.</summary>
     public IReadOnlyList<int> SpriteChoices => Every(0x800);
 
+    /// <summary>Y los de la tabla de nombres: cada 1 KB.</summary>
+    public IReadOnlyList<int> NameChoices => Every(NameTablePreview.Step);
+
+    /// <summary>
+    /// La pantalla que hay en esa tabla de nombres, dibujada con los tiles de ahora.
+    /// </summary>
+    /// <remarks>
+    /// Sigue a las direcciones de patrones y colores, así que cambiando una se ve el efecto sin
+    /// aceptar nada. Es la manera de dar con la tabla buena de un volcado: mirarla.
+    /// </remarks>
+    public ImageMini? Screen =>
+        NameTablePreview.Draw(
+            _vram, Names, Import.TileSets, _mainWindowVm.Palettes.ActivePalette);
+
     /// <summary>
     /// Las direcciones legales que caben en el volcado, de <paramref name="step"/> en
     /// <paramref name="step"/>.
@@ -116,12 +148,33 @@ public partial class ImportVramViewModel : PanelBaseViewModel
             .Range(0, Math.Max(1, _vram.Length / step))
             .Select(at => at * step)];
 
+    /// <summary>
+    /// Lo leído con las direcciones de ahora, una sola vez.
+    /// </summary>
+    /// <remarks>
+    /// El informe y el dibujo de la pantalla quieren lo mismo, y leerlo dos veces por cada
+    /// tecla que se toca es tirar trabajo.
+    /// </remarks>
+    private VramImporter.VramImport Import
+    {
+        get
+        {
+            if (_read is null || _readWith != Layout)
+            {
+                _readWith = Layout;
+                _read = VramImporter.Read(_vram, Layout);
+            }
+
+            return _read;
+        }
+    }
+
     /// <summary>Lo que va a salir, antes de aceptar.</summary>
     public string Report
     {
         get
         {
-            VramImporter.VramImport preview = VramImporter.Read(_vram, Layout);
+            VramImporter.VramImport preview = Import;
 
             string tiles = preview.TileSets.Count switch
             {
@@ -164,6 +217,7 @@ public partial class ImportVramViewModel : PanelBaseViewModel
         Patterns = registers.Patterns;
         Colors = registers.Colors;
         SpritePatterns = registers.SpritePatterns;
+        Names = registers.Names;
 
         Detected = registers.Mode == VdpRegisters.ScreenMode.Other
             ? Localizer.Instance.Format("ImportVramOtherMode", fileName)
@@ -201,7 +255,7 @@ public partial class ImportVramViewModel : PanelBaseViewModel
     [RelayCommand(CanExecute = nameof(CanAccept))]
     private void AcceptImport()
     {
-        VramImporter.VramImport import = VramImporter.Read(_vram, Layout);
+        VramImporter.VramImport import = Import;
 
         if (WantsTiles)
         {

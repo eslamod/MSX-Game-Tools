@@ -375,6 +375,8 @@
   <data name="ImportVramPatterns" xml:space="preserve"><value>Patrons</value></data>
   <data name="ImportVramColors" xml:space="preserve"><value>Colors</value></data>
   <data name="ImportVramSprites" xml:space="preserve"><value>Sprites</value></data>
+  <data name="ImportVramNames" xml:space="preserve"><value>Pantalla</value></data>
+  <data name="ImportVramNamesHint" xml:space="preserve"><value>La taula de noms no s’importa: és aquí per veure quina és. Prova adreces fins que surti el decorat del joc, i aquesta és la que cal donar al capturador de mapes.</value></data>
   <data name="ImportVramBigSprites" xml:space="preserve"><value>Sprites de 16x16</value></data>
   <data name="ImportVramWantsTiles" xml:space="preserve"><value>Portar els tiles</value></data>
   <data name="ImportVramWantsSprites" xml:space="preserve"><value>Portar els sprites</value></data>

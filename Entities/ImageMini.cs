@@ -87,5 +87,20 @@ public sealed class ImageMini : ObservableObject
         return bitmap;
     }
 
+    /// <summary>
+    /// El color de un píxel.
+    /// </summary>
+    /// <remarks>
+    /// Está para poder comprobar lo que se ha dibujado: mirando el <see cref="SpritePreview"/>
+    /// habría que sacar los píxeles de un mapa de bits, y eso no prueba el dibujo sino Avalonia.
+    /// </remarks>
+    public Color ColorAt(int x, int y)
+    {
+        int value = _pixels[(y * _width) + x];
+
+        return Color.FromArgb(
+            (byte)(value >> 24), (byte)(value >> 16), (byte)(value >> 8), (byte)value);
+    }
+
     private static int ToBgra(Color c) => (c.A << 24) | (c.R << 16) | (c.G << 8) | c.B;
 }

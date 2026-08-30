@@ -79,6 +79,29 @@
         <CheckBox Content="{l:Localize ImportVramBigSprites}" IsChecked="{Binding BigSprites}"
                   Margin="0,0,0,10" />
 
+        <!-- La tabla de nombres no se importa: esta para mirarla. Un volcado no dice cual
+             estaba enseñando el juego, asi que se prueban direcciones y se ve cual es. -->
+        <Grid ColumnDefinitions="90,*" Margin="0,0,0,6">
+          <TextBlock Grid.Column="0" Text="{l:Localize ImportVramNames}" VerticalAlignment="Center" />
+          <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                    ItemsSource="{Binding NameChoices}" SelectedItem="{Binding Names}">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="x:Int32">
+                <TextBlock Text="{Binding Converter={x:Static converters:AddressConverter.Instance}}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+        </Grid>
+
+        <Border BorderThickness="1" BorderBrush="{DynamicResource AppSeparator}"
+                HorizontalAlignment="Center" Margin="0,0,0,4">
+          <Image Source="{Binding Screen.SpritePreview}" Width="256" Height="192"
+                 RenderOptions.BitmapInterpolationMode="None" />
+        </Border>
+
+        <TextBlock Text="{l:Localize ImportVramNamesHint}" TextWrapping="Wrap" Margin="0,0,0,10"
+                   FontSize="11" Foreground="{DynamicResource AppTextSecondary}" />
+
         <CheckBox Content="{l:Localize ImportVramWantsTiles}" IsChecked="{Binding WantsTiles}" />
         <CheckBox Content="{l:Localize ImportVramWantsSprites}" IsChecked="{Binding WantsSprites}"
                   Margin="0,0,0,10" />

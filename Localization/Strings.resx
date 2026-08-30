@@ -400,6 +400,8 @@
   <data name="ImportVramPatterns" xml:space="preserve"><value>Patrones</value></data>
   <data name="ImportVramColors" xml:space="preserve"><value>Colores</value></data>
   <data name="ImportVramSprites" xml:space="preserve"><value>Sprites</value></data>
+  <data name="ImportVramNames" xml:space="preserve"><value>Pantalla</value></data>
+  <data name="ImportVramNamesHint" xml:space="preserve"><value>La tabla de nombres no se importa: está para ver cuál es. Prueba direcciones hasta que salga el decorado del juego, y esa es la que hay que darle al capturador de mapas.</value></data>
   <data name="ImportVramBigSprites" xml:space="preserve"><value>Sprites de 16x16</value></data>
   <data name="ImportVramWantsTiles" xml:space="preserve"><value>Traer los tiles</value></data>
   <data name="ImportVramWantsSprites" xml:space="preserve"><value>Traer los sprites</value></data>
