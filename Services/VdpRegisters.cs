@@ -23,11 +23,16 @@ namespace MSX_GameTools.Services;
 /// puede estar perfectamente por encima de los 16 KB y hay que sumarlos.
 /// </para>
 /// <para>
-/// <b>Los bits bajos no son dirección.</b> En GRAPHIC 2 y 3, de R#4 sólo el bit 2 dice dónde
-/// empieza la tabla de patrones y de R#3 sólo el bit 7 dice dónde la de colores: los demás son
-/// una máscara sobre los tercios de la pantalla. Por eso la base sólo puede ser
-/// <c>0000H</c> o <c>2000H</c>, y por eso un <c>R#4 = 0x07</c> da <c>2000H</c> y no
-/// <c>3800H</c>.
+/// <b>Los bits bajos no son dirección.</b> En GRAPHIC 2 y 3, los dos bits de abajo de R#4 y
+/// los siete de abajo de R#3 son una máscara sobre los tercios de la pantalla y no parte de la
+/// dirección. Por eso la base va de <c>2000H</c> en <c>2000H</c> y por eso un
+/// <c>R#4 = 0x07</c> da <c>2000H</c> y no <c>3800H</c>.
+/// </para>
+/// <para>
+/// <b>Pero los de arriba sí.</b> R#4 son seis bits, A16 a A11, y en un V9938 con 128 KB los
+/// cuatro de arriba son dirección de verdad: el <c>R#4 = 0x33</c> de Space Manbow son los
+/// patrones en <c>18000H</c>, no en <c>0000H</c>. Mirando sólo el bit 2 —que es lo que vale
+/// para un MSX1, donde no hay más de 16 KB— se leía la tabla equivocada.
 /// </para>
 /// </remarks>
 public static class VdpRegisters
@@ -75,13 +80,15 @@ public static class VdpRegisters
 
         ScreenMode mode = ModeOf(bytes);
 
+        // Las mascaras son las que dice el manual de cada registro: R#2 son siete bits, R#4 y
+        // R#6 seis. Los de arriba no se usan y en un volcado pueden traer cualquier cosa.
         return new Layout(
             mode,
             BigSprites: (bytes[1] & 0x02) != 0,
             Patterns: PatternsOf(bytes, mode),
             Colors: ColorsOf(bytes, mode),
-            Names: bytes[2] * 0x400,
-            SpritePatterns: bytes[6] * 0x800,
+            Names: (bytes[2] & 0x7F) * 0x400,
+            SpritePatterns: (bytes[6] & 0x3F) * 0x800,
             SpriteAttributes: ((bytes[11] & 0x03) << 15) | (bytes[5] * 0x80));
     }
 
@@ -104,6 +111,7 @@ public static class VdpRegisters
         bool m4 = (bytes[0] & 0x04) != 0;
         bool m5 = (bytes[0] & 0x08) != 0;
 
+        // M5 puesto son los modos de mapa de bits, y M1 o M2, texto y multicolor.
         if (m1 || m2 || m5)
             return ScreenMode.Other;
 
@@ -111,7 +119,11 @@ public static class VdpRegisters
         {
             (false, false) => ScreenMode.Graphic1,
             (false, true) => ScreenMode.Graphic2,
-            (true, false) => ScreenMode.Graphic3,
+
+            // Los dos: es la fila del manual que da R#0 = 0x06. M4 solo es TEXT 2, que no se
+            // lee. Estuvieron cambiados, y por eso un volcado de SCREEN 4 salia como «un modo
+            // que no se puede leer».
+            (true, true) => ScreenMode.Graphic3,
             _ => ScreenMode.Other,
         };
     }
@@ -119,8 +131,10 @@ public static class VdpRegisters
     /// <inheritdoc cref="VdpRegisters"/>
     private static int PatternsOf(byte[] bytes, ScreenMode mode) => mode switch
     {
-        ScreenMode.Graphic2 or ScreenMode.Graphic3 => (bytes[4] & 0x04) * 0x800,
-        _ => bytes[4] * 0x800,
+        // 0x3C y no 0x04: los dos bits de abajo son la mascara de los tercios, pero los cuatro
+        // de arriba son direccion y en 128 KB llevan la tabla mucho mas alla de los 16 KB.
+        ScreenMode.Graphic2 or ScreenMode.Graphic3 => (bytes[4] & 0x3C) * 0x800,
+        _ => (bytes[4] & 0x3F) * 0x800,
     };
 
     /// <inheritdoc cref="VdpRegisters"/>

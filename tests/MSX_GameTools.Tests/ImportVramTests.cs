@@ -154,7 +154,76 @@ public class ImportVramTests : IDisposable
         Avalonia.Threading.Dispatcher.UIThread.RunJobs();
     }
 
+    /// <summary>
+    /// Con un volcado de 128 KB, los desplegables llegan hasta arriba.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// En un V9938 las tablas se van muy por encima de los 16 KB: Space Manbow tiene los
+    /// patrones en <c>18000H</c>, los colores en <c>1A000H</c> y los sprites en <c>D000H</c>.
+    /// </para>
+    /// <para>
+    /// Con las listas cortadas en <c>2000H</c> y <c>3800H</c>, cargar sus registros dejaba los
+    /// tres desplegables en blanco: el valor estaba puesto pero no era ninguna de las opciones,
+    /// así que no se veía ni se podía volver a elegir.
+    /// </para>
+    /// </remarks>
+    [AvaloniaFact]
+    public void Con_un_volcado_de_128k_los_desplegables_llegan_hasta_arriba()
+    {
+        ImportVramViewModel form = SpaceManbow();
+
+        Assert.Equal(VdpRegisters.ScreenMode.Graphic3, form.Mode);
+
+        Assert.Equal(0x18000, form.Patterns);
+        Assert.Equal(0x1A000, form.Colors);
+        Assert.Equal(0x0D000, form.SpritePatterns);
+
+        // Y cada uno es una de las opciones, que es lo que hace que se vea.
+        Assert.Contains(form.Patterns, form.TableChoices);
+        Assert.Contains(form.Colors, form.TableChoices);
+        Assert.Contains(form.SpritePatterns, form.SpriteChoices);
+    }
+
+    /// <summary>
+    /// Y con uno de 16 KB siguen siendo los de siempre.
+    /// </summary>
+    /// <remarks>
+    /// Un MSX1 no tiene más sitio, así que ofrecer las direcciones de un V9938 sería ofrecer
+    /// tablas que en esa máquina no caben.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Con_un_volcado_de_16k_los_desplegables_siguen_cortos()
+    {
+        ImportVramViewModel form = Form(new MainWindowViewModel());
+
+        Assert.Equal([0x0000, 0x2000], form.TableChoices);
+        Assert.Equal(8, form.SpriteChoices.Count);
+    }
+
     // ------------------------------------------------------------------ los andamios
+
+    /// <summary>
+    /// El formulario sobre el volcado de Space Manbow, con sus registros cargados.
+    /// </summary>
+    /// <remarks>
+    /// Los bytes de los registros tal cual salen de openMSX. La VRAM va vacía: aquí lo que se
+    /// mira son las direcciones, no lo que haya en ellas.
+    /// </remarks>
+    private static ImportVramViewModel SpaceManbow()
+    {
+        var registers = new byte[VdpRegisters.Count];
+
+        new byte[] { 0x16, 0x62, 0x3F, 0xFF, 0x33, 0xF7, 0x1A, 0xFF, 0x2A, 0x80, 0x06, 0x01 }
+            .CopyTo(registers, 0);
+
+        var form = new ImportVramViewModel(
+            new MainWindowViewModel(), "space_manbow_vram.bin", new byte[128 * 1024]);
+
+        form.Apply(VdpRegisters.Read(registers)!, "space_manbow_vdp_regs.bin");
+
+        return form;
+    }
 
     /// <summary>Un formulario sobre una VRAM con un juego de tiles de verdad dentro.</summary>
     private static ImportVramViewModel Form(MainWindowViewModel main)

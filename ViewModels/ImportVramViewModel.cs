@@ -33,6 +33,7 @@ public partial class ImportVramViewModel : PanelBaseViewModel
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Report))]
+    [NotifyPropertyChangedFor(nameof(TableChoices))]
     private VdpRegisters.ScreenMode _mode = VdpRegisters.ScreenMode.Graphic2;
 
     [ObservableProperty]
@@ -89,13 +90,31 @@ public partial class ImportVramViewModel : PanelBaseViewModel
     ];
 
     /// <inheritdoc cref="ImportVramViewModel"/>
-    public IReadOnlyList<int> TableChoices => Mode == VdpRegisters.ScreenMode.Graphic1
-        ? [.. Enumerable.Range(0, 8).Select(at => at * 0x800)]
-        : [0x0000, 0x2000];
+    public IReadOnlyList<int> TableChoices =>
+        Every(Mode == VdpRegisters.ScreenMode.Graphic1 ? 0x800 : 0x2000);
 
     /// <summary>Los sitios donde puede empezar la tabla de patrones de sprite: cada 2 KB.</summary>
-    public IReadOnlyList<int> SpriteChoices { get; } =
-        [.. Enumerable.Range(0, 8).Select(at => at * 0x800)];
+    public IReadOnlyList<int> SpriteChoices => Every(0x800);
+
+    /// <summary>
+    /// Las direcciones legales que caben en el volcado, de <paramref name="step"/> en
+    /// <paramref name="step"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Hasta donde llegue el volcado y no hasta los 16 KB: en un V9938 la VRAM son 128 KB y
+    /// las tablas se van muy arriba. Space Manbow tiene los patrones en <c>18000H</c>, y con la
+    /// lista cortada en <c>2000H</c> el desplegable salía vacío y no había manera de decirlo.
+    /// </para>
+    /// <para>
+    /// Un volcado de 16 KB sigue dando lo de siempre —dos sitios para las tablas y ocho para
+    /// los sprites—, que es lo que puede tener un MSX1.
+    /// </para>
+    /// </remarks>
+    private IReadOnlyList<int> Every(int step) =>
+        [.. Enumerable
+            .Range(0, Math.Max(1, _vram.Length / step))
+            .Select(at => at * step)];
 
     /// <summary>Lo que va a salir, antes de aceptar.</summary>
     public string Report
