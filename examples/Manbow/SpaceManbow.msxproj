@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "name": "SpaceManbow",
+  "items": [
+    {
+      "kind": "tileSet",
+      "path": "SpaceManbow_Tiles.json"
+    },
+    {
+      "kind": "spriteBank",
+      "path": "SpaceManbow_Sprites.json"
+    },
+    {
+      "kind": "map",
+      "path": "Map_Space_Manbow_L1.json"
+    }
+  ],
+  "palettes": [
+    {
+      "version": 1,
+      "name": "pallete_space_manbow2",
+      "colors": [
+        {
+          "rgb": "114"
+        },
+        {
+          "rgb": "114"
+        },
+        {
+          "rgb": "510"
+        },
+        {
+          "rgb": "740"
+        },
+        {
+          "rgb": "225"
+        },
+        {
+          "rgb": "222"
+        },
+        {
+          "rgb": "500"
+        },
+        {
+          "rgb": "117"
+        },
+        {
+          "rgb": "445"
+        },
+        {
+          "rgb": "447"
+        },
+        {
+          "rgb": "770"
+        },
+        {
+          "rgb": "467"
+        },
+        {
+          "rgb": "236"
+        },
+        {
+          "rgb": "333"
+        },
+        {
+          "rgb": "777"
+        },
+        {
+          "rgb": "000"
+        }
+      ]
+    }
+  ],
+  "backgrounds": []
+}

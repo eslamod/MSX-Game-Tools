@@ -619,12 +619,12 @@ PaletteData:
 PaletteEnd:
 
 PatternsData:
-                .incbin "tiles_patterns.bin"
+                .incbin "tiles_cars_game_patterns.bin"
               ; .include "tiles_patterns.asm"
 PatternsEnd:
 
 ColorsData:
-                .incbin "tiles_colors.bin"
+                .incbin "tiles_cars_game_colors.bin"
               ; .include "tiles_colors.asm"
 ColorsEnd:
 
@@ -633,7 +633,7 @@ ColorsEnd:
 ; constante: lo hace ReadMapHeader avanzando, que es como se lee un formato con
 ; cabecera y no deja que las dos cosas se separen.
 MapData:
-                .incbin "map.bin"
+                .incbin "map_cars_game.bin"
               ; .include "map.asm"
 MapEnd:
 
