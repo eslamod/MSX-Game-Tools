@@ -387,6 +387,8 @@
   <data name="ImportCaptureTop" xml:space="preserve"><value>Fila</value></data>
   <data name="ImportCaptureColumns" xml:space="preserve"><value>Ancho</value></data>
   <data name="ImportCaptureRows" xml:space="preserve"><value>Alto</value></data>
+  <data name="ImportCaptureMatch" xml:space="preserve"><value>Encaje</value></data>
+  <data name="ImportCaptureMatchHint" xml:space="preserve"><value>Cuánto se tienen que parecer dos pantallas para darlas por seguidas. Bájalo si el mapa sale en muchos trozos; súbelo si se pegan zonas que en el juego no se tocan.</value></data>
   <data name="ImportCaptureSuggest" xml:space="preserve"><value>Proponer</value></data>
   <data name="ImportCaptureWhole" xml:space="preserve"><value>Pantalla entera</value></data>
   <data name="ImportCaptureOneMap" xml:space="preserve"><value>Sale un mapa.</value></data>

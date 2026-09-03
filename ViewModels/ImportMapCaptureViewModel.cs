@@ -27,6 +27,12 @@ namespace MSX_GameTools.ViewModels;
 /// Así se prueba a recortar sin tener que aceptar y deshacer.
 /// </para>
 /// <para>
+/// El otro mando es el <see cref="Match"/>: cuánto se tienen que parecer dos pantallas para
+/// darlas por seguidas. Alto de más corta lo que iba junto; bajo de más pega zonas que en el
+/// juego no se tocan. No hay un número bueno para todos, así que se prueba mirando cuántos
+/// mapas salen: Knightmare va bien con el 90% y Space Manbow necesita el 70%.
+/// </para>
+/// <para>
 /// Y se traen <see cref="MostMaps"/> como mucho, los mayores. Una partida por un juego de
 /// salas puede dar cientos de trozos de dos pantallas, y abrirlos todos deja la aplicación
 /// inservible: al cerrar sale la lista de lo que hay que guardar con trescientas líneas y los
@@ -43,6 +49,9 @@ public partial class ImportMapCaptureViewModel : PanelBaseViewModel
 
     /// <summary>La zona con la que se coció <see cref="_maps"/>, para no coserla otra vez.</summary>
     private MapCapture.Region? _stitched;
+
+    /// <summary>Y con qué listón, que también cambia lo que sale.</summary>
+    private int _stitchedAt = -1;
 
     private IReadOnlyList<TileMap> _maps = [];
 
@@ -72,6 +81,13 @@ public partial class ImportMapCaptureViewModel : PanelBaseViewModel
     [NotifyPropertyChangedFor(nameof(CanAccept))]
     [NotifyCanExecuteChangedFor(nameof(AcceptImportCommand))]
     private int _rows;
+
+    /// <summary>Lo que se tienen que parecer dos pantallas para darlas por seguidas, en tanto por ciento.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Report))]
+    [NotifyPropertyChangedFor(nameof(CanAccept))]
+    [NotifyCanExecuteChangedFor(nameof(AcceptImportCommand))]
+    private int _match = (int)(MapStitcher.LeastMatch * 100);
 
     public ImportMapCaptureViewModel(
         MainWindowViewModel mainWindowVm,
@@ -167,12 +183,13 @@ public partial class ImportMapCaptureViewModel : PanelBaseViewModel
     {
         get
         {
-            if (_stitched != Region)
+            if (_stitched != Region || _stitchedAt != Match)
             {
                 _stitched = Region;
+                _stitchedAt = Match;
 
                 _maps = Region.FitsIn(_capture)
-                    ? MapCapture.Stitch(_capture, _name, Region)
+                    ? MapCapture.Stitch(_capture, _name, Region, Match / 100.0)
                     : [];
             }
 

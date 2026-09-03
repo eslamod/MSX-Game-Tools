@@ -122,6 +122,39 @@ public class MapCaptureTests
         Assert.Equal(3, MapCapture.Moves(MapCapture.Read(Written(Falling(4)))));
     }
 
+    /// <summary>
+    /// Con el listón bajo, dos pantallas que encajan a medias se cosen igual.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// El 90% de siempre sale de Knightmare, que scrollea limpio. Un juego con mucho
+    /// movimiento por delante del decorado cambia un cuarto de la pantalla sin haberse movido
+    /// de sitio, y entonces el mapa sale hecho trozos: la captura de Space Manbow da cincuenta
+    /// y cuatro con el 90% y tres con el 70%.
+    /// </para>
+    /// <para>
+    /// Aquí se ensucia un tercio de las celdas al azar en cada paso, que es más de lo que el
+    /// listón de siempre tolera y menos de lo que tolera el bajo.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void Con_el_liston_bajo_se_cose_lo_que_encaja_a_medias()
+    {
+        string text = Written(Noisy(4));
+
+        MapCapture.Capture capture = MapCapture.Read(text);
+
+        // Con el de siempre no encaja ningun par, asi que no sale ningun mapa.
+        Assert.Empty(MapCapture.Stitch(capture, "Zona"));
+
+        TileMap map = Assert.Single(
+            MapCapture.Stitch(capture, "Zona", region: null, leastMatch: 0.50));
+
+        // Mas ancho que una pantalla, o sea que ha cosido de verdad. Cuanto mas, no se
+        // fija: con este ruido algun par acierta otro desplazamiento y da igual.
+        Assert.True(map.Width > Columns, $"mide {map.Width} de ancho");
+    }
+
     /// <summary>Un fichero que no es una captura se rechaza diciendo por qué.</summary>
     [Fact]
     public void Un_fichero_que_no_es_una_captura_se_rechaza()
@@ -382,6 +415,27 @@ public class MapCaptureTests
             }
 
             screen[0, Rows - 1] = 900 + at;
+
+            return ((long)1, screen);
+        })];
+    }
+
+    /// <summary>Pantallas que se desplazan de verdad pero encajan a medias.</summary>
+    /// <remarks>
+    /// Un tercio de las celdas cambiadas al azar en cada paso: el desplazamiento se sigue
+    /// notando —es el que mejor encaja de largo— pero no llega al listón de siempre.
+    /// </remarks>
+    private static (long Stamp, int[,] Cells)[] Noisy(int screens)
+    {
+        int[,] world = World(Columns + 4, Rows);
+        var random = new Random(31);
+
+        return [.. Enumerable.Range(0, screens).Select(at =>
+        {
+            int[,] screen = Cut(world, at);
+
+            for (int each = 0; each < Columns * Rows / 3; each++)
+                screen[random.Next(Columns), random.Next(Rows)] = random.Next(1, 256);
 
             return ((long)1, screen);
         })];

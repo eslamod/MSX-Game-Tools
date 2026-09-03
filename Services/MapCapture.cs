@@ -376,7 +376,12 @@ public static class MapCapture
         }
     }
 
-    public static IReadOnlyList<TileMap> Stitch(Capture capture, string name, Region? region = null)
+    /// <param name="leastMatch"><inheritdoc cref="MapStitcher.LeastMatch" path="/summary"/></param>
+    public static IReadOnlyList<TileMap> Stitch(
+        Capture capture,
+        string name,
+        Region? region = null,
+        double leastMatch = MapStitcher.LeastMatch)
     {
         Region cut = region is not null && region.FitsIn(capture)
             ? region
@@ -384,7 +389,7 @@ public static class MapCapture
 
         var maps = new List<TileMap>();
 
-        MapStitcher stitcher = new();
+        MapStitcher stitcher = new(leastMatch);
 
         foreach (Screen screen in capture.Screens)
         {
@@ -395,7 +400,7 @@ public static class MapCapture
 
             Keep(maps, stitcher, name);
 
-            stitcher = new MapStitcher();
+            stitcher = new MapStitcher(leastMatch);
             stitcher.Feed(cells);
         }
 

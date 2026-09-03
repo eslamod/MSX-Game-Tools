@@ -40,7 +40,24 @@ public sealed class MapStitcher
     /// </remarks>
     public const int Reach = 4;
 
-    /// <summary>Celdas que tienen que coincidir para dar por bueno un encaje.</summary>
+    /// <summary>
+    /// Celdas que tienen que coincidir, por defecto, para dar por bueno un encaje.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// El 90% sale de Knightmare, que scrollea limpio: lo único que no encaja son las dos filas
+    /// del marcador. Pero hay juegos con mucho movimiento por delante del decorado, y ahí una
+    /// pantalla puede cambiar un 25% sin haberse movido de sitio: Space Manbow tiene cincuenta
+    /// pares que se quedan entre el 70% y el 90%, y con el listón aquí sale en cincuenta y
+    /// cuatro trozos en vez de en tres.
+    /// </para>
+    /// <para>
+    /// Por eso se puede bajar al coser. Alto de más corta lo que iba junto; bajo de más pega
+    /// zonas que en el juego no se tocan, porque dos pantallas cualesquiera acaban encajando
+    /// por casualidad. No hay un número bueno para todos los juegos, así que se elige viendo
+    /// lo que sale.
+    /// </para>
+    /// </remarks>
     public const double LeastMatch = 0.90;
 
     /// <summary>Y cuánto se tienen que solapar las dos pantallas.</summary>
@@ -52,9 +69,14 @@ public sealed class MapStitcher
 
     private readonly Dictionary<(int Column, int Row), int> _cells = [];
 
+    private readonly double _leastMatch;
+
     private int[,]? _last;
     private int _atColumn;
     private int _atRow;
+
+    /// <inheritdoc cref="LeastMatch"/>
+    public MapStitcher(double leastMatch = LeastMatch) => _leastMatch = leastMatch;
 
     /// <summary>Cuánto se ha movido la cámara entre dos pantallas, en celdas.</summary>
     public sealed record Shift(int Columns, int Rows, double Match);
@@ -77,7 +99,8 @@ public sealed class MapStitcher
     /// El desplazamiento es el de la cámara: si el contenido se va hacia la izquierda de la
     /// pantalla, la cámara ha ido hacia la derecha y sale positivo.
     /// </remarks>
-    public static Shift? Between(int[,] before, int[,] after, int reach = Reach)
+    public static Shift? Between(
+        int[,] before, int[,] after, int reach = Reach, double leastMatch = LeastMatch)
     {
         if (!SameSize(before, after))
             return null;
@@ -85,7 +108,7 @@ public sealed class MapStitcher
         // De menos movimiento a mas, para que empatando gane quedarse quieto.
         foreach ((int dc, int dr) in Candidates(reach))
         {
-            if (Match(before, after, dc, dr) is { } match && match >= LeastMatch)
+            if (Match(before, after, dc, dr) is { } match && match >= leastMatch)
                 return new Shift(dc, dr, match);
         }
 
@@ -171,7 +194,7 @@ public sealed class MapStitcher
     {
         if (_last is not null)
         {
-            if (Between(_last, screen) is not { } shift)
+            if (Between(_last, screen, Reach, _leastMatch) is not { } shift)
                 return false;
 
             _atColumn += shift.Columns;

@@ -61,6 +61,19 @@
                          Value="{Binding Rows}" />
         </Grid>
 
+        <!-- El otro mando: alto de mas corta lo que iba junto, bajo de mas pega zonas que
+             en el juego no se tocan. No hay numero bueno para todos, se prueba mirando
+             cuantos mapas salen. -->
+        <Grid ColumnDefinitions="90,*" Margin="0,0,0,4">
+          <TextBlock Grid.Column="0" Text="{l:Localize ImportCaptureMatch}" VerticalAlignment="Center" />
+          <NumericUpDown Grid.Column="1" ShowButtonSpinner="True" FormatString="0'%'"
+                         Minimum="50" Maximum="99" Increment="5"
+                         Value="{Binding Match}" />
+        </Grid>
+
+        <TextBlock Text="{l:Localize ImportCaptureMatchHint}" TextWrapping="Wrap" Margin="0,0,0,10"
+                   FontSize="11" Foreground="{DynamicResource AppTextSecondary}" />
+
         <UniformGrid Columns="2" Margin="0,0,0,10">
           <Button Content="{l:Localize ImportCaptureSuggest}" HorizontalAlignment="Stretch"
                   HorizontalContentAlignment="Center" Margin="0,0,4,0"

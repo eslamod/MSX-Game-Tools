@@ -362,6 +362,8 @@
   <data name="ImportCaptureTop" xml:space="preserve"><value>Fila</value></data>
   <data name="ImportCaptureColumns" xml:space="preserve"><value>Amplada</value></data>
   <data name="ImportCaptureRows" xml:space="preserve"><value>Alçada</value></data>
+  <data name="ImportCaptureMatch" xml:space="preserve"><value>Encaix</value></data>
+  <data name="ImportCaptureMatchHint" xml:space="preserve"><value>Com s’han d’assemblar dues pantalles per donar-les per seguides. Abaixa’l si el mapa surt en molts trossos; apuja’l si s’enganxen zones que al joc no es toquen.</value></data>
   <data name="ImportCaptureSuggest" xml:space="preserve"><value>Proposar</value></data>
   <data name="ImportCaptureWhole" xml:space="preserve"><value>Pantalla sencera</value></data>
   <data name="ImportCaptureOneMap" xml:space="preserve"><value>Surt un mapa.</value></data>

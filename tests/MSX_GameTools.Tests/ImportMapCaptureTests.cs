@@ -124,6 +124,44 @@ public class ImportMapCaptureTests : IDisposable
     }
 
     /// <summary>
+    /// Bajando el listón se cose lo que con el de siempre no encajaba.
+    /// </summary>
+    /// <remarks>
+    /// El 90% sale de Knightmare, que scrollea limpio. Un juego con mucho movimiento por
+    /// delante del decorado cambia un cuarto de la pantalla sin moverse de sitio, y el mapa
+    /// sale hecho trozos: la captura de Space Manbow da cincuenta y cuatro con el 90% y tres
+    /// con el 70%. Por eso se elige aquí y no en una constante.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Bajando_el_liston_se_cose_lo_que_antes_no()
+    {
+        string path = Path.Combine(_folder, "sucia.txt");
+
+        await File.WriteAllTextAsync(path, Written(Noisy()));
+
+        var dialogs = new TestDialogService { OpenPath = path };
+        var main = new MainWindowViewModel(dialogs);
+
+        main.OpenTileSet(new TileSet("Bosque"));
+
+        ImportMapCaptureViewModel form = await Form(main);
+
+        // Con el de siempre no encaja ningun par y no sale nada que traer.
+        Assert.Equal(90, form.Match);
+        Assert.False(form.AcceptImportCommand.CanExecute(null));
+
+        form.Match = 50;
+
+        Assert.True(form.AcceptImportCommand.CanExecute(null));
+
+        form.AcceptImportCommand.Execute(null);
+
+        TileMap map = Assert.Single(main.Tabs.OfType<MapEditorViewModel>()).Map;
+
+        Assert.True(map.Width > Columns, $"mide {map.Width} de ancho");
+    }
+
+    /// <summary>
     /// Y si además ninguna pantalla se movió, se dice eso, que es otra cosa.
     /// </summary>
     /// <remarks>

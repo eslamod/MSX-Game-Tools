@@ -361,6 +361,8 @@
   <data name="ImportCaptureTop" xml:space="preserve"><value>Row</value></data>
   <data name="ImportCaptureColumns" xml:space="preserve"><value>Width</value></data>
   <data name="ImportCaptureRows" xml:space="preserve"><value>Height</value></data>
+  <data name="ImportCaptureMatch" xml:space="preserve"><value>Match</value></data>
+  <data name="ImportCaptureMatchHint" xml:space="preserve"><value>How alike two screens must be to count as consecutive. Lower it if the map comes out in many pieces; raise it if areas that do not touch in the game get joined.</value></data>
   <data name="ImportCaptureSuggest" xml:space="preserve"><value>Suggest</value></data>
   <data name="ImportCaptureWhole" xml:space="preserve"><value>Whole screen</value></data>
   <data name="ImportCaptureOneMap" xml:space="preserve"><value>One map comes out.</value></data>
