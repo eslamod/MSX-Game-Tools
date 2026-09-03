@@ -25,7 +25,7 @@ public class MapCaptureTests
 
         string text = Written(1, Cuts(world, 0, 1, 2, 3));
 
-        TileMap map = Assert.Single(MapCapture.Stitch(MapCapture.Read(text), "Zona"));
+        TileMap map = Assert.Single(MapCapture.Stitch(MapCapture.Read(text), "Zona").Maps);
 
         Assert.Equal(Columns + 3, map.Width);
         Assert.Equal(Rows, map.Height);
@@ -55,7 +55,7 @@ public class MapCaptureTests
         string text = Written(
             [(1, Cut(world, 0)), (2, Cut(world, 1)), (3, Cut(world, 2)), (4, Cut(world, 3))]);
 
-        TileMap map = Assert.Single(MapCapture.Stitch(MapCapture.Read(text), "Zona"));
+        TileMap map = Assert.Single(MapCapture.Stitch(MapCapture.Read(text), "Zona").Maps);
 
         Assert.Equal(Columns + 3, map.Width);
     }
@@ -70,7 +70,7 @@ public class MapCaptureTests
         string text = Written(
             [(1, Cut(one, 0)), (1, Cut(one, 1)), (1, Cut(other, 0)), (1, Cut(other, 1))]);
 
-        Assert.Equal(2, MapCapture.Stitch(MapCapture.Read(text), "Zona").Count);
+        Assert.Equal(2, MapCapture.Stitch(MapCapture.Read(text), "Zona").Maps.Count);
     }
 
     /// <summary>
@@ -90,7 +90,7 @@ public class MapCaptureTests
             [(1, Cut(one, 0)), (1, Cut(other, 0)), (1, Cut(one, 0)), (1, Cut(one, 1))]);
 
         // La del medio se queda en una pantalla suelta; la primera tambien.
-        TileMap map = Assert.Single(MapCapture.Stitch(MapCapture.Read(text), "Zona"));
+        TileMap map = Assert.Single(MapCapture.Stitch(MapCapture.Read(text), "Zona").Maps);
 
         Assert.Equal(Columns + 1, map.Width);
     }
@@ -145,14 +145,46 @@ public class MapCaptureTests
         MapCapture.Capture capture = MapCapture.Read(text);
 
         // Con el de siempre no encaja ningun par, asi que no sale ningun mapa.
-        Assert.Empty(MapCapture.Stitch(capture, "Zona"));
+        Assert.Empty(MapCapture.Stitch(capture, "Zona").Maps);
 
         TileMap map = Assert.Single(
-            MapCapture.Stitch(capture, "Zona", region: null, leastMatch: 0.50));
+            MapCapture.Stitch(capture, "Zona", region: null, leastMatch: 0.50).Maps);
 
         // Mas ancho que una pantalla, o sea que ha cosido de verdad. Cuanto mas, no se
         // fija: con este ruido algun par acierta otro desplazamiento y da igual.
         Assert.True(map.Width > Columns, $"mide {map.Width} de ancho");
+    }
+
+    /// <summary>
+    /// Lo bien pegado que está el mapa se mide con las celdas que dos pantallas se reparten.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// El tamaño no lo dice: bajando el listón del encaje salen menos mapas y más largos, y
+    /// peores. Lo que delata un pegado malo es que en el trozo que dos pantallas comparten,
+    /// cada una diga un tile distinto.
+    /// </para>
+    /// <para>
+    /// Una zona recorrida limpiamente no se pisa nunca; una con ruido, sí, y ahí está la
+    /// diferencia entre un mapa que sirve y uno que sólo es grande.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void Un_cosido_limpio_no_se_pisa_y_uno_sucio_si()
+    {
+        int[,] world = World(16, Rows);
+
+        MapCapture.Stitched clean = MapCapture.Stitch(
+            MapCapture.Read(Written(Cuts(world, 0, 1, 2, 3))), "Zona");
+
+        Assert.Single(clean.Maps);
+        Assert.Equal(0, clean.Noise);
+
+        MapCapture.Stitched dirty = MapCapture.Stitch(
+            MapCapture.Read(Written(Noisy(4))), "Zona", region: null, leastMatch: 0.50);
+
+        Assert.Single(dirty.Maps);
+        Assert.True(dirty.Noise > 0.10, $"se pisa el {dirty.Noise:P0}");
     }
 
     /// <summary>Un fichero que no es una captura se rechaza diciendo por qué.</summary>
@@ -198,7 +230,7 @@ public class MapCaptureTests
         // estampa una fila mas abajo cada vez.
         MapCapture.Capture capture = MapCapture.Read(Written(Falling(4)));
 
-        TileMap whole = Assert.Single(MapCapture.Stitch(capture, "Zona"));
+        TileMap whole = Assert.Single(MapCapture.Stitch(capture, "Zona").Maps);
 
         // Sin recortar, el marcador va cosido dentro del mapa.
         Assert.Equal(Rows + 3, whole.Height);
@@ -206,7 +238,7 @@ public class MapCaptureTests
 
         // Recortandolo, el mapa es solo terreno y no queda ni rastro del marcador.
         TileMap cut = Assert.Single(
-            MapCapture.Stitch(capture, "Zona", new MapCapture.Region(0, 0, Columns, Rows - Marker)));
+            MapCapture.Stitch(capture, "Zona", new MapCapture.Region(0, 0, Columns, Rows - Marker)).Maps);
 
         Assert.Equal(Rows - Marker + 3, cut.Height);
         Assert.Equal(Columns, cut.Width);

@@ -395,6 +395,7 @@
   <data name="ImportCaptureManyMaps" xml:space="preserve"><value>Salen {0} mapas.</value></data>
   <data name="ImportCaptureTooMany" xml:space="preserve"><value>Salen {0} mapas: se traen los {1} mayores.</value></data>
   <data name="ImportCaptureBiggest" xml:space="preserve"><value>El mayor mide {0}×{1}.</value></data>
+  <data name="ImportCaptureNoise" xml:space="preserve"><value>Se pisan {0} de las celdas que dos pantallas comparten: donde se solapan, dicen tiles distintos. Cuanto más bajo, mejor pegado está el mapa.</value></data>
   <data name="ImportCaptureBadRegion" xml:space="preserve"><value>La zona se sale de la pantalla.</value></data>
   <data name="ImportVramTitle" xml:space="preserve"><value>Traer de un volcado de VRAM</value></data>
   <data name="ImportVramFile" xml:space="preserve"><value>Volcado</value></data>

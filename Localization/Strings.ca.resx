@@ -370,6 +370,7 @@
   <data name="ImportCaptureManyMaps" xml:space="preserve"><value>Surten {0} mapes.</value></data>
   <data name="ImportCaptureTooMany" xml:space="preserve"><value>Surten {0} mapes: se n’importen els {1} més grans.</value></data>
   <data name="ImportCaptureBiggest" xml:space="preserve"><value>El més gran fa {0}×{1}.</value></data>
+  <data name="ImportCaptureNoise" xml:space="preserve"><value>Es trepitgen {0} de les cel·les que dues pantalles comparteixen: on se solapen, diuen tiles diferents. Com més baix, millor enganxat està el mapa.</value></data>
   <data name="ImportCaptureBadRegion" xml:space="preserve"><value>La zona se surt de la pantalla.</value></data>
   <data name="ImportVramTitle" xml:space="preserve"><value>Portar d'un bolcat de VRAM</value></data>
   <data name="ImportVramFile" xml:space="preserve"><value>Bolcat</value></data>

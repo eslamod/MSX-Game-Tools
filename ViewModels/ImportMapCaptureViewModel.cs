@@ -29,8 +29,13 @@ namespace MSX_GameTools.ViewModels;
 /// <para>
 /// El otro mando es el <see cref="Match"/>: cuánto se tienen que parecer dos pantallas para
 /// darlas por seguidas. Alto de más corta lo que iba junto; bajo de más pega zonas que en el
-/// juego no se tocan. No hay un número bueno para todos, así que se prueba mirando cuántos
-/// mapas salen: Knightmare va bien con el 90% y Space Manbow necesita el 70%.
+/// juego no se tocan, y entonces sale un mapa grande y mal pegado.
+/// </para>
+/// <para>
+/// Por eso el informe da además <see cref="MapStitcher.Noise"/>: cuántas de las celdas que dos
+/// pantallas se reparten no dicen lo mismo. Es lo que distingue un mapa bueno de uno grande, y
+/// el tamaño no lo dice —bajando el listón salen menos mapas y más largos, y peores—. Se elige
+/// mirando ese número, no el número de mapas.
 /// </para>
 /// <para>
 /// Y se traen <see cref="MostMaps"/> como mucho, los mayores. Una partida por un juego de
@@ -53,7 +58,7 @@ public partial class ImportMapCaptureViewModel : PanelBaseViewModel
     /// <summary>Y con qué listón, que también cambia lo que sale.</summary>
     private int _stitchedAt = -1;
 
-    private IReadOnlyList<TileMap> _maps = [];
+    private MapCapture.Stitched _stitch = new([], 0);
 
     /// <summary>En cuántos pares de pantallas se movió la cámara.</summary>
     private readonly int _moves;
@@ -161,6 +166,7 @@ public partial class ImportMapCaptureViewModel : PanelBaseViewModel
                     still,
                     many,
                     Localizer.Instance.Format("ImportCaptureBiggest", biggest.Width, biggest.Height),
+                    Localizer.Instance.Format("ImportCaptureNoise", $"{_stitch.Noise:P1}"),
                 }.Where(line => line.Length > 0)]);
         }
     }
@@ -188,12 +194,12 @@ public partial class ImportMapCaptureViewModel : PanelBaseViewModel
                 _stitched = Region;
                 _stitchedAt = Match;
 
-                _maps = Region.FitsIn(_capture)
+                _stitch = Region.FitsIn(_capture)
                     ? MapCapture.Stitch(_capture, _name, Region, Match / 100.0)
-                    : [];
+                    : new MapCapture.Stitched([], 0);
             }
 
-            return _maps;
+            return _stitch.Maps;
         }
     }
 

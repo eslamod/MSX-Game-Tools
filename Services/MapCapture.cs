@@ -55,6 +55,12 @@ public static class MapCapture
     /// <summary>Una pantalla capturada, con el juego de tiles que había puesto.</summary>
     public sealed record Screen(long Stamp, int[,] Cells);
 
+    /// <summary>
+    /// Lo que sale de coser una captura: los mapas y lo bien pegados que están.
+    /// </summary>
+    /// <param name="Noise"><inheritdoc cref="MapStitcher.Noise" path="/summary"/></param>
+    public sealed record Stitched(IReadOnlyList<TileMap> Maps, double Noise);
+
     /// <summary>Las celdas de la pantalla que son mapa, sin el marcador.</summary>
     public sealed record Region(int Left, int Top, int Columns, int Rows)
     {
@@ -377,12 +383,21 @@ public static class MapCapture
     }
 
     /// <param name="leastMatch"><inheritdoc cref="MapStitcher.LeastMatch" path="/summary"/></param>
-    public static IReadOnlyList<TileMap> Stitch(
+    public static Stitched Stitch(
         Capture capture,
         string name,
         Region? region = null,
         double leastMatch = MapStitcher.LeastMatch)
     {
+        int clashes = 0;
+        int overwrites = 0;
+
+        void Count(MapStitcher one)
+        {
+            clashes += one.Clashes;
+            overwrites += one.Overwrites;
+        }
+
         Region cut = region is not null && region.FitsIn(capture)
             ? region
             : Region.Whole(capture);
@@ -399,14 +414,16 @@ public static class MapCapture
                 continue;
 
             Keep(maps, stitcher, name);
+            Count(stitcher);
 
             stitcher = new MapStitcher(leastMatch);
             stitcher.Feed(cells);
         }
 
         Keep(maps, stitcher, name);
+        Count(stitcher);
 
-        return maps;
+        return new Stitched(maps, overwrites == 0 ? 0 : (double)clashes / overwrites);
     }
 
     private static int[,] Crop(int[,] cells, Region region)

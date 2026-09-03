@@ -124,6 +124,29 @@ public class ImportMapCaptureTests : IDisposable
     }
 
     /// <summary>
+    /// El informe dice lo bien pegado que está el mapa, no sólo cuántos salen.
+    /// </summary>
+    /// <remarks>
+    /// Es lo que faltaba para elegir el listón: bajándolo salen menos mapas y más largos, y
+    /// eso parece mejor y no lo es. Lo que hay que mirar es cuántas celdas se pisan, que sube
+    /// según se baja el listón.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task El_informe_dice_lo_bien_pegado_que_esta()
+    {
+        var dialogs = new TestDialogService { OpenPath = Capture() };
+        var main = new MainWindowViewModel(dialogs);
+
+        main.OpenTileSet(new TileSet("Bosque"));
+
+        ImportMapCaptureViewModel form = await Form(main);
+
+        // Dos zonas recorridas limpias: no se pisa ni una celda.
+        Assert.Contains(
+            Localizer.Instance.Format("ImportCaptureNoise", $"{0d:P1}"), form.Report);
+    }
+
+    /// <summary>
     /// Bajando el listón se cose lo que con el de siempre no encajaba.
     /// </summary>
     /// <remarks>

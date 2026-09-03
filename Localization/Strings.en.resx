@@ -369,6 +369,7 @@
   <data name="ImportCaptureManyMaps" xml:space="preserve"><value>{0} maps come out.</value></data>
   <data name="ImportCaptureTooMany" xml:space="preserve"><value>{0} maps come out: the largest {1} are imported.</value></data>
   <data name="ImportCaptureBiggest" xml:space="preserve"><value>The largest is {0}×{1}.</value></data>
+  <data name="ImportCaptureNoise" xml:space="preserve"><value>{0} of the cells two screens share get overwritten: where they overlap, they disagree on the tile. The lower, the better the map is put together.</value></data>
   <data name="ImportCaptureBadRegion" xml:space="preserve"><value>The area falls outside the screen.</value></data>
   <data name="ImportVramTitle" xml:space="preserve"><value>Import from a VRAM dump</value></data>
   <data name="ImportVramFile" xml:space="preserve"><value>Dump</value></data>

@@ -71,6 +71,9 @@ public sealed class MapStitcher
 
     private readonly double _leastMatch;
 
+    private int _clashes;
+    private int _overwrites;
+
     private int[,]? _last;
     private int _atColumn;
     private int _atRow;
@@ -83,6 +86,30 @@ public sealed class MapStitcher
 
     /// <summary>Pantallas que se han pegado, contando la primera.</summary>
     public int Screens { get; private set; }
+
+    /// <summary>
+    /// De las celdas que dos pantallas se reparten, cuántas no dicen lo mismo.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Es la medida de si el cosido está bien hecho, y no la tiene el tamaño. Dos pantallas
+    /// pegadas donde toca escriben lo mismo en el trozo que comparten; pegadas donde no toca,
+    /// cada una escribe una cosa y la segunda tapa a la primera. Un mapa grande y mal pegado
+    /// sale grande igual: lo que lo delata es esto.
+    /// </para>
+    /// <para>
+    /// Nunca es cero del todo en un juego con movimiento —un disparo que pasa por delante
+    /// cambia celdas sin que el mapa cambie—, así que se lee comparando: bajando el listón del
+    /// encaje sube, y ahí se ve lo que cuesta cada trozo de mapa ganado.
+    /// </para>
+    /// </remarks>
+    public double Noise => _overwrites == 0 ? 0 : (double)_clashes / _overwrites;
+
+    /// <summary>Las celdas repartidas entre dos pantallas o más, para poder sumar varios mapas.</summary>
+    public int Overwrites => _overwrites;
+
+    /// <inheritdoc cref="Noise"/>
+    public int Clashes => _clashes;
 
     public int Left { get; private set; }
 
@@ -248,7 +275,20 @@ public sealed class MapStitcher
         for (int column = 0; column < screen.GetLength(0); column++)
         {
             for (int row = 0; row < screen.GetLength(1); row++)
-                _cells[(_atColumn + column, _atRow + row)] = screen[column, row];
+            {
+                (int, int) at = (_atColumn + column, _atRow + row);
+                int cell = screen[column, row];
+
+                if (_cells.TryGetValue(at, out int had))
+                {
+                    _overwrites++;
+
+                    if (had != cell)
+                        _clashes++;
+                }
+
+                _cells[at] = cell;
+            }
         }
 
         Left = Math.Min(Left, _atColumn);
