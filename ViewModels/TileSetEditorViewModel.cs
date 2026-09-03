@@ -165,6 +165,50 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
     /// </remarks>
     public event Action? BlocksChanged;
 
+    /// <summary>Ha cambiado lo que hay cogido para estampar.</summary>
+    public event Action? BrushChanged;
+
+    private TilePatch _brush = TilePatch.Single(0);
+
+    private string _brushName = "Tile 0";
+
+    /// <summary>
+    /// Lo que se estampa, compartido por todos los mapas de este juego de tiles.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Aquí y no en cada mapa porque copiar de un mapa y pegar en otro es lo que se hace al
+    /// montar uno grande a partir de trozos, y con un pincel por pestaña la copia se quedaba en
+    /// el mapa de origen: se cogía el trozo, se cambiaba de pestaña y no había nada que
+    /// estampar.
+    /// </para>
+    /// <para>
+    /// Y en el juego de tiles y no en el espacio de trabajo entero porque un pincel son números
+    /// de tile: llevárselo a un mapa de otro juego pegaría otro dibujo. Aquí se comparte
+    /// justamente entre los mapas donde significa lo mismo.
+    /// </para>
+    /// </remarks>
+    public TilePatch Brush
+    {
+        get => _brush;
+        set
+        {
+            _brush = value;
+            BrushChanged?.Invoke();
+        }
+    }
+
+    /// <summary>Cómo se llama lo que hay cogido, para la barra: un tile, un bloque o una copia.</summary>
+    public string BrushName
+    {
+        get => _brushName;
+        set
+        {
+            _brushName = value;
+            BrushChanged?.Invoke();
+        }
+    }
+
     /// <summary>Lo llama el panel de bloques cuando toca alguno.</summary>
     public void NotifyBlocksChanged() => BlocksChanged?.Invoke();
 

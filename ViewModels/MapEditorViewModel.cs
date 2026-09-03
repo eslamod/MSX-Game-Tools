@@ -95,14 +95,23 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
     /// Lo que se estampa. Nunca es nulo: al abrir ya está cogido el primer tile, para que
     /// pulsar haga algo desde el principio.
     /// </summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(BrushLabel))]
-    private TilePatch _brush = TilePatch.Single(0);
+    /// <remarks>
+    /// Vive en el juego de tiles y no aquí: se comparte con los demás mapas que lo usen, que es
+    /// lo que hace falta para montar un mapa grande copiando de otros. <inheritdoc
+    /// cref="TileSetEditorViewModel.Brush" path="/remarks/para[2]"/>
+    /// </remarks>
+    public TilePatch Brush
+    {
+        get => _tiles.Brush;
+        set => _tiles.Brush = value;
+    }
 
-    /// <summary>Cómo se llama lo que hay cogido, para la barra: un tile o un bloque.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(BrushLabel))]
-    private string _brushName = "Tile 0";
+    /// <summary>Cómo se llama lo que hay cogido, para la barra: un tile, un bloque o una copia.</summary>
+    public string BrushName
+    {
+        get => _tiles.BrushName;
+        set => _tiles.BrushName = value;
+    }
 
     /// <summary>La celda por la que pasa el ratón, o nulo si está fuera.</summary>
     [ObservableProperty]
@@ -128,6 +137,7 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
         map.Undo.Changed += OnUndoChanged;
         _tiles.PaletteChanged += OnTilesPaletteChanged;
         _tiles.BlocksChanged += RefreshBlocks;
+        _tiles.BrushChanged += OnBrushChanged;
     }
 
     /// <summary>Hay que repintar el lienzo.</summary>
@@ -401,6 +411,20 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
     };
 
     public string BrushLabel => BrushName;
+
+    /// <summary>
+    /// El pincel lo ha cambiado alguien, quizá otro mapa.
+    /// </summary>
+    /// <remarks>
+    /// Hay que decirlo aunque lo haya cambiado este mismo mapa: el pincel ya no es una
+    /// propiedad de aquí, así que nadie avisa por su cuenta de que la barra tiene que cambiar.
+    /// </remarks>
+    private void OnBrushChanged()
+    {
+        OnPropertyChanged(nameof(Brush));
+        OnPropertyChanged(nameof(BrushName));
+        OnPropertyChanged(nameof(BrushLabel));
+    }
 
     /// <summary>
     /// Dónde está el ratón y qué hay debajo.
