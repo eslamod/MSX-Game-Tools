@@ -260,6 +260,9 @@
   <data name="PreferencesBlockGrid" xml:space="preserve"><value>Rejilla de bloques</value></data>
   <data name="PreferencesBlockTiles" xml:space="preserve"><value>Tiles en los bloques</value></data>
   <data name="PreferencesMapTiles" xml:space="preserve"><value>Tiles en el mapa</value></data>
+  <data name="PreferencesAsm" xml:space="preserve"><value>Ensamblador</value></data>
+  <data name="PreferencesAsmData" xml:space="preserve"><value>Directiva de datos</value></data>
+  <data name="PreferencesAsmHint" xml:space="preserve"><value>Cómo se escribe en tu ensamblador la directiva que declara bytes. «.db» vale para sasSX, asMSX y sjasmplus; «db» para pasmo, asMSX, sjasmplus y sasSX con su opción -as. Si usas otro, escribe la que necesite.</value></data>
   <!-- Comunes a varios editores -->
   <data name="PaintDot" xml:space="preserve"><value>Punto</value></data>
   <data name="PaintDotTip" xml:space="preserve"><value>Cada clic pinta un solo pixel</value></data>

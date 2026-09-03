@@ -81,7 +81,8 @@ public partial class ExportPatternsViewModel : PanelBaseViewModel
         string? path = await Pick(".asm", PickerFileKind.Assembler);
 
         await WriteAsync(path, () => File.WriteAllTextAsync(
-            path!, SpriteBankExporter.PatternsToAssembler(_editor.SpritesBank, First, Last)));
+            path!, SpriteBankExporter.PatternsToAssembler(
+                _editor.SpritesBank, First, Last, _mainWindowVm.Preferences.AsmStyle)));
     }
 
     [RelayCommand]

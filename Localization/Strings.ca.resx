@@ -242,6 +242,9 @@
   <data name="PreferencesBlockGrid" xml:space="preserve"><value>Graella de blocs</value></data>
   <data name="PreferencesBlockTiles" xml:space="preserve"><value>Tiles als blocs</value></data>
   <data name="PreferencesMapTiles" xml:space="preserve"><value>Tiles al mapa</value></data>
+  <data name="PreferencesAsm" xml:space="preserve"><value>Assemblador</value></data>
+  <data name="PreferencesAsmData" xml:space="preserve"><value>Directiva de dades</value></data>
+  <data name="PreferencesAsmHint" xml:space="preserve"><value>Com s’escriu al teu assemblador la directiva que declara bytes. «.db» va bé per a sasSX, asMSX i sjasmplus; «db» per a pasmo, asMSX, sjasmplus i sasSX amb la seva opció -as. Si en fas servir un altre, escriu la que necessiti.</value></data>
   <data name="PaintDot" xml:space="preserve"><value>Punt</value></data>
   <data name="PaintDotTip" xml:space="preserve"><value>Cada clic pinta un sol píxel</value></data>
   <data name="PaintStroke" xml:space="preserve"><value>Traç</value></data>

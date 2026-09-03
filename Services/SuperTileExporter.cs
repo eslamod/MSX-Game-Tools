@@ -70,8 +70,10 @@ public static class SuperTileExporter
         return bytes;
     }
 
-    public static string ToAssembler(TileSet tileSet)
+    public static string ToAssembler(TileSet tileSet, AsmStyle? style = null)
     {
+        string data = AsmStyle.Of(style?.Data).Data;
+
         int count = CountOf(tileSet);
         string label = SpriteBankExporter.LabelOf(tileSet.Name);
         var text = new StringBuilder();
@@ -93,7 +95,8 @@ public static class SuperTileExporter
                 (byte)tileSet.SuperTileHeight,
                 (byte)(count == MaxSuperTiles ? 0 : count),
             ],
-            "size and count");
+            "size and count",
+            data);
 
         text.AppendLine();
 
@@ -102,7 +105,7 @@ public static class SuperTileExporter
             TileBlock block = tileSet.Blocks[index];
 
             text.AppendLine($"{label}_supertile_{index}:    ; {block.Name}");
-            AppendBytes(text, [.. TilesOf(tileSet, block).Select(tile => (byte)tile)], null);
+            AppendBytes(text, [.. TilesOf(tileSet, block).Select(tile => (byte)tile)], null, data);
         }
 
         text.AppendLine($"{label}_supertiles_end:");
@@ -127,7 +130,8 @@ public static class SuperTileExporter
         }
     }
 
-    private static void AppendBytes(StringBuilder text, IReadOnlyList<byte> bytes, string? what)
+    private static void AppendBytes(
+        StringBuilder text, IReadOnlyList<byte> bytes, string? what, string data)
     {
         string comment = what is null ? string.Empty : $"    ; {what}";
 
@@ -138,7 +142,7 @@ public static class SuperTileExporter
                 .Take(BytesPerLine)
                 .Select(value => $"{SpriteBankExporter.HexPrefix}{value:X2}");
 
-            text.AppendLine($"    {SpriteBankExporter.DataDirective}  {string.Join(",", line)}{comment}");
+            text.AppendLine($"    {data}  {string.Join(",", line)}{comment}");
         }
     }
 }

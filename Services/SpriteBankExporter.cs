@@ -51,7 +51,8 @@ public static class SpriteBankExporter
     /// Directiva de datos. Con el punto delante porque funciona siempre; el <c>db</c>
     /// pelado sólo lo acepta sass con el modo asMSX activado.
     /// </summary>
-    public const string DataDirective = ".db";
+    /// <summary>Con la que se exporta si nadie ha elegido otra en las preferencias.</summary>
+    public const string DataDirective = AsmStyle.Dotted;
 
     private const int BytesPerLine = 8;
 
@@ -118,8 +119,8 @@ public static class SpriteBankExporter
         return [.. bytes];
     }
 
-    public static string PatternsToAssembler(SpriteBank bank) =>
-        PatternsToAssembler(bank, 0, TableLength(bank) - 1);
+    public static string PatternsToAssembler(SpriteBank bank, AsmStyle? style = null) =>
+        PatternsToAssembler(bank, 0, TableLength(bank) - 1, style);
 
     /// <summary>
     /// Sólo un trozo de la tabla, del <paramref name="first"/> al <paramref name="last"/>.
@@ -137,8 +138,11 @@ public static class SpriteBankExporter
     /// dentro del fichero, y eso lo dice la cabecera, que es donde hay que mirarlo una vez.
     /// </para>
     /// </remarks>
-    public static string PatternsToAssembler(SpriteBank bank, int first, int last)
+    public static string PatternsToAssembler(
+        SpriteBank bank, int first, int last, AsmStyle? style = null)
     {
+        string data = AsmStyle.Of(style?.Data).Data;
+
         var text = new StringBuilder();
         string label = LabelOf(bank.Name);
 
@@ -158,7 +162,7 @@ public static class SpriteBankExporter
         for (int index = first; index <= last; index++)
         {
             text.AppendLine($"{label}_pattern_{index}:");
-            AppendBytes(text, PatternBytesOf(bank.SpritesList[index]));
+            AppendBytes(text, PatternBytesOf(bank.SpritesList[index]), data);
         }
 
         text.AppendLine($"{label}_patterns_end:");
@@ -166,8 +170,10 @@ public static class SpriteBankExporter
         return text.ToString();
     }
 
-    public static string GroupsToAssembler(SpriteBank bank)
+    public static string GroupsToAssembler(SpriteBank bank, AsmStyle? style = null)
     {
+        string data = AsmStyle.Of(style?.Data).Data;
+
         var text = new StringBuilder();
         string label = LabelOf(bank.Name);
 
@@ -189,12 +195,12 @@ public static class SpriteBankExporter
             SpriteGroup group = bank.Groups[index];
 
             text.AppendLine($"{label}_group_{index}:               ; {group.Name}");
-            text.AppendLine($"    {DataDirective}  {Hex((byte)group.Members.Count)}                 ; sprites");
+            text.AppendLine($"    {data}  {Hex((byte)group.Members.Count)}                 ; sprites");
 
             for (int member = 0; member < group.Members.Count; member++)
             {
                 text.AppendLine($"    ; sprite {member} - pattern {group.Members[member].PatternIndex}");
-                AppendBytes(text, MemberBytesOf(group.Members[member], bank.Type));
+                AppendBytes(text, MemberBytesOf(group.Members[member], bank.Type), data);
             }
         }
 
@@ -295,7 +301,7 @@ public static class SpriteBankExporter
         return (byte)bits;
     }
 
-    private static void AppendBytes(StringBuilder text, IEnumerable<byte> bytes)
+    private static void AppendBytes(StringBuilder text, IEnumerable<byte> bytes, string data)
     {
         byte[] all = [.. bytes];
 
@@ -306,7 +312,7 @@ public static class SpriteBankExporter
                 .Take(BytesPerLine)
                 .Select(Hex);
 
-            text.AppendLine($"    {DataDirective}  {string.Join(",", line)}");
+            text.AppendLine($"    {data}  {string.Join(",", line)}");
         }
     }
 

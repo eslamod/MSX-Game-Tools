@@ -1534,11 +1534,11 @@ public partial class MainWindowViewModel : ObservableObject
             }
             else
             {
-                await File.WriteAllTextAsync(patternsPath, SpriteBankExporter.PatternsToAssembler(bank));
-                await File.WriteAllTextAsync(groupsPath, SpriteBankExporter.GroupsToAssembler(bank));
+                await File.WriteAllTextAsync(patternsPath, SpriteBankExporter.PatternsToAssembler(bank, Preferences.AsmStyle));
+                await File.WriteAllTextAsync(groupsPath, SpriteBankExporter.GroupsToAssembler(bank, Preferences.AsmStyle));
 
                 if (animationsPath is not null)
-                    await File.WriteAllTextAsync(animationsPath, SpriteAnimationExporter.ToAssembler(bank));
+                    await File.WriteAllTextAsync(animationsPath, SpriteAnimationExporter.ToAssembler(bank, Preferences.AsmStyle));
             }
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
@@ -1808,7 +1808,7 @@ public partial class MainWindowViewModel : ObservableObject
             if (binary)
                 await File.WriteAllBytesAsync(path, MapExporter.ToBinary(map));
             else
-                await File.WriteAllTextAsync(path, MapExporter.ToAssembler(map));
+                await File.WriteAllTextAsync(path, MapExporter.ToAssembler(map, Preferences.AsmStyle));
 
             if (HasEmptyCells(map))
             {
@@ -1946,14 +1946,14 @@ public partial class MainWindowViewModel : ObservableObject
             }
             else
             {
-                await File.WriteAllTextAsync(patternsPath, TileSetExporter.PatternsToAssembler(tileSet));
-                await File.WriteAllTextAsync(colorsPath, TileSetExporter.ColorsToAssembler(tileSet));
+                await File.WriteAllTextAsync(patternsPath, TileSetExporter.PatternsToAssembler(tileSet, Preferences.AsmStyle));
+                await File.WriteAllTextAsync(colorsPath, TileSetExporter.ColorsToAssembler(tileSet, Preferences.AsmStyle));
 
                 if (tileSet.HasSuperTiles)
-                    await File.WriteAllTextAsync(superPath, SuperTileExporter.ToAssembler(tileSet));
+                    await File.WriteAllTextAsync(superPath, SuperTileExporter.ToAssembler(tileSet, Preferences.AsmStyle));
 
                 if (tileSet.AttributeNames.Any)
-                    await File.WriteAllTextAsync(attributesPath, TileSetExporter.AttributesToAssembler(tileSet));
+                    await File.WriteAllTextAsync(attributesPath, TileSetExporter.AttributesToAssembler(tileSet, Preferences.AsmStyle));
             }
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
@@ -2019,7 +2019,7 @@ public partial class MainWindowViewModel : ObservableObject
             if (binary)
                 await File.WriteAllBytesAsync(path, PaletteExporter.ToBinary(palette));
             else
-                await File.WriteAllTextAsync(path, PaletteExporter.ToAssembler(palette));
+                await File.WriteAllTextAsync(path, PaletteExporter.ToAssembler(palette, Preferences.AsmStyle));
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {

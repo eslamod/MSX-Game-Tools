@@ -46,16 +46,18 @@ public static class TileSetExporter
         ? [.. tileSet.ColorGroups.Select(group => group.ColorByte)]
         : ToBinary(tileSet, row => row.ColorByte);
 
-    public static string PatternsToAssembler(TileSet tileSet) => ToAssembler(
+    public static string PatternsToAssembler(TileSet tileSet, AsmStyle? style = null) => ToAssembler(
         tileSet,
+        AsmStyle.Of(style?.Data).Data,
         row => row.PatternByte,
         "patterns",
         "; One byte per line: the bit mask, with column 0 in the highest bit.");
 
-    public static string ColorsToAssembler(TileSet tileSet) => tileSet.IsGraphic1
-        ? GroupColorsToAssembler(tileSet)
+    public static string ColorsToAssembler(TileSet tileSet, AsmStyle? style = null) => tileSet.IsGraphic1
+        ? GroupColorsToAssembler(tileSet, AsmStyle.Of(style?.Data).Data)
         : ToAssembler(
             tileSet,
+            AsmStyle.Of(style?.Data).Data,
             row => row.ColorByte,
             "colors",
             "; One byte per line: foreground colour in the high nibble, background in the low one.");
@@ -68,7 +70,7 @@ public static class TileSetExporter
     /// dice por sí solo que pinta los tiles 24 a 31, y equivocarse de grupo repinta ocho tiles
     /// que estaban bien.
     /// </remarks>
-    private static string GroupColorsToAssembler(TileSet tileSet)
+    private static string GroupColorsToAssembler(TileSet tileSet, string data)
     {
         var text = new StringBuilder();
         string label = SpriteBankExporter.LabelOf(tileSet.Name);
@@ -85,7 +87,7 @@ public static class TileSetExporter
         foreach (TileColorGroup group in tileSet.ColorGroups)
         {
             text.AppendLine(
-                $"    {SpriteBankExporter.DataDirective}  {SpriteBankExporter.HexOf(group.ColorByte)}".PadRight(32)
+                $"    {data}  {SpriteBankExporter.HexOf(group.ColorByte)}".PadRight(32)
                 + $"; tiles {group.Range}");
         }
 
@@ -109,8 +111,9 @@ public static class TileSetExporter
     /// comentario hay que traducirlo a mano a un <c>bit 2, a</c> cada vez que se escribe
     /// código, y ahí es donde se cuelan los errores de un bit.
     /// </remarks>
-    public static string AttributesToAssembler(TileSet tileSet)
+    public static string AttributesToAssembler(TileSet tileSet, AsmStyle? style = null)
     {
+        string data = AsmStyle.Of(style?.Data).Data;
         var text = new StringBuilder();
         string label = SpriteBankExporter.LabelOf(tileSet.Name);
 
@@ -132,7 +135,7 @@ public static class TileSetExporter
         text.AppendLine();
         text.AppendLine($"{label}_attributes:");
 
-        AppendBytes(text, tileSet.ListOfTiles.Select(tile => (byte)tile.Attributes));
+        AppendBytes(text, tileSet.ListOfTiles.Select(tile => (byte)tile.Attributes), data);
 
         text.AppendLine($"{label}_attributes_end:");
 
@@ -153,7 +156,8 @@ public static class TileSetExporter
         return bytes;
     }
 
-    private static string ToAssembler(TileSet tileSet, Func<TileRow, byte> byteOf, string suffix, string format)
+    private static string ToAssembler(
+        TileSet tileSet, string data, Func<TileRow, byte> byteOf, string suffix, string format)
     {
         var text = new StringBuilder();
         string label = SpriteBankExporter.LabelOf(tileSet.Name);
@@ -183,7 +187,7 @@ public static class TileSetExporter
         for (int index = 0; index < tileSet.ListOfTiles.Count; index++)
         {
             text.AppendLine($"{label}_tile_{index}_{suffix}:");
-            AppendBytes(text, tileSet.ListOfTiles[index].ArrayTileRows.Select(byteOf));
+            AppendBytes(text, tileSet.ListOfTiles[index].ArrayTileRows.Select(byteOf), data);
         }
 
         text.AppendLine($"{label}_{suffix}_end:");
@@ -191,7 +195,7 @@ public static class TileSetExporter
         return text.ToString();
     }
 
-    private static void AppendBytes(StringBuilder text, IEnumerable<byte> bytes)
+    private static void AppendBytes(StringBuilder text, IEnumerable<byte> bytes, string data)
     {
         byte[] all = [.. bytes];
 
@@ -202,7 +206,7 @@ public static class TileSetExporter
                 .Take(BytesPerLine)
                 .Select(value => $"{SpriteBankExporter.HexPrefix}{value:X2}");
 
-            text.AppendLine($"    {SpriteBankExporter.DataDirective}  {string.Join(",", line)}");
+            text.AppendLine($"    {data}  {string.Join(",", line)}");
         }
     }
 }

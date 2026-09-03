@@ -65,6 +65,10 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
     [ObservableProperty]
     private int _mapTileZoom;
 
+    /// <summary>Cómo se llama la directiva de datos en el ensamblador que se use.</summary>
+    [ObservableProperty]
+    private string _asmData = Entities.AsmStyle.Dotted;
+
     public EditPreferencesViewModel(MainWindowViewModel mainWindowVm)
     {
         _mainWindowVm = mainWindowVm;
@@ -82,12 +86,23 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
         _blockGridZoom = zoom.BlockGridZoom;
         _blockTileZoom = zoom.BlockTileZoom;
         _mapTileZoom = zoom.MapTileZoom;
+        _asmData = zoom.AsmData;
 
         Header = Localizer.Instance["PreferencesTitle"];
         TagId = "preferences";
     }
 
     public IReadOnlyList<LanguageChoice> Languages => Localizer.Languages;
+
+    /// <summary>
+    /// Las dos grafías que se han probado, con qué ensamblador vale cada una.
+    /// </summary>
+    /// <remarks>
+    /// El desplegable se puede escribir además de elegir: cuatro ensambladores no agotan los
+    /// que hay, y quien use otro no debería quedarse fuera por no estar en la lista.
+    /// </remarks>
+    public IReadOnlyList<string> AsmDataChoices { get; } =
+        [Entities.AsmStyle.Dotted, Entities.AsmStyle.Plain];
 
     /// <summary>
     /// Cuánto agrandar la interfaz por encima de lo que ya haga el sistema.
@@ -160,6 +175,7 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
         zoom.BlockGridZoom = BlockGridZoom;
         zoom.BlockTileZoom = BlockTileZoom;
         zoom.MapTileZoom = MapTileZoom;
+        zoom.AsmData = AsmData;
 
         bool languageChanged = Localizer.Instance.Language != Language.Code;
 

@@ -48,8 +48,10 @@ public static class MapExporter
         return bytes;
     }
 
-    public static string ToAssembler(TileMap map)
+    public static string ToAssembler(TileMap map, AsmStyle? style = null)
     {
+        string data = AsmStyle.Of(style?.Data).Data;
+
         TileGrid flat = map.Flatten();
         string label = SpriteBankExporter.LabelOf(map.Name);
 
@@ -65,7 +67,7 @@ public static class MapExporter
 
         // La cabecera tambien en .db y no en .dw: asi el fichero no depende de que el
         // ensamblador tenga la directiva, y todos los bytes se leen igual.
-        AppendBytes(text, [.. Word(flat.Width), .. Word(flat.Height)], "size");
+        AppendBytes(text, [.. Word(flat.Width), .. Word(flat.Height)], "size", data);
         text.AppendLine();
 
         for (int row = 0; row < flat.Height; row++)
@@ -74,7 +76,7 @@ public static class MapExporter
                 .Range(0, flat.Width)
                 .Select(column => (byte)(flat[column, row] ?? map.EmptyTile));
 
-            AppendBytes(text, [.. bytes], $"fila {row}");
+            AppendBytes(text, [.. bytes], $"fila {row}", data);
         }
 
         text.AppendLine($"{label}_map_end:");
@@ -143,11 +145,11 @@ public static class MapExporter
     private static byte[] Word(int value) => [(byte)(value & 0xFF), (byte)(value >> 8)];
 
     /// <summary>Una fila por línea, con su número al lado para poder buscarla.</summary>
-    private static void AppendBytes(StringBuilder text, byte[] bytes, string what)
+    private static void AppendBytes(StringBuilder text, byte[] bytes, string what, string data)
     {
         IEnumerable<string> values = bytes.Select(
             value => $"{SpriteBankExporter.HexPrefix}{value:X2}");
 
-        text.AppendLine($"    {SpriteBankExporter.DataDirective}  {string.Join(",", values)}    ; {what}");
+        text.AppendLine($"    {data}  {string.Join(",", values)}    ; {what}");
     }
 }

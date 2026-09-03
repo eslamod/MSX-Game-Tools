@@ -136,6 +136,26 @@
 
     </StackPanel>
 
+    <TextBlock Text="{l:Localize PreferencesAsm}" FontWeight="Bold" Margin="0,14,0,6" />
+
+    <StackPanel Spacing="6">
+
+      <!-- Se puede escribir ademas de elegir: cuatro ensambladores no agotan los que hay, y
+           quien use otro no deberia quedarse fuera por no estar en la lista. -->
+      <Grid ColumnDefinitions="150,*">
+        <TextBlock Grid.Column="0" Text="{l:Localize PreferencesAsmData}" VerticalAlignment="Center" />
+        <AutoCompleteBox Grid.Column="1" HorizontalAlignment="Stretch"
+                         Name="AsmDataBox"
+                         ItemsSource="{Binding AsmDataChoices}"
+                         Text="{Binding AsmData}"
+                         FilterMode="None" MinimumPrefixLength="0" />
+      </Grid>
+
+      <TextBlock Text="{l:Localize PreferencesAsmHint}" TextWrapping="Wrap"
+                 FontSize="11" Foreground="{DynamicResource AppTextSecondary}" />
+
+    </StackPanel>
+
       </StackPanel>
     </ScrollViewer>
 

@@ -47,8 +47,9 @@ public static class PaletteExporter
         return bytes;
     }
 
-    public static string ToAssembler(ColorPalette palette)
+    public static string ToAssembler(ColorPalette palette, AsmStyle? style = null)
     {
+        string data = AsmStyle.Of(style?.Data).Data;
         var text = new StringBuilder();
         string label = SpriteBankExporter.LabelOf(palette.Name);
         byte[] bytes = ToBinary(palette);
@@ -69,7 +70,7 @@ public static class PaletteExporter
                 .Take(BytesPerLine)
                 .Select(value => $"{SpriteBankExporter.HexPrefix}{value:X2}");
 
-            text.AppendLine($"    {SpriteBankExporter.DataDirective}  {string.Join(",", line)}");
+            text.AppendLine($"    {data}  {string.Join(",", line)}");
         }
 
         text.AppendLine($"{label}_palette_end:");

@@ -241,6 +241,9 @@
   <data name="PreferencesBlockGrid" xml:space="preserve"><value>Block grid</value></data>
   <data name="PreferencesBlockTiles" xml:space="preserve"><value>Tiles in blocks</value></data>
   <data name="PreferencesMapTiles" xml:space="preserve"><value>Tiles in the map</value></data>
+  <data name="PreferencesAsm" xml:space="preserve"><value>Assembler</value></data>
+  <data name="PreferencesAsmData" xml:space="preserve"><value>Data directive</value></data>
+  <data name="PreferencesAsmHint" xml:space="preserve"><value>How your assembler spells the directive that declares bytes. “.db” works with sasSX, asMSX and sjasmplus; “db” with pasmo, asMSX, sjasmplus and sasSX under its -as option. If you use another one, type what it needs.</value></data>
   <data name="PaintDot" xml:space="preserve"><value>Dot</value></data>
   <data name="PaintDotTip" xml:space="preserve"><value>Each click paints a single pixel</value></data>
   <data name="PaintStroke" xml:space="preserve"><value>Stroke</value></data>

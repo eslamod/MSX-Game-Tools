@@ -289,7 +289,8 @@ public partial class ShiftReportViewModel : PanelBaseViewModel
             PickerFileKind.Assembler);
 
         await WriteAsync(path, () => File.WriteAllTextAsync(
-            path!, MapShiftExporter.ToAssembler(_report, _editor.Map.Name)));
+            path!, MapShiftExporter.ToAssembler(
+                _report, _editor.Map.Name, _mainWindowVm.Preferences.AsmStyle)));
     }
 
     [RelayCommand]

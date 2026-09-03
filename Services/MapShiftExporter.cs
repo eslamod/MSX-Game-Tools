@@ -27,8 +27,10 @@ public static class MapShiftExporter
     /// Con las <c>equ</c> por lo mismo que en los atributos: un comentario hay que traducirlo a
     /// mano cada vez que se escribe código, y ahí es donde se cuela el número cambiado.
     /// </remarks>
-    public static string ToAssembler(MapShiftReport report, string name)
+    public static string ToAssembler(MapShiftReport report, string name, AsmStyle? style = null)
     {
+        string data = AsmStyle.Of(style?.Data).Data;
+
         var text = new StringBuilder();
         string label = SpriteBankExporter.LabelOf(name);
         ShiftScope scope = report.Scope;
@@ -57,7 +59,7 @@ public static class MapShiftExporter
             // en el cero, y buscar el tile 97 contando bytes desde el principio es de lo que
             // salen los errores de una posicion.
             text.AppendLine(
-                $"    {SpriteBankExporter.DataDirective}  {string.Join(",", line)}"
+                $"    {data}  {string.Join(",", line)}"
                 + $"   ; {scope.FirstTile + start}-"
                 + $"{scope.FirstTile + Math.Min(start + BytesPerLine, bytes.Length) - 1}");
         }

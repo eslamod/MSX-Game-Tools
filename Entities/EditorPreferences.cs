@@ -26,6 +26,8 @@ public sealed class EditorPreferences : ObservableObject
 
     private AppThemeVariant _themeVariant = AppThemeVariant.Light;
 
+    private string _asmData = AsmStyle.Dotted;
+
     /// <summary>
     /// Cuánto se agranda toda la interfaz, sobre lo que ya diga el sistema.
     /// </summary>
@@ -100,9 +102,34 @@ public sealed class EditorPreferences : ObservableObject
     /// Copiar en vez de sustituir el objeto: las pestañas ya abiertas guardan una
     /// referencia a éste, y cambiarlo por otro las dejaría mirando al de antes.
     /// </remarks>
+    /// <summary>
+    /// Cómo se llama la directiva de datos en el ensamblador que se use.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Aquí y no preguntándolo al exportar: se elige una vez, se guarda con los demás ajustes y
+    /// no se vuelve a pensar en ello. Es del usuario y no del proyecto, como el idioma: quien
+    /// reciba un juego compartido sigue exportando con el suyo.
+    /// </para>
+    /// <para>
+    /// Se guarda el texto y no una opción de una lista, porque los cuatro ensambladores que se
+    /// han probado no agotan los que hay. <see cref="AsmStyle.Of"/> se encarga de que en blanco
+    /// vuelva al de siempre.
+    /// </para>
+    /// </remarks>
+    public string AsmData
+    {
+        get => _asmData;
+        set => SetProperty(ref _asmData, value);
+    }
+
+    /// <inheritdoc cref="AsmData"/>
+    public AsmStyle AsmStyle => AsmStyle.Of(AsmData);
+
     public void CopyFrom(EditorPreferences other)
     {
         InterfaceScale = other.InterfaceScale;
+        AsmData = other.AsmData;
         ThemeVariant = other.ThemeVariant;
         SpriteCanvasZoom = other.SpriteCanvasZoom;
         SpriteThumbnailZoom = other.SpriteThumbnailZoom;

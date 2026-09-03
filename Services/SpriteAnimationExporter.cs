@@ -117,8 +117,10 @@ public static class SpriteAnimationExporter
         return [.. bytes];
     }
 
-    public static string ToAssembler(SpriteBank bank)
+    public static string ToAssembler(SpriteBank bank, AsmStyle? style = null)
     {
+        string data = AsmStyle.Of(style?.Data).Data;
+
         var text = new StringBuilder();
         string label = SpriteBankExporter.LabelOf(bank.Name);
 
@@ -158,12 +160,12 @@ public static class SpriteAnimationExporter
             text.AppendLine();
             text.AppendLine($"{label}_animation_{index}:      ; {animation.Name} ({made})");
 
-            Line(text, 1, [MadeOf(animation.Kind)], made);
-            Line(text, 1, [EndingOf(animation.Mode)], Ending(animation.Mode));
+            Line(text, 1, [MadeOf(animation.Kind)], made, data);
+            Line(text, 1, [EndingOf(animation.Mode)], Ending(animation.Mode), data);
 
-            Write(text, bank, animation, animation.Steps, 1, new Painter());
+            Write(text, bank, animation, animation.Steps, 1, new Painter(), data);
 
-            Line(text, 1, [End], "end");
+            Line(text, 1, [End], "end", data);
         }
 
         text.AppendLine();
@@ -172,7 +174,7 @@ public static class SpriteAnimationExporter
         return text.ToString();
     }
 
-    private static string Data => SpriteBankExporter.DataDirective;
+
 
     private static string Hex(byte value) => SpriteBankExporter.HexOf(value);
 
@@ -268,7 +270,8 @@ public static class SpriteAnimationExporter
         SpriteAnimation animation,
         IEnumerable<AnimationStep> steps,
         int depth,
-        Painter painter)
+        Painter painter,
+        string data)
     {
         string indent = new(' ', 4 * depth);
 
@@ -280,24 +283,25 @@ public static class SpriteAnimationExporter
                     string what = animation.Kind == AnimationKind.Groups ? "group" : "pattern";
 
                     if (painter.Before(bank, animation, frame) is { } color)
-                        Line(text, depth, [Paint, (byte)color], $"colour {color}");
+                        Line(text, depth, [Paint, (byte)color], $"colour {color}", data);
 
                     Line(
                         text,
                         depth,
                         BytesOf(bank, animation, frame),
-                        $"{what} {frame.Target}, wait {frame.Wait}{Extras(frame)}");
+                        $"{what} {frame.Target}, wait {frame.Wait}{Extras(frame)}",
+                        data);
 
                     break;
 
                 case AnimationLoop loop:
-                    Line(text, depth, [LoopStart, (byte)loop.Times], $"loop x{loop.Times}");
+                    Line(text, depth, [LoopStart, (byte)loop.Times], $"loop x{loop.Times}", data);
 
                     painter.EnterLoop();
 
-                    Write(text, bank, animation, loop.Steps, depth + 1, painter);
+                    Write(text, bank, animation, loop.Steps, depth + 1, painter, data);
 
-                    Line(text, depth, [LoopEnd], "end of the loop");
+                    Line(text, depth, [LoopEnd], "end of the loop", data);
                     break;
             }
         }
@@ -375,11 +379,12 @@ public static class SpriteAnimationExporter
     /// que uno desplazado, y la sangría de los bucles corre lo de dentro—, y con los
     /// comentarios a saltos no hay quien siga la columna.
     /// </remarks>
-    private static void Line(StringBuilder text, int depth, byte[] bytes, string comment)
+    private static void Line(
+        StringBuilder text, int depth, byte[] bytes, string comment, string data)
     {
-        string data = new string(' ', 4 * depth) + $"{Data}  {string.Join(", ", bytes.Select(Hex))}";
+        string line = new string(' ', 4 * depth) + $"{data}  {string.Join(", ", bytes.Select(Hex))}";
 
-        text.AppendLine($"{data.PadRight(CommentColumn)}; {comment}");
+        text.AppendLine($"{line.PadRight(CommentColumn)}; {comment}");
     }
 
     /// <summary>Donde empieza el comentario: un fotograma desplazado dentro de dos bucles.</summary>
