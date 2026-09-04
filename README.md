@@ -137,6 +137,11 @@ tiles and blocks along the bottom to pick what to paint with.
 
 ## Running it
 
+Clone with `git clone --recurse-submodules` (or run `git submodule update --init`
+afterwards): `tools/sass-MSX` is a submodule with the cross-assembler the test
+ROMs are built with (`dotnet build tools/sass-MSX`, same SDK as the editor). The
+application itself does not need it.
+
 ```bash
 dotnet run
 ```
@@ -196,7 +201,7 @@ Two habits that have caught a fair number of bugs:
   in the entry point.
 - **Exporters are validated by actually assembling.** The `.asm` produced is run through
   the sasSX cross-assembler and compared byte for byte against the binary. If the two
-  match, the file is good.
+  match, the file is good. sasSX is vendored as the `tools/sass-MSX` submodule.
 
 ## Test ROMs
 

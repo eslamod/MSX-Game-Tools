@@ -25,6 +25,26 @@ y el verde en el segundo.
 
 ## Ensamblar
 
+El ensamblador `sasSX` es el submódulo `tools/sass-MSX` (el fork MSX de
+*SirCmpwn's Assembler*). Tras clonar el repo:
+
+```bash
+git submodule update --init tools/sass-MSX
+```
+
+o clonar de entrada con `git clone --recurse-submodules`. Es un proyecto
+SDK-style: se compila con el mismo `.NET` SDK que el editor, sin Mono ni nada
+más:
+
+```bash
+dotnet build tools/sass-MSX -c Release
+```
+
+Sale `tools/sass-MSX/sass/bin/Release/sasSX` (`sasSX.exe` en Windows). En los
+ejemplos de abajo `sasSX.exe` es ese fichero; lo cómodo es ponerlo en el `PATH` o
+hacerse un alias. También vale
+`dotnet run --project tools/sass-MSX/sass -- sprites_test.asm ...`.
+
 ```bash
 sasSX.exe sprites_test.asm --output sprites_test.rom
 ```
