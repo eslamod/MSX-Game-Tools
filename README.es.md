@@ -141,6 +141,11 @@ tira de tiles y bloques abajo para coger con qué pintar.
 
 ## Cómo se ejecuta
 
+Clona con `git clone --recurse-submodules` (o ejecuta `git submodule update --init`
+después): `tools/sass-MSX` es un submódulo con el ensamblador cruzado con el que se
+montan las ROMs de prueba (`dotnet build tools/sass-MSX`, el mismo SDK que el
+editor). El programa en sí no lo necesita.
+
 ```bash
 dotnet run
 ```
@@ -201,7 +206,7 @@ Dos costumbres que han salvado bastantes fallos:
   que estaba en el punto de entrada.
 - **Los exportadores se validan ensamblando de verdad.** El `.asm` que sale se pasa por
   el ensamblador cruzado sasSX y se compara byte a byte con el binario. Si los dos
-  coinciden, el fichero sirve.
+  coinciden, el fichero sirve. sasSX está incluido como el submódulo `tools/sass-MSX`.
 
 ## ROMs de prueba
 
