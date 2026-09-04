@@ -32,9 +32,9 @@ cambiar una rama (`master`) que usa más gente, así que se propone con un PR y 
 Para cada asunto (un arreglo, una función, un cambio de docs):
 
 ```bash
-# 1. Partir de main al día
+# 1. Partir de main al día (con el submódulo actualizado)
 git switch main
-git pull
+git pull --recurse-submodules
 
 # 2. Rama nueva para el asunto, nombre en kebab-case
 git switch -c arreglo-scroll-dialogo
@@ -126,33 +126,64 @@ te pones en una rama que aún no conoce el submódulo (p. ej. `main` antes de fu
 primer PR), `git status` la marcará como *sin seguir* — no la borres ni hagas
 `git add tools/`, sólo vuelve a la rama que sí lo tiene.
 
+### Actualizar el repo (con submódulos)
+
+El día a día, para traerte lo que haya nuevo en `main` **y** que el submódulo quede al
+punto que `main` marca:
+
+```bash
+git pull --recurse-submodules
+```
+
+Un `git pull` a secas sólo mueve el puntero del submódulo (lo que ve `git status`); la
+carpeta `tools/sass-MSX` se queda con los ficheros viejos hasta que además se actualiza.
+Con `--recurse-submodules`, el `pull` hace las dos cosas de una vez.
+
+Para no tener que acordarte del flag, configúralo una vez por repo (o `--global` para
+todos):
+
+```bash
+git config submodule.recurse true
+```
+
+A partir de ahí, `git pull`, `git checkout` y `git switch` ya arrastran también el
+submódulo. Esto no evita el aviso de "carpeta sin seguir" al cambiar a una rama que no
+conoce el submódulo (eso es cómo funcionan las ramas, no el `pull`); sólo ahorra el paso
+extra cuando sí lo conoce.
+
+Los otros dos casos:
+
+- **Clonar de cero**: `git clone --recurse-submodules <url>`.
+- **El repo ya está pero el submódulo nunca se inicializó** (`tools/sass-MSX` vacía):
+  `git submodule update --init --recursive`.
+
 ---
 
-## Situación actual (agosto 2026)
+## Situación actual (septiembre 2026)
 
-- **`sass-MSX`**: el port a .NET 10 ya está **fusionado en `master`** (PR con *Rebase and
-  merge*; la rama `net10` se borró). El submódulo sigue `master`.
-- **`MSX-Game-Tools`**: dos PRs abiertos, pendientes de fusionar:
+- **`sass-MSX`**: `master` tiene el port a .NET 10 y el README nuevo en catalán
+  (`e54a6e2` y `d5dbc2e`, ambos vía PR con *Rebase and merge*; las ramas `net10` y
+  `readme` se borraron al fusionar).
+- **`MSX-Game-Tools`**: `submodulo-sasSX` ya está fusionado (con *Create a merge commit*,
+  no *Squash*, pero da igual — el resultado es el mismo). Queda:
 
 | Rama | Qué lleva | Siguiente paso |
 | --- | --- | --- |
-| `submodulo-sasSX` | Traer `tools/sass-MSX` como submódulo (sigue `master`) | Fusionar el PR `→ main`. |
 | `guia-git` | Este fichero | Fusionar el PR `→ main`. |
 
 ```
-https://github.com/eslamod/MSX-Game-Tools/compare/main...submodulo-sasSX?expand=1
 https://github.com/eslamod/MSX-Game-Tools/compare/main...guia-git?expand=1
 ```
 
-Al fusionar cada PR: `git switch main && git pull`, y borrar la rama (local con
-`git branch -d`, remota con `git push origin --delete`).
+Al fusionar: `git switch main && git pull`, y borrar la rama (local con `git branch -d`,
+remota con `git push origin --delete`).
 
 ---
 
 ## Chuleta
 
 ```bash
-git switch main && git pull              # ponerse al día
+git switch main && git pull --recurse-submodules   # ponerse al día, submódulo incluido
 git switch -c <asunto>                   # rama nueva
 git switch <asunto>                      # cambiar de rama
 git branch                               # ver ramas locales
