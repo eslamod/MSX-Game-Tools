@@ -45,6 +45,10 @@ ejemplos de abajo `sasSX.exe` es ese fichero; lo cómodo es ponerlo en el `PATH`
 hacerse un alias. También vale
 `dotnet run --project tools/sass-MSX/sass -- sprites_test.asm ...`.
 
+La suite de pruebas lo busca ahí sola —ese `bin`, `Release` antes que `Debug`, y
+luego el `PATH`—, así que compilándolo una vez ya lo encuentra. Si lo tienes en
+otro sitio, díselo con la variable de entorno `SASSX`.
+
 ```bash
 sasSX.exe sprites_test.asm --output sprites_test.rom
 ```

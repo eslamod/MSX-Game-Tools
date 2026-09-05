@@ -23,34 +23,36 @@ namespace MSX_GameTools.Tests;
 public class AssemblersTests
 {
     /// <summary>
-    /// Dónde están, y qué directiva de datos acepta cada uno.
+    /// Cuál, y con qué directiva de datos.
     /// </summary>
     /// <remarks>
     /// Medido, no supuesto: sasSX exige el punto y pasmo lo rechaza, así que no hay una grafía
     /// que valga para los cuatro y por eso se elige en las preferencias. asMSX y sjasmplus
     /// aceptan las dos.
     /// </remarks>
-    public static TheoryData<string, string, string> Assemblers => new()
+    public static TheoryData<string, string> Assemblers => new()
     {
-        { @"D:\Projects\MSX\SirCwmpAss\sass\bin\Debug\sasSX.exe", AsmStyle.Dotted, "sasSX" },
-        { @"D:\utils\MSx\sjasmplus-1.24.0.win\sjasmplus.exe", AsmStyle.Dotted, "sjasmplus" },
-        { @"D:\utils\MSx\sjasmplus-1.24.0.win\sjasmplus.exe", AsmStyle.Plain, "sjasmplus" },
-        { @"D:\utils\MSx\pasmo-0.5.3\pasmo.exe", AsmStyle.Plain, "pasmo" },
+        { "sasSX", AsmStyle.Dotted },
+        { "sjasmplus", AsmStyle.Dotted },
+        { "sjasmplus", AsmStyle.Plain },
+        { "pasmo", AsmStyle.Plain },
     };
 
     /// <summary>Lo exportado ensambla, y sale exactamente el mismo binario.</summary>
     [AvaloniaTheory]
     [MemberData(nameof(Assemblers))]
-    public void Lo_exportado_ensambla_y_da_los_mismos_bytes(string tool, string data, string name)
+    public void Lo_exportado_ensambla_y_da_los_mismos_bytes(string name, string data)
     {
-        Assert.SkipUnless(File.Exists(tool), $"{name} no está instalado aquí");
+        string? tool = Assembler.Find(name);
+
+        Assert.SkipUnless(tool is not null, $"{name} no está aquí: {Assembler.HowToGetIt(name)}");
 
         TileSet tileSet = Painted();
 
         string asm = TileSetExporter.PatternsToAssembler(tileSet, new AsmStyle(data));
         byte[] expected = TileSetExporter.PatternsToBinary(tileSet);
 
-        Assert.Equal(expected, Assemble(tool, asm, name));
+        Assert.Equal(expected, Assemble(tool!, asm, name));
     }
 
     // ------------------------------------------------------------------ los andamios

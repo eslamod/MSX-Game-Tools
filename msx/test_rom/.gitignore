@@ -2,5 +2,8 @@
 *.rom
 
 # El ensamblador vive en el submódulo tools/sass-MSX; esto es por si se copia
-# aquí el binario ya compilado para tenerlo al lado de los .asm
-sasSX.exe
+# aquí el binario ya compilado para tenerlo al lado de los .asm. Todo lo suyo y
+# no sólo el .exe: al lado caen el .dll, el .pdb y los .json del runtime, y con
+# el .exe ignorado a secas los demás se cuelan en cualquier `git add -A`.
+sasSX.*
+_sasSX.*

@@ -206,7 +206,10 @@ Dos costumbres que han salvado bastantes fallos:
   que estaba en el punto de entrada.
 - **Los exportadores se validan ensamblando de verdad.** El `.asm` que sale se pasa por
   el ensamblador cruzado sasSX y se compara byte a byte con el binario. Si los dos
-  coinciden, el fichero sirve. sasSX está incluido como el submódulo `tools/sass-MSX`.
+  coinciden, el fichero sirve. sasSX está incluido como el submódulo `tools/sass-MSX`: las
+  pruebas lo cogen de donde lo deja compilarlo (`dotnet build tools/sass-MSX -c Release`,
+  `Release` antes que `Debug`) o del `PATH`, y con `SASSX` se les dice otro. Si no está,
+  esa comprobación se salta diciéndolo.
 
 ## ROMs de prueba
 

@@ -201,7 +201,10 @@ Two habits that have caught a fair number of bugs:
   in the entry point.
 - **Exporters are validated by actually assembling.** The `.asm` produced is run through
   the sasSX cross-assembler and compared byte for byte against the binary. If the two
-  match, the file is good. sasSX is vendored as the `tools/sass-MSX` submodule.
+  match, the file is good. sasSX is vendored as the `tools/sass-MSX` submodule: the tests
+  take it from its build output (`dotnet build tools/sass-MSX -c Release`, `Release` before
+  `Debug`) or from the `PATH`, and `SASSX` names another one. Without it that check is
+  skipped and says so.
 
 ## Test ROMs
 
