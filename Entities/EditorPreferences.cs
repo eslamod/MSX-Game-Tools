@@ -24,7 +24,7 @@ public sealed class EditorPreferences : ObservableObject
 {
     private double _interfaceScale = 1;
 
-    private AppThemeVariant _themeVariant = AppThemeVariant.Light;
+    private AppThemeVariant _themeVariant = AppThemeVariant.System;
 
     private string _asmData = AsmStyle.Dotted;
 
@@ -58,9 +58,10 @@ public sealed class EditorPreferences : ObservableObject
     /// Con qué variante se pinta la interfaz.
     /// </summary>
     /// <remarks>
-    /// Arranca en <see cref="AppThemeVariant.Light"/> y no siguiendo al sistema: la
-    /// aplicación siempre ha sido clara, y a quien la actualice no se le cambia el aspecto
-    /// sin haberlo pedido. Seguir al sistema está a un desplegable de distancia.
+    /// Arranca siguiendo al sistema, que es como se comportan las demás aplicaciones y lo
+    /// que espera quien estrena ésta. A quien viene de antes no le cambia el aspecto: el
+    /// ajuste se escribe en el fichero cada vez que se guarda, lo haya tocado o no, así que
+    /// al abrirlo sale de ahí y esto no llega a mirarse.
     /// </remarks>
     public AppThemeVariant ThemeVariant
     {

@@ -558,8 +558,15 @@ public class ThemeVariantTests
             AppTheme.ToAvalonia(AppThemeVariant.System));
     }
 
+    /// <summary>
+    /// Sin ajustes guardados se sigue al sistema, y lo que se elija va y vuelve del fichero.
+    /// </summary>
+    /// <remarks>
+    /// Lo segundo es lo que hace que cambiar esto no le toque el aspecto a nadie que ya la
+    /// use: su elección está escrita, la haya hecho o no, y de ahí sale al abrir.
+    /// </remarks>
     [AvaloniaFact]
-    public void La_variante_arranca_en_claro_y_va_y_vuelve_del_fichero()
+    public void La_variante_arranca_siguiendo_al_sistema_y_va_y_vuelve_del_fichero()
     {
         string folder = Path.Combine(Path.GetTempPath(), $"msxtheme-{Guid.NewGuid():N}");
 
@@ -567,8 +574,8 @@ public class ThemeVariantTests
         {
             var store = new SettingsStore(folder);
 
-            // Sin fichero, claro: a quien actualice no se le cambia el aspecto solo.
-            Assert.Equal(AppThemeVariant.Light, new EditorPreferences().ThemeVariant);
+            // Sin fichero, la del sistema: quien la estrena la ve como ve las demás.
+            Assert.Equal(AppThemeVariant.System, new EditorPreferences().ThemeVariant);
 
             var main = new MainWindowViewModel(new TestDialogService(), store);
             main.Preferences.ThemeVariant = AppThemeVariant.Dark;
@@ -599,7 +606,7 @@ public class ThemeVariantTests
 
         var panel = Assert.IsType<EditPreferencesViewModel>(main.RightPanViewModel);
 
-        Assert.Equal(AppThemeVariant.Light, panel.Variant.Value);
+        Assert.Equal(AppThemeVariant.System, panel.Variant.Value);
 
         panel.Variant = EditPreferencesViewModel.Variants
             .Single(choice => choice.Value == AppThemeVariant.Dark);
