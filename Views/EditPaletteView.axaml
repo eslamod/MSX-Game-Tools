@@ -211,6 +211,11 @@
       <Button Content="{l:Localize PaletteApply}" MinWidth="85"
               IsVisible="{Binding HasSwaps}"
               Command="{Binding ApplyCommand}" />
+      <!-- Y deshacer sólo con un ajuste ya aplicado: antes no hay nada que deshacer, y con
+           movimientos pendientes el botón que toca es el de aplicar. -->
+      <Button Content="{l:Localize PaletteUndoApply}" MinWidth="85"
+              IsVisible="{Binding CanUndoApplied}"
+              Command="{Binding UndoAppliedCommand}" />
       <Button Content="{l:Localize FormClose}" MinWidth="85"
               Command="{Binding CloseCommand}" />
     </StackPanel>

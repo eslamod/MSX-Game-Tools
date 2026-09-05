@@ -443,6 +443,7 @@
   <data name="PickCellHeading" xml:space="preserve"><value>{0}x{1} cel·les de {2} píxels. Prem la que vulguis de fons.</value></data>
   <data name="NewPaletteRepeated" xml:space="preserve"><value>Ja hi ha una paleta que es diu «{0}».</value></data>
   <data name="PaletteApply" xml:space="preserve"><value>Aplica</value></data>
+  <data name="PaletteUndoApply" xml:space="preserve"><value>Desfés</value></data>
   <data name="PaletteApplyTitle" xml:space="preserve"><value>Aplica els colors intercanviats</value></data>
   <data name="PaletteApplyBody" xml:space="preserve"><value>S'ajustaran els índexs de color de: {0}.
 

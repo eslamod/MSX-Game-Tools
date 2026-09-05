@@ -554,4 +554,282 @@ public class PaletteSwapTests
         // Que es lo que se le pide: se ve igual que antes.
         Assert.Equal(was, new[] { Seen(white), Seen(other), Seen(far) });
     }
+    /// <summary>
+    /// Un ajuste aplicado se puede deshacer: los colores vuelven a su ranura y los dibujos
+    /// a sus índices.
+    /// </summary>
+    /// <remarks>
+    /// Hasta aquí, aplicar era el único punto sin retorno del panel: los movimientos
+    /// pendientes se descartaban, pero una vez ajustados los dibujos no había forma de
+    /// volver. Y es justo cuando se ve si la colocación nueva era la buena.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Deshacer_el_ajuste_devuelve_los_indices_y_los_colores()
+    {
+        var main = new MainWindowViewModel(new TestDialogService { ConfirmAnswer = true });
+
+        ColorPalette palette = main.Palettes.Add("Mía");
+        var tileSet = new TileSet("Bosque");
+
+        main.OpenTileSet(tileSet, palette);
+
+        TileRow row = tileSet.ListOfTiles[0].ArrayTileRows[0];
+        (row.ForeColor, row.BackColor) = (3, 10);
+
+        string wasThree = palette[3].HexRgb;
+        string wasTen = palette[10].HexRgb;
+
+        var panel = new EditPaletteViewModel(main, palette);
+
+        panel.SwapColors(3, 10);
+
+        await panel.ApplyCommand.ExecuteAsync(null);
+
+        Assert.True(panel.CanUndoApplied);
+
+        panel.UndoAppliedCommand.Execute(null);
+
+        Assert.Equal((3, 10), (row.ForeColor, row.BackColor));
+        Assert.Equal(wasThree, palette[3].HexRgb);
+        Assert.Equal(wasTen, palette[10].HexRgb);
+
+        Assert.False(panel.CanUndoApplied);
+    }
+
+    /// <summary>
+    /// Y alcanza a todo lo que se ajustó, no sólo a lo que se esté mirando.
+    /// </summary>
+    /// <remarks>
+    /// Deshacer a medias es peor que no deshacer: dejaría el banco con los índices nuevos y
+    /// la paleta con los colores viejos, que es la única combinación que no se ve bien en
+    /// ningún sitio.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Deshacer_alcanza_a_los_documentos_que_no_estan_delante()
+    {
+        var main = new MainWindowViewModel(new TestDialogService { ConfirmAnswer = true });
+
+        ColorPalette palette = main.Palettes.Add("Mía");
+
+        main.OpenTileSet(new TileSet("Bosque"), palette);
+
+        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bichos");
+
+        main.OpenSpriteBank(bank, palette);
+
+        bank.SpritesList[0].ArraySpriteRows[0].Color = 3;
+
+        var panel = new EditPaletteViewModel(main, palette);
+
+        panel.SwapColors(3, 10);
+
+        await panel.ApplyCommand.ExecuteAsync(null);
+
+        Assert.Equal(10, bank.SpritesList[0].ArraySpriteRows[0].Color);
+
+        panel.UndoAppliedCommand.Execute(null);
+
+        Assert.Equal(3, bank.SpritesList[0].ArraySpriteRows[0].Color);
+    }
+
+    /// <summary>
+    /// El botón sale después de aplicar, y sólo entonces.
+    /// </summary>
+    /// <remarks>
+    /// Con movimientos pendientes no: ahí «deshacer» sería ambiguo —¿lo pendiente o lo
+    /// aplicado?— y el botón que sale es el de aplicar.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Deshacer_solo_se_puede_despues_de_aplicar()
+    {
+        var main = new MainWindowViewModel(new TestDialogService { ConfirmAnswer = true });
+
+        ColorPalette palette = main.Palettes.Add("Mía");
+
+        main.OpenTileSet(new TileSet("Bosque"), palette);
+
+        var panel = new EditPaletteViewModel(main, palette);
+
+        Assert.False(panel.CanUndoApplied);
+
+        panel.SwapColors(3, 10);
+
+        Assert.False(panel.CanUndoApplied);
+
+        await panel.ApplyCommand.ExecuteAsync(null);
+
+        Assert.True(panel.CanUndoApplied);
+
+        // Y se esconde otra vez en cuanto hay un movimiento nuevo sin aplicar...
+        panel.SwapColors(5, 12);
+
+        Assert.False(panel.CanUndoApplied);
+
+        // ...y vuelve si ese movimiento se descarta, que deja las cosas como estaban.
+        panel.DiscardSwaps();
+
+        Assert.True(panel.CanUndoApplied);
+
+        panel.UndoAppliedCommand.Execute(null);
+
+        Assert.False(panel.CanUndoApplied);
+    }
+
+    /// <summary>
+    /// Deshacer lo aplicado tampoco se lleva por delante lo retocado después.
+    /// </summary>
+    /// <remarks>
+    /// Lo mismo que al descartar los movimientos pendientes, y por lo mismo: el color
+    /// vuelve a su ranura, pero vuelve como está ahora. Retocarlo fue deliberado.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Deshacer_lo_aplicado_respeta_lo_retocado()
+    {
+        var main = new MainWindowViewModel(new TestDialogService { ConfirmAnswer = true });
+
+        ColorPalette palette = main.Palettes.Add("Mía");
+
+        main.OpenTileSet(new TileSet("Bosque"), palette);
+
+        var panel = new EditPaletteViewModel(main, palette);
+
+        panel.SwapColors(3, 10);
+
+        await panel.ApplyCommand.ExecuteAsync(null);
+
+        // El que era el 3 vive ahora en el 10, y allí se pone rojo.
+        palette[10].SetComponents(7, 0, 0);
+
+        panel.UndoAppliedCommand.Execute(null);
+
+        Assert.Equal("700", palette[3].HexRgb);
+    }
+
+    /// <summary>
+    /// Un documento abierto después del ajuste no se toca al deshacer.
+    /// </summary>
+    /// <remarks>
+    /// Ése no pasó por el ajuste: sus dibujos apuntan a los índices de siempre, y
+    /// reajustárselos al revés le movería unos colores que nadie le había movido. Por eso
+    /// se guarda a quién se le aplicó en vez de volver a preguntar quién usa la paleta.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Un_documento_abierto_despues_del_ajuste_no_se_toca()
+    {
+        var main = new MainWindowViewModel(new TestDialogService { ConfirmAnswer = true });
+
+        ColorPalette palette = main.Palettes.Add("Mía");
+
+        main.OpenTileSet(new TileSet("Bosque"), palette);
+
+        var panel = new EditPaletteViewModel(main, palette);
+
+        panel.SwapColors(3, 10);
+
+        await panel.ApplyCommand.ExecuteAsync(null);
+
+        var late = new TileSet("Traído después");
+
+        main.OpenTileSet(late, palette);
+
+        TileRow row = late.ListOfTiles[0].ArrayTileRows[0];
+        (row.ForeColor, row.BackColor) = (3, 10);
+
+        panel.UndoAppliedCommand.Execute(null);
+
+        Assert.Equal((3, 10), (row.ForeColor, row.BackColor));
+    }
+    /// <summary>
+    /// Y una cadena de intercambios se deshace entera, con cada color a su sitio.
+    /// </summary>
+    /// <remarks>
+    /// Con un solo intercambio no se ve si se deshace bien: ir y volver son la misma
+    /// permutación, así que vale hasta la tabla de ida. Encadenando dos deja de valer, y es
+    /// lo normal cuando se está cuadrando una paleta contra otra.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Deshacer_una_cadena_devuelve_cada_color_a_su_sitio()
+    {
+        var main = new MainWindowViewModel(new TestDialogService { ConfirmAnswer = true });
+
+        ColorPalette palette = main.Palettes.Add("Mía");
+        var tileSet = new TileSet("Bosque");
+
+        main.OpenTileSet(tileSet, palette);
+
+        TileRow row = tileSet.ListOfTiles[0].ArrayTileRows[0];
+        TileRow another = tileSet.ListOfTiles[0].ArrayTileRows[1];
+
+        (row.ForeColor, row.BackColor) = (3, 10);
+        (another.ForeColor, another.BackColor) = (5, 1);
+
+        List<string> Hexes() =>
+            [.. Enumerable.Range(0, ColorPalette.Size).Select(slot => palette[slot].HexRgb)];
+
+        List<string> was = Hexes();
+
+        var panel = new EditPaletteViewModel(main, palette);
+
+        panel.SwapColors(3, 10);
+        panel.SwapColors(10, 5);
+
+        await panel.ApplyCommand.ExecuteAsync(null);
+
+        panel.UndoAppliedCommand.Execute(null);
+
+        Assert.Equal((3, 10), (row.ForeColor, row.BackColor));
+        Assert.Equal((5, 1), (another.ForeColor, another.BackColor));
+
+        Assert.Equal(was, Hexes());
+    }
+    /// <summary>
+    /// Y el botón de deshacer sale al aplicar, que es cuando hay algo que deshacer.
+    /// </summary>
+    /// <remarks>
+    /// Montado, como el de aplicar: la visibilidad y el mando van por enlace, y un nombre
+    /// mal escrito en el XAML no lo ve ninguna prueba del ViewModel.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task El_boton_de_deshacer_sale_al_aplicar()
+    {
+        var main = new MainWindowViewModel(new TestDialogService { ConfirmAnswer = true });
+
+        EditPaletteViewModel panel = TestPalette.Create(main);
+
+        var window = new Window
+        {
+            Content = new ContentControl { Content = panel },
+            Width = 360,
+            Height = 700,
+        };
+
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        Button undo = window.GetVisualDescendants()
+            .OfType<Button>()
+            .Single(button =>
+                button.Content is string text && text == Localizer.Instance["PaletteUndoApply"]);
+
+        Assert.False(undo.IsVisible);
+
+        panel.SwapColors(3, 10);
+
+        await panel.ApplyCommand.ExecuteAsync(null);
+        Dispatcher.UIThread.RunJobs();
+
+        bool showed = undo.IsVisible;
+
+        // Pulsándolo de verdad: es lo que dice que el mando está enlazado con el de aquí.
+        undo.Command?.Execute(undo.CommandParameter);
+        Dispatcher.UIThread.RunJobs();
+
+        bool wentAway = !undo.IsVisible;
+
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.True(showed, "Tras aplicar tendria que salir el boton de deshacer.");
+        Assert.True(wentAway, "Al deshacer el ajuste el boton tendria que irse.");
+    }
 }

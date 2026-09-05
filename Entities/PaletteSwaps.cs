@@ -66,4 +66,13 @@ public sealed class PaletteSwaps
 
         return table;
     }
+
+    /// <summary>
+    /// Del índice de ahora al de antes, que es la vuelta de <see cref="Table"/>.
+    /// </summary>
+    /// <remarks>
+    /// Con esto se deshace: reajustar los dibujos con esta tabla los devuelve a los índices
+    /// que tenían, y sirve igual para devolver cada color a la ranura de la que salió.
+    /// </remarks>
+    public int[] Back() => [.. _origin];
 }

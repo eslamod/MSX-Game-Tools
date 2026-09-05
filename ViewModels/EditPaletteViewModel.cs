@@ -28,6 +28,18 @@ public partial class EditPaletteViewModel : PanelBaseViewModel
     /// <summary>Dónde ha acabado cada color desde que se abrió el panel.</summary>
     private readonly PaletteSwaps _swaps = new();
 
+    /// <summary>La vuelta del último ajuste aplicado, o nada si no hay ninguno.</summary>
+    private int[]? _appliedBack;
+
+    /// <summary>
+    /// A quién se le aplicó, para deshacérselo a ésos y no a otros.
+    /// </summary>
+    /// <remarks>
+    /// Guardado y no vuelto a preguntar: un documento abierto después del ajuste no pasó
+    /// por él, y reajustarlo al revés le movería los colores que nadie le había movido.
+    /// </remarks>
+    private IReadOnlyList<IPaletteDocument> _appliedTo = [];
+
     [ObservableProperty]
     private PaletteColor _selectedColor;
 
@@ -100,6 +112,13 @@ public partial class EditPaletteViewModel : PanelBaseViewModel
     /// <summary>Hay colores movidos de sitio y los dibujos aún no se han reajustado.</summary>
     public bool HasSwaps => !_swaps.IsEmpty;
 
+    /// <summary>Hay un ajuste aplicado que todavía se puede deshacer.</summary>
+    /// <remarks>
+    /// Con movimientos pendientes no: a mitad de camino «deshacer» sería ambiguo —¿lo
+    /// pendiente o lo aplicado?— y el botón que sale ahí es el de aplicar.
+    /// </remarks>
+    public bool CanUndoApplied => _appliedBack is not null && !HasSwaps;
+
     /// <summary>
     /// Intercambia dos colores de ranura y apunta el movimiento. Devuelve si se ha hecho.
     /// </summary>
@@ -132,14 +151,20 @@ public partial class EditPaletteViewModel : PanelBaseViewModel
         if (_swaps.IsEmpty)
             return;
 
+        MoveColorsBack(_swaps.Back());
+
+        Forget();
+    }
+
+    /// <summary>Devuelve cada color a la ranura de la que salió, con lo retocado puesto.</summary>
+    private void MoveColorsBack(IReadOnlyList<int> back)
+    {
         // Copia de cómo están ahora, con los retoques puestos, para poder repartirlos sin
         // pisar los que aún no se han movido.
         PaletteColor[] moved = [.. Palette.Colors.Select(color => color.Clone())];
 
         for (int slot = 0; slot < moved.Length; slot++)
-            Palette[_swaps.OriginOf(slot)].TakeFrom(moved[slot]);
-
-        Forget();
+            Palette[back[slot]].TakeFrom(moved[slot]);
     }
 
     /// <summary>
@@ -177,7 +202,43 @@ public partial class EditPaletteViewModel : PanelBaseViewModel
         foreach (IPaletteDocument document in affected)
             document.RemapColors(table);
 
+        // Con qué deshacerlo, que hasta ahora aplicar no tenía marcha atrás y toca varios
+        // documentos de golpe.
+        _appliedBack = _swaps.Back();
+        _appliedTo = affected;
+
         Forget();
+    }
+
+    /// <summary>
+    /// Devuelve el último ajuste aplicado: los colores a sus ranuras y los dibujos a sus
+    /// índices.
+    /// </summary>
+    /// <remarks>
+    /// De un tiro y sin preguntar, que para eso es deshacer, y sin rehacer: como el
+    /// estampado del juego de tiles. Se pierde al cerrar el panel.
+    /// </remarks>
+    [RelayCommand(CanExecute = nameof(CanUndoApplied))]
+    private void UndoApplied()
+    {
+        if (_appliedBack is null)
+            return;
+
+        // La paleta antes que los dibujos: reajustarlos es lo que los repinta, y así lo
+        // hacen ya con los colores en su sitio.
+        MoveColorsBack(_appliedBack);
+
+        // Sólo a los que siguen abiertos con esta paleta: uno cerrado por el camino ya no
+        // se ve, y uno abierto después no pasó por el ajuste.
+        IReadOnlyList<IPaletteDocument> open = _mainWindowVm.DocumentsWith(Palette);
+
+        foreach (IPaletteDocument document in _appliedTo.Where(open.Contains))
+            document.RemapColors(_appliedBack);
+
+        _appliedBack = null;
+        _appliedTo = [];
+
+        NotifySwapsChanged();
     }
 
     [RelayCommand]
@@ -225,6 +286,9 @@ public partial class EditPaletteViewModel : PanelBaseViewModel
     private void NotifySwapsChanged()
     {
         OnPropertyChanged(nameof(HasSwaps));
+        OnPropertyChanged(nameof(CanUndoApplied));
+
         ApplyCommand.NotifyCanExecuteChanged();
+        UndoAppliedCommand.NotifyCanExecuteChanged();
     }
 }
