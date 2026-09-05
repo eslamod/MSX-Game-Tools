@@ -652,6 +652,21 @@ public partial class MainWindowViewModel : ObservableObject
     private IEnumerable<PanelBaseViewModel> Documents => _panels.Values.Where(panel => panel.IsDocument);
 
     /// <summary>
+    /// Cuántos documentos tienen cambios sin guardar, con pestaña abierta o sin ella.
+    /// </summary>
+    /// <remarks>
+    /// Por la marca barata y no por <see cref="PanelBaseViewModel.HasUnsavedChanges"/>, que
+    /// serializa el documento entero: esto se lee mientras se dibuja. Es la misma señal que
+    /// el asterisco de la pestaña y el del árbol, así que los tres dicen lo mismo.
+    /// </remarks>
+    public int UnsavedCount => Documents.Count(document => document.IsModified);
+
+    public bool HasUnsaved => UnsavedCount > 0;
+
+    /// <summary>Lo que se lee en la barra de estado cuando queda algo sin guardar.</summary>
+    public string UnsavedLabel => Text.Format("StatusUnsaved", UnsavedCount);
+
+    /// <summary>
     /// Si el índice del proyecto se diferencia del que hay escrito.
     /// </summary>
     /// <remarks>
@@ -947,7 +962,12 @@ public partial class MainWindowViewModel : ObservableObject
 
         SelectedTab = null;
         Tabs.Clear();
+
+        foreach (PanelBaseViewModel panel in _panels.Values)
+            panel.PropertyChanged -= OnPanelPropertyChanged;
+
         _panels.Clear();
+        NotifyUnsavedChanged();
         TreeGeneralVm.Clear();
 
         // La estándar no se puede quitar y no hace falta: existe siempre y no es de nadie.
@@ -2272,7 +2292,7 @@ public partial class MainWindowViewModel : ObservableObject
         if (GetPanelFromDic(item.Tag) is { } panel)
         {
             CloseTab(panel);
-            _panels.Remove(item.Tag);
+            RemovePanelFromDic(item.Tag);
         }
 
         // Lo que cuelga del elemento se va con él: los bloques de un juego de tiles no
@@ -2282,7 +2302,7 @@ public partial class MainWindowViewModel : ObservableObject
             if (GetPanelFromDic(child.Tag) is { } tool)
                 CloseRightPanel(tool);
 
-            _panels.Remove(child.Tag);
+            RemovePanelFromDic(child.Tag);
         }
 
         TreeGeneralVm.Remove(item);
@@ -2309,7 +2329,37 @@ public partial class MainWindowViewModel : ObservableObject
         SelectedTab = Tabs.Count > 0 ? Tabs[Math.Min(position, Tabs.Count - 1)] : null;
     }
 
-    public void AddPanelToDic(PanelBaseViewModel panel) => _panels.TryAdd(panel.TagId, panel);
+    public void AddPanelToDic(PanelBaseViewModel panel)
+    {
+        if (!_panels.TryAdd(panel.TagId, panel))
+            return;
+
+        panel.PropertyChanged += OnPanelPropertyChanged;
+
+        NotifyUnsavedChanged();
+    }
+
+    /// <summary>Quita el panel del proyecto y deja de escucharlo.</summary>
+    private void RemovePanelFromDic(string tagId)
+    {
+        if (_panels.Remove(tagId, out PanelBaseViewModel? panel))
+            panel.PropertyChanged -= OnPanelPropertyChanged;
+
+        NotifyUnsavedChanged();
+    }
+
+    private void OnPanelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName is nameof(PanelBaseViewModel.IsModified))
+            NotifyUnsavedChanged();
+    }
+
+    private void NotifyUnsavedChanged()
+    {
+        OnPropertyChanged(nameof(UnsavedCount));
+        OnPropertyChanged(nameof(HasUnsaved));
+        OnPropertyChanged(nameof(UnsavedLabel));
+    }
 
     public PanelBaseViewModel? GetPanelFromDic(string panelId) => _panels.GetValueOrDefault(panelId);
 

@@ -23,7 +23,7 @@
       <!-- El HierarchicalDataTemplate de WPF es TreeDataTemplate en Avalonia. -->
       <TreeDataTemplate DataType="entities:ItemTree" x:DataType="entities:ItemTree"
                         ItemsSource="{Binding Childs}">
-        <TextBlock Text="{Binding DisplayText}">
+        <TextBlock Text="{Binding Label}">
           <TextBlock.ContextMenu>
             <ContextMenu>
               <MenuItem Header="{l:Localize TreeOpen}"

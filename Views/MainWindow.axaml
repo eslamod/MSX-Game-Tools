@@ -317,7 +317,17 @@
 
     <!-- Avalonia no tiene StatusBar; un Border con el texto hace el mismo papel. -->
     <Border Grid.Row="3" Background="{DynamicResource AppPanelBackground}" BorderBrush="{DynamicResource AppSeparator}" BorderThickness="0,1,0,0" Padding="8,4">
-      <TextBlock Text="MSX Game Tools" VerticalAlignment="Center" />
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Grid.Column="0" Text="MSX Game Tools" VerticalAlignment="Center" />
+
+        <!-- Lo que queda sin guardar, contando también los documentos sin pestaña abierta.
+             Cerrar una pestaña no toca el proyecto, pero con ella se iba la única señal de
+             que quedaban cambios y parecía que se hubieran perdido. -->
+        <TextBlock Grid.Column="1" Text="{Binding UnsavedLabel}"
+                   IsVisible="{Binding HasUnsaved}"
+                   Foreground="{DynamicResource AppTextSecondary}"
+                   VerticalAlignment="Center" />
+      </Grid>
     </Border>
 
   </Grid>

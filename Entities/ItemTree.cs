@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MSX_GameTools.Localization;
 using MSX_GameTools.ViewModels;
@@ -9,6 +11,7 @@ namespace MSX_GameTools.Entities;
 public partial class ItemTree : ObservableObject
 {
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Label))]
     private string _displayText = string.Empty;
 
     private bool _deletable = true;
@@ -40,7 +43,20 @@ public partial class ItemTree : ObservableObject
 
     public ObservableCollection<ItemTree> Childs { get; } = [];
 
-    public IList<PanelBaseViewModel> PanelsList { get; } = [];
+    public ObservableCollection<PanelBaseViewModel> PanelsList { get; } = [];
+
+    /// <summary>
+    /// Lo que se lee en el árbol. El asterisco marca lo que está sin guardar.
+    /// </summary>
+    /// <remarks>
+    /// El mismo que sale en la pestaña, y por el mismo sitio. Cerrar una pestaña no toca el
+    /// proyecto —el documento se queda con sus cambios y el nodo lo vuelve a traer con un
+    /// doble clic—, pero al irse la pestaña se iba con ella la única señal de que había algo
+    /// sin guardar, y eso parecía que se hubiera perdido.
+    /// </remarks>
+    public string Label => PanelsList.Any(panel => panel.IsModified)
+        ? $"{DisplayText} *"
+        : DisplayText;
 
     /// <summary>
     /// Si el nodo representa algo que se puede abrir y eliminar. Los de categoría
@@ -60,5 +76,25 @@ public partial class ItemTree : ObservableObject
         // Los de categoría siguen sin poder eliminarse, como antes: son cajones.
         get => IsPanelNode && _deletable;
         set => _deletable = value;
+    }
+
+    public ItemTree() => PanelsList.CollectionChanged += OnPanelsChanged;
+
+    /// <summary>Se escucha a los paneles que le cuelgan, para saber si tienen cambios.</summary>
+    private void OnPanelsChanged(object? sender, NotifyCollectionChangedEventArgs args)
+    {
+        foreach (PanelBaseViewModel panel in args.OldItems?.OfType<PanelBaseViewModel>() ?? [])
+            panel.PropertyChanged -= OnPanelChanged;
+
+        foreach (PanelBaseViewModel panel in args.NewItems?.OfType<PanelBaseViewModel>() ?? [])
+            panel.PropertyChanged += OnPanelChanged;
+
+        OnPropertyChanged(nameof(Label));
+    }
+
+    private void OnPanelChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName is nameof(PanelBaseViewModel.IsModified))
+            OnPropertyChanged(nameof(Label));
     }
 }
