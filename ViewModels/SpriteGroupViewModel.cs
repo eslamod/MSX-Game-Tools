@@ -279,13 +279,4 @@ public partial class SpriteGroupViewModel : ObservableObject
         }
     }
 
-    /// <param name="delta">"-1" o "+1" sobre el patrón del miembro seleccionado.</param>
-    [RelayCommand]
-    private void StepPattern(string delta)
-    {
-        if (SelectedMember is null || !int.TryParse(delta, out int step))
-            return;
-
-        SelectedMember.PatternIndex = Math.Clamp(SelectedMember.PatternIndex + step, 0, MaxPatternIndex);
-    }
 }

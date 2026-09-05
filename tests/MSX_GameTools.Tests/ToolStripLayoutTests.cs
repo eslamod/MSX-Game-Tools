@@ -189,10 +189,21 @@ public class ToolStripLayoutTests : IDisposable
             groups.IsChecked = true;
             Dispatcher.UIThread.RunJobs();
 
+            // Por el rótulo y no por la forma de la rejilla: la fila del patrón tiene dos
+            // columnas desde que el número se escribe, y las de X e Y siguen con sus flechas.
+            string[] wanted =
+            [
+                Localizer.Instance["SpritesPattern"],
+                Localizer.Instance["SpritesOffsetX"],
+                Localizer.Instance["SpritesOffsetY"],
+            ];
+
             Grid[] rows = [.. view.GetVisualDescendants()
                 .OfType<Grid>()
-                .Where(grid => grid.ColumnDefinitions.Count == 4
-                               && grid.ColumnDefinitions[0].Width.Value == 56)];
+                .Where(grid => grid.ColumnDefinitions.Count >= 2
+                               && grid.ColumnDefinitions[0].Width.Value == 56
+                               && wanted.Contains(
+                                   grid.Children.OfType<TextBlock>().FirstOrDefault()?.Text))];
 
             Assert.Equal(3, rows.Length);
 

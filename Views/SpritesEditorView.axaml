@@ -601,20 +601,16 @@
         <StackPanel Grid.Row="4" Margin="0,10,0,0" Spacing="4"
                     IsEnabled="{Binding SelectedGroup.SelectedMember, Converter={x:Static ObjectConverters.IsNotNull}}">
 
-          <Grid ColumnDefinitions="56,28,*,28">
+          <!-- El numero se escribe, ademas de pasarse con las flechas del control: en un
+               banco de 64 patrones, llegar al 57 a golpe de flecha son cincuenta y siete
+               clics. Es el mismo control que usan los pasos de una animacion. -->
+          <Grid ColumnDefinitions="56,*">
             <TextBlock Grid.Column="0" Text="{l:Localize SpritesPattern}" VerticalAlignment="Center" />
-            <Button Grid.Column="1" Classes="step"
-                    Command="{Binding SelectedGroup.StepPatternCommand}" CommandParameter="-1"
-                    ToolTip.Tip="{l:Localize SpritesPatternPrevTip}">
-              <icons:MaterialIcon Kind="ChevronLeft" />
-            </Button>
-            <TextBlock Grid.Column="2" Text="{Binding SelectedGroup.SelectedMember.PatternIndex}"
-                       FontFamily="Consolas" TextAlignment="Center" VerticalAlignment="Center" />
-            <Button Grid.Column="3" Classes="step"
-                    Command="{Binding SelectedGroup.StepPatternCommand}" CommandParameter="1"
-                    ToolTip.Tip="{l:Localize SpritesPatternNextTip}">
-              <icons:MaterialIcon Kind="ChevronRight" />
-            </Button>
+            <NumericUpDown Grid.Column="1" x:Name="MemberPattern"
+                           ShowButtonSpinner="True" FormatString="0"
+                           Minimum="0" Maximum="{Binding SelectedGroup.MaxPatternIndex}" Increment="1"
+                           Value="{Binding SelectedGroup.SelectedMember.PatternIndex}"
+                           ToolTip.Tip="{l:Localize SpritesPatternTip}" />
           </Grid>
 
           <Grid ColumnDefinitions="56,28,*,28">

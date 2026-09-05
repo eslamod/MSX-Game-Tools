@@ -226,8 +226,7 @@
   <data name="PreferencesThemeOrange" xml:space="preserve"><value>Fosc ataronjat</value></data>
   <data name="PreferencesThemeLightBlue" xml:space="preserve"><value>Clar blavós</value></data>
   <data name="PreferencesThemeLightOrange" xml:space="preserve"><value>Clar ataronjat</value></data>
-  <data name="SpritesPatternPrevTip" xml:space="preserve"><value>Patró anterior per a aquest membre</value></data>
-  <data name="SpritesPatternNextTip" xml:space="preserve"><value>Patró següent per a aquest membre</value></data>
+  <data name="SpritesPatternTip" xml:space="preserve"><value>El patró que pinta aquest membre. El número es pot escriure</value></data>
   <data name="SpritesOffsetLeftTip" xml:space="preserve"><value>Desplaça el membre un píxel a l'esquerra</value></data>
   <data name="SpritesOffsetRightTip" xml:space="preserve"><value>Desplaça el membre un píxel a la dreta</value></data>
   <data name="SpritesOffsetUpTip" xml:space="preserve"><value>Desplaça el membre un píxel amunt</value></data>

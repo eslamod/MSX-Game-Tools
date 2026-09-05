@@ -167,6 +167,14 @@ public class SpriteGroupViewTests
         Assert.Equal(0, editor.ViewModel.CurrentSpriteIndex);
     }
 
+    /// <summary>
+    /// El número de patrón del miembro se escribe, y al cambiarlo el lienzo va a ese patrón.
+    /// </summary>
+    /// <remarks>
+    /// Por la caja y no por el modelo de vista: antes eran dos botones de uno en uno, y en un
+    /// banco de 64 llegar al 57 eran cincuenta y siete clics. Que se pueda escribir depende
+    /// del enlace, que es lo que esto comprueba de paso.
+    /// </remarks>
     [AvaloniaFact]
     public void Cambiar_el_patron_del_miembro_lleva_el_lienzo_a_ese_patron()
     {
@@ -179,7 +187,15 @@ public class SpriteGroupViewTests
         SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
         Assert.Equal(1, editor.ViewModel.CurrentSpriteIndex);
 
-        group.StepPatternCommand.Execute("-1");
+        NumericUpDown box = editor.GroupPanel.GetVisualDescendants()
+            .OfType<NumericUpDown>()
+            .Single(control => control.Name == "MemberPattern");
+
+        // Y no deja escribir un patrón que el banco no tiene.
+        Assert.Equal(0, box.Minimum);
+        Assert.Equal(group.MaxPatternIndex, box.Maximum);
+
+        box.Value = 0;
 
         Assert.Equal(0, group.SelectedMember!.PatternIndex);
         Assert.Equal(0, editor.ViewModel.CurrentSpriteIndex);

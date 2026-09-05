@@ -225,8 +225,7 @@
   <data name="PreferencesThemeOrange" xml:space="preserve"><value>Dark amber</value></data>
   <data name="PreferencesThemeLightBlue" xml:space="preserve"><value>Light blue</value></data>
   <data name="PreferencesThemeLightOrange" xml:space="preserve"><value>Light amber</value></data>
-  <data name="SpritesPatternPrevTip" xml:space="preserve"><value>Previous pattern for this member</value></data>
-  <data name="SpritesPatternNextTip" xml:space="preserve"><value>Next pattern for this member</value></data>
+  <data name="SpritesPatternTip" xml:space="preserve"><value>The pattern this member draws. The number can be typed in</value></data>
   <data name="SpritesOffsetLeftTip" xml:space="preserve"><value>Nudge the member one pixel to the left</value></data>
   <data name="SpritesOffsetRightTip" xml:space="preserve"><value>Nudge the member one pixel to the right</value></data>
   <data name="SpritesOffsetUpTip" xml:space="preserve"><value>Nudge the member one pixel up</value></data>
