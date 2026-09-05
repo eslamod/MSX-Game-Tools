@@ -8,9 +8,46 @@ namespace MSX_GameTools.Views;
 
 public partial class TreeGeneralView : UserControl
 {
-    public TreeGeneralView() => InitializeComponent();
+    public TreeGeneralView()
+    {
+        InitializeComponent();
+
+        DataContextChanged += (_, _) => WatchDrawers();
+    }
 
     private TreeGeneralViewModel? ViewModel => DataContext as TreeGeneralViewModel;
+
+    /// <summary>
+    /// Se escucha a los cajones para abrirlos cuando les llega un documento.
+    /// </summary>
+    /// <remarks>
+    /// Desde aquí y no sólo con el enlace del estilo: en cuanto el usuario abre o cierra un
+    /// cajón a mano, ese valor manda sobre el del estilo y el nodo ya no lo mueve. Poniéndolo
+    /// en el control, que es lo que hace esto, vuelve a mandar lo último que se pidió.
+    /// </remarks>
+    private void WatchDrawers()
+    {
+        if (ViewModel is not { } tree)
+            return;
+
+        foreach (ItemTree drawer in tree.PrimaryNodes)
+        {
+            ItemTree node = drawer;
+
+            node.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName is nameof(ItemTree.IsExpanded) && node.IsExpanded)
+                    Expand(node);
+            };
+        }
+    }
+
+    /// <summary>Abre ese cajón en el árbol, si ya tiene fila.</summary>
+    private void Expand(ItemTree node)
+    {
+        if (ProjectTree.ContainerFromItem(node) is TreeViewItem row)
+            row.IsExpanded = true;
+    }
 
     /// <summary>
     /// Doble clic sobre un nodo con panel: vuelve a enseñar su pestaña.

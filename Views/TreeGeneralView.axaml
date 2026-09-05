@@ -19,6 +19,14 @@
             Background="{DynamicResource AppPanelBackground}"
             DoubleTapped="OnItemDoubleTapped"
             KeyDown="OnTreeKeyDown">
+    <TreeView.Styles>
+      <!-- El cajón se abre solo al llegarle un documento, y quien lo cierre a mano manda:
+           por eso el enlace va en las dos direcciones. -->
+      <Style Selector="TreeViewItem" x:DataType="entities:ItemTree">
+        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+      </Style>
+    </TreeView.Styles>
+
     <TreeView.ItemTemplate>
       <!-- El HierarchicalDataTemplate de WPF es TreeDataTemplate en Avalonia. -->
       <TreeDataTemplate DataType="entities:ItemTree" x:DataType="entities:ItemTree"

@@ -14,6 +14,18 @@ public partial class ItemTree : ObservableObject
     [NotifyPropertyChangedFor(nameof(Label))]
     private string _displayText = string.Empty;
 
+    /// <summary>
+    /// Si el cajón se ve abierto en el árbol.
+    /// </summary>
+    /// <remarks>
+    /// Vive aquí y no sólo en el control porque lo abre quien trae un documento: dejarlo
+    /// cerrado esconde lo que se acaba de traer, y con ello el asterisco que dice que está
+    /// sin guardar. Va en las dos direcciones, así que cerrarlo a mano se respeta —hasta que
+    /// llegue otro documento, que vuelve a abrirlo para enseñarlo.
+    /// </remarks>
+    [ObservableProperty]
+    private bool _isExpanded;
+
     private bool _deletable = true;
 
     /// <summary>

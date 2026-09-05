@@ -133,6 +133,10 @@ public class TreeGeneralViewModel : PanelBaseViewModel
         item.PanelsList.Add(vm);
         parent.Childs.Add(item);
 
+        // Con el cajón cerrado, lo que se acaba de traer no se ve, y tampoco se ve luego el
+        // asterisco de que está sin guardar: al cerrar su pestaña parece que no queda nada.
+        parent.IsExpanded = true;
+
         return item;
     }
 }

@@ -44,15 +44,6 @@ public class UnsavedMarksTests
 
         TreeView tree = window.GetVisualDescendants().OfType<TreeView>().First();
 
-        // Desplegando el cajón, como se despliega con el ratón: hasta entonces la fila del
-        // documento no existe y no habría nada que mirar.
-        TreeViewItem drawer = tree.GetRealizedContainers()
-            .OfType<TreeViewItem>()
-            .Single(item => item.DataContext is ItemTree parent && parent.Childs.Contains(node));
-
-        drawer.IsExpanded = true;
-        Dispatcher.UIThread.RunJobs();
-
         string[] Labels() =>
             [.. tree.GetVisualDescendants().OfType<TextBlock>().Select(text => text.Text ?? string.Empty)];
 
