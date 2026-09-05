@@ -79,9 +79,11 @@ ANIM_REPEAT     .equ 0x01
 ANIM_PINGPONG   .equ 0x02
 
 ; --- Cuanto cabe -------------------------------------------------------------
-; Ocho planos, que es lo que puede traer un grupo como mucho. Se reservan por
-; delante y la rejilla de grupos empieza detras, asi que con animacion se ven
-; ocho grupos menos: es el precio de tener las dos cosas en la misma pantalla.
+; Ocho planos: es lo que esta ROM reserva para la animacion, no el tope de un
+; grupo -el editor deja treinta y dos-. De uno mas grande se pintan los ocho
+; primeros. Se reservan por delante y la rejilla de grupos empieza detras, asi
+; que con animacion se ven ocho grupos menos: es el precio de tener las dos
+; cosas en la misma pantalla.
 ANIM_PLANES     .equ 8
 
 ; Si la animacion trae mas fotogramas se corta y se ve lo que quepa. 64 son de
@@ -520,7 +522,7 @@ AnimShow:
                 ; figura de la anterior como si siguiera puesta.
                 ld a,(ANIM_COUNT)
                 or a
-                jr z,AnimShowNone
+                jp z,AnimShowNone       ; jp y no jr: desde aqui hasta alla no llega el salto corto
 
                 ld a,(ANIM_INDEX)
                 call AnimAt
@@ -550,6 +552,14 @@ AnimShow:
                 ld a,b
                 or a
                 jr z,AnimShowNone       ; un grupo vacio no pinta nada
+
+                ; Y de los reservados no se pasa: detras empieza la rejilla de grupos,
+                ; que se veria pisada por los planos de mas.
+                cp ANIM_PLANES
+                jr c,AnimMemberCount
+                ld a,ANIM_PLANES
+AnimMemberCount:
+                ld b,a
 
                 ld iy,0
 AnimMemberNext:

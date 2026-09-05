@@ -24,16 +24,22 @@ public partial class SpriteGroup : ObservableObject
     /// plano: dos sprites de tres colores cada uno ya son seis.
     /// </para>
     /// <para>
-    /// Ocho porque es lo que el VDP saca por línea de barrido en modo 2, así que un plano más
-    /// no se vería nunca. Ojo con no confundir las dos cosas: ese tope es por línea y de toda
-    /// la pantalla, no por personaje. Un grupo de ocho planos amontonados en la misma altura
-    /// se come el cupo entero de esa línea, y en modo 1 —donde el cupo es de cuatro— pasa lo
-    /// mismo con la mitad. Repartidos en vertical no estorban. Eso depende de los
-    /// desplazamientos y de lo que haya alrededor, así que no es algo que el editor pueda
-    /// decidir por nadie.
+    /// Treinta y dos porque es lo que cabe en la tabla de atributos: más planos que ésos no
+    /// los puede tener el VDP a la vez, ni repartidos entre todos los personajes de la
+    /// pantalla.
+    /// </para>
+    /// <para>
+    /// Estuvo en ocho, que es lo que el VDP saca por <b>línea de barrido</b> en modo 2, y era
+    /// confundir dos cosas distintas: ese cupo es por línea y de toda la pantalla, no por
+    /// personaje. Un grupo de ocho planos amontonados a la misma altura se come el cupo
+    /// entero de esa línea —en modo 1, donde son cuatro, con la mitad basta—, pero repartidos
+    /// en vertical no se estorban, y hay personajes de verdad que pasan de ocho: el que
+    /// duerme en la pausa del K Mare gasta trece. Eso depende de los desplazamientos y de lo
+    /// que haya alrededor, así que el editor lo avisa donde se ve —línea a línea— en vez de
+    /// decidirlo por nadie a base de no dejar añadir.
     /// </para>
     /// </remarks>
-    public const int MaxMembers = 8;
+    public const int MaxMembers = 32;
 
     [ObservableProperty]
     private string _name;

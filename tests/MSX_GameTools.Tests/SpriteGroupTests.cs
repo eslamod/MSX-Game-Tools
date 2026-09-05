@@ -82,7 +82,7 @@ public class SpriteGroupTests
     }
 
     /// <summary>
-    /// El tope son ocho planos.
+    /// El tope son treinta y dos planos, los que caben en la tabla de atributos.
     /// </summary>
     /// <remarks>
     /// Con el número escrito a mano y no con la constante: es lo único que distingue subir el
@@ -90,9 +90,9 @@ public class SpriteGroupTests
     /// pasarían con cualquier valor.
     /// </remarks>
     [Fact]
-    public void El_tope_de_planos_de_un_grupo_es_ocho()
+    public void El_tope_de_planos_de_un_grupo_es_treinta_y_dos()
     {
-        Assert.Equal(8, SpriteGroup.MaxMembers);
+        Assert.Equal(32, SpriteGroup.MaxMembers);
     }
 
     [AvaloniaFact]
