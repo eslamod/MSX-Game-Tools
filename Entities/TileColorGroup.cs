@@ -141,6 +141,21 @@ public partial class TileColorGroup : ObservableObject
         if (ForeColor == foreColor && BackColor == backColor)
             return;
 
+        Remap(foreColor, backColor);
+
+        Apply();
+    }
+
+    /// <summary>
+    /// Mueve el par a otros índices sin bajarlo a los tiles.
+    /// </summary>
+    /// <remarks>
+    /// Para cuando los colores se mueven de sitio en la paleta y este grupo no manda: en
+    /// GRAPHIC 2 el color lo lleva cada línea y se reajusta línea a línea, así que bajar el
+    /// par aquí borraría los ocho tiles enteros y los dejaría de un color liso.
+    /// </remarks>
+    public void Remap(int foreColor, int backColor)
+    {
         _quiet = true;
 
         try
@@ -152,8 +167,6 @@ public partial class TileColorGroup : ObservableObject
         {
             _quiet = false;
         }
-
-        Apply();
     }
 
     /// <summary>

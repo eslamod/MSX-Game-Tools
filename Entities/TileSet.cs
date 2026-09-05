@@ -155,8 +155,21 @@ public class TileSet
 
         // También los grupos: en GRAPHIC 1 son ellos los que mandan, y dejarlos con los
         // índices de antes haría que el siguiente repintado devolviera los colores viejos.
+        //
+        // Donde no mandan se mueven sin bajarlos a los tiles. Un juego de GRAPHIC 2 los
+        // tiene igualmente, con el par de fábrica F sobre 0, y mover la F les cambiaba el
+        // par: cada grupo lo bajaba a sus ocho tiles y el juego entero se quedaba de un
+        // color liso, con los colores por línea ya reajustados y perdidos.
         foreach (TileColorGroup group in ColorGroups)
-            group.Set(table[group.ForeColor], table[group.BackColor]);
+        {
+            int fore = table[group.ForeColor];
+            int back = table[group.BackColor];
+
+            if (IsGraphic1)
+                group.Set(fore, back);
+            else
+                group.Remap(fore, back);
+        }
     }
 
     /// <summary>

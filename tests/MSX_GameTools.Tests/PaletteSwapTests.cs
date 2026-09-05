@@ -498,4 +498,60 @@ public class PaletteSwapTests
 
         Assert.Equal(wasThree, palette[3].HexRgb);
     }
+    /// <summary>
+    /// En GRAPHIC 2 los colores por línea aguantan un intercambio que toque el par de los
+    /// grupos.
+    /// </summary>
+    /// <remarks>
+    /// Los 32 pares de GRAPHIC 1 están también en un juego de GRAPHIC 2, donde no mandan,
+    /// con el par de fábrica: F sobre 0. Al reajustarlos, mover la F les cambiaba el par, y
+    /// un grupo que cambia baja el suyo a las líneas de sus ocho tiles: intercambiar la F
+    /// dejaba los 256 tiles de un color liso, cada línea con el par del grupo. Salía con
+    /// cualquier juego venido de un volcado de VRAM, que es justo donde cuadrar la paleta
+    /// obliga a mover colores.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Intercambiar_la_F_no_aplana_un_juego_de_graphic2()
+    {
+        var dialogs = new TestDialogService { ConfirmAnswer = true };
+        var main = new MainWindowViewModel(dialogs);
+
+        ColorPalette palette = main.Palettes.Add("Mía");
+        var tileSet = new TileSet("De un volcado");
+
+        main.OpenTileSet(tileSet, palette);
+
+        // Dos líneas del primer grupo y una del último, que es donde se vio: se aplanaban
+        // los 32 grupos y con ellos el juego entero.
+        TileRow white = tileSet.ListOfTiles[0].ArrayTileRows[0];
+        TileRow other = tileSet.ListOfTiles[0].ArrayTileRows[1];
+        TileRow far = tileSet.ListOfTiles[255].ArrayTileRows[3];
+
+        (white.ForeColor, white.BackColor) = (15, 1);
+        (other.ForeColor, other.BackColor) = (6, 2);
+        (far.ForeColor, far.BackColor) = (10, 4);
+
+        (Avalonia.Media.Color Fore, Avalonia.Media.Color Back) Seen(TileRow row) =>
+            (palette.GetColor(row.ForeColor), palette.GetColor(row.BackColor));
+
+        var was = new[] { Seen(white), Seen(other), Seen(far) };
+
+        var panel = new EditPaletteViewModel(main, palette);
+
+        Assert.True(panel.SwapColors(15, 14));
+
+        await panel.ApplyCommand.ExecuteAsync(null);
+
+        // La que usaba la F la sigue usando, esté donde esté ahora...
+        Assert.Equal(14, white.ForeColor);
+        Assert.Equal(1, white.BackColor);
+
+        // ...y las que no la usaban se quedan como estaban, en vez de acabar todas con el
+        // par del grupo.
+        Assert.Equal((6, 2), (other.ForeColor, other.BackColor));
+        Assert.Equal((10, 4), (far.ForeColor, far.BackColor));
+
+        // Que es lo que se le pide: se ve igual que antes.
+        Assert.Equal(was, new[] { Seen(white), Seen(other), Seen(far) });
+    }
 }
