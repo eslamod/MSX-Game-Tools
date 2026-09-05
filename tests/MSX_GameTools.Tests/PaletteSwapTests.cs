@@ -832,4 +832,48 @@ public class PaletteSwapTests
         Assert.True(showed, "Tras aplicar tendria que salir el boton de deshacer.");
         Assert.True(wentAway, "Al deshacer el ajuste el boton tendria que irse.");
     }
+    /// <summary>
+    /// La pista de arrastrar cuelga de cada fila y no de la lista entera.
+    /// </summary>
+    /// <remarks>
+    /// En la lista se abría una sola vez, donde estuviera el ratón, y ahí se quedaba
+    /// mientras lo movías por las filas: parecía que hablaba de una fila que ya no era esa.
+    /// Colgando de la fila se cierra y se vuelve a abrir al cambiar de una a otra.
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_pista_de_arrastrar_cuelga_de_cada_fila()
+    {
+        var main = new MainWindowViewModel(new TestDialogService());
+
+        TestPalette.Create(main);
+
+        var panel = (EditPaletteViewModel)main.RightPanViewModel!;
+
+        var window = new Window
+        {
+            Content = new ContentControl { Content = panel },
+            Width = 360,
+            Height = 700,
+        };
+
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        EditPaletteView view = window.GetVisualDescendants().OfType<EditPaletteView>().Single();
+        ListBox list = view.GetVisualDescendants().OfType<ListBox>().Single();
+
+        ListBoxItem row = list.GetRealizedContainers()
+            .OfType<ListBoxItem>()
+            .Single(item => item.DataContext is PaletteColor { Index: 5 });
+
+        // La rejilla de la plantilla, que es lo que ocupa la fila entera.
+        object? onTheRow = ToolTip.GetTip(row.GetVisualDescendants().OfType<Grid>().First());
+        object? onTheList = ToolTip.GetTip(list);
+
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(Localizer.Instance["PaletteSwapTip"], onTheRow);
+        Assert.Null(onTheList);
+    }
 }

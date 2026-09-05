@@ -90,11 +90,15 @@
              SelectedItem="{Binding SelectedColor, Mode=TwoWay}"
              SelectionMode="Single"
              DragDrop.AllowDrop="True"
-             ToolTip.Tip="{l:Localize PaletteSwapTip}"
              ScrollViewer.VerticalScrollBarVisibility="Disabled">
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="entities:PaletteColor">
-          <Grid ColumnDefinitions="Auto,28,*,Auto" Height="{StaticResource PaletteRowHeight}">
+          <!-- La pista de arrastrar, en cada fila y no en la lista entera: puesta en la
+               lista se abría una vez donde estuviera el ratón y se quedaba ahí mientras lo
+               movías por las filas, señalando a una que ya no era. -->
+          <Grid ColumnDefinitions="Auto,28,*,Auto" Height="{StaticResource PaletteRowHeight}"
+                Background="Transparent"
+                ToolTip.Tip="{l:Localize PaletteSwapTip}">
             <Border Grid.Column="0" Width="24" Height="18"
                     BorderBrush="Black" BorderThickness="1"
                     VerticalAlignment="Center">
