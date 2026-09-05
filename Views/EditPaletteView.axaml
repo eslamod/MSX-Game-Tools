@@ -31,6 +31,15 @@
       <Setter Property="BorderBrush" Value="Transparent" />
     </Style>
 
+    <!-- La pista de arrastrar, apagada mientras el ratón no esté en la lista. -->
+    <Style Selector="TextBlock#SwapHint">
+      <Setter Property="Opacity" Value="0" />
+    </Style>
+
+    <Style Selector="TextBlock#SwapHint.hovering">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
     <!-- La entrada sobre la que se va a soltar el color que se arrastra. El borde va
          puesto siempre y transparente: si apareciera al marcar, la fila cambiaria de alto
          al pasar el raton por encima y la lista entera daria un salto. -->
@@ -93,12 +102,7 @@
              ScrollViewer.VerticalScrollBarVisibility="Disabled">
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="entities:PaletteColor">
-          <!-- La pista de arrastrar, en cada fila y no en la lista entera: puesta en la
-               lista se abría una vez donde estuviera el ratón y se quedaba ahí mientras lo
-               movías por las filas, señalando a una que ya no era. -->
-          <Grid ColumnDefinitions="Auto,28,*,Auto" Height="{StaticResource PaletteRowHeight}"
-                Background="Transparent"
-                ToolTip.Tip="{l:Localize PaletteSwapTip}">
+          <Grid ColumnDefinitions="Auto,28,*,Auto" Height="{StaticResource PaletteRowHeight}">
             <Border Grid.Column="0" Width="24" Height="18"
                     BorderBrush="Black" BorderThickness="1"
                     VerticalAlignment="Center">
@@ -153,6 +157,18 @@
     </ItemsControl>
 
     </Grid>
+
+    <!-- La pista de arrastrar, fija y debajo de la lista, encendiéndose al entrar en ella.
+         De globo no valía: colgado de la lista se abría una sola vez donde estuviera el
+         ratón y se quedaba ahí, señalando a una fila que ya no era; y colgado de cada fila
+         perseguía al ratón lista abajo, que cansa.
+
+         Se apaga con la opacidad y no con IsVisible: así el texto ocupa su sitio siempre y
+         lo de debajo no pega un salto cada vez que el ratón entra o sale de la lista. -->
+    <TextBlock x:Name="SwapHint" Text="{l:Localize PaletteSwapTip}"
+               Classes.hovering="{Binding #ColorList.IsPointerOver}"
+               Foreground="{DynamicResource AppTextSecondary}"
+               FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0" />
 
     <!-- Componentes del color seleccionado, en el formato nativo del MSX: 0-7. -->
     <StackPanel Margin="0,10,0,0"

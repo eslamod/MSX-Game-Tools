@@ -833,15 +833,21 @@ public class PaletteSwapTests
         Assert.True(wentAway, "Al deshacer el ajuste el boton tendria que irse.");
     }
     /// <summary>
-    /// La pista de arrastrar cuelga de cada fila y no de la lista entera.
+    /// La pista de arrastrar se enciende al entrar en la lista y se apaga al salir.
     /// </summary>
     /// <remarks>
-    /// En la lista se abría una sola vez, donde estuviera el ratón, y ahí se quedaba
-    /// mientras lo movías por las filas: parecía que hablaba de una fila que ya no era esa.
-    /// Colgando de la fila se cierra y se vuelve a abrir al cambiar de una a otra.
+    /// <para>
+    /// Era un globo y no acababa de servir: colgado de la lista se abría una sola vez donde
+    /// estuviera el ratón y se quedaba ahí, señalando a una fila que ya no era; y colgado de
+    /// cada fila perseguía al ratón lista abajo.
+    /// </para>
+    /// <para>
+    /// Con el ratón de verdad, que es lo que enciende la clase: comprobar el enlace a mano
+    /// no diría si el estilo la recoge.
+    /// </para>
     /// </remarks>
     [AvaloniaFact]
-    public void La_pista_de_arrastrar_cuelga_de_cada_fila()
+    public void La_pista_de_arrastrar_se_enciende_al_entrar_en_la_lista()
     {
         var main = new MainWindowViewModel(new TestDialogService());
 
@@ -862,18 +868,34 @@ public class PaletteSwapTests
         EditPaletteView view = window.GetVisualDescendants().OfType<EditPaletteView>().Single();
         ListBox list = view.GetVisualDescendants().OfType<ListBox>().Single();
 
+        TextBlock hint = view.GetVisualDescendants()
+            .OfType<TextBlock>()
+            .Single(text => text.Name == "SwapHint");
+
+        double asleep = hint.Opacity;
+
         ListBoxItem row = list.GetRealizedContainers()
             .OfType<ListBoxItem>()
             .Single(item => item.DataContext is PaletteColor { Index: 5 });
 
-        // La rejilla de la plantilla, que es lo que ocupa la fila entera.
-        object? onTheRow = ToolTip.GetTip(row.GetVisualDescendants().OfType<Grid>().First());
-        object? onTheList = ToolTip.GetTip(list);
+        window.MouseMove(
+            row.TranslatePoint(new Point(row.Bounds.Width / 2, row.Bounds.Height / 2), window)!.Value);
+        Dispatcher.UIThread.RunJobs();
+
+        double awake = hint.Opacity;
+
+        // Y al salir de la lista se vuelve a apagar: sobre la propia pista, que está debajo.
+        window.MouseMove(
+            hint.TranslatePoint(new Point(hint.Bounds.Width / 2, hint.Bounds.Height / 2), window)!.Value);
+        Dispatcher.UIThread.RunJobs();
+
+        double asleepAgain = hint.Opacity;
 
         window.Close();
         Dispatcher.UIThread.RunJobs();
 
-        Assert.Equal(Localizer.Instance["PaletteSwapTip"], onTheRow);
-        Assert.Null(onTheList);
+        Assert.Equal(0, asleep);
+        Assert.Equal(1, awake);
+        Assert.Equal(0, asleepAgain);
     }
 }
