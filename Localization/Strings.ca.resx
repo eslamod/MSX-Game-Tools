@@ -263,6 +263,7 @@
   <data name="SpritesAddTip" xml:space="preserve"><value>Afegeix un sprite amb el mateix patró</value></data>
   <data name="SpritesRemoveTip" xml:space="preserve"><value>Treu l'sprite seleccionat</value></data>
   <data name="SpritesNewGroupTip" xml:space="preserve"><value>Crea un grup amb l'sprite actual</value></data>
+  <data name="SpritesGroupPatternsTip" xml:space="preserve"><value>Mostra o amaga la tira de patrons, que s'arrosseguen a la llista de plans</value></data>
   <data name="SpritesDeleteGroupTip" xml:space="preserve"><value>Elimina el grup seleccionat</value></data>
   <data name="SpritesUpTip" xml:space="preserve"><value>Puja en prioritat</value></data>
   <data name="SpritesDownTip" xml:space="preserve"><value>Baixa en prioritat</value></data>

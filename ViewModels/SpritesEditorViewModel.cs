@@ -77,6 +77,7 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsPatterns))]
     [NotifyPropertyChangedFor(nameof(ShowsGroups))]
+    [NotifyPropertyChangedFor(nameof(ShowsGroupPatterns))]
     [NotifyPropertyChangedFor(nameof(ShowsAnimations))]
     [NotifyPropertyChangedFor(nameof(ShowsRowColors))]
     [NotifyPropertyChangedFor(nameof(ShowsSpriteColor))]
@@ -356,6 +357,32 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
     public bool ShowsGroups => ThumbnailMode == ThumbnailMode.Groups;
 
     public bool ShowsAnimations => ThumbnailMode == ThumbnailMode.Animations;
+
+    /// <summary>
+    /// Si la tira de patrones se enseña debajo de los grupos.
+    /// </summary>
+    /// <remarks>
+    /// La tira sirve para traer patrones al grupo arrastrándolos, pero ocupa alto y ese alto
+    /// es de los grupos: por eso se puede esconder, y por eso lo que se elija se guarda.
+    /// </remarks>
+    public bool ShowGroupPatterns
+    {
+        get => Preferences.GroupPatternsOpen;
+
+        set
+        {
+            if (Preferences.GroupPatternsOpen == value)
+                return;
+
+            Preferences.GroupPatternsOpen = value;
+
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(ShowsGroupPatterns));
+        }
+    }
+
+    /// <summary>Y se ve sólo en la pestaña de grupos, que es donde sirve para algo.</summary>
+    public bool ShowsGroupPatterns => ShowsGroups && ShowGroupPatterns;
 
     /// <summary>De qué puede estar hecha una animación, para el desplegable.</summary>
     public IReadOnlyList<AnimationKind> AnimationKinds { get; } = Enum.GetValues<AnimationKind>();

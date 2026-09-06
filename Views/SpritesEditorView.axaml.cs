@@ -142,8 +142,15 @@ public partial class SpritesEditorView : UserControl
     /// <summary>Lo que hay que mover para que sea un arrastre y no un clic tembloroso.</summary>
     private const double DragThreshold = 4;
 
+    /// <summary>Un patrón viajando de la tira a la lista de planos de un grupo.</summary>
+    private static readonly DataFormat<ImageMini> PatternFormat =
+        DataFormat.CreateInProcessFormat<ImageMini>("msx-gametools.sprite-pattern");
+
     /// <summary>Dónde y sobre qué grupo se pulsó, mientras no se sepa si es un arrastre.</summary>
     private (Point At, SpriteGroupViewModel Group, PointerPressedEventArgs Args)? _pressedCard;
+
+    /// <inheritdoc cref="_pressedCard"/>
+    private (Point At, ImageMini Pattern, PointerPressedEventArgs Args)? _pressedPattern;
 
     private ListBoxItem? _markedCard;
 
@@ -154,6 +161,13 @@ public partial class SpritesEditorView : UserControl
     /// falla.
     /// </remarks>
     public SpriteGroupViewModel? PressedCard => _pressedCard?.Group;
+
+    /// <summary>El patrón de la tira que se ha pulsado y todavía no se ha soltado.</summary>
+    /// <inheritdoc cref="PressedCard" path="/remarks"/>
+    public int? PressedPattern =>
+        _pressedPattern is { } pressed && Editor is { } editor
+            ? editor.ImagesMiniList.IndexOf(pressed.Pattern)
+            : null;
 
     /// <summary>
     /// Empieza a seguir una posible reordenación.
@@ -167,8 +181,11 @@ public partial class SpritesEditorView : UserControl
     private void OnCardPressed(object? sender, PointerPressedEventArgs e)
     {
         _pressedCard = null;
+        _pressedPattern = null;
 
-        if (Editor is not { ShowsGroups: true } editor
+        OnPatternPressed(e);
+
+        if (_pressedPattern is not null || Editor is not { ShowsGroups: true } editor
             || !e.GetCurrentPoint(GroupList).Properties.IsLeftButtonPressed
             || CardUnder(e.Source)?.DataContext is not SpriteGroupViewModel group)
         {
@@ -181,8 +198,22 @@ public partial class SpritesEditorView : UserControl
         _pressedCard = (e.GetPosition(GroupList), group, e);
     }
 
+    /// <summary>Lo mismo para un patrón de la tira, que se lleva a la lista de planos.</summary>
+    private void OnPatternPressed(PointerPressedEventArgs e)
+    {
+        if (CardUnder(e.Source)?.DataContext is ImageMini pattern && Inside(e.Source, GroupPatternList))
+            _pressedPattern = (e.GetPosition(GroupPatternList), pattern, e);
+    }
+
     private void OnCardMoved(object? sender, PointerEventArgs e)
     {
+        if (_pressedPattern is { } dragged)
+        {
+            DragPattern(dragged, e);
+
+            return;
+        }
+
         if (_pressedCard is not { } start)
             return;
 
@@ -208,10 +239,46 @@ public partial class SpritesEditorView : UserControl
         _ = DragDrop.DoDragDropAsync(start.Args, data, DragDropEffects.Move);
     }
 
-    private void OnCardReleased(object? sender, PointerReleasedEventArgs e) => _pressedCard = null;
+    private void OnCardReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        _pressedCard = null;
+        _pressedPattern = null;
+    }
+
+    /// <summary>Arranca el arrastre del patrón en cuanto el ratón se mueve de verdad.</summary>
+    private void DragPattern(
+        (Point At, ImageMini Pattern, PointerPressedEventArgs Args) start, PointerEventArgs e)
+    {
+        if (!e.GetCurrentPoint(GroupPatternList).Properties.IsLeftButtonPressed)
+        {
+            _pressedPattern = null;
+
+            return;
+        }
+
+        Point now = e.GetPosition(GroupPatternList);
+
+        if (Math.Abs(now.X - start.At.X) < DragThreshold && Math.Abs(now.Y - start.At.Y) < DragThreshold)
+            return;
+
+        _pressedPattern = null;
+
+        var data = new DataTransfer();
+
+        data.Add(DataTransferItem.Create(PatternFormat, start.Pattern));
+
+        _ = DragDrop.DoDragDropAsync(start.Args, data, DragDropEffects.Copy);
+    }
 
     private void OnGroupDragOver(object? sender, DragEventArgs e)
     {
+        if (PatternOf(e) is not null)
+        {
+            e.DragEffects = DragDropEffects.Copy;
+
+            return;
+        }
+
         e.DragEffects = MoveOf(e) is null ? DragDropEffects.None : DragDropEffects.Move;
 
         MarkCard(e.DragEffects == DragDropEffects.None ? null : CardUnder(e.Source));
@@ -222,6 +289,15 @@ public partial class SpritesEditorView : UserControl
     private void OnGroupDrop(object? sender, DragEventArgs e)
     {
         MarkCard(null);
+
+        if (PatternOf(e) is { } pattern)
+        {
+            Editor?.SelectedGroup?.AddMember(pattern);
+
+            e.Handled = true;
+
+            return;
+        }
 
         if (MoveOf(e) is not (int from, int to))
             return;
@@ -248,6 +324,28 @@ public partial class SpritesEditorView : UserControl
         return from < 0 || to < 0 ? null : (from, to);
     }
 
+    /// <summary>
+    /// El patrón que se está soltando sobre la lista de planos, si cabe uno más.
+    /// </summary>
+    /// <remarks>
+    /// Sólo sobre esa lista: soltarlo en cualquier otro sitio del panel no diría a qué grupo
+    /// va, y sobre las fichas ya significa otra cosa -cambiarlas de orden-.
+    /// </remarks>
+    private int? PatternOf(DragEventArgs e)
+    {
+        if (Editor is not { SelectedGroup: { } group } editor
+            || e.DataTransfer?.TryGetValue(PatternFormat) is not { } dragged
+            || !Inside(e.Source, MemberList)
+            || !group.Group.CanAddMember)
+        {
+            return null;
+        }
+
+        int index = editor.ImagesMiniList.IndexOf(dragged);
+
+        return index < 0 ? null : index;
+    }
+
     /// <summary>Deja el recuadro sólo en ésa, quitándolo de la que lo tuviera.</summary>
     private void MarkCard(ListBoxItem? item)
     {
@@ -258,6 +356,10 @@ public partial class SpritesEditorView : UserControl
         _markedCard = item;
         _markedCard?.Classes.Add(DropClass);
     }
+
+    /// <summary>Si eso cae dentro de ese control.</summary>
+    private static bool Inside(object? source, Visual container) =>
+        (source as Visual)?.GetSelfAndVisualAncestors().Contains(container) == true;
 
     /// <summary>Si lo pulsado cae dentro de la composición de un grupo.</summary>
     private static bool OverPreview(object? source) =>

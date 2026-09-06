@@ -262,6 +262,7 @@
   <data name="SpritesAddTip" xml:space="preserve"><value>Add a sprite with the same pattern</value></data>
   <data name="SpritesRemoveTip" xml:space="preserve"><value>Remove the selected sprite</value></data>
   <data name="SpritesNewGroupTip" xml:space="preserve"><value>Create a group with the current sprite</value></data>
+  <data name="SpritesGroupPatternsTip" xml:space="preserve"><value>Show or hide the pattern strip, dragged onto the plane list</value></data>
   <data name="SpritesDeleteGroupTip" xml:space="preserve"><value>Delete the selected group</value></data>
   <data name="SpritesUpTip" xml:space="preserve"><value>Raise its priority</value></data>
   <data name="SpritesDownTip" xml:space="preserve"><value>Lower its priority</value></data>

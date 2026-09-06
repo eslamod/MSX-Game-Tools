@@ -254,6 +254,15 @@
           <icons:MaterialIcon Kind="Minus" />
         </Button>
 
+        <!-- La tira de patrones se enseña y se esconde: sirve para traerlos al grupo
+             arrastrandolos, pero ocupa alto y ese alto es de los grupos. -->
+        <ToggleButton Width="28" Height="26" Padding="0" Margin="2"
+                      IsVisible="{Binding ShowsGroups}"
+                      IsChecked="{Binding ShowGroupPatterns, Mode=TwoWay}"
+                      ToolTip.Tip="{l:Localize SpritesGroupPatternsTip}">
+          <icons:MaterialIcon Kind="ImageMultiple" />
+        </ToggleButton>
+
       </StackPanel>
 
       <!-- Zoom de las miniaturas. El Tag es el multiplicador sobre el tamaño base. -->
@@ -553,6 +562,7 @@
              adelante ya con barra, que el panel tampoco da para treinta y dos. -->
         <ListBox Grid.Row="2"
                  x:Name="MemberList"
+                 DragDrop.AllowDrop="True"
                  ItemsSource="{Binding SelectedGroup.Group.Members}"
                  SelectedItem="{Binding SelectedGroup.SelectedMember, Mode=TwoWay}"
                  SelectionMode="Single"
@@ -1073,106 +1083,152 @@
         </ListBox.ItemTemplate>
       </ListBox>
 
-      <!-- Los grupos, cada uno con sus sprites ya compuestos. El lienzo es de 46x46
-           fijo, no del tamaño que resulte de los offsets, para que la tira no se
-           reordene entera cada vez que se toca una flecha. -->
-      <ListBox x:Name="GroupList"
-               DragDrop.AllowDrop="True"
-               ScrollViewer.AllowAutoHide="False"
-               IsVisible="{Binding ShowsGroups}"
-               ItemsSource="{Binding Groups}"
-               SelectedItem="{Binding SelectedGroup, Mode=TwoWay}"
-               SelectionMode="Single"
-               ItemContainerTheme="{StaticResource SpriteThumbnailItem}"
-               Background="Transparent"
-               BorderThickness="0"
-               Padding="4">
-        <ListBox.ItemsPanel>
-          <ItemsPanelTemplate>
-            <WrapPanel />
-          </ItemsPanelTemplate>
-        </ListBox.ItemsPanel>
-        <ListBox.ItemTemplate>
-          <DataTemplate x:DataType="vm:SpriteGroupViewModel">
-            <!-- La ficha ocupa la fila entera y el nombre va abajo del todo, no pegado a la
-                 miniatura: los grupos ya no miden todos lo mismo, y el WrapPanel le da a cada
-                 ficha el alto del mas alto de su fila. Con el nombre detras de la imagen, el
-                 de los grupos bajos quedaba a media altura y distinto en cada uno.
+      <!-- Los grupos y su tira de patrones necesitan su propio reparto: los hijos de este
+           Panel se superponen -cada modo enseña el suyo- y ahi la tira quedaba debajo de la
+           lista en vez de al lado. Dentro del DockPanel, la tira se lleva su banda de abajo
+           y la lista lo que sobra. -->
+      <DockPanel IsVisible="{Binding ShowsGroups}">
+        <!-- Los patrones del banco, para traerlos al grupo arrastrandolos a su lista de
+             planos. Abajo y en una sola fila con barra: lo que sobra de alto es de los
+             grupos, que es lo que se esta mirando.
 
-                 Y el hueco que sobra se pinta del color de fondo del banco. Antes se veia por
-                 ahi el gris de la lista, que no es un color del banco ni significa nada; ahora
-                 lo unico gris es la tira del nombre, igual en todas las fichas. -->
-            <DockPanel>
-              <TextBlock DockPanel.Dock="Bottom" Text="{Binding Group.Name}" FontSize="10"
-                         HorizontalAlignment="Center" Margin="0,2,0,0" />
-
-              <Border Background="{Binding $parent[views:SpritesEditorView].((vm:SpritesEditorViewModel)DataContext).BackgroundColor.Brush}">
-              <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center">
-              <!-- Tres capas: el color de fondo del banco, la referencia encima y la
-                   composicion arriba del todo. La composicion se dibuja con el hueco
-                   transparente cuando hay referencia, asi que basta con superponerlas,
-                   y la referencia va centrada y a escala de pixel de sprite, no
-                   estirada al hueco.
-
-                   El color de fondo hace falta porque el lienzo del grupo puede ser mayor que
-                   el sprite -crece con los planos que se saquen- y la referencia solo cubre
-                   su parte: sin esta capa por los bordes se veria el gris del panel de
-                   detras, que no es un color del banco ni significa nada.
-
-                   La miniatura mide lo que mide su grupo y no un cuadrado fijo: una figura
-                   de dos sprites de alto en un cuadrado saldria aplastada. -->
-              <!-- Sobre la composicion se coloca el plano seleccionado arrastrandolo, y con
-                   los cursores se remata el ajuste fino. Hace falta fondo, aunque sea
-                   transparente, para que el raton la vea donde el grupo no pinta nada; y
-                   Focusable para que las teclas lleguen aqui despues de pulsar. -->
-              <Panel Name="GroupPreview" Background="Transparent" Focusable="True"
-                     PointerPressed="OnGroupPointerPressed"
-                     PointerMoved="OnGroupPointerMoved"
-                     PointerReleased="OnGroupPointerReleased"
-                     KeyDown="OnGroupKeyDown">
-                <Panel.Width>
-                  <MultiBinding Converter="{x:Static converters:MultiplyConverter.Instance}">
-                    <Binding Path="Preview.Width" />
-                    <Binding Path="GroupPixelSize" RelativeSource="{RelativeSource AncestorType=views:SpritesEditorView}" />
-                  </MultiBinding>
-                </Panel.Width>
-                <Panel.Height>
-                  <MultiBinding Converter="{x:Static converters:MultiplyConverter.Instance}">
-                    <Binding Path="Preview.Height" />
-                    <Binding Path="GroupPixelSize" RelativeSource="{RelativeSource AncestorType=views:SpritesEditorView}" />
-                  </MultiBinding>
-                </Panel.Height>
-                <Border Background="{Binding $parent[views:SpritesEditorView].((vm:SpritesEditorViewModel)DataContext).BackgroundColor.Brush}"
-                        IsVisible="{Binding Background.VisibleTile, Converter={x:Static ObjectConverters.IsNotNull}}" />
-
-                <Image Source="{Binding Background.VisibleTile.Image}"
-                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                       RenderOptions.BitmapInterpolationMode="None">
-                  <Image.Width>
-                    <MultiBinding Converter="{x:Static converters:MultiplyConverter.Instance}">
-                      <Binding Path="Background.VisibleTile.PixelWidth" />
-                      <Binding Path="GroupPixelSize" RelativeSource="{RelativeSource AncestorType=views:SpritesEditorView}" />
-                    </MultiBinding>
-                  </Image.Width>
-                  <Image.Height>
-                    <MultiBinding Converter="{x:Static converters:MultiplyConverter.Instance}">
-                      <Binding Path="Background.VisibleTile.PixelHeight" />
-                      <Binding Path="GroupPixelSize" RelativeSource="{RelativeSource AncestorType=views:SpritesEditorView}" />
-                    </MultiBinding>
-                  </Image.Height>
-                </Image>
-
-                <Image Source="{Binding Preview.SpritePreview}"
-                       Opacity="{Binding SpriteOpacity}"
-                       Stretch="Fill"
+             Va antes que la lista de grupos a proposito: en un DockPanel manda el orden, y
+             el ultimo hijo es el que se queda con lo que sobra. -->
+        <Border x:Name="GroupPatternStrip"
+                DockPanel.Dock="Bottom"
+                IsVisible="{Binding ShowsGroupPatterns}"
+                Height="52" Margin="0,4,0,0" Padding="2"
+                Background="{DynamicResource AppSurfaceBackground}"
+                BorderBrush="{DynamicResource AppSeparator}" BorderThickness="0,1,0,0">
+          <ListBox x:Name="GroupPatternList"
+                   ItemsSource="{Binding ImagesMiniList}"
+                   SelectionMode="Single"
+                   Background="Transparent" BorderThickness="0" Padding="0"
+                   ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
+            <ListBox.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal" />
+              </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ItemContainerTheme>
+              <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource SpriteThumbnailItem}">
+                <Setter Property="Margin" Value="2" />
+              </ControlTheme>
+            </ListBox.ItemContainerTheme>
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="entities:ImageMini">
+                <!-- A tamaño fijo y no al del zoom de las miniaturas: la tira es una fila y
+                     tiene que caber en su alto pase lo que pase con el zoom. -->
+                <Image Source="{Binding SpritePreview}"
+                       Width="32" Height="32" Stretch="Fill"
                        RenderOptions.BitmapInterpolationMode="None" />
-              </Panel>
-              </StackPanel>
-              </Border>
-            </DockPanel>
-          </DataTemplate>
-        </ListBox.ItemTemplate>
-      </ListBox>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Border>
+
+        <!-- Los grupos, cada uno con sus sprites ya compuestos. El lienzo es de 46x46
+             fijo, no del tamaño que resulte de los offsets, para que la tira no se
+             reordene entera cada vez que se toca una flecha. -->
+        <ListBox x:Name="GroupList"
+                 DragDrop.AllowDrop="True"
+                 ScrollViewer.AllowAutoHide="False"
+                 IsVisible="{Binding ShowsGroups}"
+                 ItemsSource="{Binding Groups}"
+                 SelectedItem="{Binding SelectedGroup, Mode=TwoWay}"
+                 SelectionMode="Single"
+                 ItemContainerTheme="{StaticResource SpriteThumbnailItem}"
+                 Background="Transparent"
+                 BorderThickness="0"
+                 Padding="4">
+          <ListBox.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ListBox.ItemsPanel>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:SpriteGroupViewModel">
+              <!-- La ficha ocupa la fila entera y el nombre va abajo del todo, no pegado a la
+                   miniatura: los grupos ya no miden todos lo mismo, y el WrapPanel le da a cada
+                   ficha el alto del mas alto de su fila. Con el nombre detras de la imagen, el
+                   de los grupos bajos quedaba a media altura y distinto en cada uno.
+
+                   Y el hueco que sobra se pinta del color de fondo del banco. Antes se veia por
+                   ahi el gris de la lista, que no es un color del banco ni significa nada; ahora
+                   lo unico gris es la tira del nombre, igual en todas las fichas. -->
+              <DockPanel>
+                <TextBlock DockPanel.Dock="Bottom" Text="{Binding Group.Name}" FontSize="10"
+                           HorizontalAlignment="Center" Margin="0,2,0,0" />
+
+                <Border Background="{Binding $parent[views:SpritesEditorView].((vm:SpritesEditorViewModel)DataContext).BackgroundColor.Brush}">
+                <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center">
+                <!-- Tres capas: el color de fondo del banco, la referencia encima y la
+                     composicion arriba del todo. La composicion se dibuja con el hueco
+                     transparente cuando hay referencia, asi que basta con superponerlas,
+                     y la referencia va centrada y a escala de pixel de sprite, no
+                     estirada al hueco.
+
+                     El color de fondo hace falta porque el lienzo del grupo puede ser mayor que
+                     el sprite -crece con los planos que se saquen- y la referencia solo cubre
+                     su parte: sin esta capa por los bordes se veria el gris del panel de
+                     detras, que no es un color del banco ni significa nada.
+
+                     La miniatura mide lo que mide su grupo y no un cuadrado fijo: una figura
+                     de dos sprites de alto en un cuadrado saldria aplastada. -->
+                <!-- Sobre la composicion se coloca el plano seleccionado arrastrandolo, y con
+                     los cursores se remata el ajuste fino. Hace falta fondo, aunque sea
+                     transparente, para que el raton la vea donde el grupo no pinta nada; y
+                     Focusable para que las teclas lleguen aqui despues de pulsar. -->
+                <Panel Name="GroupPreview" Background="Transparent" Focusable="True"
+                       PointerPressed="OnGroupPointerPressed"
+                       PointerMoved="OnGroupPointerMoved"
+                       PointerReleased="OnGroupPointerReleased"
+                       KeyDown="OnGroupKeyDown">
+                  <Panel.Width>
+                    <MultiBinding Converter="{x:Static converters:MultiplyConverter.Instance}">
+                      <Binding Path="Preview.Width" />
+                      <Binding Path="GroupPixelSize" RelativeSource="{RelativeSource AncestorType=views:SpritesEditorView}" />
+                    </MultiBinding>
+                  </Panel.Width>
+                  <Panel.Height>
+                    <MultiBinding Converter="{x:Static converters:MultiplyConverter.Instance}">
+                      <Binding Path="Preview.Height" />
+                      <Binding Path="GroupPixelSize" RelativeSource="{RelativeSource AncestorType=views:SpritesEditorView}" />
+                    </MultiBinding>
+                  </Panel.Height>
+                  <Border Background="{Binding $parent[views:SpritesEditorView].((vm:SpritesEditorViewModel)DataContext).BackgroundColor.Brush}"
+                          IsVisible="{Binding Background.VisibleTile, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+                  <Image Source="{Binding Background.VisibleTile.Image}"
+                         HorizontalAlignment="Center" VerticalAlignment="Center"
+                         RenderOptions.BitmapInterpolationMode="None">
+                    <Image.Width>
+                      <MultiBinding Converter="{x:Static converters:MultiplyConverter.Instance}">
+                        <Binding Path="Background.VisibleTile.PixelWidth" />
+                        <Binding Path="GroupPixelSize" RelativeSource="{RelativeSource AncestorType=views:SpritesEditorView}" />
+                      </MultiBinding>
+                    </Image.Width>
+                    <Image.Height>
+                      <MultiBinding Converter="{x:Static converters:MultiplyConverter.Instance}">
+                        <Binding Path="Background.VisibleTile.PixelHeight" />
+                        <Binding Path="GroupPixelSize" RelativeSource="{RelativeSource AncestorType=views:SpritesEditorView}" />
+                      </MultiBinding>
+                    </Image.Height>
+                  </Image>
+
+                  <Image Source="{Binding Preview.SpritePreview}"
+                         Opacity="{Binding SpriteOpacity}"
+                         Stretch="Fill"
+                         RenderOptions.BitmapInterpolationMode="None" />
+                </Panel>
+                </StackPanel>
+                </Border>
+              </DockPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
       </Panel>
     </Border>
     </DockPanel>

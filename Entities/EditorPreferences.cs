@@ -97,6 +97,16 @@ public sealed class EditorPreferences : ObservableObject
     public int MapTileZoom { get; set; } = 2;
 
     /// <summary>
+    /// Si la tira de patrones se ve en la pestaña de grupos.
+    /// </summary>
+    /// <remarks>
+    /// Se guarda porque es una decisión sobre el sitio: la tira ocupa alto y ese alto es de
+    /// los grupos. Quien la esconda no tiene por qué volver a esconderla cada vez que abre la
+    /// aplicación.
+    /// </remarks>
+    public bool GroupPatternsOpen { get; set; } = true;
+
+    /// <summary>
     /// Se queda con los valores de otro.
     /// </summary>
     /// <remarks>
@@ -136,6 +146,7 @@ public sealed class EditorPreferences : ObservableObject
         SpriteThumbnailZoom = other.SpriteThumbnailZoom;
         TileCanvasZoom = other.TileCanvasZoom;
         TileThumbnailZoom = other.TileThumbnailZoom;
+        GroupPatternsOpen = other.GroupPatternsOpen;
         BlockGridZoom = other.BlockGridZoom;
         BlockTileZoom = other.BlockTileZoom;
         MapTileZoom = other.MapTileZoom;

@@ -283,6 +283,7 @@
   <data name="SpritesAddTip" xml:space="preserve"><value>Añadir un sprite con el mismo patrón</value></data>
   <data name="SpritesRemoveTip" xml:space="preserve"><value>Quitar el sprite seleccionado</value></data>
   <data name="SpritesNewGroupTip" xml:space="preserve"><value>Crear un grupo con el sprite actual</value></data>
+  <data name="SpritesGroupPatternsTip" xml:space="preserve"><value>Enseñar u ocultar la tira de patrones, que se arrastran a la lista de planos</value></data>
   <data name="SpritesDeleteGroupTip" xml:space="preserve"><value>Eliminar el grupo seleccionado</value></data>
   <data name="SpritesUpTip" xml:space="preserve"><value>Subir en prioridad</value></data>
   <data name="SpritesDownTip" xml:space="preserve"><value>Bajar en prioridad</value></data>

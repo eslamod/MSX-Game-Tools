@@ -229,16 +229,30 @@ public partial class SpriteGroupViewModel : ObservableObject
     /// con un desplazamiento pequeño y otro color es justo la técnica del contorno.
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanAddMember))]
-    private void AddMember()
+    private void AddMember() => AddMember(SelectedMember?.PatternIndex ?? 0);
+
+    /// <summary>
+    /// Añade un plano con ese patrón. Devuelve si ha cabido.
+    /// </summary>
+    /// <remarks>
+    /// Es lo que hace falta para traer un patrón arrastrándolo desde la tira: el que se suelta
+    /// no tiene nada que ver con el que hubiera seleccionado.
+    /// </remarks>
+    public bool AddMember(int patternIndex)
     {
-        int patternIndex = SelectedMember?.PatternIndex ?? 0;
+        // El tope lo pone el grupo al añadir, no hace falta preguntarlo aquí: se comprobó
+        // quitando la comprobación y no cayó ninguna prueba, porque Add ya devuelve false.
         if ((uint)patternIndex >= (uint)_bank.SpritesList.Count)
-            return;
+            return false;
 
         var member = new SpriteGroupMember(patternIndex, _bank.SpritesList[patternIndex]);
 
-        if (Group.Add(member))
-            SelectedMember = member;
+        if (!Group.Add(member))
+            return false;
+
+        SelectedMember = member;
+
+        return true;
     }
 
     private bool CanAddMember() => Group.CanAddMember;
