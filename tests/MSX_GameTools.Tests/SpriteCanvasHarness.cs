@@ -135,6 +135,62 @@ internal sealed class SpriteCanvasHarness : IDisposable
     public int PaintedCount => Bank.SpritesList[0].ArraySpriteRows
         .Sum(row => row.ArrayColumns.Count(on => on));
 
+    /// <summary>La miniatura de ese grupo, que es donde se colocan sus planos.</summary>
+    public Panel GroupPreview(int index)
+    {
+        Pump();
+
+        return GroupList.GetRealizedContainers()
+            .OfType<ListBoxItem>()
+            .ElementAt(index)
+            .GetVisualDescendants()
+            .OfType<Panel>()
+            .First(panel => panel.Name == "GroupPreview");
+    }
+
+    /// <summary>Un punto de la ventana, contado dentro de ese control.</summary>
+    public Point PointIn(Visual control, double x, double y) =>
+        control.TranslatePoint(new Point(x, y), _window)
+        ?? throw new InvalidOperationException("El control no está en el árbol visual.");
+
+    /// <summary>Ratón en un punto cualquiera, para lo que no es el lienzo.</summary>
+    public void PressAt(Point at, MouseButton button = MouseButton.Left)
+    {
+        _window.MouseDown(at, button);
+        Pump();
+    }
+
+    /// <inheritdoc cref="PressAt"/>
+    public void MoveAt(Point at)
+    {
+        _window.MouseMove(at);
+        Pump();
+    }
+
+    /// <inheritdoc cref="PressAt"/>
+    public void ReleaseAt(Point at, MouseButton button = MouseButton.Left)
+    {
+        _window.MouseUp(at, button);
+        Pump();
+    }
+
+    /// <summary>Una tecla, para quien tenga el foco.</summary>
+    public void PressKey(Key key)
+    {
+        _window.KeyPress(key, RawInputModifiers.None, Physical(key), null);
+        Pump();
+    }
+
+    /// <summary>La tecla física de un cursor, que es lo que pide el teclado headless.</summary>
+    private static PhysicalKey Physical(Key key) => key switch
+    {
+        Key.Left => PhysicalKey.ArrowLeft,
+        Key.Right => PhysicalKey.ArrowRight,
+        Key.Up => PhysicalKey.ArrowUp,
+        Key.Down => PhysicalKey.ArrowDown,
+        _ => PhysicalKey.None,
+    };
+
     public void Press(int cellX, int cellY, MouseButton button = MouseButton.Left)
     {
         _window.MouseDown(At(cellX, cellY), button);

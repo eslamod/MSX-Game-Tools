@@ -356,6 +356,79 @@ public partial class SpritesEditorView : UserControl
     /// mismos controles, que volverían a avisar de que han cambiado: un tiovivo de seis
     /// reconstrucciones por clic. Cada fila se entera sola de sus números.
     /// </remarks>
+    // ------------------------------------------------------------------ planos a mano
+
+    /// <summary>El plano que se está arrastrando: dónde empezó el ratón y dónde estaba él.</summary>
+    private (SpriteGroupMember Member, Point From, int OffsetX, int OffsetY)? _placing;
+
+    /// <summary>
+    /// Empieza a colocar el plano seleccionado sobre la composición del grupo.
+    /// </summary>
+    /// <remarks>
+    /// Sólo sobre el grupo que ya está seleccionado: al pulsar sobre otro, esa pulsación es
+    /// la que lo selecciona, y arrastrar a la vez movería un plano que no se veía elegido.
+    /// </remarks>
+    private void OnGroupPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not Panel preview || preview.DataContext is not SpriteGroupViewModel group)
+            return;
+
+        if (!ReferenceEquals(Editor?.SelectedGroup, group) || group.SelectedMember is not { } member)
+            return;
+
+        // Contra la lista y no contra la miniatura: la composición se recorta a lo que ocupa
+        // el grupo, así que al mover un plano la miniatura cambia de tamaño y se mueve bajo
+        // el ratón. Midiendo contra algo quieto, el arrastre no se persigue a sí mismo.
+        _placing = (member, e.GetPosition(GroupList), member.OffsetX, member.OffsetY);
+
+        // El foco se lo lleva Avalonia al pulsar sobre algo enfocable, así que aquí no hace
+        // falta pedirlo: basta con que la composición lo sea, y eso está en el XAML.
+        e.Pointer.Capture(preview);
+    }
+
+    private void OnGroupPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_placing is not { } placing || GroupPixelSize <= 0)
+            return;
+
+        Point now = e.GetPosition(GroupList);
+
+        placing.Member.OffsetX = placing.OffsetX + (int)Math.Round((now.X - placing.From.X) / GroupPixelSize);
+        placing.Member.OffsetY = placing.OffsetY + (int)Math.Round((now.Y - placing.From.Y) / GroupPixelSize);
+    }
+
+    private void OnGroupPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        _placing = null;
+        e.Pointer.Capture(null);
+    }
+
+    /// <summary>
+    /// Los cursores rematan el ajuste, de pixel en pixel.
+    /// </summary>
+    /// <remarks>
+    /// Aquí y no en la lista de miembros: allí los cursores eligen miembro, que es lo que se
+    /// espera de una lista. Se colocan sobre la composición, que es donde se está mirando
+    /// después de arrastrar, y por eso la pulsación deja el foco puesto.
+    /// </remarks>
+    private void OnGroupKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (Editor?.SelectedGroup?.SelectedMember is not { } member)
+            return;
+
+        switch (e.Key)
+        {
+            case Key.Left: member.OffsetX--; break;
+            case Key.Right: member.OffsetX++; break;
+            case Key.Up: member.OffsetY--; break;
+            case Key.Down: member.OffsetY++; break;
+            default: return;
+        }
+
+        // Marcado como atendido para que la lista no se lleve el cursor a otro grupo.
+        e.Handled = true;
+    }
+
     private void OnStepValueChanged(object? sender, NumericUpDownValueChangedEventArgs e)
     {
         Editor?.SelectedAnimation?.Refresh();

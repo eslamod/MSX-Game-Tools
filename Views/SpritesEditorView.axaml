@@ -1123,7 +1123,15 @@
 
                    La miniatura mide lo que mide su grupo y no un cuadrado fijo: una figura
                    de dos sprites de alto en un cuadrado saldria aplastada. -->
-              <Panel>
+              <!-- Sobre la composicion se coloca el plano seleccionado arrastrandolo, y con
+                   los cursores se remata el ajuste fino. Hace falta fondo, aunque sea
+                   transparente, para que el raton la vea donde el grupo no pinta nada; y
+                   Focusable para que las teclas lleguen aqui despues de pulsar. -->
+              <Panel Name="GroupPreview" Background="Transparent" Focusable="True"
+                     PointerPressed="OnGroupPointerPressed"
+                     PointerMoved="OnGroupPointerMoved"
+                     PointerReleased="OnGroupPointerReleased"
+                     KeyDown="OnGroupKeyDown">
                 <Panel.Width>
                   <MultiBinding Converter="{x:Static converters:MultiplyConverter.Instance}">
                     <Binding Path="Preview.Width" />
