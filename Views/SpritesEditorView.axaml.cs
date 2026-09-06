@@ -110,7 +110,164 @@ public partial class SpritesEditorView : UserControl
     /// </summary>
     private EditorPreferences? Preferences => (DataContext as SpritesEditorViewModel)?.Preferences;
 
-    public SpritesEditorView() => InitializeComponent();
+    public SpritesEditorView()
+    {
+        InitializeComponent();
+
+        // Por la bajada: el ListBoxItem marca como manejado el PointerPressed al seleccionar
+        // la ficha, y un manejador puesto desde el XAML no recibe los eventos ya manejados.
+        // Es la misma pega -y el mismo remedio- que en la lista de la paleta.
+        AddHandler(PointerPressedEvent, OnCardPressed, RoutingStrategies.Tunnel);
+        AddHandler(PointerMovedEvent, OnCardMoved, RoutingStrategies.Tunnel);
+        AddHandler(PointerReleasedEvent, OnCardReleased, RoutingStrategies.Tunnel);
+
+        AddHandler(DragDrop.DragOverEvent, OnGroupDragOver);
+        AddHandler(DragDrop.DropEvent, OnGroupDrop);
+        AddHandler(DragDrop.DragLeaveEvent, OnGroupDragLeave);
+    }
+
+    // ------------------------------------------------------------------ ordenar grupos
+
+    /// <summary>Un grupo arrastrándose, para soltarlo sobre otro y cambiarlo de sitio.</summary>
+    /// <remarks>
+    /// En proceso, como el color de la paleta: lo que viaja es el propio panel del grupo y no
+    /// sale nunca de la aplicación.
+    /// </remarks>
+    private static readonly DataFormat<SpriteGroupViewModel> GroupFormat =
+        DataFormat.CreateInProcessFormat<SpriteGroupViewModel>("msx-gametools.sprite-group");
+
+    /// <summary>Clase de la ficha marcada como destino, que le pone el recuadro.</summary>
+    private const string DropClass = "drop";
+
+    /// <summary>Lo que hay que mover para que sea un arrastre y no un clic tembloroso.</summary>
+    private const double DragThreshold = 4;
+
+    /// <summary>Dónde y sobre qué grupo se pulsó, mientras no se sepa si es un arrastre.</summary>
+    private (Point At, SpriteGroupViewModel Group, PointerPressedEventArgs Args)? _pressedCard;
+
+    private ListBoxItem? _markedCard;
+
+    /// <summary>El grupo que se ha pulsado y todavía no se ha soltado.</summary>
+    /// <remarks>
+    /// Expuesto para poder comprobarlo desde fuera: el arrastre de verdad no se puede simular
+    /// sin sistema operativo debajo, y que la pulsación llegue hasta aquí es la mitad que
+    /// falla.
+    /// </remarks>
+    public SpriteGroupViewModel? PressedCard => _pressedCard?.Group;
+
+    /// <summary>
+    /// Empieza a seguir una posible reordenación.
+    /// </summary>
+    /// <remarks>
+    /// Sobre la composición del grupo seleccionado no: ahí se colocan sus planos, que es lo
+    /// que más se hace mientras se monta uno. Para cambiarlo de sitio se arrastra por el
+    /// nombre o por el borde de la ficha, y las fichas que no están seleccionadas se
+    /// arrastran enteras.
+    /// </remarks>
+    private void OnCardPressed(object? sender, PointerPressedEventArgs e)
+    {
+        _pressedCard = null;
+
+        if (Editor is not { ShowsGroups: true } editor
+            || !e.GetCurrentPoint(GroupList).Properties.IsLeftButtonPressed
+            || CardUnder(e.Source)?.DataContext is not SpriteGroupViewModel group)
+        {
+            return;
+        }
+
+        if (ReferenceEquals(editor.SelectedGroup, group) && OverPreview(e.Source))
+            return;
+
+        _pressedCard = (e.GetPosition(GroupList), group, e);
+    }
+
+    private void OnCardMoved(object? sender, PointerEventArgs e)
+    {
+        if (_pressedCard is not { } start)
+            return;
+
+        if (!e.GetCurrentPoint(GroupList).Properties.IsLeftButtonPressed)
+        {
+            _pressedCard = null;
+
+            return;
+        }
+
+        Point now = e.GetPosition(GroupList);
+
+        if (Math.Abs(now.X - start.At.X) < DragThreshold && Math.Abs(now.Y - start.At.Y) < DragThreshold)
+            return;
+
+        // Una sola vez por arrastre: DoDragDropAsync se queda dentro hasta que se suelta.
+        _pressedCard = null;
+
+        var data = new DataTransfer();
+
+        data.Add(DataTransferItem.Create(GroupFormat, start.Group));
+
+        _ = DragDrop.DoDragDropAsync(start.Args, data, DragDropEffects.Move);
+    }
+
+    private void OnCardReleased(object? sender, PointerReleasedEventArgs e) => _pressedCard = null;
+
+    private void OnGroupDragOver(object? sender, DragEventArgs e)
+    {
+        e.DragEffects = MoveOf(e) is null ? DragDropEffects.None : DragDropEffects.Move;
+
+        MarkCard(e.DragEffects == DragDropEffects.None ? null : CardUnder(e.Source));
+    }
+
+    private void OnGroupDragLeave(object? sender, DragEventArgs e) => MarkCard(null);
+
+    private void OnGroupDrop(object? sender, DragEventArgs e)
+    {
+        MarkCard(null);
+
+        if (MoveOf(e) is not (int from, int to))
+            return;
+
+        Editor?.MoveGroup(from, to);
+
+        e.Handled = true;
+    }
+
+    /// <summary>De dónde a dónde va el grupo que se suelta, si lo de debajo sirve.</summary>
+    private (int From, int To)? MoveOf(DragEventArgs e)
+    {
+        if (Editor is not { } editor
+            || e.DataTransfer?.TryGetValue(GroupFormat) is not { } dragged
+            || CardUnder(e.Source)?.DataContext is not SpriteGroupViewModel target
+            || ReferenceEquals(target, dragged))
+        {
+            return null;
+        }
+
+        int from = editor.Groups.IndexOf(dragged);
+        int to = editor.Groups.IndexOf(target);
+
+        return from < 0 || to < 0 ? null : (from, to);
+    }
+
+    /// <summary>Deja el recuadro sólo en ésa, quitándolo de la que lo tuviera.</summary>
+    private void MarkCard(ListBoxItem? item)
+    {
+        if (ReferenceEquals(_markedCard, item))
+            return;
+
+        _markedCard?.Classes.Remove(DropClass);
+        _markedCard = item;
+        _markedCard?.Classes.Add(DropClass);
+    }
+
+    /// <summary>Si lo pulsado cae dentro de la composición de un grupo.</summary>
+    private static bool OverPreview(object? source) =>
+        (source as Visual)?.GetSelfAndVisualAncestors()
+            .OfType<Panel>()
+            .Any(panel => panel.Name == "GroupPreview") == true;
+
+    /// <summary>La ficha de grupo que hay debajo, si la hay.</summary>
+    private static ListBoxItem? CardUnder(object? source) =>
+        (source as Visual)?.GetSelfAndVisualAncestors().OfType<ListBoxItem>().FirstOrDefault();
 
     public double ThumbnailSize
     {

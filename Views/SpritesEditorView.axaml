@@ -62,6 +62,11 @@
       <Style Selector="^:selected /template/ Border#PART_Frame">
         <Setter Property="BorderBrush" Value="Red" />
       </Style>
+
+      <!-- Y el destino de un arrastre manda sobre las dos: es lo que esta pasando ahora. -->
+      <Style Selector="^.drop /template/ Border#PART_Frame">
+        <Setter Property="BorderBrush" Value="{DynamicResource AppDropTarget}" />
+      </Style>
     </ControlTheme>
 
     <!-- Ojo de enseñar/ocultar. Dibujado y no un caracter: los emoji de ojo no estan
@@ -1072,6 +1077,7 @@
            fijo, no del tamaño que resulte de los offsets, para que la tira no se
            reordene entera cada vez que se toca una flecha. -->
       <ListBox x:Name="GroupList"
+               DragDrop.AllowDrop="True"
                ScrollViewer.AllowAutoHide="False"
                IsVisible="{Binding ShowsGroups}"
                ItemsSource="{Binding Groups}"

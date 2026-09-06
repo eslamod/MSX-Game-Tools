@@ -545,6 +545,41 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
     private bool CanAddGroup() => _spriteBank.CanAddGroup;
 
+    /// <summary>
+    /// Cambia un grupo de sitio, arrastrándolo sobre otro.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// El orden es el que se exporta, y el juego direcciona los grupos por su posición. Lo
+    /// que no se rompe al moverlos son las animaciones: apuntan al grupo por su identificador
+    /// y la posición se traduce al exportar.
+    /// </para>
+    /// <para>
+    /// Se mueven las dos listas, la del banco y la de los paneles: la del banco es la que se
+    /// guarda y se exporta, y la de los paneles la que se ve.
+    /// </para>
+    /// </remarks>
+    public void MoveGroup(int from, int to)
+    {
+        if (from == to
+            || (uint)from >= (uint)Groups.Count
+            || (uint)to >= (uint)Groups.Count)
+        {
+            return;
+        }
+
+        SpriteGroupViewModel moved = Groups[from];
+
+        Groups.Move(from, to);
+        _spriteBank.Groups.Move(from, to);
+
+        // El ListBox escribe null en su selección cuando el elemento que tenía se mueve, así
+        // que hay que devolvérsela: quien arrastra un grupo espera seguir con él delante.
+        SelectedGroup = moved;
+
+        Touch();
+    }
+
     [RelayCommand(CanExecute = nameof(CanDeleteGroup))]
     private async Task DeleteGroupAsync()
     {
