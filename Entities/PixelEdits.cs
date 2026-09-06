@@ -57,6 +57,40 @@ public sealed class TilesStamped(
 }
 
 /// <summary>
+/// La lista de planos de un grupo, antes y después de tocarla.
+/// </summary>
+/// <remarks>
+/// La lista entera y no la operación que se hizo: añadir, quitar y subir o bajar un plano se
+/// deshacen igual, y son los mismos objetos los que vuelven, así que un plano recuperado trae
+/// sus desplazamientos y sus colores donde estaban.
+/// </remarks>
+public sealed class MembersChanged(
+    SpriteGroup group,
+    IReadOnlyList<SpriteGroupMember> before,
+    IReadOnlyList<SpriteGroupMember> after) : IPixelEdit
+{
+    public void Undo() => Restore(before);
+
+    public void Redo() => Restore(after);
+
+    /// <summary>
+    /// Deja la lista tal cual estaba.
+    /// </summary>
+    /// <remarks>
+    /// Por la colección y no por <c>Group.Add</c>, que mira el tope: lo que se devuelve ya
+    /// cabía, y pasar por el tope al restaurar sería negarse a deshacer justo cuando el grupo
+    /// está lleno.
+    /// </remarks>
+    private void Restore(IReadOnlyList<SpriteGroupMember> members)
+    {
+        group.Members.Clear();
+
+        foreach (SpriteGroupMember member in members)
+            group.Members.Add(member);
+    }
+}
+
+/// <summary>
 /// La pila de deshacer de lo que se dibuja en un juego de tiles o en un banco.
 /// </summary>
 /// <remarks>

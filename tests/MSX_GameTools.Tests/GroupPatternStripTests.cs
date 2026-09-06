@@ -194,6 +194,66 @@ public class GroupPatternStripTests
             + $"{strip.Bounds.Width:0}x{strip.Bounds.Height:0}.");
     }
 
+    /// <summary>
+    /// Quitar un plano se deshace, con sus desplazamientos y sus colores.
+    /// </summary>
+    /// <remarks>
+    /// Es lo que hace que quitar no pregunte: quitar uno queriendo es lo normal mientras se
+    /// monta una figura, y preguntar cada vez convierte quitar ocho en ocho diálogos. Lo que
+    /// dolía de equivocarse era volver a colocarlo, y eso es lo que devuelve deshacer.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Quitar_un_plano_se_deshace_con_sus_desplazamientos()
+    {
+        using var editor = Grouped();
+
+        SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
+
+        group.AddMember(3);
+
+        SpriteGroupMember placed = group.SelectedMember!;
+
+        placed.OffsetX = 7;
+        placed.OffsetY = -5;
+
+        group.RemoveMemberCommand.Execute(null);
+
+        Assert.DoesNotContain(placed, group.Group.Members);
+        Assert.True(editor.ViewModel.CanUndoDrawing);
+
+        editor.ViewModel.UndoDrawingCommand.Execute(null);
+
+        SpriteGroupMember back = Assert.Single(group.Group.Members, member => member == placed);
+
+        Assert.Equal(3, back.PatternIndex);
+        Assert.Equal((7, -5), (back.OffsetX, back.OffsetY));
+
+        // Y el que estaba elegido no puede ser uno que ya no está.
+        Assert.Contains(group.SelectedMember!, group.Group.Members);
+    }
+
+    /// <summary>Y el orden en el que estaba también vuelve.</summary>
+    [AvaloniaFact]
+    public void Deshacer_devuelve_el_plano_a_su_sitio()
+    {
+        using var editor = Grouped();
+
+        SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
+
+        group.AddMember(1);
+        group.AddMember(2);
+
+        SpriteGroupMember middle = group.Group.Members[1];
+
+        group.SelectedMember = middle;
+        group.RemoveMemberCommand.Execute(null);
+
+        editor.ViewModel.UndoDrawingCommand.Execute(null);
+
+        // El orden es la prioridad de dibujo: devolverlo al final sería otro dibujo.
+        Assert.Equal(1, group.Group.Members.IndexOf(middle));
+    }
+
     // ------------------------------------------------------------------ los andamios
 
     /// <summary>Un editor en modo grupos, con un grupo ya creado y colocado.</summary>

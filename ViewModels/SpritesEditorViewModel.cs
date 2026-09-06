@@ -652,7 +652,8 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
     /// <summary>Engancha un grupo del banco al panel y lo deja dibujado.</summary>
     private SpriteGroupViewModel TrackGroup(SpriteGroup group)
     {
-        var viewModel = new SpriteGroupViewModel(group, _spriteBank, () => ColorPalette, _backgrounds, _dialogs);
+        var viewModel = new SpriteGroupViewModel(
+            group, _spriteBank, () => ColorPalette, _backgrounds, _dialogs, Undo);
 
         // Cambiar de fondo cambia cómo se compone: con referencia el hueco va
         // transparente, y sin ella vuelve al color de fondo.

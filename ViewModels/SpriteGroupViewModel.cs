@@ -11,6 +11,9 @@ namespace MSX_GameTools.ViewModels;
 public partial class SpriteGroupViewModel : ObservableObject
 {
     private readonly SpriteBank _bank;
+
+    /// <summary>Donde van los cambios de la lista de planos, para poder deshacerlos.</summary>
+    private readonly PixelUndoStack? _undo;
     private readonly Func<ColorPalette> _palette;
     private readonly ReferenceImageLibrary _backgrounds;
 
@@ -23,17 +26,27 @@ public partial class SpriteGroupViewModel : ObservableObject
     private SpriteGroupMember? _selectedMember;
 
     /// <inheritdoc cref="TileRowColorViewModel(int, TileRow, Func{ColorPalette}, Action{int})" path="/param[@name='palette']"/>
+    /// <param name="undo">
+    /// La historia del banco, donde van los cambios en la lista de planos. Sin ella el panel
+    /// funciona igual pero no se deshace nada, que es como se monta suelto en una prueba.
+    /// </param>
     public SpriteGroupViewModel(
         SpriteGroup group,
         SpriteBank bank,
         Func<ColorPalette> palette,
         ReferenceImageLibrary backgrounds,
-        IDialogService dialogs)
+        IDialogService dialogs,
+        PixelUndoStack? undo = null)
     {
         Group = group;
         _bank = bank;
         _palette = palette;
         _backgrounds = backgrounds;
+        _undo = undo;
+
+        // Deshacer rehace la lista entera, así que el plano elegido puede haberse ido: sin
+        // esto el panel seguiría enseñando los desplazamientos de uno que ya no está.
+        group.Members.CollectionChanged += (_, _) => KeepSelection();
 
         Background = new BackgroundSelectionViewModel(
             backgrounds, dialogs, () => group.Background, reference => group.Background = reference);
@@ -247,16 +260,30 @@ public partial class SpriteGroupViewModel : ObservableObject
 
         var member = new SpriteGroupMember(patternIndex, _bank.SpritesList[patternIndex]);
 
-        if (!Group.Add(member))
-            return false;
+        bool added = false;
 
-        SelectedMember = member;
+        Recording(() =>
+        {
+            added = Group.Add(member);
 
-        return true;
+            if (added)
+                SelectedMember = member;
+        });
+
+        return added;
     }
 
     private bool CanAddMember() => Group.CanAddMember;
 
+    /// <summary>
+    /// Quita el plano elegido.
+    /// </summary>
+    /// <remarks>
+    /// Sin preguntar: quitar uno queriendo es lo normal -al montar una figura se prueban
+    /// planos y se descartan-, y preguntar cada vez convierte quitar ocho en ocho diálogos.
+    /// Lo que hace que no preguntar sea aceptable es que se deshace, con sus desplazamientos
+    /// y sus colores, que es lo que costaba volver a poner.
+    /// </remarks>
     [RelayCommand(CanExecute = nameof(CanRemoveMember))]
     private void RemoveMember()
     {
@@ -264,10 +291,56 @@ public partial class SpriteGroupViewModel : ObservableObject
             return;
 
         int index = Group.Members.IndexOf(SelectedMember);
-        if (!Group.Remove(SelectedMember))
+
+        Recording(() =>
+        {
+            if (Group.Remove(SelectedMember!))
+                SelectedMember = Group.Members[Math.Min(index, Group.Members.Count - 1)];
+        });
+    }
+
+    /// <summary>
+    /// Hace ese cambio en la lista de planos y lo deja en la historia del banco.
+    /// </summary>
+    /// <remarks>
+    /// Con el paso abierto antes de tocar nada: cambiar la lista dice que el banco ha
+    /// cambiado, y ese aviso tiraría la historia justo antes de anotar este paso. Si al final
+    /// la lista quedó igual -añadir con el grupo lleno- no se anota nada.
+    /// </remarks>
+    private void Recording(Action change)
+    {
+        if (_undo is null)
+        {
+            change();
+
+            return;
+        }
+
+        SpriteGroupMember[] before = [.. Group.Members];
+
+        _undo.Begin();
+
+        change();
+
+        SpriteGroupMember[] after = [.. Group.Members];
+
+        if (before.SequenceEqual(after))
+        {
+            _undo.Cancel();
+
+            return;
+        }
+
+        _undo.Push(new MembersChanged(Group, before, after));
+    }
+
+    /// <summary>Si el plano elegido ya no está en la lista, se elige otro.</summary>
+    private void KeepSelection()
+    {
+        if (SelectedMember is { } chosen && Group.Members.Contains(chosen))
             return;
 
-        SelectedMember = Group.Members[Math.Min(index, Group.Members.Count - 1)];
+        SelectedMember = Group.Members.FirstOrDefault();
     }
 
     private bool CanRemoveMember() => SelectedMember is not null && Group.CanRemoveMember;
