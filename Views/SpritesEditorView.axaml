@@ -613,36 +613,27 @@
                            ToolTip.Tip="{l:Localize SpritesPatternTip}" />
           </Grid>
 
-          <Grid ColumnDefinitions="56,28,*,28">
+          <!-- Los dos desplazamientos, con la misma caja que el patron: se escriben, y la
+               figura se coloca arrastrandola o con los cursores. Cuatro flechas de una en una
+               eran dieciseis pulsaciones para bajar un plano un sprite entero. -->
+          <Grid ColumnDefinitions="56,*">
             <TextBlock Grid.Column="0" Text="{l:Localize SpritesOffsetX}" VerticalAlignment="Center" />
-            <Button Grid.Column="1" Classes="step"
-                    Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="left"
-                    ToolTip.Tip="{l:Localize SpritesOffsetLeftTip}">
-              <icons:MaterialIcon Kind="ArrowLeft" />
-            </Button>
-            <TextBlock Grid.Column="2" Text="{Binding SelectedGroup.SelectedMember.OffsetX}"
-                       FontFamily="Consolas" TextAlignment="Center" VerticalAlignment="Center" />
-            <Button Grid.Column="3" Classes="step"
-                    Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="right"
-                    ToolTip.Tip="{l:Localize SpritesOffsetRightTip}">
-              <icons:MaterialIcon Kind="ArrowRight" />
-            </Button>
+            <NumericUpDown Grid.Column="1" x:Name="MemberOffsetX"
+                           ShowButtonSpinner="True" FormatString="0"
+                           Minimum="{Binding SelectedGroup.MinOffset}"
+                           Maximum="{Binding SelectedGroup.MaxOffset}" Increment="1"
+                           Value="{Binding SelectedGroup.SelectedMember.OffsetX}"
+                           ToolTip.Tip="{l:Localize SpritesOffsetTip}" />
           </Grid>
 
-          <Grid ColumnDefinitions="56,28,*,28">
+          <Grid ColumnDefinitions="56,*">
             <TextBlock Grid.Column="0" Text="{l:Localize SpritesOffsetY}" VerticalAlignment="Center" />
-            <Button Grid.Column="1" Classes="step"
-                    Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="up"
-                    ToolTip.Tip="{l:Localize SpritesOffsetUpTip}">
-              <icons:MaterialIcon Kind="ArrowUp" />
-            </Button>
-            <TextBlock Grid.Column="2" Text="{Binding SelectedGroup.SelectedMember.OffsetY}"
-                       FontFamily="Consolas" TextAlignment="Center" VerticalAlignment="Center" />
-            <Button Grid.Column="3" Classes="step"
-                    Command="{Binding SelectedGroup.NudgeOffsetCommand}" CommandParameter="down"
-                    ToolTip.Tip="{l:Localize SpritesOffsetDownTip}">
-              <icons:MaterialIcon Kind="ArrowDown" />
-            </Button>
+            <NumericUpDown Grid.Column="1" x:Name="MemberOffsetY"
+                           ShowButtonSpinner="True" FormatString="0"
+                           Minimum="{Binding SelectedGroup.MinOffset}"
+                           Maximum="{Binding SelectedGroup.MaxOffset}" Increment="1"
+                           Value="{Binding SelectedGroup.SelectedMember.OffsetY}"
+                           ToolTip.Tip="{l:Localize SpritesOffsetTip}" />
           </Grid>
 
           <!-- Fondo del grupo. Es del grupo, no del miembro seleccionado: la referencia

@@ -54,8 +54,9 @@ public class SpriteGroupViewTests
         Assert.Equal(1, editor.GroupList.ItemCount);
     }
 
+    /// <summary>Un empujón mueve el plano un pixel, que es lo que hacen los cursores.</summary>
     [AvaloniaFact]
-    public void Las_flechas_mueven_el_desplazamiento_del_miembro_seleccionado()
+    public void Empujar_mueve_el_desplazamiento_del_miembro_seleccionado()
     {
         using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
         editor.SetThumbnailMode(ThumbnailMode.Groups);

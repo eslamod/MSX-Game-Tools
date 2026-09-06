@@ -102,6 +102,12 @@ public partial class SpriteGroupViewModel : ObservableObject
     /// <summary>Último patrón del banco al que puede apuntar un miembro.</summary>
     public int MaxPatternIndex => _bank.SpritesList.Count - 1;
 
+    /// <summary>Lo que se puede sacar un plano del grupo, para las cajas de desplazamiento.</summary>
+    public int MinOffset => SpriteGroupMember.MinOffset;
+
+    /// <inheritdoc cref="MinOffset"/>
+    public int MaxOffset => SpriteGroupMember.MaxOffset;
+
     /// <summary>Una casilla por línea del miembro seleccionado. Sólo en MSX2.</summary>
     public ObservableCollection<SpriteMemberColorViewModel> MemberColors { get; } = [];
 

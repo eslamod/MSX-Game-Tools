@@ -245,10 +245,7 @@
   <data name="PreferencesThemeLightBlue" xml:space="preserve"><value>Claro azulado</value></data>
   <data name="PreferencesThemeLightOrange" xml:space="preserve"><value>Claro anaranjado</value></data>
   <data name="SpritesPatternTip" xml:space="preserve"><value>El patrón que pinta este miembro. Se puede escribir el número</value></data>
-  <data name="SpritesOffsetLeftTip" xml:space="preserve"><value>Correr el miembro un pixel a la izquierda</value></data>
-  <data name="SpritesOffsetRightTip" xml:space="preserve"><value>Correr el miembro un pixel a la derecha</value></data>
-  <data name="SpritesOffsetUpTip" xml:space="preserve"><value>Correr el miembro un pixel hacia arriba</value></data>
-  <data name="SpritesOffsetDownTip" xml:space="preserve"><value>Correr el miembro un pixel hacia abajo</value></data>
+  <data name="SpritesOffsetTip" xml:space="preserve"><value>Dónde se coloca este plano dentro del grupo. Se puede escribir, arrastrar la figura o afinar con los cursores</value></data>
   <data name="SpritesPreviousTip" xml:space="preserve"><value>Sprite anterior del banco</value></data>
   <data name="SpritesNextTip" xml:space="preserve"><value>Sprite siguiente del banco</value></data>
   <data name="PreferencesZoom" xml:space="preserve"><value>Zoom de partida</value></data>

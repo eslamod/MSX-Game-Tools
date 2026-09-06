@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
+using Avalonia.VisualTree;
 using MSX_GameTools.Entities;
 using MSX_GameTools.ViewModels;
 using Xunit;
@@ -105,7 +106,39 @@ public class SpriteGroupPlacingTests
         Assert.Equal(0, first.OffsetX);
     }
 
+    /// <summary>
+    /// Y los dos desplazamientos se escriben, con la misma caja que el patrón.
+    /// </summary>
+    /// <remarks>
+    /// El tope sale de lo que el miembro deja: escribir 200 en la caja no puede colocar un
+    /// plano donde el fichero exportado no lo sabría contar.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Los_desplazamientos_se_escriben()
+    {
+        using var editor = Grouped();
+
+        SpriteGroupMember member = editor.ViewModel.SelectedGroup!.SelectedMember!;
+
+        NumericUpDown x = Box(editor, "MemberOffsetX");
+        NumericUpDown y = Box(editor, "MemberOffsetY");
+
+        Assert.Equal(SpriteGroupMember.MinOffset, x.Minimum);
+        Assert.Equal(SpriteGroupMember.MaxOffset, x.Maximum);
+
+        x.Value = 7;
+        y.Value = -5;
+
+        Assert.Equal((7, -5), (member.OffsetX, member.OffsetY));
+    }
+
     // ------------------------------------------------------------------ los andamios
+
+    /// <summary>Una de las cajas del panel del grupo, por su nombre.</summary>
+    private static NumericUpDown Box(SpriteCanvasHarness editor, string name) =>
+        editor.GroupPanel.GetVisualDescendants()
+            .OfType<NumericUpDown>()
+            .Single(box => box.Name == name);
 
     /// <summary>Un editor en modo grupos, con un grupo y su plano seleccionados.</summary>
     private static SpriteCanvasHarness Grouped()

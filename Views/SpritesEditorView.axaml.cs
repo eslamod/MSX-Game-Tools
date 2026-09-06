@@ -413,19 +413,26 @@ public partial class SpritesEditorView : UserControl
     /// </remarks>
     private void OnGroupKeyDown(object? sender, KeyEventArgs e)
     {
-        if (Editor?.SelectedGroup?.SelectedMember is not { } member)
+        if (Editor?.SelectedGroup is not { SelectedMember: not null } group)
             return;
 
-        switch (e.Key)
+        string? towards = e.Key switch
         {
-            case Key.Left: member.OffsetX--; break;
-            case Key.Right: member.OffsetX++; break;
-            case Key.Up: member.OffsetY--; break;
-            case Key.Down: member.OffsetY++; break;
-            default: return;
-        }
+            Key.Left => "left",
+            Key.Right => "right",
+            Key.Up => "up",
+            Key.Down => "down",
+            _ => null,
+        };
 
-        // Marcado como atendido para que la lista no se lleve el cursor a otro grupo.
+        if (towards is null)
+            return;
+
+        // Por el mismo comando que movían las flechas que había: un empujón es un empujón, y
+        // así no hay dos sitios decidiendo cuánto se mueve ni dónde está el tope.
+        group.NudgeOffsetCommand.Execute(towards);
+
+        // Atendido, para que la lista no se lleve el cursor a otro grupo.
         e.Handled = true;
     }
 
