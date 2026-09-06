@@ -161,6 +161,95 @@ public class SpriteGroupPlacingTests
         Assert.DoesNotContain(said, text => text.Contains("Convert", StringComparison.OrdinalIgnoreCase));
     }
 
+    /// <summary>
+    /// Colocar un plano se deshace, y el arrastre entero es un solo paso.
+    /// </summary>
+    /// <remarks>
+    /// Un arrastre deja decenas de cambios por el camino; deshacerlos de uno en uno serían
+    /// treinta veces deshacer para volver donde estabas.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Arrastrar_un_plano_es_un_solo_paso()
+    {
+        using var editor = Grouped();
+
+        SpriteGroupMember member = editor.ViewModel.SelectedGroup!.SelectedMember!;
+
+        Panel preview = editor.GroupPreview(0);
+        double scale = editor.View.GroupPixelSize;
+
+        Point from = editor.PointIn(preview, 8, 8);
+
+        editor.PressAt(from);
+
+        for (int step = 1; step <= 4; step++)
+            editor.MoveAt(new Point(from.X + (step * scale), from.Y + (step * scale)));
+
+        editor.ReleaseAt(new Point(from.X + (4 * scale), from.Y + (4 * scale)));
+
+        Assert.Equal((4, 4), (member.OffsetX, member.OffsetY));
+
+        // Y pulsar sin llegar a mover no deja paso, igual que un clic que no pinta.
+        editor.PressAt(from);
+        editor.ReleaseAt(from);
+
+        editor.ViewModel.UndoDrawingCommand.Execute(null);
+
+        Assert.Equal((0, 0), (member.OffsetX, member.OffsetY));
+        Assert.False(editor.ViewModel.CanUndoDrawing);
+    }
+
+    /// <summary>Y los cursores y las cajas dejan un paso por cambio.</summary>
+    [AvaloniaFact]
+    public void Los_ajustes_sueltos_se_deshacen_uno_a_uno()
+    {
+        using var editor = Grouped();
+
+        SpriteGroupViewModel group = editor.ViewModel.SelectedGroup!;
+        SpriteGroupMember member = group.SelectedMember!;
+
+        group.NudgeOffsetCommand.Execute("right");
+        group.NudgeOffsetCommand.Execute("down");
+
+        // Por la caja y no por el plano: es lo que hace la ventana, y es donde se anota.
+        group.MemberPattern = 5;
+
+        Assert.Equal((1, 1, 5), (member.OffsetX, member.OffsetY, member.PatternIndex));
+
+        editor.ViewModel.UndoDrawingCommand.Execute(null);
+
+        Assert.Equal(0, member.PatternIndex);
+
+        editor.ViewModel.UndoDrawingCommand.Execute(null);
+        editor.ViewModel.UndoDrawingCommand.Execute(null);
+
+        Assert.Equal((0, 0), (member.OffsetX, member.OffsetY));
+    }
+
+    /// <summary>
+    /// Y lo que se dibujó antes sigue ahí: colocar un plano ya no tira la historia.
+    /// </summary>
+    /// <remarks>
+    /// Era lo que hacía que deshacer pareciera no responder: cualquier cosa que no pasara por
+    /// la pila la vaciaba, y colocar planos es lo que más se hace mientras se monta un grupo.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Colocar_un_plano_no_se_lleva_por_delante_lo_dibujado()
+    {
+        using var editor = Grouped();
+
+        editor.ViewModel.PixelSurface.Set(1, 1, true);
+        editor.ViewModel.PixelSurface.EndStroke();
+
+        editor.ViewModel.SelectedGroup!.MemberOffsetX = 6;
+
+        // Un paso para el desplazamiento y otro para el trazo.
+        editor.ViewModel.UndoDrawingCommand.Execute(null);
+        editor.ViewModel.UndoDrawingCommand.Execute(null);
+
+        Assert.False(editor.ViewModel.PixelSurface.IsSet(1, 1));
+    }
+
     // ------------------------------------------------------------------ los andamios
 
     /// <summary>Una de las cajas del panel del grupo, por su nombre.</summary>

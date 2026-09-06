@@ -91,6 +91,40 @@ public sealed class MembersChanged(
 }
 
 /// <summary>
+/// Dónde está un plano: qué patrón usa y dónde se coloca.
+/// </summary>
+/// <remarks>
+/// Los tres números que se manejan a la vez mientras se compone una figura: se arrastra, se
+/// afina con los cursores y se escribe el patrón, y todo eso es «colocar el plano».
+/// </remarks>
+public readonly record struct MemberSpot(int Pattern, int X, int Y)
+{
+    public static MemberSpot Of(SpriteGroupMember member) =>
+        new(member.PatternIndex, member.OffsetX, member.OffsetY);
+
+    public void ApplyTo(SpriteGroupMember member)
+    {
+        member.PatternIndex = Pattern;
+        member.OffsetX = X;
+        member.OffsetY = Y;
+    }
+}
+
+/// <summary>Un plano colocado en otro sitio, o cambiado de patrón.</summary>
+/// <remarks>
+/// Un arrastre entero es un paso: lo abre la pulsación y lo cierra soltar, igual que un trazo
+/// en el lienzo. Los cursores y las cajas dejan uno por cambio, que es lo que se espera de un
+/// ajuste fino.
+/// </remarks>
+public sealed class MemberMoved(SpriteGroupMember member, MemberSpot before, MemberSpot after)
+    : IPixelEdit
+{
+    public void Undo() => before.ApplyTo(member);
+
+    public void Redo() => after.ApplyTo(member);
+}
+
+/// <summary>
 /// La pila de deshacer de lo que se dibuja en un juego de tiles o en un banco.
 /// </summary>
 /// <remarks>
@@ -124,6 +158,15 @@ public sealed class PixelUndoStack
     public bool CanUndo => _done.Count > 0;
 
     public bool CanRedo => _undone.Count > 0;
+
+    /// <summary>
+    /// Está en medio de algo suyo: un paso abierto, o deshaciendo.
+    /// </summary>
+    /// <remarks>
+    /// Lo pregunta quien vigila cambios sueltos para no anotar los que ya son de un paso
+    /// abierto: los cincuenta que deja un arrastre son ese arrastre, no cincuenta pasos.
+    /// </remarks>
+    public bool Recording => _drawing || _applying;
 
     /// <summary>Ha cambiado lo que se puede deshacer o rehacer.</summary>
     public event Action? Changed;

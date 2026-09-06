@@ -618,7 +618,7 @@ public partial class SpritesEditorView : UserControl
     // ------------------------------------------------------------------ planos a mano
 
     /// <summary>El plano que se está arrastrando: dónde empezó el ratón y dónde estaba él.</summary>
-    private (SpriteGroupMember Member, Point From, int OffsetX, int OffsetY)? _placing;
+    private (SpriteGroupMember Member, Point From, MemberSpot Spot)? _placing;
 
     /// <summary>
     /// Empieza a colocar el plano seleccionado sobre la composición del grupo.
@@ -638,7 +638,11 @@ public partial class SpritesEditorView : UserControl
         // Contra la lista y no contra la miniatura: la composición se recorta a lo que ocupa
         // el grupo, así que al mover un plano la miniatura cambia de tamaño y se mueve bajo
         // el ratón. Midiendo contra algo quieto, el arrastre no se persigue a sí mismo.
-        _placing = (member, e.GetPosition(GroupList), member.OffsetX, member.OffsetY);
+        _placing = (member, e.GetPosition(GroupList), MemberSpot.Of(member));
+
+        // El arrastre entero es un paso: se abre aquí y se cierra al soltar, como un trazo.
+        // Mientras esté abierto, los cambios que deja el arrastre no se anotan sueltos.
+        Editor?.Undo.Begin();
 
         // El foco se lo lleva Avalonia al pulsar sobre algo enfocable, así que aquí no hace
         // falta pedirlo: basta con que la composición lo sea, y eso está en el XAML.
@@ -652,12 +656,24 @@ public partial class SpritesEditorView : UserControl
 
         Point now = e.GetPosition(GroupList);
 
-        placing.Member.OffsetX = placing.OffsetX + (int)Math.Round((now.X - placing.From.X) / GroupPixelSize);
-        placing.Member.OffsetY = placing.OffsetY + (int)Math.Round((now.Y - placing.From.Y) / GroupPixelSize);
+        placing.Member.OffsetX = placing.Spot.X + (int)Math.Round((now.X - placing.From.X) / GroupPixelSize);
+        placing.Member.OffsetY = placing.Spot.Y + (int)Math.Round((now.Y - placing.From.Y) / GroupPixelSize);
     }
 
     private void OnGroupPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
+        if (_placing is { } placing && Editor is { } editor)
+        {
+            MemberSpot now = MemberSpot.Of(placing.Member);
+
+            // Un arrastre que no llegó a mover nada no deja paso, igual que un clic que no
+            // pinta: si no, deshacer no haría nada visible.
+            if (now == placing.Spot)
+                editor.Undo.Cancel();
+            else
+                editor.Undo.Push(new MemberMoved(placing.Member, placing.Spot, now));
+        }
+
         _placing = null;
         e.Pointer.Capture(null);
     }

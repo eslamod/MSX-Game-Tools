@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Collections.ObjectModel;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -205,12 +206,24 @@ public partial class SpriteGroupViewModel : ObservableObject
 
         RefreshMemberColors();
         EditTargetChanged?.Invoke(newValue);
+
+        OnPropertyChanged(nameof(MemberPattern));
+        OnPropertyChanged(nameof(MemberOffsetX));
+        OnPropertyChanged(nameof(MemberOffsetY));
     }
 
-    private void OnSelectedMemberPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void OnSelectedMemberPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(SpriteGroupMember.PatternIndex) && SelectedMember is not null)
             EditTargetChanged?.Invoke(SelectedMember);
+
+        // Las cajas leen de aquí, y al plano lo mueven también el arrastre y deshacer.
+        switch (e.PropertyName)
+        {
+            case nameof(SpriteGroupMember.PatternIndex): OnPropertyChanged(nameof(MemberPattern)); break;
+            case nameof(SpriteGroupMember.OffsetX): OnPropertyChanged(nameof(MemberOffsetX)); break;
+            case nameof(SpriteGroupMember.OffsetY): OnPropertyChanged(nameof(MemberOffsetY)); break;
+        }
     }
 
     /// <remarks>
@@ -334,6 +347,56 @@ public partial class SpriteGroupViewModel : ObservableObject
         _undo.Push(new MembersChanged(Group, before, after));
     }
 
+    /// <summary>
+    /// El patrón del plano elegido, y dónde se coloca.
+    /// </summary>
+    /// <remarks>
+    /// Las cajas escriben aquí y no en el plano directamente: aquí es donde el cambio se
+    /// anota en la historia. Anotarlo después, escuchando al plano, no vale: el grupo avisa
+    /// de que ha cambiado en cuanto se le toca un miembro, y ese aviso -que es lo que marca
+    /// el banco como modificado- llega a tirar la historia antes de que se anote el paso.
+    /// </remarks>
+    public int MemberPattern
+    {
+        get => SelectedMember?.PatternIndex ?? 0;
+        set => Place(spot => spot with { Pattern = value });
+    }
+
+    /// <inheritdoc cref="MemberPattern"/>
+    public int MemberOffsetX
+    {
+        get => SelectedMember?.OffsetX ?? 0;
+        set => Place(spot => spot with { X = value });
+    }
+
+    /// <inheritdoc cref="MemberPattern"/>
+    public int MemberOffsetY
+    {
+        get => SelectedMember?.OffsetY ?? 0;
+        set => Place(spot => spot with { Y = value });
+    }
+
+    /// <summary>Coloca el plano elegido donde diga eso, y lo deja en la historia.</summary>
+    private void Place(Func<MemberSpot, MemberSpot> where)
+    {
+        if (SelectedMember is not { } member)
+            return;
+
+        MemberSpot before = MemberSpot.Of(member);
+        MemberSpot after = where(before);
+
+        if (before == after)
+            return;
+
+        // El paso, abierto antes de tocar nada: tocar un plano avisa de que el banco ha
+        // cambiado, y ese aviso tiraría la historia justo antes de anotar esto.
+        _undo?.Begin();
+
+        after.ApplyTo(member);
+
+        _undo?.Push(new MemberMoved(member, before, after));
+    }
+
     /// <summary>Si el plano elegido ya no está en la lista, se elige otro.</summary>
     private void KeepSelection()
     {
@@ -365,10 +428,10 @@ public partial class SpriteGroupViewModel : ObservableObject
 
         switch (direction)
         {
-            case "left": SelectedMember.OffsetX--; break;
-            case "right": SelectedMember.OffsetX++; break;
-            case "up": SelectedMember.OffsetY--; break;
-            case "down": SelectedMember.OffsetY++; break;
+            case "left": MemberOffsetX--; break;
+            case "right": MemberOffsetX++; break;
+            case "up": MemberOffsetY--; break;
+            case "down": MemberOffsetY++; break;
         }
     }
 

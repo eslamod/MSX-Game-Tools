@@ -628,7 +628,7 @@
             <NumericUpDown Grid.Column="1" x:Name="MemberPattern"
                            ShowButtonSpinner="True" FormatString="0"
                            Minimum="0" Maximum="{Binding SelectedGroup.MaxPatternIndex}" Increment="1"
-                           Value="{Binding SelectedGroup.SelectedMember.PatternIndex}"
+                           Value="{Binding SelectedGroup.MemberPattern}"
                            ToolTip.Tip="{l:Localize SpritesPatternTip}" />
           </Grid>
 
@@ -641,7 +641,7 @@
                            ShowButtonSpinner="True" FormatString="0"
                            Minimum="{Binding SelectedGroup.MinOffset}"
                            Maximum="{Binding SelectedGroup.MaxOffset}" Increment="1"
-                           Value="{Binding SelectedGroup.SelectedMember.OffsetX}"
+                           Value="{Binding SelectedGroup.MemberOffsetX}"
                            ToolTip.Tip="{l:Localize SpritesOffsetTip}" />
           </Grid>
 
@@ -651,7 +651,7 @@
                            ShowButtonSpinner="True" FormatString="0"
                            Minimum="{Binding SelectedGroup.MinOffset}"
                            Maximum="{Binding SelectedGroup.MaxOffset}" Increment="1"
-                           Value="{Binding SelectedGroup.SelectedMember.OffsetY}"
+                           Value="{Binding SelectedGroup.MemberOffsetY}"
                            ToolTip.Tip="{l:Localize SpritesOffsetTip}" />
           </Grid>
 
