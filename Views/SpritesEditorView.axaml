@@ -248,6 +248,7 @@
                 ToolTip.Tip="{l:Localize SpritesDeleteGroupTip}">
           <icons:MaterialIcon Kind="Minus" />
         </Button>
+
       </StackPanel>
 
       <!-- Zoom de las miniaturas. El Tag es el multiplicador sobre el tamaño base. -->
@@ -1194,6 +1195,19 @@
               Foreground="{DynamicResource AppTextError}"
               ToolTip.Tip="{l:Localize SpritesClearSpriteTip}">
         <icons:MaterialIcon Kind="EraserVariant" />
+      </Button>
+
+      <!-- Deshacer y rehacer, aqui abajo y no en la tira de arriba: alli no caben -a 4K
+           con la escala al doble se salian de la ventana, y hay una prueba que lo mide- y
+           aqui estan al lado del lienzo, que es donde se dibuja, y del borrador, que
+           ahora tambien se deshace. -->
+      <Button Classes="navigate" Command="{Binding UndoDrawingCommand}"
+              ToolTip.Tip="{l:Localize UndoTip}">
+        <icons:MaterialIcon Kind="Undo" />
+      </Button>
+      <Button Classes="navigate" Command="{Binding RedoDrawingCommand}"
+              ToolTip.Tip="{l:Localize RedoTip}">
+        <icons:MaterialIcon Kind="Redo" />
       </Button>
     </StackPanel>
 

@@ -146,6 +146,8 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
         PixelSurface = new SpritePixelSurface(this);
 
+        Undo.Changed += OnUndoChanged;
+
         // El fondo lo guarda cada patrón, así que el selector lee y escribe siempre en
         // el que esté en el lienzo, no en uno fijo.
         PatternBackground = new BackgroundSelectionViewModel(
@@ -183,6 +185,57 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
     /// de los grupos que lo usen. Se hace al soltar y no por pixel, que serían 2116
     /// pixeles de recomposición por cada uno pintado.
     /// </summary>
+    // ------------------------------------------------------------------ deshacer
+
+    /// <summary>Los últimos trazos, para poder deshacerlos.</summary>
+    public PixelUndoStack Undo { get; } = new();
+
+    public bool CanUndoDrawing => Undo.CanUndo;
+
+    public bool CanRedoDrawing => Undo.CanRedo;
+
+    [RelayCommand(CanExecute = nameof(CanUndoDrawing))]
+    private void UndoDrawing() => Undo.Undo();
+
+    [RelayCommand(CanExecute = nameof(CanRedoDrawing))]
+    private void RedoDrawing() => Undo.Redo();
+
+    /// <summary>
+    /// Ha cambiado la historia: se repinta y se dice que el banco ha cambiado.
+    /// </summary>
+    /// <remarks>
+    /// Las miniaturas de los 64 y los grupos: deshacer puede tocar un patrón que no es el que
+    /// se está mirando, y los grupos que lo usan enseñan ese dibujo.
+    /// </remarks>
+    private void OnUndoChanged()
+    {
+        Touch();
+
+        OnPropertyChanged(nameof(CanUndoDrawing));
+        OnPropertyChanged(nameof(CanRedoDrawing));
+
+        UndoDrawingCommand.NotifyCanExecuteChanged();
+        RedoDrawingCommand.NotifyCanExecuteChanged();
+
+        RenderAllThumbnails();
+        RenderAllGroups();
+
+        RefreshRequested?.Invoke(CurrentSprite);
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Lo que cambia el banco sin pasar por la pila —pegar un patrón, importar, aplanar los
+    /// colores, mover los de la paleta— la deja sin valer: deshacer después devolvería una
+    /// foto vieja encima de eso.
+    /// </remarks>
+    public override void Touch()
+    {
+        base.Touch();
+
+        Undo.Touched();
+    }
+
     public void NotifyPatternEdited(int patternIndex)
     {
         foreach (SpriteGroupViewModel group in Groups)
@@ -744,7 +797,8 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
     [RelayCommand]
     private async Task ClearSpriteAsync()
     {
-        // Vaciar tampoco se puede deshacer: en el editor de sprites no hay historia.
+        // Se pregunta aunque ahora se pueda deshacer: la pila se vacía al pasar por cosas
+        // que no son suyas, así que no siempre habrá un paso al que volver.
         bool confirmed = await _dialogs.ConfirmAsync(
             Localizer.Instance["ClearSpriteTitle"],
             Localizer.Instance.Format("ClearSpriteBody", CurrentSpriteIndex),
@@ -753,14 +807,23 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
         if (!confirmed)
             return;
 
-        CurrentSprite.Clear();
+        Sprite emptied = CurrentSprite;
+        Sprite before = emptied.Copy();
+
+        // Con el paso abierto antes de tocar nada, como un trazo: vaciar avisa de que el
+        // banco ha cambiado, y ese aviso tiraría la historia justo antes de anotar esto.
+        Undo.Begin();
+
+        emptied.Clear();
 
         Touch();
-        RenderThumbnail(CurrentSprite);
-        RefreshRequested?.Invoke(CurrentSprite);
+        RenderThumbnail(emptied);
+        RefreshRequested?.Invoke(emptied);
 
         // Los colores de linea del lienzo cuelgan del sprite, y acaban de cambiar todos.
         OnPropertyChanged(nameof(SpriteColor));
+
+        Undo.Push(new SpriteDrawn(emptied, before, emptied.Copy()));
     }
 
     [RelayCommand(CanExecute = nameof(CanGoNext))]
