@@ -1089,26 +1089,30 @@
            y la lista lo que sobra. -->
       <DockPanel IsVisible="{Binding ShowsGroups}">
         <!-- Los patrones del banco, para traerlos al grupo arrastrandolos a su lista de
-             planos. Abajo y en una sola fila con barra: lo que sobra de alto es de los
-             grupos, que es lo que se esta mirando.
+             planos. Abajo y en las filas que hagan falta para verlos todos: con barra hay
+             que buscar el patron antes de poder arrastrarlo, y como la tira entera se puede
+             esconder, cuando esta puesta es mejor que ocupe lo suyo.
+
+             El tope es para las ventanas estrechas, donde los 64 pedirian media pantalla: de
+             ahi en adelante si hay barra, que el alto tambien es de los grupos.
 
              Va antes que la lista de grupos a proposito: en un DockPanel manda el orden, y
              el ultimo hijo es el que se queda con lo que sobra. -->
         <Border x:Name="GroupPatternStrip"
                 DockPanel.Dock="Bottom"
                 IsVisible="{Binding ShowsGroupPatterns}"
-                Height="52" Margin="0,4,0,0" Padding="2"
+                MaxHeight="220" Margin="0,4,0,0" Padding="2"
                 Background="{DynamicResource AppSurfaceBackground}"
                 BorderBrush="{DynamicResource AppSeparator}" BorderThickness="0,1,0,0">
           <ListBox x:Name="GroupPatternList"
                    ItemsSource="{Binding ImagesMiniList}"
                    SelectionMode="Single"
                    Background="Transparent" BorderThickness="0" Padding="0"
-                   ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                   ScrollViewer.VerticalScrollBarVisibility="Auto">
             <ListBox.ItemsPanel>
               <ItemsPanelTemplate>
-                <StackPanel Orientation="Horizontal" />
+                <WrapPanel />
               </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
             <ListBox.ItemContainerTheme>

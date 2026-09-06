@@ -5,6 +5,7 @@ using Avalonia.VisualTree;
 using MSX_GameTools.Entities;
 using MSX_GameTools.Services;
 using MSX_GameTools.ViewModels;
+using MSX_GameTools.Views;
 using Xunit;
 using static MSX_GameTools.Tests.SpriteCanvasHarness;
 
@@ -144,6 +145,53 @@ public class GroupPatternStripTests
         editor.ReleaseAt(at);
 
         Assert.Null(editor.View.PressedPattern);
+    }
+
+    /// <summary>
+    /// Los patrones se reparten en las filas que hagan falta y se ven todos.
+    /// </summary>
+    /// <remarks>
+    /// En una fila con barra había que buscar el patrón antes de poder arrastrarlo, que es
+    /// justo lo que la tira venía a evitar. En una ventana ancha caben en dos filas.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Los_patrones_caben_todos_sin_barra()
+    {
+        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bichos");
+        var editor = new SpritesEditorViewModel(bank, ColorPalette.CreateMsxStandard());
+        var view = new SpritesEditorView { DataContext = editor };
+        var window = new Window { Content = view, Width = 2000, Height = 1080 };
+
+        window.Show();
+        Pump();
+
+        editor.ThumbnailMode = ThumbnailMode.Groups;
+        Pump();
+
+        Border strip = view.GetVisualDescendants()
+            .OfType<Border>()
+            .Single(border => border.Name == "GroupPatternStrip");
+
+        ListBox list = view.GetVisualDescendants()
+            .OfType<ListBox>()
+            .Single(control => control.Name == "GroupPatternList");
+
+        ListBoxItem last = list.GetRealizedContainers().OfType<ListBoxItem>().Last();
+
+        // La esquina de abajo a la derecha del último: si cae dentro, están todos a la vista.
+        Point corner = last.TranslatePoint(
+            new Point(last.Bounds.Width, last.Bounds.Height), strip)!.Value;
+
+        int shown = list.GetRealizedContainers().Count();
+
+        window.Close();
+        Pump();
+
+        Assert.Equal(bank.SpritesList.Count, shown);
+        Assert.True(
+            corner.X <= strip.Bounds.Width && corner.Y <= strip.Bounds.Height,
+            $"El ultimo patron acaba en {corner.X:0},{corner.Y:0} y la tira mide "
+            + $"{strip.Bounds.Width:0}x{strip.Bounds.Height:0}.");
     }
 
     // ------------------------------------------------------------------ los andamios
