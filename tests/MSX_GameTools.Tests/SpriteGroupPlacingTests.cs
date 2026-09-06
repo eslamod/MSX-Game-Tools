@@ -196,6 +196,11 @@ public class SpriteGroupPlacingTests
         editor.ViewModel.UndoDrawingCommand.Execute(null);
 
         Assert.Equal((0, 0), (member.OffsetX, member.OffsetY));
+
+        // Lo que queda por deshacer es el grupo que creó el andamio, no trozos del arrastre.
+        editor.ViewModel.UndoDrawingCommand.Execute(null);
+
+        Assert.Empty(editor.ViewModel.Groups);
         Assert.False(editor.ViewModel.CanUndoDrawing);
     }
 

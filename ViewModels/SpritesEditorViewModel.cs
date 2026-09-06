@@ -218,6 +218,13 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
         UndoDrawingCommand.NotifyCanExecuteChanged();
         RedoDrawingCommand.NotifyCanExecuteChanged();
 
+        // Deshacer puede haberse llevado el grupo que estaba delante, o haberlo traído de
+        // vuelta: el ListBox se queda sin selección y el panel, en blanco.
+        if (SelectedGroup is not { } chosen || !Groups.Contains(chosen))
+            SelectedGroup = Groups.FirstOrDefault();
+
+        AddGroupCommand.NotifyCanExecuteChanged();
+
         RenderAllThumbnails();
         RenderAllGroups();
 
@@ -560,15 +567,33 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
     [RelayCommand(CanExecute = nameof(CanAddGroup))]
     private void AddGroup()
     {
+        SpriteGroupViewModel[] before = [.. Groups];
+
+        // El paso, abierto antes de tocar nada: crear un grupo dice que el banco ha cambiado,
+        // y ese aviso tiraría la historia justo antes de anotar esto.
+        Undo.Begin();
+
         SpriteGroup? group = _spriteBank.NewGroup(CurrentSpriteIndex);
+
         if (group is null)
+        {
+            Undo.Cancel();
+
             return;
+        }
 
         SelectedGroup = TrackGroup(group);
 
         Touch();
         AddGroupCommand.NotifyCanExecuteChanged();
+
+        Undo.Push(Step(before));
     }
+
+    /// <summary>El paso que lleva de esa lista de grupos a la de ahora.</summary>
+    private IPixelEdit Step(IReadOnlyList<SpriteGroupViewModel> before) =>
+        new GroupsChanged<SpriteGroupViewModel>(
+            _spriteBank, Groups, panel => panel.Group, before, [.. Groups]);
 
     private bool CanAddGroup() => _spriteBank.CanAddGroup;
 
@@ -596,6 +621,9 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
         }
 
         SpriteGroupViewModel moved = Groups[from];
+        SpriteGroupViewModel[] before = [.. Groups];
+
+        Undo.Begin();
 
         Groups.Move(from, to);
         _spriteBank.Groups.Move(from, to);
@@ -605,6 +633,8 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
         SelectedGroup = moved;
 
         Touch();
+
+        Undo.Push(Step(before));
     }
 
     [RelayCommand(CanExecute = nameof(CanDeleteGroup))]
@@ -634,6 +664,10 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
         int index = Groups.IndexOf(doomed);
 
+        SpriteGroupViewModel[] before = [.. Groups];
+
+        Undo.Begin();
+
         // La selección se mueve antes de quitarlo, para que el ListBox no se quede
         // sin elemento seleccionado y escriba el hueco de vuelta.
         SelectedGroup = Groups.Count > 1
@@ -645,6 +679,8 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
         Touch();
         AddGroupCommand.NotifyCanExecuteChanged();
+
+        Undo.Push(Step(before));
     }
 
     private bool CanDeleteGroup() => SelectedGroup is not null;

@@ -125,6 +125,45 @@ public sealed class MemberMoved(SpriteGroupMember member, MemberSpot before, Mem
 }
 
 /// <summary>
+/// Los grupos del banco, antes y después de crear o eliminar uno.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Un grupo vive en dos listas: la del banco, que es la que se guarda y se exporta, y la de
+/// los paneles, que es la que se ve. Se rehacen las dos en el mismo bucle, que es lo que
+/// garantiza que no se separen.
+/// </para>
+/// <para>
+/// Vuelven los mismos objetos, así que un grupo recuperado trae sus planos, su nombre y su
+/// imagen de referencia, y las animaciones que lo usaban lo siguen encontrando: apuntan a su
+/// identificador, que no se reparte otra vez.
+/// </para>
+/// </remarks>
+public sealed class GroupsChanged<TPanel>(
+    SpriteBank bank,
+    IList<TPanel> panels,
+    Func<TPanel, SpriteGroup> groupOf,
+    IReadOnlyList<TPanel> before,
+    IReadOnlyList<TPanel> after) : IPixelEdit
+{
+    public void Undo() => Restore(before);
+
+    public void Redo() => Restore(after);
+
+    private void Restore(IReadOnlyList<TPanel> wanted)
+    {
+        panels.Clear();
+        bank.Groups.Clear();
+
+        foreach (TPanel panel in wanted)
+        {
+            panels.Add(panel);
+            bank.Groups.Add(groupOf(panel));
+        }
+    }
+}
+
+/// <summary>
 /// La pila de deshacer de lo que se dibuja en un juego de tiles o en un banco.
 /// </summary>
 /// <remarks>
