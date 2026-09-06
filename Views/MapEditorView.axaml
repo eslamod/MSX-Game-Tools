@@ -115,11 +115,11 @@
         <Border Classes="separator" />
 
         <Button Classes="tool" Command="{Binding UndoCommand}"
-                ToolTip.Tip="{l:Localize MapUndoTip}">
+                ToolTip.Tip="{l:Localize UndoTip}">
           <icons:MaterialIcon Kind="Undo" />
         </Button>
         <Button Classes="tool" Command="{Binding RedoCommand}"
-                ToolTip.Tip="{l:Localize MapRedoTip}">
+                ToolTip.Tip="{l:Localize RedoTip}">
           <icons:MaterialIcon Kind="Redo" />
         </Button>
 

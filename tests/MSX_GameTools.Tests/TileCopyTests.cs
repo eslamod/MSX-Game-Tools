@@ -163,20 +163,27 @@ public class TileCopyTests
         Draw(editor.TileSet, 5, pattern: 0b1100_0000, fore: 7, back: 3);
         Draw(editor.TileSet, 100, pattern: 0b0011_0011, fore: 4, back: 5);
 
-        Assert.False(editor.UndoStampCommand.CanExecute(null));
+        Assert.False(editor.UndoDrawingCommand.CanExecute(null));
 
         editor.SelectRegion(5, 0, 1, 1);
         editor.StampAt(4, 3);
 
-        Assert.True(editor.UndoStampCommand.CanExecute(null));
+        Assert.True(editor.UndoDrawingCommand.CanExecute(null));
 
-        editor.UndoStampCommand.Execute(null);
+        editor.UndoDrawingCommand.Execute(null);
 
         Assert.Equal(0b0011_0011, At(editor.TileSet, 4, 3).ArrayTileRows[0].PatternByte);
         Assert.Equal(4, At(editor.TileSet, 4, 3).ArrayTileRows[0].ForeColor);
 
-        // Y no se deshace dos veces: lo de antes ya no está guardado.
-        Assert.False(editor.UndoStampCommand.CanExecute(null));
+        // Y no se deshace dos veces: no hay más pasos que ése.
+        Assert.False(editor.UndoDrawingCommand.CanExecute(null));
+
+        // Pero se rehace, que ahora estampar va a la misma pila que lo que se dibuja.
+        Assert.True(editor.RedoDrawingCommand.CanExecute(null));
+
+        editor.RedoDrawingCommand.Execute(null);
+
+        Assert.Equal(0b1100_0000, At(editor.TileSet, 4, 3).ArrayTileRows[0].PatternByte);
     }
 
     /// <summary>Sin nada marcado, estampar no hace nada.</summary>
@@ -192,7 +199,7 @@ public class TileCopyTests
 
         Assert.Equal(0b0011_0011, At(editor.TileSet, 4, 3).ArrayTileRows[0].PatternByte);
         Assert.False(editor.IsModified);
-        Assert.False(editor.UndoStampCommand.CanExecute(null));
+        Assert.False(editor.UndoDrawingCommand.CanExecute(null));
     }
 
     [AvaloniaFact]

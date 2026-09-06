@@ -34,13 +34,6 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
 {
     private readonly TileSet _tileSet;
 
-    /// <summary>Lo que había donde se estampó por última vez, y dónde.</summary>
-    private TileSetPatch? _overwritten;
-
-    private int _overwrittenLeft;
-
-    private int _overwrittenTop;
-
     /// <summary>La paleta del juego, a cuyos cambios de color estamos suscritos.</summary>
     private ColorPalette _palette;
 
@@ -134,6 +127,8 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
         }
 
         PixelSurface = new TilePixelSurface(this);
+
+        Undo.Changed += OnUndoChanged;
 
         _palette.ColorsChanged += OnPaletteColorsChanged;
 
@@ -611,9 +606,6 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
     [RelayCommand(CanExecute = nameof(HasSelection))]
     private void ClearSelection() => Selection = null;
 
-    /// <summary>Si hay un estampado que devolver.</summary>
-    public bool CanUndoStamp => _overwritten is not null;
-
     /// <summary>Marca un rectángulo de la rejilla como origen de lo que se va a estampar.</summary>
     public void SelectRegion(int left, int top, int width, int height)
     {
@@ -654,24 +646,67 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
         StopHighlighting();
 
-        _overwrittenLeft = Math.Clamp(column, 0, TileSet.Columns - 1);
-        _overwrittenTop = Math.Clamp(row, 0, TileSet.GridRows - 1);
-        _overwritten = _tileSet.Stamp(_overwrittenLeft, _overwrittenTop, copied);
+        int left = Math.Clamp(column, 0, TileSet.Columns - 1);
+        int top = Math.Clamp(row, 0, TileSet.GridRows - 1);
+
+        // Con el paso abierto antes de tocar nada: estampar cambia tiles y avisa de ello, y
+        // ese aviso tiraría la historia justo antes de anotar este paso.
+        Undo.Begin();
+
+        TileSetPatch before = _tileSet.Stamp(left, top, copied);
 
         AfterTilesChanged();
+
+        Undo.Push(new TilesStamped(_tileSet, left, top, before, copied));
     }
 
-    /// <summary>Devuelve los tiles que machacó el último estampado.</summary>
-    [RelayCommand(CanExecute = nameof(CanUndoStamp))]
-    private void UndoStamp()
+    // ------------------------------------------------------------------ deshacer
+
+    /// <summary>Los últimos trazos, para poder deshacerlos.</summary>
+    public PixelUndoStack Undo { get; } = new();
+
+    public bool CanUndoDrawing => Undo.CanUndo;
+
+    public bool CanRedoDrawing => Undo.CanRedo;
+
+    [RelayCommand(CanExecute = nameof(CanUndoDrawing))]
+    private void UndoDrawing() => Undo.Undo();
+
+    [RelayCommand(CanExecute = nameof(CanRedoDrawing))]
+    private void RedoDrawing() => Undo.Redo();
+
+    /// <summary>
+    /// Ha cambiado la historia: se repinta y se dice que el documento ha cambiado.
+    /// </summary>
+    /// <remarks>
+    /// El repintado va aquí y no en los comandos porque deshacer cambia un tile que puede no
+    /// ser el que se está mirando, y la tira de miniaturas tiene que enterarse igual.
+    /// </remarks>
+    private void OnUndoChanged()
     {
-        if (_overwritten is null)
-            return;
+        Touch();
 
-        _tileSet.Stamp(_overwrittenLeft, _overwrittenTop, _overwritten);
-        _overwritten = null;
+        OnPropertyChanged(nameof(CanUndoDrawing));
+        OnPropertyChanged(nameof(CanRedoDrawing));
 
-        AfterTilesChanged();
+        UndoDrawingCommand.NotifyCanExecuteChanged();
+        RedoDrawingCommand.NotifyCanExecuteChanged();
+
+        RenderAll();
+        RefreshRequested?.Invoke();
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Lo que cambia el juego sin pasar por la pila —estampar, pegar, importar, mover los
+    /// colores de la paleta— la deja sin valer: deshacer después devolvería una foto vieja
+    /// encima de eso.
+    /// </remarks>
+    public override void Touch()
+    {
+        base.Touch();
+
+        Undo.Touched();
     }
 
     /// <summary>
@@ -684,8 +719,6 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
     private void AfterTilesChanged()
     {
         Touch();
-        OnPropertyChanged(nameof(CanUndoStamp));
-        UndoStampCommand.NotifyCanExecuteChanged();
 
         RenderAll();
         RefreshRequested?.Invoke();
@@ -763,12 +796,28 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
     /// </remarks>
     private sealed class TilePixelSurface(TileSetEditorViewModel editor) : IPixelSurface
     {
+        /// <summary>El tile que se está dibujando y cómo estaba al empezar el trazo.</summary>
+        private Tile? _drawn;
+
+        private Tile? _before;
+
         public int Size => Tile.Rows;
 
         public bool IsSet(int x, int y) => editor.CurrentTile.ArrayTileRows[y].ArrayPattern[x];
 
         public void Set(int x, int y, bool on)
         {
+            // La foto se saca en el primer pixel del trazo y no al empezar a pulsar: el
+            // lienzo no avisa de cuándo empieza, y un clic que no llega a cambiar nada no
+            // tiene por qué dejar paso.
+            if (_before is null)
+            {
+                _drawn = editor.CurrentTile;
+                _before = editor.CurrentTile.Copy();
+
+                editor.Undo.Begin();
+            }
+
             TileRow row = editor.CurrentTile.ArrayTileRows[y];
 
             row.ArrayPattern[x] = on;
@@ -782,9 +831,22 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
         public IBrush BrushAt(int x, int y) =>
             TileRenderer.BrushAt(editor.CurrentTile, editor.ColorPalette, editor.BorderColor.Brush, x, y);
 
-        // Un tile no lo compone nadie: nada que recalcular al soltar.
+        /// <summary>
+        /// Se ha soltado el ratón: el trazo entero es un paso de deshacer.
+        /// </summary>
+        /// <remarks>
+        /// Un tile no lo compone nadie, así que no hay nada que recalcular; lo único que hay
+        /// que hacer aquí es cerrar el paso.
+        /// </remarks>
         public void EndStroke()
         {
+            if (_drawn is { } tile && _before is { } before)
+                editor.Undo.Push(new TileDrawn(tile, before, tile.Copy()));
+            else
+                editor.Undo.Cancel();
+
+            _drawn = null;
+            _before = null;
         }
     }
 }

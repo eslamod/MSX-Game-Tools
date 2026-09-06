@@ -313,7 +313,6 @@
   <data name="TileToolStamp" xml:space="preserve"><value>Estampar</value></data>
   <data name="TileToolStampTip" xml:space="preserve"><value>Soltar lo marcado, tantas veces como haga falta</value></data>
   <data name="TileUndoStamp" xml:space="preserve"><value>Deshacer el estampado</value></data>
-  <data name="TileUndoStampTip" xml:space="preserve"><value>Devuelve los tiles que machacó el último estampado</value></data>
   <data name="TileClearSelectionTip" xml:space="preserve"><value>Quitar la marca del rectángulo seleccionado</value></data>
   <data name="TilePreviousTip" xml:space="preserve"><value>Tile anterior del conjunto</value></data>
   <data name="TileNextTip" xml:space="preserve"><value>Tile siguiente del conjunto</value></data>
@@ -346,8 +345,8 @@
   <data name="MapResizeTip" xml:space="preserve"><value>Cambiar el tamaño del mapa</value></data>
   <data name="MapReplace" xml:space="preserve"><value>Sustituir</value></data>
   <data name="MapReplaceTip" xml:space="preserve"><value>Cambiar unos tiles por otros</value></data>
-  <data name="MapUndoTip" xml:space="preserve"><value>Deshacer</value></data>
-  <data name="MapRedoTip" xml:space="preserve"><value>Rehacer</value></data>
+  <data name="UndoTip" xml:space="preserve"><value>Deshacer</value></data>
+  <data name="RedoTip" xml:space="preserve"><value>Rehacer</value></data>
   <data name="MapZoomInTip" xml:space="preserve"><value>Acercar</value></data>
   <data name="MapZoomOutTip" xml:space="preserve"><value>Alejar</value></data>
   <data name="MapFit" xml:space="preserve"><value>Ajustar</value></data>

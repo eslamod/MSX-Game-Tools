@@ -120,7 +120,7 @@ public abstract partial class PanelBaseViewModel : ObservableObject
     /// <see cref="HasUnsavedChanges"/>, que mira el contenido de verdad; así olvidarse de
     /// llamar aquí afea la pestaña pero no pierde nada.
     /// </remarks>
-    public void Touch()
+    public virtual void Touch()
     {
         if (IsDocument)
             IsModified = true;

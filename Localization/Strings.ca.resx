@@ -291,7 +291,6 @@
   <data name="TileToolStamp" xml:space="preserve"><value>Estampa</value></data>
   <data name="TileToolStampTip" xml:space="preserve"><value>Deixa el que has marcat, tantes vegades com calgui</value></data>
   <data name="TileUndoStamp" xml:space="preserve"><value>Desfés l'estampat</value></data>
-  <data name="TileUndoStampTip" xml:space="preserve"><value>Torna els tiles que va matxucar l'últim estampat</value></data>
   <data name="TileClearSelectionTip" xml:space="preserve"><value>Treu la marca del rectangle seleccionat</value></data>
   <data name="TilePreviousTip" xml:space="preserve"><value>Tile anterior del conjunt</value></data>
   <data name="TileNextTip" xml:space="preserve"><value>Tile següent del conjunt</value></data>
@@ -322,8 +321,8 @@
   <data name="MapResizeTip" xml:space="preserve"><value>Canvia la mida del mapa</value></data>
   <data name="MapReplace" xml:space="preserve"><value>Substitueix</value></data>
   <data name="MapReplaceTip" xml:space="preserve"><value>Canvia uns tiles per uns altres</value></data>
-  <data name="MapUndoTip" xml:space="preserve"><value>Desfés</value></data>
-  <data name="MapRedoTip" xml:space="preserve"><value>Refés</value></data>
+  <data name="UndoTip" xml:space="preserve"><value>Desfés</value></data>
+  <data name="RedoTip" xml:space="preserve"><value>Refés</value></data>
   <data name="MapZoomInTip" xml:space="preserve"><value>Apropa</value></data>
   <data name="MapZoomOutTip" xml:space="preserve"><value>Allunya</value></data>
   <data name="MapFit" xml:space="preserve"><value>Ajusta</value></data>
