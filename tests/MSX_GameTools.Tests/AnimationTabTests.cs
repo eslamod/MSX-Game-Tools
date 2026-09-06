@@ -53,6 +53,47 @@ public class AnimationTabTests
         }
     }
 
+    /// <summary>
+    /// Y los cinco botones de la barra de pasos miden lo mismo.
+    /// </summary>
+    /// <remarks>
+    /// Los de agregar llevan rótulo y los otros tres sólo icono, y sin decirles el alto cada
+    /// grupo se quedaba con el suyo: en una barra de cinco botones seguidos, eso se ve.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Los_botones_de_los_pasos_miden_todos_lo_mismo()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+
+        editor.ViewModel.AddAnimationCommand.Execute(null);
+        editor.SetThumbnailMode(ThumbnailMode.Animations);
+
+        SpriteCanvasHarness.Pump();
+
+        SpriteAnimationViewModel animation = editor.ViewModel.SelectedAnimation!;
+
+        System.Windows.Input.ICommand[] all =
+        [
+            animation.AddFrameCommand,
+            animation.AddLoopCommand,
+            animation.RemoveStepCommand,
+            animation.MoveUpCommand,
+            animation.MoveDownCommand,
+        ];
+
+        double[] heights =
+        [
+            .. all.Select(command => editor.View.GetVisualDescendants()
+                .OfType<Button>()
+                .Single(button => ReferenceEquals(button.Command, command))
+                .Bounds.Height),
+        ];
+
+        Assert.True(
+            heights.All(height => height == heights[0]),
+            $"Los botones de la barra de pasos miden {string.Join(", ", heights)}.");
+    }
+
     [AvaloniaFact]
     public void La_pestana_de_animaciones_ensena_las_del_banco()
     {

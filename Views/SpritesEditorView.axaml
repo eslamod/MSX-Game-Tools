@@ -827,7 +827,10 @@
          El gris NO sale del tema: es el fondo sobre el que se recortan los sprites, y
          tiene que ser el mismo con la variante que sea. Un sprite se juzga contra su
          fondo, no contra el color del programa. -->
-    <Border Background="DarkGray">
+    <!-- Del tema y no un gris escrito a mano: era el unico sitio de la aplicacion con un
+         color propio, y en la pestaña de animaciones cantaba al lado de todo lo demas. Con
+         el del tema, tambien sigue a la variante clara o la oscura. -->
+    <Border Background="{DynamicResource AppPanelBackground}">
       <Panel>
       <!-- Los pasos de la animacion y sus controles. En el area grande y no en el panel de
            la izquierda porque aqui caben las columnas del paso sin apretarlas, y porque la
@@ -840,12 +843,12 @@
 
           <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4" Margin="0,0,0,4">
             <TextBlock Text="{l:Localize AnimSteps}" FontWeight="Bold" VerticalAlignment="Center"
-                       Margin="0,0,6,0" Foreground="White" />
+                       Margin="0,0,6,0" />
             <!-- «Fotograma +» y «Bucle +»: al lado del menos, de la flecha arriba y de la
                  flecha abajo, dos botones que solo ponian el nombre no se leian como los de
                  agregar y habia que pararse a averiguar cual era cual. El mas detras y no
                  delante, que asi se lee «fotograma mas» y no «mas fotograma». -->
-            <Button Padding="8,2"
+            <Button Height="26" Padding="8,2"
                     Command="{Binding SelectedAnimation.AddFrameCommand}"
                     ToolTip.Tip="{l:Localize AnimAddFrameTip}">
               <StackPanel Orientation="Horizontal" Spacing="4">
@@ -853,7 +856,7 @@
                 <icons:MaterialIcon Kind="Plus" Width="15" Height="15" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
-            <Button Padding="8,2"
+            <Button Height="26" Padding="8,2"
                     Command="{Binding SelectedAnimation.AddLoopCommand}"
                     ToolTip.Tip="{l:Localize AnimAddLoopTip}">
               <StackPanel Orientation="Horizontal" Spacing="4">
@@ -861,15 +864,18 @@
                 <icons:MaterialIcon Kind="Plus" Width="15" Height="15" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
-            <Button Width="28" Padding="0" Command="{Binding SelectedAnimation.RemoveStepCommand}"
+            <Button Width="28" Height="26" Padding="0"
+                    Command="{Binding SelectedAnimation.RemoveStepCommand}"
                     ToolTip.Tip="{l:Localize AnimRemoveStep}">
               <icons:MaterialIcon Kind="Minus" />
             </Button>
-            <Button Width="28" Padding="0" Command="{Binding SelectedAnimation.MoveUpCommand}"
+            <Button Width="28" Height="26" Padding="0"
+                    Command="{Binding SelectedAnimation.MoveUpCommand}"
                     ToolTip.Tip="{l:Localize AnimMoveUp}">
               <icons:MaterialIcon Kind="ArrowUp" />
             </Button>
-            <Button Width="28" Padding="0" Command="{Binding SelectedAnimation.MoveDownCommand}"
+            <Button Width="28" Height="26" Padding="0"
+                    Command="{Binding SelectedAnimation.MoveDownCommand}"
                     ToolTip.Tip="{l:Localize AnimMoveDown}">
               <icons:MaterialIcon Kind="ArrowDown" />
             </Button>
@@ -999,14 +1005,14 @@
           </StackPanel>
 
           <TextBlock Text="{Binding Player.Position}" HorizontalAlignment="Center"
-                     FontFamily="Consolas" Margin="0,4,0,0" Foreground="White" />
+                     FontFamily="Consolas" Margin="0,4,0,0" />
 
           <!-- Tiras de botones y no desplegables: son cuatro valores y dos, y asi se cambian
                de un clic en vez de dos. Cada boton lleva su valor de Content y se enciende
                cuando el reproductor tiene ese, tambien si lo cambia otro. -->
           <Grid ColumnDefinitions="Auto,*" Margin="0,6,0,0">
             <TextBlock Grid.Column="0" Text="{l:Localize AnimSpeed}" VerticalAlignment="Center"
-                       Margin="0,0,6,0" Foreground="White" />
+                       Margin="0,0,6,0" />
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right"
                         ToolTip.Tip="{l:Localize AnimSpeedTip}">
               <RadioButton GroupName="AnimSlowdown" Theme="{StaticResource ToggleRadioButton}"
@@ -1034,7 +1040,7 @@
 
           <Grid ColumnDefinitions="Auto,*" Margin="0,4,0,0">
             <TextBlock Grid.Column="0" Text="{l:Localize AnimHz}" VerticalAlignment="Center"
-                       Margin="0,0,6,0" Foreground="White" />
+                       Margin="0,0,6,0" />
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right"
                         ToolTip.Tip="{l:Localize AnimHzTip}">
               <RadioButton GroupName="AnimHz" Theme="{StaticResource ToggleRadioButton}"
