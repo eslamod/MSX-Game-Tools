@@ -244,6 +244,7 @@
   <data name="PaintDotTip" xml:space="preserve"><value>Each click paints a single pixel</value></data>
   <data name="PaintStroke" xml:space="preserve"><value>Stroke</value></data>
   <data name="PaintStrokeTip" xml:space="preserve"><value>Hold and drag to paint the whole path</value></data>
+  <data name="FormNumberNeeded" xml:space="preserve"><value>It cannot be left empty</value></data>
   <data name="FormClose" xml:space="preserve"><value>Close</value></data>
 
   <data name="SpritesPatterns" xml:space="preserve"><value>Patterns</value></data>

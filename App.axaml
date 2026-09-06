@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:MSX_GameTools"
              xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:l="clr-namespace:MSX_GameTools.Localization"
              x:Class="MSX_GameTools.App"
              RequestedThemeVariant="Light"><!-- Hasta que se lean los ajustes, que mandan -->
 
@@ -12,6 +13,23 @@
 
   <Application.Styles>
     <FluentTheme />
+
+    <!-- Una caja de numero vacia no se puede convertir a int, y Avalonia ensena el texto de
+         la excepcion tal cual: «System.InvalidCastException: Could not convert '(null)'
+         (null) to System.Int32». Es el unico error que estas cajas pueden dar -lo que se
+         sale de los topes lo recorta el propio control-, asi que la plantilla lo dice en
+         cristiano y en el idioma que toque. -->
+    <Style Selector="DataValidationErrors">
+      <Setter Property="ErrorTemplate">
+        <Setter.Value>
+          <DataTemplate>
+            <TextBlock Text="{l:Localize FormNumberNeeded}"
+                       Foreground="{DynamicResource AppTextError}"
+                       FontSize="11" TextWrapping="Wrap" Margin="0,2,0,0" />
+          </DataTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
 
     <!-- Los iconos de las barras. Son trazos que heredan el Foreground, asi que siguen a
          la variante igual que el texto al que sustituyen. -->

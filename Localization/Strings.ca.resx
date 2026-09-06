@@ -245,6 +245,7 @@
   <data name="PaintDotTip" xml:space="preserve"><value>Cada clic pinta un sol píxel</value></data>
   <data name="PaintStroke" xml:space="preserve"><value>Traç</value></data>
   <data name="PaintStrokeTip" xml:space="preserve"><value>Mantén premut i arrossega per pintar tot el recorregut</value></data>
+  <data name="FormNumberNeeded" xml:space="preserve"><value>No pot quedar buit</value></data>
   <data name="FormClose" xml:space="preserve"><value>Tanca</value></data>
 
   <data name="SpritesPatterns" xml:space="preserve"><value>Patrons</value></data>

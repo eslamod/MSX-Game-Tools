@@ -264,6 +264,7 @@
   <data name="PaintDotTip" xml:space="preserve"><value>Cada clic pinta un solo pixel</value></data>
   <data name="PaintStroke" xml:space="preserve"><value>Trazo</value></data>
   <data name="PaintStrokeTip" xml:space="preserve"><value>Mantén pulsado y arrastra para pintar todo el recorrido</value></data>
+  <data name="FormNumberNeeded" xml:space="preserve"><value>No puede quedar vacío</value></data>
   <data name="FormClose" xml:space="preserve"><value>Cerrar</value></data>
 
   <!-- Editor de sprites -->

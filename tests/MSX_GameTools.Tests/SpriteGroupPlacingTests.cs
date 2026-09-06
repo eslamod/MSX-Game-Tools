@@ -2,8 +2,10 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using MSX_GameTools.Entities;
+using MSX_GameTools.Localization;
 using MSX_GameTools.ViewModels;
 using Xunit;
 using static MSX_GameTools.Tests.SpriteCanvasHarness;
@@ -130,6 +132,33 @@ public class SpriteGroupPlacingTests
         y.Value = -5;
 
         Assert.Equal((7, -5), (member.OffsetX, member.OffsetY));
+    }
+
+    /// <summary>
+    /// Y dejar una caja vacía se dice en cristiano.
+    /// </summary>
+    /// <remarks>
+    /// Sin plantilla, Avalonia enseña el texto de la excepción del enlace —«Could not convert
+    /// '(null)' (null) to System.Int32»—, que no le dice nada a quien está montando un
+    /// personaje. Y es lo único que estas cajas pueden dar: lo que se sale de los topes lo
+    /// recorta el propio control.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Vaciar_una_caja_lo_dice_en_cristiano()
+    {
+        using var editor = Grouped();
+
+        NumericUpDown x = Box(editor, "MemberOffsetX");
+
+        x.Value = null;
+        Dispatcher.UIThread.RunJobs();
+
+        string[] said = [.. editor.View.GetVisualDescendants()
+            .OfType<TextBlock>()
+            .Select(text => text.Text ?? string.Empty)];
+
+        Assert.Contains(Localizer.Instance["FormNumberNeeded"], said);
+        Assert.DoesNotContain(said, text => text.Contains("Convert", StringComparison.OrdinalIgnoreCase));
     }
 
     // ------------------------------------------------------------------ los andamios
