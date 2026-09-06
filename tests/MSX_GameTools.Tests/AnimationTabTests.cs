@@ -7,6 +7,8 @@ using Avalonia.Platform;
 using Avalonia.VisualTree;
 using MSX_GameTools.Entities;
 using MSX_GameTools.ViewModels;
+using Material.Icons;
+using Material.Icons.Avalonia;
 using Xunit;
 using static MSX_GameTools.Tests.SpriteCanvasHarness;
 
@@ -21,6 +23,36 @@ namespace MSX_GameTools.Tests;
 /// </remarks>
 public class AnimationTabTests
 {
+    /// <summary>
+    /// Los botones de agregar pasos llevan el signo de más.
+    /// </summary>
+    /// <remarks>
+    /// Al lado del menos y de las dos flechas, dos botones que sólo ponían «Fotograma» y
+    /// «Bucle» no se leían como los de agregar: había que pararse a averiguar cuál era cuál.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Los_botones_de_agregar_pasos_llevan_el_mas()
+    {
+        using var editor = new SpriteCanvasHarness(PaintMode.Drag, SpriteBank.SpriteType.MSX2);
+
+        editor.ViewModel.AddAnimationCommand.Execute(null);
+        editor.SetThumbnailMode(ThumbnailMode.Animations);
+
+        SpriteAnimationViewModel animation = editor.ViewModel.SelectedAnimation!;
+
+        foreach (System.Windows.Input.ICommand adds in
+                 new[] { animation.AddFrameCommand, animation.AddLoopCommand })
+        {
+            Button button = editor.View.GetVisualDescendants()
+                .OfType<Button>()
+                .Single(control => ReferenceEquals(control.Command, adds));
+
+            Assert.Contains(
+                button.GetVisualDescendants().OfType<MaterialIcon>(),
+                icon => icon.Kind == MaterialIconKind.Plus);
+        }
+    }
+
     [AvaloniaFact]
     public void La_pestana_de_animaciones_ensena_las_del_banco()
     {

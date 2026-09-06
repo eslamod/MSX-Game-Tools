@@ -841,12 +841,26 @@
           <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4" Margin="0,0,0,4">
             <TextBlock Text="{l:Localize AnimSteps}" FontWeight="Bold" VerticalAlignment="Center"
                        Margin="0,0,6,0" Foreground="White" />
-            <Button Content="{l:Localize AnimAddFrame}" Padding="8,2"
+            <!-- «Fotograma +» y «Bucle +»: al lado del menos, de la flecha arriba y de la
+                 flecha abajo, dos botones que solo ponian el nombre no se leian como los de
+                 agregar y habia que pararse a averiguar cual era cual. El mas detras y no
+                 delante, que asi se lee «fotograma mas» y no «mas fotograma». -->
+            <Button Padding="8,2"
                     Command="{Binding SelectedAnimation.AddFrameCommand}"
-                    ToolTip.Tip="{l:Localize AnimAddFrameTip}" />
-            <Button Content="{l:Localize AnimAddLoop}" Padding="8,2"
+                    ToolTip.Tip="{l:Localize AnimAddFrameTip}">
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <TextBlock Text="{l:Localize AnimAddFrame}" VerticalAlignment="Center" />
+                <icons:MaterialIcon Kind="Plus" Width="15" Height="15" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Padding="8,2"
                     Command="{Binding SelectedAnimation.AddLoopCommand}"
-                    ToolTip.Tip="{l:Localize AnimAddLoopTip}" />
+                    ToolTip.Tip="{l:Localize AnimAddLoopTip}">
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <TextBlock Text="{l:Localize AnimAddLoop}" VerticalAlignment="Center" />
+                <icons:MaterialIcon Kind="Plus" Width="15" Height="15" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
             <Button Width="28" Padding="0" Command="{Binding SelectedAnimation.RemoveStepCommand}"
                     ToolTip.Tip="{l:Localize AnimRemoveStep}">
               <icons:MaterialIcon Kind="Minus" />
