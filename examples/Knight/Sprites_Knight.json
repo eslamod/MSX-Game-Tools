@@ -1130,11 +1130,231 @@
       ],
       "colors": "FFFFFFFFFFFFFFFF",
       "index": 47
+    },
+    {
+      "rows": [
+        "07E0",
+        "0FF0",
+        "1FF8",
+        "1FF8",
+        "1FF8",
+        "1FF8",
+        "1FF8",
+        "2FF4",
+        "700E",
+        "77EE",
+        "2FF6",
+        "0006",
+        "0FF0",
+        "0F00",
+        "0900",
+        "0600"
+      ],
+      "colors": "FFFFFFFFFFFFFFFF",
+      "index": 48
+    },
+    {
+      "rows": [
+        "0000",
+        "0000",
+        "07E0",
+        "1FF8",
+        "39FC",
+        "3FFC",
+        "6FFE",
+        "6FFE",
+        "6FFE",
+        "37FC",
+        "3FFC",
+        "1FF8",
+        "07E0",
+        "0000",
+        "0000",
+        "0000"
+      ],
+      "colors": "FFFFFFFFFFFFFFFF",
+      "index": 49
+    },
+    {
+      "rows": [
+        "0000",
+        "01C0",
+        "07F0",
+        "0DF8",
+        "0FF8",
+        "1BFC",
+        "17FC",
+        "17FC",
+        "17FC",
+        "1FFC",
+        "1FFC",
+        "0FF8",
+        "0FF8",
+        "07F0",
+        "01C0",
+        "0000"
+      ],
+      "colors": "FFFFFFFFFFFFFFFF",
+      "index": 50
+    },
+    {
+      "rows": [
+        "0000",
+        "0000",
+        "07E0",
+        "1FF8",
+        "3F9C",
+        "3FFC",
+        "7FF6",
+        "7FF6",
+        "7FF6",
+        "3FEC",
+        "3FFC",
+        "1FF8",
+        "07E0",
+        "0000",
+        "0000",
+        "0000"
+      ],
+      "colors": "FFFFFFFFFFFFFFFF",
+      "index": 51
+    },
+    {
+      "rows": [
+        "0000",
+        "0380",
+        "0FE0",
+        "1FB0",
+        "1FF0",
+        "3FD8",
+        "3FE8",
+        "3FE8",
+        "3FE8",
+        "3FF8",
+        "3FF8",
+        "1FF0",
+        "1FF0",
+        "0FE0",
+        "0380",
+        "0000"
+      ],
+      "colors": "FFFFFFFFFFFFFFFF",
+      "index": 52
+    },
+    {
+      "rows": [
+        "FF00",
+        "FF00",
+        "FF00",
+        "FF00",
+        "FF00",
+        "FF00",
+        "FF00",
+        "FF00",
+        "0000",
+        "0000",
+        "0000",
+        "0000",
+        "0000",
+        "0000",
+        "0000",
+        "0000"
+      ],
+      "colors": "FFFFFFFFFFFFFFFF",
+      "index": 53
+    },
+    {
+      "rows": [
+        "00FF",
+        "00FF",
+        "00FF",
+        "00FF",
+        "00FF",
+        "00FF",
+        "00FF",
+        "00FF",
+        "0000",
+        "0000",
+        "0000",
+        "0000",
+        "0000",
+        "0000",
+        "0000",
+        "0000"
+      ],
+      "colors": "FFFFFFFFFFFFFFFF",
+      "index": 54
+    },
+    {
+      "rows": [
+        "6006",
+        "B81D",
+        "3C3C",
+        "3E7C",
+        "7C3E",
+        "BA5D",
+        "1BD8",
+        "1DB8",
+        "13C8",
+        "0180",
+        "0000",
+        "0000",
+        "0000",
+        "0000",
+        "0000",
+        "0000"
+      ],
+      "colors": "1111111111111111",
+      "index": 55
+    },
+    {
+      "rows": [
+        "0000",
+        "0000",
+        "0000",
+        "0000",
+        "0000",
+        "0240",
+        "13C8",
+        "1DB8",
+        "3BDC",
+        "3DBC",
+        "781E",
+        "742E",
+        "6006",
+        "500A",
+        "2004",
+        "1008"
+      ],
+      "colors": "1111111111111111",
+      "index": 56
+    },
+    {
+      "rows": [
+        "07E0",
+        "1FF8",
+        "3FFC",
+        "3FFC",
+        "1FF8",
+        "07E0",
+        "0000",
+        "0000",
+        "0000",
+        "0000",
+        "0000",
+        "0000",
+        "0000",
+        "0000",
+        "0000",
+        "0000"
+      ],
+      "colors": "1111111111111111",
+      "index": 57
     }
   ],
   "groups": [
     {
-      "name": "Group 1",
+      "name": "knigh1",
       "members": [
         {
           "pattern": 0,
@@ -1303,12 +1523,647 @@
         }
       ],
       "id": 0
+    },
+    {
+      "name": "knight2",
+      "members": [
+        {
+          "pattern": 0,
+          "offsetX": 0,
+          "offsetY": -10,
+          "lines": [
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            }
+          ]
+        },
+        {
+          "pattern": 48,
+          "offsetX": 0,
+          "offsetY": 1,
+          "lines": [
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            }
+          ]
+        },
+        {
+          "pattern": 2,
+          "offsetX": 0,
+          "offsetY": 8,
+          "lines": [
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            }
+          ]
+        }
+      ],
+      "id": 1
+    },
+    {
+      "name": "ball1",
+      "members": [
+        {
+          "pattern": 49,
+          "offsetX": 0,
+          "offsetY": 0,
+          "lines": [
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            }
+          ]
+        },
+        {
+          "pattern": 53,
+          "offsetX": 3,
+          "offsetY": 3,
+          "lines": [
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            }
+          ]
+        }
+      ],
+      "id": 2
+    },
+    {
+      "name": "ball2",
+      "members": [
+        {
+          "pattern": 50,
+          "offsetX": 0,
+          "offsetY": 0,
+          "lines": [
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            }
+          ]
+        },
+        {
+          "pattern": 53,
+          "offsetX": 4,
+          "offsetY": 3,
+          "lines": [
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            }
+          ]
+        }
+      ],
+      "id": 3
+    },
+    {
+      "name": "Group 1",
+      "members": [
+        {
+          "pattern": 55,
+          "offsetX": 0,
+          "offsetY": 2,
+          "lines": [
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            }
+          ]
+        },
+        {
+          "pattern": 57,
+          "offsetX": 0,
+          "offsetY": 24,
+          "lines": [
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            }
+          ]
+        }
+      ],
+      "id": 4
+    },
+    {
+      "name": "Group 2",
+      "members": [
+        {
+          "pattern": 56,
+          "offsetX": 0,
+          "offsetY": 0,
+          "lines": [
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            }
+          ]
+        },
+        {
+          "pattern": 57,
+          "offsetX": 0,
+          "offsetY": 24,
+          "lines": [
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            },
+            {
+              "color": "1"
+            }
+          ]
+        }
+      ],
+      "id": 5
     }
   ],
   "backgrounds": [],
   "animations": [
     {
-      "name": "Animation 1",
+      "name": "bone_rotate",
       "kind": "Patterns",
       "mode": "Loop",
       "steps": [
@@ -1343,6 +2198,81 @@
           "type": "frame",
           "target": 28,
           "wait": 6,
+          "offsetX": 0,
+          "offsetY": 0,
+          "event": 0,
+          "times": 0
+        }
+      ]
+    },
+    {
+      "name": "kmare_walking",
+      "kind": "Groups",
+      "mode": "Loop",
+      "steps": [
+        {
+          "type": "frame",
+          "target": 0,
+          "wait": 10,
+          "offsetX": 0,
+          "offsetY": 0,
+          "event": 0,
+          "times": 0
+        },
+        {
+          "type": "frame",
+          "target": 1,
+          "wait": 10,
+          "offsetX": 0,
+          "offsetY": 0,
+          "event": 0,
+          "times": 0
+        }
+      ]
+    },
+    {
+      "name": "black_ball",
+      "kind": "Groups",
+      "mode": "Loop",
+      "steps": [
+        {
+          "type": "frame",
+          "target": 2,
+          "wait": 10,
+          "offsetX": 0,
+          "offsetY": 0,
+          "event": 0,
+          "times": 0
+        },
+        {
+          "type": "frame",
+          "target": 3,
+          "wait": 10,
+          "offsetX": 0,
+          "offsetY": 0,
+          "event": 0,
+          "times": 0
+        }
+      ]
+    },
+    {
+      "name": "bat",
+      "kind": "Groups",
+      "mode": "Loop",
+      "steps": [
+        {
+          "type": "frame",
+          "target": 4,
+          "wait": 8,
+          "offsetX": 0,
+          "offsetY": 0,
+          "event": 0,
+          "times": 0
+        },
+        {
+          "type": "frame",
+          "target": 5,
+          "wait": 8,
           "offsetX": 0,
           "offsetY": 0,
           "event": 0,
