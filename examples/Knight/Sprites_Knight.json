@@ -2158,6 +2158,562 @@
         }
       ],
       "id": 5
+    },
+    {
+      "name": "Group nones",
+      "members": [
+        {
+          "pattern": 40,
+          "offsetX": -1,
+          "offsetY": 7,
+          "lines": [
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            }
+          ]
+        },
+        {
+          "pattern": 39,
+          "offsetX": 7,
+          "offsetY": -9,
+          "lines": [
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            },
+            {
+              "color": "7"
+            }
+          ]
+        },
+        {
+          "pattern": 42,
+          "offsetX": -1,
+          "offsetY": 0,
+          "lines": [
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            }
+          ]
+        },
+        {
+          "pattern": 41,
+          "offsetX": -1,
+          "offsetY": 23,
+          "lines": [
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            }
+          ]
+        },
+        {
+          "pattern": 44,
+          "offsetX": 15,
+          "offsetY": 7,
+          "lines": [
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            }
+          ]
+        },
+        {
+          "pattern": 46,
+          "offsetX": 15,
+          "offsetY": 0,
+          "lines": [
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            }
+          ]
+        },
+        {
+          "pattern": 45,
+          "offsetX": 15,
+          "offsetY": 23,
+          "lines": [
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            },
+            {
+              "color": "6"
+            }
+          ]
+        },
+        {
+          "pattern": 38,
+          "offsetX": 9,
+          "offsetY": -16,
+          "lines": [
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            }
+          ]
+        },
+        {
+          "pattern": 43,
+          "offsetX": -1,
+          "offsetY": 16,
+          "lines": [
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            }
+          ]
+        },
+        {
+          "pattern": 47,
+          "offsetX": 15,
+          "offsetY": 16,
+          "lines": [
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            },
+            {
+              "color": "F"
+            }
+          ]
+        }
+      ],
+      "id": 6
     }
   ],
   "backgrounds": [],

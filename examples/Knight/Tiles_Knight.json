@@ -1611,7 +1611,28 @@
       "attributes": 0
     }
   ],
-  "blocks": [],
+  "blocks": [
+    {
+      "name": "Bloque 1",
+      "rows": [
+        "283E",
+        "2927"
+      ]
+    },
+    {
+      "name": "Bloque 2",
+      "rows": [
+        "302E",
+        "312F"
+      ]
+    },
+    {
+      "name": "Bloque 3",
+      "rows": [
+        "3F404142"
+      ]
+    }
+  ],
   "superTileWidth": 0,
   "superTileHeight": 0,
   "attributeNames": [
