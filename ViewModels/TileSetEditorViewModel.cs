@@ -30,7 +30,7 @@ public enum TileTool
 /// <summary>
 /// Edición de un juego de tiles: el patrón actual en el lienzo y los 256 en la rejilla.
 /// </summary>
-public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocument
+public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocument, IPatternMoves
 {
     private readonly TileSet _tileSet;
 
@@ -692,8 +692,79 @@ public partial class TileSetEditorViewModel : PanelBaseViewModel, IPaletteDocume
         UndoDrawingCommand.NotifyCanExecuteChanged();
         RedoDrawingCommand.NotifyCanExecuteChanged();
 
+        // Undoing a move brings the line colours back to where they were, and the cells that
+        // show them are still pointing at the same lines.
+        ShowRowColors();
+
         RenderAll();
         RefreshRequested?.Invoke();
+    }
+
+    // ------------------------------------------------------------------ mover el dibujo
+
+    /// <summary>Mirror sideways: the same drawing looking the other way.</summary>
+    [RelayCommand]
+    private void FlipHorizontal() => Move(tile => tile.FlipHorizontal());
+
+    [RelayCommand]
+    private void FlipVertical() => Move(tile => tile.FlipVertical());
+
+    [RelayCommand]
+    private void RotateLeft() => Move(tile => tile.Turn(clockwise: false));
+
+    [RelayCommand]
+    private void RotateRight() => Move(tile => tile.Turn(clockwise: true));
+
+    [RelayCommand]
+    private void ShiftLeft() => Move(tile => tile.Shift(-1, 0));
+
+    [RelayCommand]
+    private void ShiftRight() => Move(tile => tile.Shift(1, 0));
+
+    [RelayCommand]
+    private void ShiftUp() => Move(tile => tile.Shift(0, -1));
+
+    [RelayCommand]
+    private void ShiftDown() => Move(tile => tile.Shift(0, 1));
+
+    /// <summary>
+    /// Mirrors, turns or shifts the tile on the canvas, as one step that can be undone.
+    /// </summary>
+    /// <remarks>
+    /// The whole tile goes into the step, colours and all, and not which move was made: that
+    /// way undoing does not have to know how to walk each of the eight back, and it is the very
+    /// same step that a stroke leaves behind.
+    /// </remarks>
+    private void Move(Action<Tile> move)
+    {
+        Tile moved = CurrentTile;
+        Tile before = moved.Copy();
+
+        // The step is opened before anything moves, the same as a stroke: moving says the tile
+        // set has changed, and that notice would throw the history away right before this step
+        // is written down.
+        Undo.Begin();
+
+        move(moved);
+
+        // Writing the step down is what does the rest: the stack says the history has changed,
+        // and that road already marks the document, repaints the thumbnails and puts the colour
+        // cells back in step. It is the same road that undoing this very move takes.
+        Undo.Push(new TileDrawn(moved, before, moved.Copy()));
+    }
+
+    /// <summary>
+    /// Puts the colour cells back in step with the lines they are showing.
+    /// </summary>
+    /// <remarks>
+    /// Each cell reads the colours of the line it is attached to, and the moves that turn the
+    /// drawing over carry those colours along. The cells go on pointing at the same lines, so
+    /// nothing else tells them that what they read has changed underneath.
+    /// </remarks>
+    private void ShowRowColors()
+    {
+        foreach (TileRowColorViewModel cell in RowColors)
+            cell.Refresh();
     }
 
     /// <inheritdoc/>

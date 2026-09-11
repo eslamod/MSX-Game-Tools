@@ -113,16 +113,53 @@ public class Sprite
     public void CopyFrom(Sprite other)
     {
         for (int row = 0; row < Rows; row++)
-        {
-            SpriteRow from = other.ArraySpriteRows[row];
-            SpriteRow into = ArraySpriteRows[row];
-
-            for (int column = 0; column < SpriteRow.Columns; column++)
-                into.ArrayColumns[column] = from.ArrayColumns[column];
-
-            into.Color = from.Color;
-        }
+            ArraySpriteRows[row].CopyFrom(other.ArraySpriteRows[row]);
 
         Background = other.Background;
+    }
+
+    /// <inheritdoc cref="Tile.FlipHorizontal"/>
+    public void FlipHorizontal()
+    {
+        foreach (SpriteRow row in ArraySpriteRows)
+            PatternMoves.Mirror(row.ArrayColumns);
+    }
+
+    /// <summary>Turns the drawing upside down, colours included.</summary>
+    /// <remarks>
+    /// The colour of a line belongs to that line, so it travels with it. In an MSX1 bank all
+    /// sixteen go the same colour and this makes no difference; in MSX2 it is what keeps a
+    /// figure with a red head from coming back with the red still on top.
+    /// </remarks>
+    public void FlipVertical() => Reorder(line => Rows - 1 - line);
+
+    /// <summary>
+    /// Turns the drawing a quarter, one way or the other.
+    /// </summary>
+    /// <remarks>
+    /// The pixels turn and the line colours do not, because there is one per line and turning
+    /// it would mean ending up down a column: the attribute table of the VDP has no way of
+    /// saying that. A pattern of a single colour turns exactly.
+    /// </remarks>
+    public void Turn(bool clockwise) =>
+        PatternMoves.Turn([.. ArraySpriteRows.Select(row => row.ArrayColumns)], clockwise);
+
+    /// <inheritdoc cref="Tile.Shift"/>
+    public void Shift(int dx, int dy)
+    {
+        foreach (SpriteRow row in ArraySpriteRows)
+            PatternMoves.Shift(row.ArrayColumns, dx);
+
+        if (dy != 0)
+            Reorder(line => PatternMoves.LineFrom(line, dy, Rows));
+    }
+
+    /// <inheritdoc cref="Tile.Reorder"/>
+    private void Reorder(Func<int, int> source)
+    {
+        Sprite before = Copy();
+
+        for (int line = 0; line < Rows; line++)
+            ArraySpriteRows[line].CopyFrom(before.ArraySpriteRows[source(line)]);
     }
 }

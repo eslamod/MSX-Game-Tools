@@ -7,7 +7,7 @@ using MSX_GameTools.Services;
 
 namespace MSX_GameTools.ViewModels;
 
-public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocument
+public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocument, IPatternMoves
 {
     private readonly SpriteBank _spriteBank;
     private readonly IDialogService _dialogs;
@@ -225,10 +225,70 @@ public partial class SpritesEditorViewModel : PanelBaseViewModel, IPaletteDocume
 
         AddGroupCommand.NotifyCanExecuteChanged();
 
+        // Undoing a move brings the line colours back to where they were, and the cells that
+        // show them are still pointing at the same lines.
+        ShowRowColors();
+
         RenderAllThumbnails();
         RenderAllGroups();
 
         RefreshRequested?.Invoke(CurrentSprite);
+    }
+
+    // ------------------------------------------------------------------ mover el dibujo
+
+    /// <inheritdoc cref="TileSetEditorViewModel.FlipHorizontal"/>
+    [RelayCommand]
+    private void FlipHorizontal() => Move(sprite => sprite.FlipHorizontal());
+
+    [RelayCommand]
+    private void FlipVertical() => Move(sprite => sprite.FlipVertical());
+
+    [RelayCommand]
+    private void RotateLeft() => Move(sprite => sprite.Turn(clockwise: false));
+
+    [RelayCommand]
+    private void RotateRight() => Move(sprite => sprite.Turn(clockwise: true));
+
+    [RelayCommand]
+    private void ShiftLeft() => Move(sprite => sprite.Shift(-1, 0));
+
+    [RelayCommand]
+    private void ShiftRight() => Move(sprite => sprite.Shift(1, 0));
+
+    [RelayCommand]
+    private void ShiftUp() => Move(sprite => sprite.Shift(0, -1));
+
+    [RelayCommand]
+    private void ShiftDown() => Move(sprite => sprite.Shift(0, 1));
+
+    /// <inheritdoc cref="TileSetEditorViewModel.Move"/>
+    private void Move(Action<Sprite> move)
+    {
+        Sprite moved = CurrentSprite;
+        Sprite before = moved.Copy();
+
+        Undo.Begin();
+
+        move(moved);
+
+        // As in the tile editor: writing the step down is what repaints the thumbnails and the
+        // compositions of the groups that use this pattern, and what puts the line colours back
+        // in step. Doing any of it here as well would be doing it twice.
+        Undo.Push(new SpriteDrawn(moved, before, moved.Copy()));
+    }
+
+    /// <inheritdoc cref="TileSetEditorViewModel.ShowRowColors"/>
+    /// <remarks>
+    /// And the single colour of MSX1 along with them: it is the one on the first line, so a
+    /// move that turns the drawing over changes it too.
+    /// </remarks>
+    private void ShowRowColors()
+    {
+        foreach (SpriteRowColorViewModel cell in RowColors)
+            cell.Refresh();
+
+        OnPropertyChanged(nameof(SpriteColor));
     }
 
     /// <inheritdoc/>

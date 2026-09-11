@@ -402,6 +402,43 @@ public class ToolStripLayoutTests : IDisposable
     }
 
     /// <summary>
+    /// Y la tira de abajo del editor de sprites no tapa la tira de miniaturas.
+    /// </summary>
+    /// <remarks>
+    /// El mismo StackPanel que no recorta sobre la misma primera columna de 256, y con menos
+    /// margen todavía: aquí los botones son los grandes de navegación. Lo que queda debajo son
+    /// las miniaturas del banco, que es donde se pulsa para cambiar de patrón, así que un botón
+    /// que se salga se las come.
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_tira_de_abajo_del_editor_de_sprites_no_tapa_las_miniaturas()
+    {
+        using var editor = new MountedEditor("Sprites");
+
+        var grid = (Grid)editor.View.GetVisualDescendants().First(v => v is Grid { Name: "EditorGrid" });
+
+        var strip = (StackPanel)editor.View.GetVisualDescendants()
+            .First(v => v is StackPanel { Name: "SpriteNavStrip" });
+
+        double room = grid.ColumnDefinitions[0].ActualWidth
+            + grid.ColumnDefinitions[1].ActualWidth
+            - strip.Margin.Left - strip.Margin.Right;
+
+        // Lo que piden los hijos, y no el borde del panel como en la del editor de tiles: ésta
+        // cuelga directamente de una celda de la rejilla, y ahí el panel se coloca al ancho de
+        // la celda pase lo que pase, así que su borde no se sale nunca por mucho que sus
+        // botones sí lo hagan. Medido: los hijos piden 314 y el panel dice medir 256. La de
+        // tiles va dentro de otro StackPanel, que mide a lo ancho infinito, y por eso allí sí
+        // vale mirar dónde acaba.
+        double asked = strip.Children.Sum(child => child.DesiredSize.Width);
+
+        Assert.True(
+            asked <= room,
+            $"La tira pide {asked:0.0} y hasta las miniaturas hay {room:0.0}: "
+            + $"se les mete encima {asked - room:0.0} píxeles.");
+    }
+
+    /// <summary>
     /// Ningún rótulo del panel del mapa sale cortado, en ningún idioma.
     /// </summary>
     /// <remarks>

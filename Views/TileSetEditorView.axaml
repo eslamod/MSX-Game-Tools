@@ -511,6 +511,19 @@
                 ToolTip.Tip="{l:Localize RedoTip}">
           <icons:MaterialIcon Kind="Redo" />
         </Button>
+
+        <!-- Moving the drawing: mirrors, turns and one pixel shifts. They act on the tile of
+             the canvas and not on the grid, but they hang from this bar for the same reason
+             undo does: the canvas column measures 256 and is already full. -->
+        <Button x:Name="MovesButton" Classes="tool" Margin="1"
+                ToolTip.Tip="{l:Localize MovesTip}">
+          <icons:MaterialIcon Kind="FlipHorizontal" />
+          <Button.Flyout>
+            <Flyout Placement="Bottom">
+              <views:PatternMovesPad />
+            </Flyout>
+          </Button.Flyout>
+        </Button>
       </WrapPanel>
 
     </DockPanel>

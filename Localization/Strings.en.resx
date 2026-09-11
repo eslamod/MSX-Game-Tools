@@ -323,6 +323,17 @@
   <data name="MapReplaceTip" xml:space="preserve"><value>Change some tiles for others</value></data>
   <data name="UndoTip" xml:space="preserve"><value>Undo</value></data>
   <data name="RedoTip" xml:space="preserve"><value>Redo</value></data>
+  <data name="MovesTip" xml:space="preserve"><value>Turn and shift the drawing</value></data>
+  <data name="MovesTitle" xml:space="preserve"><value>Move the drawing</value></data>
+  <data name="MovesNote" xml:space="preserve"><value>What leaves one side comes back in on the other. Turning moves the pixels, not the line colours.</value></data>
+  <data name="MoveFlipHorizontalTip" xml:space="preserve"><value>Flip horizontally</value></data>
+  <data name="MoveFlipVerticalTip" xml:space="preserve"><value>Flip vertically</value></data>
+  <data name="MoveRotateLeftTip" xml:space="preserve"><value>Turn left</value></data>
+  <data name="MoveRotateRightTip" xml:space="preserve"><value>Turn right</value></data>
+  <data name="MoveLeftTip" xml:space="preserve"><value>One pixel left</value></data>
+  <data name="MoveRightTip" xml:space="preserve"><value>One pixel right</value></data>
+  <data name="MoveUpTip" xml:space="preserve"><value>One pixel up</value></data>
+  <data name="MoveDownTip" xml:space="preserve"><value>One pixel down</value></data>
   <data name="MapZoomInTip" xml:space="preserve"><value>Zoom in</value></data>
   <data name="MapZoomOutTip" xml:space="preserve"><value>Zoom out</value></data>
   <data name="MapFit" xml:space="preserve"><value>Fit</value></data>

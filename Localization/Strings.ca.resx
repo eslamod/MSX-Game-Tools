@@ -324,6 +324,17 @@
   <data name="MapReplaceTip" xml:space="preserve"><value>Canvia uns tiles per uns altres</value></data>
   <data name="UndoTip" xml:space="preserve"><value>Desfés</value></data>
   <data name="RedoTip" xml:space="preserve"><value>Refés</value></data>
+  <data name="MovesTip" xml:space="preserve"><value>Gira i desplaça el dibuix</value></data>
+  <data name="MovesTitle" xml:space="preserve"><value>Mou el dibuix</value></data>
+  <data name="MovesNote" xml:space="preserve"><value>El que surt per un costat torna a entrar per l'altre. El gir mou els píxels, no els colors de línia.</value></data>
+  <data name="MoveFlipHorizontalTip" xml:space="preserve"><value>Mirall horitzontal</value></data>
+  <data name="MoveFlipVerticalTip" xml:space="preserve"><value>Mirall vertical</value></data>
+  <data name="MoveRotateLeftTip" xml:space="preserve"><value>Gira a l'esquerra</value></data>
+  <data name="MoveRotateRightTip" xml:space="preserve"><value>Gira a la dreta</value></data>
+  <data name="MoveLeftTip" xml:space="preserve"><value>Un píxel a l'esquerra</value></data>
+  <data name="MoveRightTip" xml:space="preserve"><value>Un píxel a la dreta</value></data>
+  <data name="MoveUpTip" xml:space="preserve"><value>Un píxel amunt</value></data>
+  <data name="MoveDownTip" xml:space="preserve"><value>Un píxel avall</value></data>
   <data name="MapZoomInTip" xml:space="preserve"><value>Apropa</value></data>
   <data name="MapZoomOutTip" xml:space="preserve"><value>Allunya</value></data>
   <data name="MapFit" xml:space="preserve"><value>Ajusta</value></data>

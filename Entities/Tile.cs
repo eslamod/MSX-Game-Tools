@@ -72,4 +72,64 @@ public class Tile
 
         return copy;
     }
+
+    /// <summary>Mirrors the drawing sideways, leaving every line where it is.</summary>
+    /// <remarks>
+    /// The colours stay put because they have no reason to move: each line keeps the two it
+    /// had, and all that changes is the order of the pixels inside it.
+    /// </remarks>
+    public void FlipHorizontal()
+    {
+        foreach (TileRow row in ArrayTileRows)
+            PatternMoves.Mirror(row.ArrayPattern);
+    }
+
+    /// <summary>Turns the drawing upside down, colours included.</summary>
+    /// <remarks>
+    /// The two colours of a line belong to that line, so they travel with it. Leaving them
+    /// behind would flip the shape and not the drawing: a figure with a red top and a blue
+    /// bottom would come back with the red still on top.
+    /// </remarks>
+    public void FlipVertical() => Reorder(line => Rows - 1 - line);
+
+    /// <summary>
+    /// Turns the drawing a quarter, one way or the other.
+    /// </summary>
+    /// <remarks>
+    /// The pixels turn and the colours do not: they are written one pair per line, so turning
+    /// them would mean ending up down a column, which is not something the tables of GRAPHIC 2
+    /// can say. A tile drawn in one colour turns exactly; one with colour bands comes out
+    /// turned with its bands still lying flat, which is all the VDP would paint anyway.
+    /// </remarks>
+    public void Turn(bool clockwise) =>
+        PatternMoves.Turn([.. ArrayTileRows.Select(row => row.ArrayPattern)], clockwise);
+
+    /// <summary>
+    /// Moves the whole drawing one pixel, wrapping around the edges.
+    /// </summary>
+    /// <remarks>
+    /// Sideways nothing leaves its line, so the colours stay where they are; up and down it is
+    /// the lines themselves that move, and their colours go along, the same as flipping.
+    /// </remarks>
+    public void Shift(int dx, int dy)
+    {
+        foreach (TileRow row in ArrayTileRows)
+            PatternMoves.Shift(row.ArrayPattern, dx);
+
+        if (dy != 0)
+            Reorder(line => PatternMoves.LineFrom(line, dy, Rows));
+    }
+
+    /// <summary>Rebuilds every line from the one <paramref name="source"/> points at.</summary>
+    /// <remarks>
+    /// Through a copy of the whole tile: the lines take from each other, so writing straight
+    /// over them would have the later ones reading what the earlier ones have already changed.
+    /// </remarks>
+    private void Reorder(Func<int, int> source)
+    {
+        Tile before = Copy();
+
+        for (int line = 0; line < Rows; line++)
+            ArrayTileRows[line].CopyFrom(before.ArrayTileRows[source(line)]);
+    }
 }

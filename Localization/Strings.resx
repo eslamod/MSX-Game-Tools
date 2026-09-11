@@ -348,6 +348,17 @@
   <data name="MapReplaceTip" xml:space="preserve"><value>Cambiar unos tiles por otros</value></data>
   <data name="UndoTip" xml:space="preserve"><value>Deshacer</value></data>
   <data name="RedoTip" xml:space="preserve"><value>Rehacer</value></data>
+  <data name="MovesTip" xml:space="preserve"><value>Girar y desplazar el dibujo</value></data>
+  <data name="MovesTitle" xml:space="preserve"><value>Mover el dibujo</value></data>
+  <data name="MovesNote" xml:space="preserve"><value>Lo que sale por un lado vuelve a entrar por el otro. El giro mueve los pixeles, no los colores de línea.</value></data>
+  <data name="MoveFlipHorizontalTip" xml:space="preserve"><value>Espejo horizontal</value></data>
+  <data name="MoveFlipVerticalTip" xml:space="preserve"><value>Espejo vertical</value></data>
+  <data name="MoveRotateLeftTip" xml:space="preserve"><value>Girar a la izquierda</value></data>
+  <data name="MoveRotateRightTip" xml:space="preserve"><value>Girar a la derecha</value></data>
+  <data name="MoveLeftTip" xml:space="preserve"><value>Un pixel a la izquierda</value></data>
+  <data name="MoveRightTip" xml:space="preserve"><value>Un pixel a la derecha</value></data>
+  <data name="MoveUpTip" xml:space="preserve"><value>Un pixel arriba</value></data>
+  <data name="MoveDownTip" xml:space="preserve"><value>Un pixel abajo</value></data>
   <data name="MapZoomInTip" xml:space="preserve"><value>Acercar</value></data>
   <data name="MapZoomOutTip" xml:space="preserve"><value>Alejar</value></data>
   <data name="MapFit" xml:space="preserve"><value>Ajustar</value></data>

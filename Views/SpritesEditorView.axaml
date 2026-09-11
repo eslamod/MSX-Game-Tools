@@ -21,8 +21,11 @@
     </Style>
 
     <!-- La tira de navegacion del banco, que es la mas grande de la ventana. -->
+    <!-- 38 and not 44: six of these and the counter have to fit in the 256 of the canvas
+         column plus the 64 of the colour strip, which is all there is before the thumbnails
+         start. At 44 they asked for 344 and the last one was drawn on top of them. -->
     <Style Selector="Button.navigate">
-      <Setter Property="Width" Value="44" />
+      <Setter Property="Width" Value="38" />
       <Setter Property="Margin" Value="3" />
       <Setter Property="HorizontalContentAlignment" Value="Center" />
     </Style>
@@ -1261,7 +1264,7 @@
     </DockPanel>
 
     <!-- Navegación por los sprites del banco -->
-    <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal"
+    <StackPanel x:Name="SpriteNavStrip" Grid.Row="2" Grid.Column="0" Orientation="Horizontal"
                 Background="{DynamicResource AppPanelBackground}" Height="48" VerticalAlignment="Top">
       <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0">
         <!-- Desde 0, como los numera el VDP y como los escribe el codigo del juego. -->
@@ -1297,6 +1300,19 @@
       <Button Classes="navigate" Command="{Binding RedoDrawingCommand}"
               ToolTip.Tip="{l:Localize RedoTip}">
         <icons:MaterialIcon Kind="Redo" />
+      </Button>
+
+      <!-- Moving the drawing: mirrors, turns and one pixel shifts. Here next to the canvas,
+           which is what they act on, and hanging from one button because eight of them would
+           not fit: this strip has the width of the canvas column and no more. -->
+      <Button x:Name="MovesButton" Classes="navigate"
+              ToolTip.Tip="{l:Localize MovesTip}">
+        <icons:MaterialIcon Kind="FlipHorizontal" />
+        <Button.Flyout>
+          <Flyout Placement="Top">
+            <views:PatternMovesPad />
+          </Flyout>
+        </Button.Flyout>
       </Button>
     </StackPanel>
 
