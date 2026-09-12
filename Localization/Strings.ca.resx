@@ -668,6 +668,8 @@ Recorda copiar cada taula {2} vegades a la VRAM, una per terç de pantalla.</val
   <data name="PickExportPatterns" xml:space="preserve"><value>Exportar patrons d'sprite</value></data>
   <data name="ShiftWanted" xml:space="preserve"><value>A ({0}, {1}) hi té el {2}, que demana: {3}</value></data>
   <data name="ShiftNoFill" xml:space="preserve"><value>A ({0}, {1}) hi té el {2}, que demana un color que aquest tile no sap pintar</value></data>
+  <data name="ShiftBand" xml:space="preserve"><value>S'analitza:</value></data>
+  <data name="ShiftBandTiles" xml:space="preserve"><value>Amb els tiles de {0}.</value></data>
   <data name="ShiftScope" xml:space="preserve"><value>El que es desplaça</value></data>
   <data name="ShiftTilesFrom" xml:space="preserve"><value>Tiles del</value></data>
   <data name="ShiftRowsFrom" xml:space="preserve"><value>Files de la</value></data>

@@ -712,6 +712,8 @@ Recuerda copiar cada tabla {2} veces en VRAM, una por tercio de pantalla.</value
   <data name="PickExportPatterns" xml:space="preserve"><value>Exportar patrones de sprite</value></data>
   <data name="ShiftWanted" xml:space="preserve"><value>En ({0}, {1}) tiene al {2}, que pide: {3}</value></data>
   <data name="ShiftNoFill" xml:space="preserve"><value>En ({0}, {1}) tiene al {2}, que pide un color que este tile no sabe pintar</value></data>
+  <data name="ShiftBand" xml:space="preserve"><value>Se analiza:</value></data>
+  <data name="ShiftBandTiles" xml:space="preserve"><value>Con los tiles de {0}.</value></data>
   <data name="ShiftScope" xml:space="preserve"><value>Lo que se desplaza</value></data>
   <data name="ShiftTilesFrom" xml:space="preserve"><value>Tiles del</value></data>
   <data name="ShiftRowsFrom" xml:space="preserve"><value>Filas de la</value></data>

@@ -287,6 +287,12 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
 
     partial void OnPickingBandChanged(int value) => RefreshTileChoices();
 
+    /// <summary>The tile set that draws a band of the map.</summary>
+    public TileSet TileSetOfBand(int band) => PanelOfThird(band).TileSet;
+
+    /// <summary>And its thumbnails, for whoever has to show those tiles.</summary>
+    public IList<ImageMini> TilesOfBand(int band) => PanelOfThird(band).Thumbnails;
+
     /// <summary>How many bands the map is drawn with, from one to three.</summary>
     public int BandCount => CellImagesByThird.Count;
 

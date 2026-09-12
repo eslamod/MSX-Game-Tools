@@ -163,6 +163,18 @@ public partial class ShiftReportViewModel : PanelBaseViewModel
     [ObservableProperty]
     private string? _resultMessage;
 
+    /// <summary>
+    /// Which band of the screen is being looked at.
+    /// </summary>
+    /// <remarks>
+    /// The report splits by band and does not lose anything on the way: it only ever compares a
+    /// cell with the one to its right, which is in the same row, so nothing it looks at crosses
+    /// the line between two bands. What it cannot do is mix them, because the same tile number
+    /// is another drawing in each band and the table of shifted copies is one per band.
+    /// </remarks>
+    [ObservableProperty]
+    private int _band;
+
     public ShiftReportViewModel(MainWindowViewModel mainWindowVm, MapEditorViewModel editor)
     {
         _mainWindowVm = mainWindowVm;
@@ -171,7 +183,7 @@ public partial class ShiftReportViewModel : PanelBaseViewModel
         Header = Text.Format("ShiftHeader", editor.Map.Name);
         TagId = "shift:report";
 
-        _lastRow = Math.Max(0, editor.Map.Height - 1);
+        _lastRow = MaxRow;
 
         _report = Analyse();
 
@@ -182,7 +194,33 @@ public partial class ShiftReportViewModel : PanelBaseViewModel
 
     public int MaxTile => TileSet.TileCount - 1;
 
-    public int MaxRow => Math.Max(0, _editor.Map.Height - 1);
+    /// <summary>Whether the map is drawn with more than one tile set, and there are bands to pick.</summary>
+    public bool ShowsBands => _editor.BandCount > 1;
+
+    /// <summary>And whether it reaches the bottom one.</summary>
+    public bool HasBottomBand => _editor.BandCount > 2;
+
+    /// <summary>The first row that can be looked at: the top one of the band.</summary>
+    public int MinRow => ShowsBands ? Band * TileMap.RowsPerThird : 0;
+
+    /// <summary>And the last one, which is where the band ends or where the map does.</summary>
+    public int MaxRow => ShowsBands
+        ? Math.Min(((Band + 1) * TileMap.RowsPerThird) - 1, _editor.Map.Height - 1)
+        : Math.Max(0, _editor.Map.Height - 1);
+
+    /// <summary>Which tile set the band being looked at is drawn with.</summary>
+    public string BandName => Text.Format("ShiftBandTiles", _editor.Map.TileSetFor(MinRow).Name);
+
+    /// <summary>
+    /// The name of what gets exported, with the band when there is more than one.
+    /// </summary>
+    /// <remarks>
+    /// Each band has its own table of shifted copies, so they cannot all come out with the same
+    /// name: the second one would be saved over the first without saying a word.
+    /// </remarks>
+    public string ExportName => ShowsBands
+        ? $"{_editor.Map.Name} {_editor.Map.TileSetFor(MinRow).Name}"
+        : _editor.Map.Name;
 
     /// <summary>Las filas que se ven ahora mismo.</summary>
     public ObservableCollection<ShiftTileRowViewModel> Rows { get; } = [];
@@ -229,12 +267,13 @@ public partial class ShiftReportViewModel : PanelBaseViewModel
     {
         FirstTile = Math.Min(FirstTile, LastTile),
         LastTile = Math.Max(FirstTile, LastTile),
-        FirstRow = Math.Min(FirstRow, LastRow),
-        LastRow = Math.Max(FirstRow, LastRow),
+        FirstRow = Math.Clamp(Math.Min(FirstRow, LastRow), MinRow, MaxRow),
+        LastRow = Math.Clamp(Math.Max(FirstRow, LastRow), MinRow, MaxRow),
         Ignored = _ignored,
     };
 
-    private MapShiftReport Analyse() => MapShiftAnalysis.Of(_editor.Map, _editor.TileSet, Scope());
+    private MapShiftReport Analyse() =>
+        MapShiftAnalysis.Of(_editor.Map, _editor.TileSetOfBand(Band), Scope());
 
     /// <summary>
     /// Rehace el informe entero.
@@ -276,21 +315,44 @@ public partial class ShiftReportViewModel : PanelBaseViewModel
 
     partial void OnLastRowChanged(int value) => Recompute();
 
+    /// <summary>
+    /// Changing band moves the rows to the ones of that band.
+    /// </summary>
+    /// <remarks>
+    /// The range is inside the band, not on top of it: what the rows are for is leaving out the
+    /// scoreboard and whatever else does not scroll, and that is said band by band.
+    /// </remarks>
+    partial void OnBandChanged(int value)
+    {
+        OnPropertyChanged(nameof(MinRow));
+        OnPropertyChanged(nameof(MaxRow));
+        OnPropertyChanged(nameof(BandName));
+
+        FirstRow = MinRow;
+        LastRow = MaxRow;
+
+        Recompute();
+    }
+
     /// <summary>El dibujo de un tile, o nada si ese número no existe en el juego.</summary>
-    private ImageMini? TileAt(int index) =>
-        (uint)index < (uint)_editor.Tiles.Count ? _editor.Tiles[index] : null;
+    private ImageMini? TileAt(int index)
+    {
+        IList<ImageMini> tiles = _editor.TilesOfBand(Band);
+
+        return (uint)index < (uint)tiles.Count ? tiles[index] : null;
+    }
 
     [RelayCommand]
     private async Task ExportAssemblerAsync()
     {
         string? path = await _mainWindowVm.Dialogs.PickFileToSaveAsync(
             Text["PickExportShift"],
-            $"{MainWindowViewModel.CleanFileName(_editor.Map.Name)}_shift.asm",
+            $"{MainWindowViewModel.CleanFileName(ExportName)}_shift.asm",
             PickerFileKind.Assembler);
 
         await WriteAsync(path, () => File.WriteAllTextAsync(
             path!, MapShiftExporter.ToAssembler(
-                _report, _editor.Map.Name, _mainWindowVm.Preferences.AsmStyle)));
+                _report, ExportName, _mainWindowVm.Preferences.AsmStyle)));
     }
 
     [RelayCommand]
@@ -298,7 +360,7 @@ public partial class ShiftReportViewModel : PanelBaseViewModel
     {
         string? path = await _mainWindowVm.Dialogs.PickFileToSaveAsync(
             Text["PickExportShift"],
-            $"{MainWindowViewModel.CleanFileName(_editor.Map.Name)}_shift.bin",
+            $"{MainWindowViewModel.CleanFileName(ExportName)}_shift.bin",
             PickerFileKind.Binary);
 
         await WriteAsync(path, () => File.WriteAllBytesAsync(path!, MapShiftExporter.ToBinary(_report)));

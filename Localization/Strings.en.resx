@@ -667,6 +667,8 @@ Remember to copy each table {2} times into VRAM, one per third of the screen.</v
   <data name="PickExportPatterns" xml:space="preserve"><value>Export sprite patterns</value></data>
   <data name="ShiftWanted" xml:space="preserve"><value>At ({0}, {1}) it has tile {2} next to it, which asks for: {3}</value></data>
   <data name="ShiftNoFill" xml:space="preserve"><value>At ({0}, {1}) it has tile {2} next to it, which asks for a colour this tile cannot paint</value></data>
+  <data name="ShiftBand" xml:space="preserve"><value>Looking at:</value></data>
+  <data name="ShiftBandTiles" xml:space="preserve"><value>With the tiles of {0}.</value></data>
   <data name="ShiftScope" xml:space="preserve"><value>What actually shifts</value></data>
   <data name="ShiftTilesFrom" xml:space="preserve"><value>Tiles from</value></data>
   <data name="ShiftRowsFrom" xml:space="preserve"><value>Rows from</value></data>
