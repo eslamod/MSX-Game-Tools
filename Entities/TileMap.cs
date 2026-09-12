@@ -153,12 +153,26 @@ public class TileMap
     public void UseTileSets(IReadOnlyList<TileSetRef> tileSets)
     {
         _tileSets.Clear();
+        _tileSets.AddRange(BandsOf(tileSets));
+    }
 
-        foreach (TileSetRef tileSet in tileSets.Take(MaxTileSets))
-            _tileSets.Add(tileSet);
+    /// <summary>
+    /// The bands a map keeps out of those.
+    /// </summary>
+    /// <remarks>
+    /// At most three, because there is no fourth third; at least one, because a map always has
+    /// a first tile set even if it is nobody; and one when they all match, because three copies
+    /// of the same one say the same thing and would end up written into the file as a list of
+    /// three. It is also what lets anyone tell that nothing has changed.
+    /// </remarks>
+    public static IReadOnlyList<TileSetRef> BandsOf(IReadOnlyList<TileSetRef> tileSets)
+    {
+        TileSetRef[] bands = [.. tileSets.Take(MaxTileSets)];
 
-        if (_tileSets.Count == 0)
-            _tileSets.Add(TileSetRef.None);
+        if (bands.Length == 0)
+            return [TileSetRef.None];
+
+        return bands.All(band => band == bands[0]) ? [bands[0]] : bands;
     }
 
     /// <summary>

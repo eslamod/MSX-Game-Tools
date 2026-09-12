@@ -81,6 +81,22 @@ public partial class EditPropertiesViewModel : PanelBaseViewModel
             }
         }
 
+        if (document is MapEditorViewModel map)
+        {
+            Bands = new MapBandsViewModel(mainWindowVm.TileSets, map.Map.Height)
+            {
+                TileSet = mainWindowVm.TileSetOf(map.Map.TileSets[0]),
+            };
+
+            // After the first one: setting the map's own set drags the other two along, which
+            // is what is wanted when picking and not when opening the form.
+            if (Bands.ShowsMiddle)
+                Bands.Middle = BandOf(mainWindowVm, map, 1) ?? Bands.TileSet;
+
+            if (Bands.ShowsBottom)
+                Bands.Bottom = BandOf(mainWindowVm, map, 2) ?? Bands.TileSet;
+        }
+
         Header = $"{Localizer.Instance["TreeProperties"]}: {document.DocumentName}";
         TagId = "properties";
     }
@@ -126,6 +142,24 @@ public partial class EditPropertiesViewModel : PanelBaseViewModel
     }
 
     public bool HasAffected => Affected.Length > 0;
+
+    /// <summary>
+    /// The tile set of each band, when what is being looked at is a map.
+    /// </summary>
+    /// <remarks>
+    /// Changing it was not possible before, not even with a single tile set, and it is worth
+    /// more than it looks: a map drawn with the wrong set, or one that outgrew the set it was
+    /// started with, had no way back other than making it again.
+    /// </remarks>
+    public MapBandsViewModel? Bands { get; }
+
+    /// <summary>The bands only show up when what is being looked at is a map.</summary>
+    public bool IsMap => Document is MapEditorViewModel;
+
+    /// <summary>The open panel of the tile set of a band of the map.</summary>
+    private static TileSetEditorViewModel? BandOf(
+        MainWindowViewModel main, MapEditorViewModel map, int band) =>
+        main.TileSetOf(map.Map.TileSetFor(band * TileMap.RowsPerThird));
 
     /// <summary>Los supertiles sólo salen si lo que se está mirando es un juego de tiles.</summary>
     public bool IsTileSet => Document is TileSetEditorViewModel;
@@ -201,14 +235,42 @@ public partial class EditPropertiesViewModel : PanelBaseViewModel
             return;
         }
 
+        if (Bands?.Clash() is { } mixed)
+        {
+            ErrorMessage = Localizer.Instance.Format("MapBandPalette", mixed.TileSet.Name);
+
+            return;
+        }
+
         ErrorMessage = null;
 
+        ApplyBands();
         ApplySuperTiles();
         ApplyAttributes();
         StopWatching();
 
         _mainWindowVm.Rename(Document, Name);
         _mainWindowVm.RightPanViewModel = null;
+    }
+
+    /// <summary>
+    /// Takes the chosen tile sets to the map.
+    /// </summary>
+    /// <remarks>
+    /// Only when they really change: coming through here to rename must not repaint the map nor
+    /// leave it unsaved for nothing.
+    /// </remarks>
+    private void ApplyBands()
+    {
+        if (Document is not MapEditorViewModel map || Bands is null)
+            return;
+
+        IReadOnlyList<TileSetEditorViewModel> chosen = [.. Bands.Chosen()];
+
+        if (chosen.Count == 0 || map.Map.TileSets.SequenceEqual(Bands.Refs()))
+            return;
+
+        map.UseTileSets(chosen);
     }
 
     /// <summary>

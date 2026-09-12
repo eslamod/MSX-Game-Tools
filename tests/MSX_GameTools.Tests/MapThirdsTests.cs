@@ -179,6 +179,25 @@ public class MapThirdsTests
         Assert.Equal(string.Empty, map.TileSetName);
     }
 
+    /// <summary>
+    /// Tres bandas iguales son una sola.
+    /// </summary>
+    /// <remarks>
+    /// Tres copias del mismo juego dicen lo mismo que una, acabarían escritas en el fichero
+    /// como una lista de tres, y con ellas no habría forma de ver que un mapa no ha cambiado.
+    /// </remarks>
+    [Fact]
+    public void Tres_bandas_iguales_son_una_sola()
+    {
+        TileMap map = Map(24);
+        TileSetRef bosque = Ref("Bosque");
+
+        map.UseTileSets([bosque, bosque, bosque]);
+
+        Assert.Single(map.TileSets);
+        Assert.Equal("Bosque", map.TileSetFor(16).Name);
+    }
+
     /// <summary>No hay cuarto tercio: lo que pase de tres se queda fuera.</summary>
     [Fact]
     public void No_caben_mas_de_tres()

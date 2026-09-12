@@ -232,6 +232,7 @@
   <data name="MapBandMiddle" xml:space="preserve"><value>Medio</value></data>
   <data name="MapBandBottom" xml:space="preserve"><value>Abajo</value></data>
   <data name="MapBandsTip" xml:space="preserve"><value>En screen 2 cada tercio de la pantalla lee su propio banco de patrones, así que cada banda puede llevar un juego distinto. La de arriba es la del mapa.</value></data>
+  <data name="MapBandsChangeTip" xml:space="preserve"><value>Las celdas guardan números de tile: al cambiar de juego, el mapa se dibuja con otros dibujos sin que ningún número se mueva.</value></data>
   <data name="MapBandPalette" xml:space="preserve"><value>«{0}» usa otra paleta. En la pantalla sólo hay una, así que las bandas tienen que compartirla: asígnales la misma desde la barra.</value></data>
 
   <!-- Preferencias -->

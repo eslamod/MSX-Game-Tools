@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:views="clr-namespace:MSX_GameTools.Views"
              xmlns:l="clr-namespace:MSX_GameTools.Localization"
              xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="300"
@@ -45,6 +46,17 @@
     <TextBlock Text="{Binding Affected}"
                IsVisible="{Binding HasAffected}"
                Foreground="{DynamicResource AppTextSecondary}" TextWrapping="Wrap" />
+
+    <!-- With which tile set each band of the screen is drawn. Changing it was not possible
+         before, not even with a single one: a map drawn with the wrong set had no way back
+         other than making it again. -->
+    <StackPanel IsVisible="{Binding IsMap}" Margin="0,10,0,0">
+
+      <views:MapBandsView DataContext="{Binding Bands}" />
+
+      <TextBlock Text="{l:Localize MapBandsChangeTip}"
+                 Foreground="{DynamicResource AppTextWarning}" TextWrapping="Wrap" />
+    </StackPanel>
 
     <!-- Un juego que ya existe, con sus tiles dibujados, es justo el que uno quiere pasar
          a supertiles; volver a empezar de cero para eso no tiene sentido. -->

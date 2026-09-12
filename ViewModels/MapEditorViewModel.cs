@@ -68,10 +68,10 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
     /// <summary>Tiles por fila del selector, los mismos que el editor y el png.</summary>
     public const int TilesPerRow = 32;
 
-    private readonly TileSetEditorViewModel _tiles;
+    private TileSetEditorViewModel _tiles;
 
     /// <summary>The panels handed over when the map was opened, one per third, as far as they went.</summary>
-    private readonly IReadOnlyList<TileSetEditorViewModel> _chosen;
+    private IReadOnlyList<TileSetEditorViewModel> _chosen;
 
     /// <summary>El bloque que se cogió, para poder pasar al siguiente con la rueda.</summary>
     private int _blockIndex = -1;
@@ -141,9 +141,7 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
 
         ActiveLayer = Layers.LastOrDefault();
 
-        for (int index = 0; index < Tiles.Count; index++)
-            TileChoices.Add(new TileChoiceViewModel(index, Tiles[index]));
-
+        RefreshTileChoices();
         RefreshBlocks();
 
         map.Undo.Changed += OnUndoChanged;
@@ -203,6 +201,66 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
     /// hay que acordarse, y con un rectángulo de varios no hay quien se acuerde.
     /// </remarks>
     public ObservableCollection<TileChoiceViewModel> TileChoices { get; } = [];
+
+    /// <summary>
+    /// Changes the tile sets the map is drawn with, one per band.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Not a matter of repointing a field: everything this panel shows hangs from the first one
+    /// -the brush, the blocks, the palette, the super tiles, the strip to pick from- so the map
+    /// editor lets go of the one it had and hangs from the new one.
+    /// </para>
+    /// <para>
+    /// No cell number moves. What changes is what those numbers are drawings of, which is the
+    /// whole point of being able to change it.
+    /// </para>
+    /// </remarks>
+    public void UseTileSets(IReadOnlyList<TileSetEditorViewModel> panels)
+    {
+        if (panels.Count == 0)
+            return;
+
+        Map.UseTileSets([.. panels.Select(panel => new TileSetRef(panel.TileSet.Id, panel.TileSet.Name))]);
+
+        _chosen = panels;
+
+        if (!ReferenceEquals(_tiles, panels[0]))
+        {
+            _tiles.PaletteChanged -= OnTilesPaletteChanged;
+            _tiles.BlocksChanged -= RefreshBlocks;
+            _tiles.BrushChanged -= OnBrushChanged;
+
+            _tiles = panels[0];
+
+            _tiles.PaletteChanged += OnTilesPaletteChanged;
+            _tiles.BlocksChanged += RefreshBlocks;
+            _tiles.BrushChanged += OnBrushChanged;
+
+            RefreshTileChoices();
+
+            OnPropertyChanged(nameof(Tiles));
+            OnPropertyChanged(nameof(TileSet));
+            OnPropertyChanged(nameof(Brush));
+            OnPropertyChanged(nameof(BrushName));
+        }
+
+        Touch();
+
+        // The blocks and the super tiles are the ones of the set in front, and the cells may
+        // have changed size; the palette and the background may come from somewhere else now.
+        RefreshBlocks();
+        OnTilesPaletteChanged();
+    }
+
+    /// <summary>Rebuilds the strip of tiles there is to pick from.</summary>
+    private void RefreshTileChoices()
+    {
+        TileChoices.Clear();
+
+        for (int index = 0; index < Tiles.Count; index++)
+            TileChoices.Add(new TileChoiceViewModel(index, Tiles[index]));
+    }
 
     /// <summary>Los bloques del juego, que son el otro origen de lo que se estampa.</summary>
     public IList<TileBlock> Blocks => _tiles.TileSet.Blocks;

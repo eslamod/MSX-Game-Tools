@@ -98,7 +98,7 @@ public partial class MapBandsViewModel : ObservableObject
 
     /// <summary>What the map has to be told: one reference per band and in order.</summary>
     public IReadOnlyList<TileSetRef> Refs() =>
-        [.. Chosen().Select(band => new TileSetRef(band.TileSet.Id, band.TileSet.Name))];
+        TileMap.BandsOf([.. Chosen().Select(band => new TileSetRef(band.TileSet.Id, band.TileSet.Name))]);
 
     /// <summary>
     /// The first band that does not share the palette, if there is one.
