@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:views="clr-namespace:MSX_GameTools.Views"
              xmlns:l="clr-namespace:MSX_GameTools.Localization"
              mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="300"
              x:Class="MSX_GameTools.Views.EditMapView"
@@ -39,53 +40,10 @@
                      Value="{Binding Rows}" />
     </Grid>
 
-    <!-- Con qué juego se dibuja. Un mapa son números de tile: sin saber de cuál son, no
-         significan nada. -->
-    <Grid ColumnDefinitions="70,*" Margin="0,0,0,6">
-      <TextBlock Grid.Column="0" Text="{l:Localize NewMapTileSet}" VerticalAlignment="Center" />
-      <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
-                ItemsSource="{Binding TileSets}"
-                SelectedItem="{Binding TileSet}">
-        <ComboBox.ItemTemplate>
-          <DataTemplate x:DataType="vm:TileSetEditorViewModel">
-            <TextBlock Text="{Binding TileSet.Name}" />
-          </DataTemplate>
-        </ComboBox.ItemTemplate>
-      </ComboBox>
-    </Grid>
-
-    <!-- The other two bands, when the map is short enough to have them. In GRAPHIC 2 each
-         third of the screen reads its own bank of patterns, so a map that fits in one screen
-         can be drawn with a different tile set on each band. The top one is the map's own. -->
-    <Grid ColumnDefinitions="70,*" Margin="0,0,0,6" IsVisible="{Binding ShowsMiddleThird}">
-      <TextBlock Grid.Column="0" Text="{l:Localize NewMapMiddleThird}" VerticalAlignment="Center" />
-      <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
-                ItemsSource="{Binding TileSets}"
-                SelectedItem="{Binding MiddleTileSet}">
-        <ComboBox.ItemTemplate>
-          <DataTemplate x:DataType="vm:TileSetEditorViewModel">
-            <TextBlock Text="{Binding TileSet.Name}" />
-          </DataTemplate>
-        </ComboBox.ItemTemplate>
-      </ComboBox>
-    </Grid>
-
-    <Grid ColumnDefinitions="70,*" Margin="0,0,0,6" IsVisible="{Binding ShowsBottomThird}">
-      <TextBlock Grid.Column="0" Text="{l:Localize NewMapBottomThird}" VerticalAlignment="Center" />
-      <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
-                ItemsSource="{Binding TileSets}"
-                SelectedItem="{Binding BottomTileSet}">
-        <ComboBox.ItemTemplate>
-          <DataTemplate x:DataType="vm:TileSetEditorViewModel">
-            <TextBlock Text="{Binding TileSet.Name}" />
-          </DataTemplate>
-        </ComboBox.ItemTemplate>
-      </ComboBox>
-    </Grid>
-
-    <TextBlock Text="{l:Localize NewMapThirdsTip}" TextWrapping="Wrap" FontSize="11"
-               Foreground="{DynamicResource AppTextSecondary}"
-               Margin="0,0,0,8" IsVisible="{Binding ShowsMiddleThird}" />
+    <!-- Con que juego se dibuja, y con cual cada banda de la pantalla cuando el mapa
+         cabe en una. Un mapa son numeros de tile: sin saber de cual son, no significan
+         nada. -->
+    <views:MapBandsView DataContext="{Binding Bands}" />
 
     <!-- Que va a salir, segun el juego elegido. No se elige aqui: el tamaño del supertile
          es del juego, asi que preguntarlo por mapa dejaria a dos mapas del mismo juego

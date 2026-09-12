@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:l="clr-namespace:MSX_GameTools.Localization"
+             mc:Ignorable="d" d:DesignWidth="360" d:DesignHeight="120"
+             x:Class="MSX_GameTools.Views.MapBandsView"
+             x:DataType="vm:MapBandsViewModel">
+
+  <!-- The same three boxes for the form that creates a map and the one that changes one:
+       it is the same question, and asking it twice in two shapes would be two places to
+       fix the day the rule changes. -->
+  <StackPanel>
+
+    <!-- The tile set of the map, which is also the one of the top band. A map is tile
+         numbers: without knowing which set they are from they mean nothing. -->
+    <Grid ColumnDefinitions="70,*" Margin="0,0,0,6">
+      <TextBlock Grid.Column="0" Text="{l:Localize NewMapTileSet}" VerticalAlignment="Center" />
+      <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                ItemsSource="{Binding Choices}"
+                SelectedItem="{Binding TileSet}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:TileSetEditorViewModel">
+            <TextBlock Text="{Binding TileSet.Name}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+    </Grid>
+
+    <Grid ColumnDefinitions="70,*" Margin="0,0,0,6" IsVisible="{Binding ShowsMiddle}">
+      <TextBlock Grid.Column="0" Text="{l:Localize MapBandMiddle}" VerticalAlignment="Center" />
+      <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                ItemsSource="{Binding Choices}"
+                SelectedItem="{Binding Middle}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:TileSetEditorViewModel">
+            <TextBlock Text="{Binding TileSet.Name}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+    </Grid>
+
+    <Grid ColumnDefinitions="70,*" Margin="0,0,0,6" IsVisible="{Binding ShowsBottom}">
+      <TextBlock Grid.Column="0" Text="{l:Localize MapBandBottom}" VerticalAlignment="Center" />
+      <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                ItemsSource="{Binding Choices}"
+                SelectedItem="{Binding Bottom}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:TileSetEditorViewModel">
+            <TextBlock Text="{Binding TileSet.Name}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+    </Grid>
+
+    <TextBlock Text="{l:Localize MapBandsTip}" TextWrapping="Wrap" FontSize="11"
+               Foreground="{DynamicResource AppTextSecondary}"
+               Margin="0,0,0,8" IsVisible="{Binding ShowsMiddle}" />
+  </StackPanel>
+</UserControl>

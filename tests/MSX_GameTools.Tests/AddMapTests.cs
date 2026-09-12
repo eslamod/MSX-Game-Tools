@@ -181,8 +181,8 @@ public class AddMapTests
 
         form.Rows = rows;
 
-        Assert.Equal(middle, form.ShowsMiddleThird);
-        Assert.Equal(bottom, form.ShowsBottomThird);
+        Assert.Equal(middle, form.Bands.ShowsMiddle);
+        Assert.Equal(bottom, form.Bands.ShowsBottom);
     }
 
     /// <summary>Y en screen 1 no se ofrecen, que allí la tabla de patrones es una sola.</summary>
@@ -196,8 +196,8 @@ public class AddMapTests
 
         var form = (EditMapViewModel)main.RightPanViewModel!;
 
-        Assert.False(form.ShowsMiddleThird);
-        Assert.False(form.ShowsBottomThird);
+        Assert.False(form.Bands.ShowsMiddle);
+        Assert.False(form.Bands.ShowsBottom);
     }
 
     /// <summary>El mapa creado lleva el juego de cada banda.</summary>
@@ -215,7 +215,7 @@ public class AddMapTests
 
         form.Name = "Nivel";
         form.TileSet = cielo;
-        form.MiddleTileSet = ciudad;
+        form.Bands.Middle = ciudad;
 
         form.AcceptMapCommand.Execute(null);
 
@@ -253,7 +253,7 @@ public class AddMapTests
 
         form.Name = "Nivel";
         form.TileSet = cielo;
-        form.MiddleTileSet = main.TileSets[1];
+        form.Bands.Middle = main.TileSets[1];
 
         form.AcceptMapCommand.Execute(null);
 
@@ -275,12 +275,45 @@ public class AddMapTests
 
         var form = (EditMapViewModel)main.RightPanViewModel!;
 
-        Assert.Same(main.TileSets[0], form.MiddleTileSet);
+        Assert.Same(main.TileSets[0], form.Bands.Middle);
 
         form.TileSet = ciudad;
 
-        Assert.Same(ciudad, form.MiddleTileSet);
-        Assert.Same(ciudad, form.BottomTileSet);
+        Assert.Same(ciudad, form.Bands.Middle);
+        Assert.Same(ciudad, form.Bands.Bottom);
+    }
+
+    /// <summary>
+    /// El formulario se entera de lo que se elige dentro del selector de bandas.
+    /// </summary>
+    /// <remarks>
+    /// De qué va a ir el mapa lo dice el formulario y sale del juego elegido, pero la elección
+    /// vive en el selector, así que nadie se lo cuenta si él no escucha. Se mira el aviso y no
+    /// el valor: el valor se calcula al leerlo y sale bien aunque nadie avise, que es
+    /// exactamente lo que la pantalla no hace.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_formulario_se_entera_del_juego_elegido_en_las_bandas()
+    {
+        var main = new MainWindowViewModel();
+
+        main.OpenTileSet(new TileSet("Normal"));
+
+        TileSetEditorViewModel grande = main.OpenTileSet(
+            new TileSet("Grande") { SuperTileWidth = 2, SuperTileHeight = 2 });
+
+        main.AddMapCommand.Execute(null);
+
+        var form = (EditMapViewModel)main.RightPanViewModel!;
+
+        var told = new List<string?>();
+
+        form.PropertyChanged += (_, e) => told.Add(e.PropertyName);
+
+        form.Bands.TileSet = grande;
+
+        Assert.Contains(nameof(EditMapViewModel.UsesSuperTiles), told);
+        Assert.Contains(nameof(EditMapViewModel.KindLabel), told);
     }
 
     private static MainWindowViewModel WithTileSet(string name)

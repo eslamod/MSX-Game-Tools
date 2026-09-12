@@ -326,12 +326,12 @@ public class SuperTileTests
 
         var form = (EditMapViewModel)main.RightPanViewModel!;
 
-        form.TileSet = form.TileSets.Single(choice => choice.TileSet.Name == "Normal");
+        form.TileSet = form.Bands.Choices.Single(choice => choice.TileSet.Name == "Normal");
 
         Assert.False(form.UsesSuperTiles);
         Assert.Contains("tiles sueltos", form.KindLabel);
 
-        form.TileSet = form.TileSets.Single(choice => choice.TileSet.Name == "Grande");
+        form.TileSet = form.Bands.Choices.Single(choice => choice.TileSet.Name == "Grande");
 
         Assert.True(form.UsesSuperTiles);
         Assert.Contains("2x2", form.KindLabel);
