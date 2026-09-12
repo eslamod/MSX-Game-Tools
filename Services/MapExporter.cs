@@ -61,6 +61,9 @@ public static class MapExporter
         text.AppendLine($"; {flat.Width}x{flat.Height} tiles, {flat.Width * flat.Height} bytes after the header");
         text.AppendLine("; Header: width and height, 2 bytes each, low byte first.");
         text.AppendLine($"; Empty cells are written as tile {map.EmptyTile}: the name table always draws something.");
+
+        AppendBands(text, map);
+
         text.AppendLine($"; Size: {label}_map_end - {label}_map");
         text.AppendLine();
         text.AppendLine($"{label}_map:");
@@ -82,6 +85,32 @@ public static class MapExporter
         text.AppendLine($"{label}_map_end:");
 
         return text.ToString();
+    }
+
+    /// <summary>
+    /// Which tile set draws each third of the screen, when the map uses more than one.
+    /// </summary>
+    /// <remarks>
+    /// The name table says nothing about this: the byte of a cell is the same 0 to 255 in the
+    /// three thirds, and which drawing it turns into depends on the pattern table the VDP reads
+    /// for that third. Whoever loads this map has to put each table in the third it belongs to,
+    /// and this is the only place that says which one goes where.
+    /// </remarks>
+    private static void AppendBands(StringBuilder text, TileMap map)
+    {
+        if (map.TileSets.Count < 2)
+            return;
+
+        text.AppendLine("; One tile set per screen third: in GRAPHIC 2 each third reads its own");
+        text.AppendLine("; pattern table, so load each one into the third it belongs to.");
+
+        for (int band = 0; band < map.TileSets.Count; band++)
+        {
+            int top = band * TileMap.RowsPerThird;
+            int bottom = Math.Min(top + TileMap.RowsPerThird - 1, map.Height - 1);
+
+            text.AppendLine($";   rows {top}-{bottom}: {map.TileSets[band].Name}");
+        }
     }
 
     /// <summary>

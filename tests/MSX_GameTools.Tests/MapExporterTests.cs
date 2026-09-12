@@ -142,6 +142,55 @@ public class MapExporterTests
         Assert.Contains("tiene 6", error.Message);
     }
 
+    /// <summary>
+    /// El asm dice qué juego de tiles va en cada tercio de la pantalla.
+    /// </summary>
+    /// <remarks>
+    /// La tabla de nombres no lo dice: el byte de una celda es el mismo 0-255 en los tres
+    /// tercios, y en qué dibujo se convierte depende de la tabla de patrones que el VDP lea
+    /// para ese tercio. Quien cargue el mapa tiene que poner cada tabla en su tercio, y esto es
+    /// lo único que dice cuál va dónde.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_asm_dice_que_juego_va_en_cada_tercio()
+    {
+        var map = new TileMap("Nivel", 32, 24);
+
+        map.UseTileSets([
+            new TileSetRef(Guid.NewGuid(), "Cielo"),
+            new TileSetRef(Guid.NewGuid(), "Ciudad"),
+            new TileSetRef(Guid.NewGuid(), "Suelo")]);
+
+        string asm = MapExporter.ToAssembler(map);
+
+        Assert.Contains("rows 0-7: Cielo", asm);
+        Assert.Contains("rows 8-15: Ciudad", asm);
+        Assert.Contains("rows 16-23: Suelo", asm);
+    }
+
+    /// <summary>Y el último tercio se corta donde se acabe el mapa.</summary>
+    [AvaloniaFact]
+    public void El_ultimo_tercio_se_corta_donde_acaba_el_mapa()
+    {
+        var map = new TileMap("Nivel", 32, 20);
+
+        map.UseTileSets([
+            new TileSetRef(Guid.NewGuid(), "Cielo"),
+            new TileSetRef(Guid.NewGuid(), "Ciudad"),
+            new TileSetRef(Guid.NewGuid(), "Suelo")]);
+
+        Assert.Contains("rows 16-19: Suelo", MapExporter.ToAssembler(map));
+    }
+
+    /// <summary>Un mapa de un solo juego no dice nada de tercios: no hay nada que repartir.</summary>
+    [AvaloniaFact]
+    public void Un_mapa_de_un_solo_juego_no_habla_de_tercios()
+    {
+        var map = new TileMap("Nivel", 32, 24) { TileSetName = "Bosque" };
+
+        Assert.DoesNotContain("screen third", MapExporter.ToAssembler(map));
+    }
+
     /// <summary>Los bytes de las líneas .db del asm, sin los comentarios.</summary>
     private static byte[] BytesOf(string assembler)
     {
