@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Avalonia.Headless.XUnit;
 using MSX_GameTools.Entities;
@@ -145,5 +146,137 @@ public class MapFileTests
         FileFormatException error = Assert.Throws<FileFormatException>(() => MapSerializer.Deserialize(json));
 
         Assert.Contains("la fila 40", error.Message);
+    }
+
+    /// <summary>
+    /// Los tres juegos de un mapa vuelven del fichero, cada uno en su tercio.
+    /// </summary>
+    [AvaloniaFact]
+    public void Los_tres_juegos_del_mapa_vuelven_del_fichero()
+    {
+        var map = new TileMap("Nivel", 32, 24);
+
+        var cielo = new TileSetRef(Guid.NewGuid(), "Cielo");
+        var ciudad = new TileSetRef(Guid.NewGuid(), "Ciudad");
+        var suelo = new TileSetRef(Guid.NewGuid(), "Suelo");
+
+        map.UseTileSets([cielo, ciudad, suelo]);
+
+        TileMap loaded = MapSerializer.Deserialize(MapSerializer.Serialize(map));
+
+        Assert.Equal((TileSetRef[])[cielo, ciudad, suelo], loaded.TileSets);
+
+        Assert.Equal("Cielo", loaded.TileSetFor(0).Name);
+        Assert.Equal("Ciudad", loaded.TileSetFor(8).Name);
+        Assert.Equal("Suelo", loaded.TileSetFor(16).Name);
+    }
+
+    /// <summary>
+    /// El primero se sigue escribiendo suelto, como siempre.
+    /// </summary>
+    /// <remarks>
+    /// Es lo que deja saber de qué juego es un mapa abriendo su fichero, sin tener que entender
+    /// los tercios, y lo que hace que todo lo que ata un mapa a su juego lo siga encontrando
+    /// donde lo buscaba.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_primer_juego_se_sigue_escribiendo_suelto()
+    {
+        var map = new TileMap("Nivel", 32, 24);
+        var cielo = new TileSetRef(Guid.NewGuid(), "Cielo");
+
+        map.UseTileSets([cielo, new TileSetRef(Guid.NewGuid(), "Suelo")]);
+
+        using JsonDocument file = JsonDocument.Parse(MapSerializer.Serialize(map));
+
+        Assert.Equal("Cielo", file.RootElement.GetProperty("tileSet").GetString());
+        Assert.Equal(cielo.Id, file.RootElement.GetProperty("tileSetId").GetGuid());
+    }
+
+    /// <summary>
+    /// Un mapa de un solo juego se escribe como siempre, sin lista.
+    /// </summary>
+    /// <remarks>
+    /// Que son casi todos: no tienen por qué cargar con una lista de un elemento que dice lo
+    /// mismo que los dos campos de al lado.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Un_mapa_de_un_solo_juego_no_escribe_la_lista()
+    {
+        var map = new TileMap("Nivel", 32, 24) { TileSetName = "Bosque" };
+
+        using JsonDocument file = JsonDocument.Parse(MapSerializer.Serialize(map));
+
+        Assert.False(file.RootElement.TryGetProperty("tileSets", out _));
+        Assert.Equal("Bosque", file.RootElement.GetProperty("tileSet").GetString());
+    }
+
+    /// <summary>
+    /// Un fichero de antes de los tercios reparte su juego por los tres.
+    /// </summary>
+    /// <remarks>
+    /// Es lo que hace la máquina cuando las tres tablas de patrones son copias, que es como se
+    /// ha dibujado hasta ahora cualquier mapa.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Un_fichero_de_antes_reparte_su_juego_por_los_tres_tercios()
+    {
+        var bosque = Guid.NewGuid();
+
+        TileMap map = MapSerializer.Deserialize($$"""
+            {
+              "version": 2,
+              "name": "Nivel",
+              "width": 32,
+              "height": 24,
+              "tileSet": "Bosque",
+              "tileSetId": "{{bosque}}",
+              "layers": []
+            }
+            """);
+
+        Assert.Single(map.TileSets);
+        Assert.Equal(bosque, map.TileSetId);
+
+        foreach (int row in (int[])[0, 8, 16])
+            Assert.Equal("Bosque", map.TileSetFor(row).Name);
+    }
+
+    /// <summary>
+    /// Y los tercios se leen tal como vienen escritos.
+    /// </summary>
+    /// <remarks>
+    /// Con el fichero escrito a mano y no dándole la vuelta a lo que acaba de guardar el
+    /// programa: ese viaje de ida y vuelta sale bien aunque los campos se llamen de otra
+    /// manera, y cómo se llama un campo del fichero es justo lo que no se puede cambiar sin
+    /// que los mapas de ayer dejen de abrirse.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Los_tercios_se_leen_del_fichero()
+    {
+        var ciudad = Guid.NewGuid();
+
+        TileMap map = MapSerializer.Deserialize($$"""
+            {
+              "version": 3,
+              "name": "Nivel",
+              "width": 32,
+              "height": 24,
+              "tileSet": "Cielo",
+              "tileSets": [
+                { "name": "Cielo" },
+                { "name": "Ciudad", "id": "{{ciudad}}" }
+              ],
+              "layers": []
+            }
+            """);
+
+        Assert.Equal(2, map.TileSets.Count);
+
+        Assert.Equal("Ciudad", map.TileSetFor(8).Name);
+        Assert.Equal(ciudad, map.TileSetFor(8).Id);
+
+        // Y el tercio de abajo, que no viene en el fichero, tira del primero.
+        Assert.Equal("Cielo", map.TileSetFor(16).Name);
     }
 }

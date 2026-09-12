@@ -20,8 +20,11 @@ namespace MSX_GameTools.Services;
 /// </remarks>
 public static class MapSerializer
 {
-    /// <summary>La 2 señala el juego de tiles por identidad. Un fichero de la 1 se abre igual.</summary>
-    public const int FormatVersion = 2;
+    /// <summary>
+    /// La 2 señala el juego de tiles por identidad y la 3 sus tres tercios. Un fichero de la 1
+    /// o de la 2 se abre igual.
+    /// </summary>
+    public const int FormatVersion = 3;
 
     public static string Serialize(TileMap map) =>
         JsonSerializer.Serialize(ToFile(map), PaletteSerializer.Options);
@@ -58,13 +61,9 @@ public static class MapSerializer
         var map = new TileMap(
             string.IsNullOrWhiteSpace(file.Name) ? "Unnamed map" : file.Name,
             file.Width,
-            file.Height)
-        {
-            // Vacío en los ficheros de la versión 1: entonces manda el nombre, y el mapa
-            // se queda con la identidad del juego la próxima vez que se guarde.
-            TileSetId = file.TileSetId ?? Guid.Empty,
-            TileSetName = file.TileSet ?? string.Empty,
-        };
+            file.Height);
+
+        map.UseTileSets(TileSetsOf(file));
 
         if (file.BackgroundColor is >= 0 and < ColorPalette.Size)
             map.BackgroundColorIndex = file.BackgroundColor;
@@ -92,8 +91,39 @@ public static class MapSerializer
         map.BackgroundColorIndex,
         map.TileSetName,
         map.TileSetId == Guid.Empty ? null : map.TileSetId,
+
+        // Only when there is more than one. A map of a single tile set is written exactly as it
+        // always was: the two loose fields above already say which one it is, and a list of one
+        // would be saying it twice.
+        map.TileSets.Count > 1 ? [.. map.TileSets.Select(ToFile)] : null,
         map.EmptyTile,
         [.. map.Layers.Select(ToFile)]);
+
+    private static TileSetFile ToFile(TileSetRef tileSet) =>
+        new(tileSet.Name, tileSet.Id == Guid.Empty ? null : tileSet.Id);
+
+    /// <summary>
+    /// The tile sets of the map, one per screen third.
+    /// </summary>
+    /// <remarks>
+    /// The list rules when it comes. The two loose fields are its first one and go on being
+    /// written always, so that opening a map file still tells which tile set it is drawn with
+    /// without having to know that thirds exist. Files written before this one have no list,
+    /// and then the map has the tile set it always had and the three thirds repeat it, which is
+    /// what the machine does when the three pattern tables are copies of each other.
+    /// </remarks>
+    private static IReadOnlyList<TileSetRef> TileSetsOf(MapFile file)
+    {
+        if (file.TileSets is { Count: > 0 } thirds)
+        {
+            return [.. thirds.Select(third =>
+                new TileSetRef(third.Id ?? Guid.Empty, third.Name ?? string.Empty))];
+        }
+
+        // Vacío en los ficheros de la versión 1: entonces manda el nombre, y el mapa
+        // se queda con la identidad del juego la próxima vez que se guarde.
+        return [new TileSetRef(file.TileSetId ?? Guid.Empty, file.TileSet ?? string.Empty)];
+    }
 
     private static LayerFile ToFile(MapLayer layer) => new(
         layer.Name,
@@ -154,6 +184,7 @@ public static class MapSerializer
         int BackgroundColor,
         string? TileSet,
         Guid? TileSetId,
+        IReadOnlyList<TileSetFile>? TileSets,
         int EmptyTile,
         IReadOnlyList<LayerFile>? Layers);
 
@@ -164,4 +195,7 @@ public static class MapSerializer
         IReadOnlyList<RowFile>? Rows);
 
     private sealed record RowFile(int Index, string? Tiles);
+
+    /// <summary>One of the map's tile sets: the one a screen third is drawn with.</summary>
+    private sealed record TileSetFile(string? Name, Guid? Id);
 }
