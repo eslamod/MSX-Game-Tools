@@ -383,17 +383,16 @@ public partial class MainWindowViewModel : ObservableObject
 
         foreach (MapEditorViewModel map in MapsOf(tiles))
         {
-            if (map.Map.TileSetName == tiles.TileSet.Name)
-                continue;
-
-            map.Map.TileSetName = tiles.TileSet.Name;
-            map.Touch();
+            // En todas las bandas que lo usen, no sólo en la primera: el nombre de cada una
+            // sale en el fichero del mapa y en el asm que dice qué tabla va en qué tercio.
+            if (map.Map.Rename(tiles.TileSet.Id, tiles.TileSet.Name))
+                map.Touch();
         }
     }
 
     /// <summary>Los mapas que se dibujan con ese juego de tiles, tengan pestaña o no.</summary>
     public IReadOnlyList<MapEditorViewModel> MapsOf(TileSetEditorViewModel tiles) =>
-        [.. _panels.Values.OfType<MapEditorViewModel>().Where(map => map.Map.TileSetId == tiles.TileSet.Id)];
+        [.. _panels.Values.OfType<MapEditorViewModel>().Where(map => map.Map.Uses(tiles.TileSet.Id))];
 
     /// <summary>Abre las propiedades de un elemento del árbol en el lateral.</summary>
     /// <remarks>

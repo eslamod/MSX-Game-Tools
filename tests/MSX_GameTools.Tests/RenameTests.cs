@@ -262,4 +262,55 @@ public class RenameTests
             .Single(node => node.Tag == panel.TagId);
 
     private static void Pump() => Dispatcher.UIThread.RunJobs();
+    /// <summary>
+    /// Renombrar un juego actualiza su nombre en todas las bandas que lo usen.
+    /// </summary>
+    /// <remarks>
+    /// El nombre no es lo que ata —eso es la identidad— pero es lo que el fichero del mapa dice
+    /// en voz alta y lo que el asm exportado le cuenta a quien tiene que cargar cada tabla en su
+    /// tercio. Un nombre viejo ahí es una mentira que no corrige nadie.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Renombrar_un_juego_actualiza_las_bandas_que_lo_usan()
+    {
+        var main = new MainWindowViewModel();
+
+        TileSetEditorViewModel cielo = main.OpenTileSet(new TileSet("Cielo"));
+        TileSetEditorViewModel ciudad = main.OpenTileSet(new TileSet("Ciudad"));
+
+        var map = new TileMap("Nivel", 32, 24);
+
+        map.UseTileSets([Band(cielo), Band(ciudad), Band(cielo)]);
+
+        MapEditorViewModel editor = main.OpenMap(map, cielo);
+
+        editor.MarkClean();
+
+        main.Rename(ciudad, "Metrópolis");
+
+        Assert.Equal("Metrópolis", map.TileSetFor(8).Name);
+        Assert.True(editor.IsModified);
+    }
+
+    /// <summary>Y ese mapa cuenta como afectado aunque el juego sólo esté en una banda.</summary>
+    [AvaloniaFact]
+    public void Un_mapa_cuenta_como_afectado_por_cualquiera_de_sus_bandas()
+    {
+        var main = new MainWindowViewModel();
+
+        TileSetEditorViewModel cielo = main.OpenTileSet(new TileSet("Cielo"));
+        TileSetEditorViewModel ciudad = main.OpenTileSet(new TileSet("Ciudad"));
+
+        var map = new TileMap("Nivel", 32, 24);
+
+        map.UseTileSets([Band(cielo), Band(ciudad), Band(cielo)]);
+
+        main.OpenMap(map, cielo);
+
+        Assert.Single(main.MapsOf(ciudad));
+    }
+
+    private static TileSetRef Band(TileSetEditorViewModel panel) =>
+        new(panel.TileSet.Id, panel.TileSet.Name);
+
 }

@@ -210,6 +210,34 @@ public class TileMap
     public static int SlotsOf(int height, TileSet tileSet) =>
         tileSet.IsGraphic1 || tileSet.HasSuperTiles ? 1 : ThirdsOf(height);
 
+    /// <summary>Whether the map is drawn with that tile set in any of its bands.</summary>
+    public bool Uses(Guid tileSet) => _tileSets.Any(band => band.Id == tileSet);
+
+    /// <summary>
+    /// Writes down the new name of a tile set, in every band that uses it.
+    /// </summary>
+    /// <remarks>
+    /// The name is not what binds -the identity is- but it is what the map file says out loud,
+    /// and what the exported asm tells whoever has to load each table into its own third. A
+    /// stale name there is a lie that nothing else corrects.
+    /// </remarks>
+    /// <returns>Whether anything changed.</returns>
+    public bool Rename(Guid tileSet, string name)
+    {
+        bool changed = false;
+
+        for (int band = 0; band < _tileSets.Count; band++)
+        {
+            if (_tileSets[band].Id != tileSet || _tileSets[band].Name == name)
+                continue;
+
+            _tileSets[band] = _tileSets[band] with { Name = name };
+            changed = true;
+        }
+
+        return changed;
+    }
+
     /// <summary>
     /// The tile set a row of the map is drawn with.
     /// </summary>
