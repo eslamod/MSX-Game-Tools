@@ -15,6 +15,20 @@ namespace MSX_GameTools.Entities;
 /// de deshacer. Tocar <c>Layers[i].Grid</c> por fuera funciona, pero se queda sin deshacer.
 /// </para>
 /// </remarks>
+/// <summary>
+/// A tile set the map draws with: which one it is, and what it was called.
+/// </summary>
+/// <remarks>
+/// The identity is what binds; the name is what lets a map file say where its tiles come from
+/// without opening the project. It is the pair a map has always kept, and the only new thing is
+/// that there can be one of them per screen third.
+/// </remarks>
+public readonly record struct TileSetRef(Guid Id, string Name)
+{
+    /// <summary>No tile set yet, which is how a map is born.</summary>
+    public static TileSetRef None => new(Guid.Empty, string.Empty);
+}
+
 public class TileMap
 {
     /// <summary>
@@ -26,6 +40,22 @@ public class TileMap
     /// un lado de mil tiles ya son treinta pantallas seguidas.
     /// </remarks>
     public const int MaxSide = 1024;
+
+    /// <summary>The rows of one screenful, which is the name table of SCREEN 1, 2 and 4.</summary>
+    public const int ScreenRows = 24;
+
+    /// <summary>
+    /// The most a map can be split: one tile set per screen third.
+    /// </summary>
+    /// <remarks>
+    /// In GRAPHIC 2 the pattern table is three banks of 256, and which third a row falls in is
+    /// what decides which of the three draws it. That is why this number is three and not a
+    /// setting: it is what the VDP does, and there is no fourth third to have an opinion about.
+    /// </remarks>
+    public const int MaxTileSets = 3;
+
+    /// <summary>The rows of one third. Rows of tiles, not pixels.</summary>
+    public const int RowsPerThird = ScreenRows / MaxTileSets;
 
     public TileMap(string name = "", int width = 32, int height = 24)
     {
@@ -66,6 +96,25 @@ public class TileMap
     public void RemapColors(IReadOnlyList<int> table) =>
         BackgroundColorIndex = table[BackgroundColorIndex];
 
+    private readonly List<TileSetRef> _tileSets = [TileSetRef.None];
+
+    /// <summary>
+    /// The tile sets the map draws with, one per screen third.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Nearly always one, and then the three thirds draw with that same one: it is what every
+    /// map was until now, and what every map taller than the screen still is.
+    /// </para>
+    /// <para>
+    /// The first one is <see cref="TileSetId"/>, the one the rest of the program already knows
+    /// about. Everything that ties a map to a tile set -opening it, finding the maps of a set,
+    /// renaming- goes through that first one, so the other two could be added without moving
+    /// any of it.
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<TileSetRef> TileSets => _tileSets;
+
     /// <summary>
     /// El juego de tiles con el que se dibuja. Sin él los números no dicen nada.
     /// </summary>
@@ -74,7 +123,11 @@ public class TileMap
     /// dónde son sus tiles. En los ficheros de antes de que esto existiera viene vacío, y
     /// entonces se recurre al nombre.
     /// </remarks>
-    public Guid TileSetId { get; set; }
+    public Guid TileSetId
+    {
+        get => _tileSets[0].Id;
+        set => _tileSets[0] = _tileSets[0] with { Id = value };
+    }
 
     /// <summary>
     /// Cómo se llamaba el juego la última vez que se guardó.
@@ -83,7 +136,72 @@ public class TileMap
     /// No es quien manda: sirve para poder leer de qué va un fichero de mapa abriéndolo, y
     /// para encontrar el juego en los mapas antiguos, que no traen identidad.
     /// </remarks>
-    public string TileSetName { get; set; } = string.Empty;
+    public string TileSetName
+    {
+        get => _tileSets[0].Name;
+        set => _tileSets[0] = _tileSets[0] with { Name = value };
+    }
+
+    /// <summary>
+    /// Puts the tile sets in, one per third and in the order of the thirds.
+    /// </summary>
+    /// <remarks>
+    /// Anything past the third is dropped, and an empty list leaves the empty one: a map always
+    /// has a first tile set, even if it is nobody, because that is the one the rest of the
+    /// program asks for.
+    /// </remarks>
+    public void UseTileSets(IReadOnlyList<TileSetRef> tileSets)
+    {
+        _tileSets.Clear();
+
+        foreach (TileSetRef tileSet in tileSets.Take(MaxTileSets))
+            _tileSets.Add(tileSet);
+
+        if (_tileSets.Count == 0)
+            _tileSets.Add(TileSetRef.None);
+    }
+
+    /// <summary>
+    /// How many screen thirds the map covers, from one to three.
+    /// </summary>
+    /// <remarks>
+    /// A map taller than the screen counts as one, and that is not a limitation of the editor:
+    /// the thirds belong to the screen and not to the map, so as soon as it scrolls up and down
+    /// a given row of the map lands in a different third depending on where the screen is. With
+    /// no fixed band there is no band to tie a bank to.
+    /// </remarks>
+    public int Thirds => Height > ScreenRows
+        ? 1
+        : Math.Min(((Height - 1) / RowsPerThird) + 1, MaxTileSets);
+
+    /// <summary>
+    /// How many tile sets this map can take when it is drawn with that one.
+    /// </summary>
+    /// <remarks>
+    /// GRAPHIC 1 has a single pattern table for the whole screen, so there are no banks to tell
+    /// apart. And in super tile mode a cell is a block of its own set, so three sets would be
+    /// three numberings on top of each other. Both of them stay on one.
+    /// </remarks>
+    public int TileSetSlots(TileSet tileSet) =>
+        tileSet.IsGraphic1 || tileSet.HasSuperTiles ? 1 : Thirds;
+
+    /// <summary>
+    /// The tile set a row of the map is drawn with.
+    /// </summary>
+    /// <remarks>
+    /// A third that was never chosen falls back to the first, and so does every row of a map
+    /// that does not split. Choosing fewer than the map covers is not an error: it is a map
+    /// that repeats the same bank, which is what the machine does anyway.
+    /// </remarks>
+    public TileSetRef TileSetFor(int row)
+    {
+        if (Thirds == 1 || _tileSets.Count == 1)
+            return _tileSets[0];
+
+        int third = Math.Clamp(row / RowsPerThird, 0, Thirds - 1);
+
+        return third < _tileSets.Count ? _tileSets[third] : _tileSets[0];
+    }
 
     /// <summary>
     /// Con qué tile se rellenan las celdas vacías al exportar a binario.
