@@ -288,6 +288,22 @@ public partial class MapEditorView : UserControl
 
     // ------------------------------------------------------------------ el selector
 
+    /// <summary>
+    /// The band the tiles are being picked from.
+    /// </summary>
+    /// <remarks>
+    /// Through the Tag and not through a binding to each button, the same as the zoom and the
+    /// tools: a group of radio buttons says which one is on, and the number lives in the panel.
+    /// </remarks>
+    private void OnBandChanged(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not RadioButton { IsChecked: true, Tag: string tag } || Editor is not { } map)
+            return;
+
+        if (int.TryParse(tag, out int band))
+            map.PickingBand = band;
+    }
+
     private void OnTilesPressed(object? sender, PointerPressedEventArgs e)
     {
         if (Under<TileChoiceViewModel>(TileChoices, e.GetPosition(TileChoices)) is not { } choice)

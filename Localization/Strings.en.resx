@@ -211,6 +211,8 @@
   <data name="NewMapColumns" xml:space="preserve"><value>Columns</value></data>
   <data name="NewMapRows" xml:space="preserve"><value>Rows</value></data>
   <data name="NewMapTileSet" xml:space="preserve"><value>Tiles</value></data>
+  <data name="MapBandTop" xml:space="preserve"><value>Top</value></data>
+  <data name="MapBandsPick" xml:space="preserve"><value>Picked from:</value></data>
   <data name="MapBandMiddle" xml:space="preserve"><value>Middle</value></data>
   <data name="MapBandBottom" xml:space="preserve"><value>Bottom</value></data>
   <data name="MapBandsTip" xml:space="preserve"><value>In screen 2 each third of the screen reads its own bank of patterns, so each band can be drawn with a different tile set. The top one is the map's own.</value></data>

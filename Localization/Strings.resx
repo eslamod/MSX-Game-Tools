@@ -229,6 +229,8 @@
   <data name="NewMapColumns" xml:space="preserve"><value>Columnas</value></data>
   <data name="NewMapRows" xml:space="preserve"><value>Filas</value></data>
   <data name="NewMapTileSet" xml:space="preserve"><value>Tiles</value></data>
+  <data name="MapBandTop" xml:space="preserve"><value>Arriba</value></data>
+  <data name="MapBandsPick" xml:space="preserve"><value>Se cogen de:</value></data>
   <data name="MapBandMiddle" xml:space="preserve"><value>Medio</value></data>
   <data name="MapBandBottom" xml:space="preserve"><value>Abajo</value></data>
   <data name="MapBandsTip" xml:space="preserve"><value>En screen 2 cada tercio de la pantalla lee su propio banco de patrones, así que cada banda puede llevar un juego distinto. La de arriba es la del mapa.</value></data>

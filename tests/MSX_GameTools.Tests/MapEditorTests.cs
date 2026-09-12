@@ -493,6 +493,129 @@ public class MapEditorTests
         Assert.Same(cielo.Thumbnails, editor.CellImagesByThird[2]);
     }
 
+    /// <summary>
+    /// La tira de abajo enseña los tiles de la banda que se elija.
+    /// </summary>
+    /// <remarks>
+    /// El número es el mismo en las tres bandas; lo que cambia es el dibujo que la máquina lee
+    /// para él. Así que esto no cambia lo que se estampa, cambia lo que se está mirando al
+    /// cogerlo, que hasta ahora era siempre el juego del primer tercio.
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_tira_ensena_los_tiles_de_la_banda_elegida()
+    {
+        var main = new MainWindowViewModel();
+
+        TileSetEditorViewModel cielo = main.OpenTileSet(new TileSet("Cielo"));
+        TileSetEditorViewModel ciudad = main.OpenTileSet(new TileSet("Ciudad"));
+
+        var map = new TileMap("Nivel", 32, 24);
+
+        map.UseTileSets([Ref(cielo), Ref(ciudad), Ref(cielo)]);
+
+        MapEditorViewModel editor = main.OpenMap(map, cielo);
+
+        Assert.Same(cielo.Thumbnails[7], editor.TileChoices[7].Image);
+
+        editor.PickingBand = 1;
+
+        Assert.Same(ciudad.Thumbnails[7], editor.TileChoices[7].Image);
+    }
+
+    /// <summary>La banda no se pregunta cuando sólo hay una.</summary>
+    [AvaloniaFact]
+    public void Solo_se_pregunta_la_banda_cuando_hay_mas_de_una()
+    {
+        var main = new MainWindowViewModel();
+
+        TileSetEditorViewModel cielo = main.OpenTileSet(new TileSet("Cielo"));
+        TileSetEditorViewModel ciudad = main.OpenTileSet(new TileSet("Ciudad"));
+
+        MapEditorViewModel sencillo = main.OpenMap(new TileMap("Llano", 32, 24), cielo);
+
+        Assert.False(sencillo.ShowsBands);
+
+        var map = new TileMap("Nivel", 32, 24);
+
+        map.UseTileSets([Ref(cielo), Ref(ciudad), Ref(cielo)]);
+
+        MapEditorViewModel editor = main.OpenMap(map, cielo);
+
+        Assert.True(editor.ShowsBands);
+        Assert.True(editor.HasBottomBand);
+    }
+
+    /// <summary>
+    /// Y la etiqueta del ratón dice de qué juego es el tile que hay debajo.
+    /// </summary>
+    /// <remarks>
+    /// Con más de una banda el número solo no dice qué dibujo es: el mismo 77 es otro tile ocho
+    /// filas más abajo.
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_etiqueta_dice_de_que_juego_es_el_tile()
+    {
+        var main = new MainWindowViewModel();
+
+        TileSetEditorViewModel cielo = main.OpenTileSet(new TileSet("Cielo"));
+        TileSetEditorViewModel ciudad = main.OpenTileSet(new TileSet("Ciudad"));
+
+        var map = new TileMap("Nivel", 32, 24);
+
+        map.UseTileSets([Ref(cielo), Ref(ciudad), Ref(cielo)]);
+        map.Stamp(0, 0, 8, TilePatch.Single(77));
+
+        MapEditorViewModel editor = main.OpenMap(map, cielo);
+
+        editor.Hover = (0, 8);
+
+        Assert.Contains("77", editor.HoverLabel);
+        Assert.Contains("Ciudad", editor.HoverLabel);
+    }
+
+    /// <summary>Y con un solo juego no dice nada de más, que no hay nada que aclarar.</summary>
+    [AvaloniaFact]
+    public void Con_un_solo_juego_la_etiqueta_no_nombra_el_juego()
+    {
+        var main = new MainWindowViewModel();
+
+        TileSetEditorViewModel cielo = main.OpenTileSet(new TileSet("Cielo"));
+
+        var map = new TileMap("Nivel", 32, 24);
+
+        map.Stamp(0, 0, 8, TilePatch.Single(77));
+
+        MapEditorViewModel editor = main.OpenMap(map, cielo);
+
+        editor.Hover = (0, 8);
+
+        Assert.Contains("77", editor.HoverLabel);
+        Assert.DoesNotContain("Cielo", editor.HoverLabel);
+    }
+
+    /// <summary>Al quedarse sin bandas, la tira vuelve a la primera.</summary>
+    [AvaloniaFact]
+    public void Al_quedarse_sin_bandas_la_tira_vuelve_a_la_primera()
+    {
+        var main = new MainWindowViewModel();
+
+        TileSetEditorViewModel cielo = main.OpenTileSet(new TileSet("Cielo"));
+        TileSetEditorViewModel ciudad = main.OpenTileSet(new TileSet("Ciudad"));
+
+        var map = new TileMap("Nivel", 32, 24);
+
+        map.UseTileSets([Ref(cielo), Ref(ciudad), Ref(ciudad)]);
+
+        MapEditorViewModel editor = main.OpenMap(map, cielo);
+
+        editor.PickingBand = 2;
+
+        editor.UseTileSets([cielo]);
+
+        Assert.Equal(0, editor.PickingBand);
+        Assert.Same(cielo.Thumbnails[7], editor.TileChoices[7].Image);
+    }
+
     private static TileSetRef Ref(TileSetEditorViewModel panel) =>
         new(panel.TileSet.Id, panel.TileSet.Name);
 

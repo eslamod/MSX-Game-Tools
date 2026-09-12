@@ -212,6 +212,8 @@
   <data name="NewMapColumns" xml:space="preserve"><value>Columnes</value></data>
   <data name="NewMapRows" xml:space="preserve"><value>Files</value></data>
   <data name="NewMapTileSet" xml:space="preserve"><value>Tiles</value></data>
+  <data name="MapBandTop" xml:space="preserve"><value>Dalt</value></data>
+  <data name="MapBandsPick" xml:space="preserve"><value>Es prenen de:</value></data>
   <data name="MapBandMiddle" xml:space="preserve"><value>Mig</value></data>
   <data name="MapBandBottom" xml:space="preserve"><value>Baix</value></data>
   <data name="MapBandsTip" xml:space="preserve"><value>A l'screen 2 cada terç de la pantalla llegeix el seu propi banc de patrons, així que cada banda pot portar un joc diferent. La de dalt és la del mapa.</value></data>

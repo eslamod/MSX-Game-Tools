@@ -116,6 +116,17 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
         set => _tiles.BrushName = value;
     }
 
+    /// <summary>
+    /// Which band's drawings the strip at the bottom is showing.
+    /// </summary>
+    /// <remarks>
+    /// It does not change what gets stamped: a tile number is the same number in the three
+    /// bands, and what changes is the drawing the machine reads for it. What this changes is
+    /// which of the three you are looking at while you pick.
+    /// </remarks>
+    [ObservableProperty]
+    private int _pickingBand;
+
     /// <summary>La celda por la que pasa el ratón, o nulo si está fuera.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HoverLabel))]
@@ -245,6 +256,16 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
             OnPropertyChanged(nameof(BrushName));
         }
 
+        // The band that was being picked from may not be there any more.
+        if (PickingBand >= BandCount)
+            PickingBand = 0;
+
+        RefreshTileChoices();
+
+        OnPropertyChanged(nameof(BandCount));
+        OnPropertyChanged(nameof(ShowsBands));
+        OnPropertyChanged(nameof(HasBottomBand));
+
         Touch();
 
         // The blocks and the super tiles are the ones of the set in front, and the cells may
@@ -253,14 +274,27 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
         OnTilesPaletteChanged();
     }
 
-    /// <summary>Rebuilds the strip of tiles there is to pick from.</summary>
+    /// <summary>Rebuilds the strip of tiles there is to pick from, with the chosen band's.</summary>
     private void RefreshTileChoices()
     {
+        IList<ImageMini> tiles = PanelOfThird(PickingBand).Thumbnails;
+
         TileChoices.Clear();
 
-        for (int index = 0; index < Tiles.Count; index++)
-            TileChoices.Add(new TileChoiceViewModel(index, Tiles[index]));
+        for (int index = 0; index < tiles.Count; index++)
+            TileChoices.Add(new TileChoiceViewModel(index, tiles[index]));
     }
+
+    partial void OnPickingBandChanged(int value) => RefreshTileChoices();
+
+    /// <summary>How many bands the map is drawn with, from one to three.</summary>
+    public int BandCount => CellImagesByThird.Count;
+
+    /// <summary>The strip only asks which band to pick from when there is more than one.</summary>
+    public bool ShowsBands => BandCount > 1;
+
+    /// <summary>And the bottom band is only offered when the map reaches it.</summary>
+    public bool HasBottomBand => BandCount > 2;
 
     /// <summary>Los bloques del juego, que son el otro origen de lo que se estampa.</summary>
     public IList<TileBlock> Blocks => _tiles.TileSet.Blocks;
@@ -546,9 +580,14 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
 
             string where = $"{cell.Column}, {cell.Row}";
 
-            return Map.TileAt(cell.Column, cell.Row, onlyVisible: true) is not int tile
-                ? where
-                : $"{where}   {(UsesSuperTiles ? "Bloque" : "Tile")} {tile}";
+            if (Map.TileAt(cell.Column, cell.Row, onlyVisible: true) is not int tile)
+                return where;
+
+            // With more than one band, the number on its own does not say which drawing it is:
+            // the same 77 is another tile eight rows further down.
+            string band = BandCount > 1 ? $" \u00b7 {Map.TileSetFor(cell.Row).Name}" : string.Empty;
+
+            return $"{where}   {(UsesSuperTiles ? "Bloque" : "Tile")} {tile}{band}";
         }
     }
 

@@ -302,7 +302,28 @@
            tile suelto no se puede colocar en ninguna parte. -->
       <TabItem Header="{l:Localize MapTilesTab}" IsVisible="{Binding !UsesSuperTiles}">
         <Border Background="{DynamicResource AppCanvasFrame}" Padding="4">
-          <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+          <DockPanel>
+
+            <!-- Which band the tiles are being picked from, when the map is drawn with more
+                 than one. The numbers are the same in the three: what changes is the drawing
+                 the machine reads for each one, so this only changes what is being looked at. -->
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="2,0,2,4"
+                        IsVisible="{Binding ShowsBands}">
+              <TextBlock Text="{l:Localize MapBandsPick}" VerticalAlignment="Center" Margin="0,0,6,0" />
+
+              <RadioButton GroupName="MapBand" Theme="{StaticResource ToggleRadioButton}"
+                           Content="{l:Localize MapBandTop}" Tag="0" Margin="2" Padding="8,2"
+                           IsChecked="True" IsCheckedChanged="OnBandChanged" />
+              <RadioButton GroupName="MapBand" Theme="{StaticResource ToggleRadioButton}"
+                           Content="{l:Localize MapBandMiddle}" Tag="1" Margin="2" Padding="8,2"
+                           IsCheckedChanged="OnBandChanged" />
+              <RadioButton GroupName="MapBand" Theme="{StaticResource ToggleRadioButton}"
+                           Content="{l:Localize MapBandBottom}" Tag="2" Margin="2" Padding="8,2"
+                           IsVisible="{Binding HasBottomBand}"
+                           IsCheckedChanged="OnBandChanged" />
+            </StackPanel>
+
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                         AllowAutoHide="False">
             <!-- 32 columnas, las mismas que el editor y que el png: es la unica
                  disposicion en la que coger un rectangulo significa algo. -->
@@ -333,6 +354,7 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
           </ScrollViewer>
+          </DockPanel>
         </Border>
       </TabItem>
 
