@@ -54,6 +54,39 @@
       </ComboBox>
     </Grid>
 
+    <!-- The other two bands, when the map is short enough to have them. In GRAPHIC 2 each
+         third of the screen reads its own bank of patterns, so a map that fits in one screen
+         can be drawn with a different tile set on each band. The top one is the map's own. -->
+    <Grid ColumnDefinitions="70,*" Margin="0,0,0,6" IsVisible="{Binding ShowsMiddleThird}">
+      <TextBlock Grid.Column="0" Text="{l:Localize NewMapMiddleThird}" VerticalAlignment="Center" />
+      <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                ItemsSource="{Binding TileSets}"
+                SelectedItem="{Binding MiddleTileSet}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:TileSetEditorViewModel">
+            <TextBlock Text="{Binding TileSet.Name}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+    </Grid>
+
+    <Grid ColumnDefinitions="70,*" Margin="0,0,0,6" IsVisible="{Binding ShowsBottomThird}">
+      <TextBlock Grid.Column="0" Text="{l:Localize NewMapBottomThird}" VerticalAlignment="Center" />
+      <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                ItemsSource="{Binding TileSets}"
+                SelectedItem="{Binding BottomTileSet}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:TileSetEditorViewModel">
+            <TextBlock Text="{Binding TileSet.Name}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+    </Grid>
+
+    <TextBlock Text="{l:Localize NewMapThirdsTip}" TextWrapping="Wrap" FontSize="11"
+               Foreground="{DynamicResource AppTextSecondary}"
+               Margin="0,0,0,8" IsVisible="{Binding ShowsMiddleThird}" />
+
     <!-- Que va a salir, segun el juego elegido. No se elige aqui: el tamaño del supertile
          es del juego, asi que preguntarlo por mapa dejaria a dos mapas del mismo juego
          pidiendo tamaños distintos. Se dice para no enterarse despues. -->

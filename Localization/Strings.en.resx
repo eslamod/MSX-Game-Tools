@@ -211,6 +211,10 @@
   <data name="NewMapColumns" xml:space="preserve"><value>Columns</value></data>
   <data name="NewMapRows" xml:space="preserve"><value>Rows</value></data>
   <data name="NewMapTileSet" xml:space="preserve"><value>Tiles</value></data>
+  <data name="NewMapMiddleThird" xml:space="preserve"><value>Middle</value></data>
+  <data name="NewMapBottomThird" xml:space="preserve"><value>Bottom</value></data>
+  <data name="NewMapThirdsTip" xml:space="preserve"><value>In screen 2 each third of the screen reads its own bank of patterns, so each band can be drawn with a different tile set. The top one is the map's own.</value></data>
+  <data name="NewMapThirdPalette" xml:space="preserve"><value>«{0}» uses a different palette. There is only one on screen, so the bands have to share it: give them the same one from the toolbar.</value></data>
 
   <data name="PreferencesTitle" xml:space="preserve"><value>Preferences</value></data>
   <data name="PreferencesLanguage" xml:space="preserve"><value>Language</value></data>

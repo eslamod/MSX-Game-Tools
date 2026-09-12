@@ -170,9 +170,16 @@ public class TileMap
     /// a given row of the map lands in a different third depending on where the screen is. With
     /// no fixed band there is no band to tie a bank to.
     /// </remarks>
-    public int Thirds => Height > ScreenRows
+    public int Thirds => ThirdsOf(Height);
+
+    /// <inheritdoc cref="Thirds"/>
+    /// <remarks>
+    /// As a plain number and not as a map, because the form that creates one has to know how
+    /// many tile sets to offer before there is any map to ask.
+    /// </remarks>
+    public static int ThirdsOf(int height) => height > ScreenRows
         ? 1
-        : Math.Min(((Height - 1) / RowsPerThird) + 1, MaxTileSets);
+        : Math.Min(((height - 1) / RowsPerThird) + 1, MaxTileSets);
 
     /// <summary>
     /// How many tile sets this map can take when it is drawn with that one.
@@ -182,8 +189,12 @@ public class TileMap
     /// apart. And in super tile mode a cell is a block of its own set, so three sets would be
     /// three numberings on top of each other. Both of them stay on one.
     /// </remarks>
-    public int TileSetSlots(TileSet tileSet) =>
-        tileSet.IsGraphic1 || tileSet.HasSuperTiles ? 1 : Thirds;
+    public int TileSetSlots(TileSet tileSet) => SlotsOf(Height, tileSet);
+
+    /// <inheritdoc cref="TileSetSlots"/>
+    /// <inheritdoc cref="ThirdsOf" path="/remarks"/>
+    public static int SlotsOf(int height, TileSet tileSet) =>
+        tileSet.IsGraphic1 || tileSet.HasSuperTiles ? 1 : ThirdsOf(height);
 
     /// <summary>
     /// The tile set a row of the map is drawn with.

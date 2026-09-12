@@ -157,6 +157,132 @@ public class AddMapTests
         return main.Tabs.OfType<MapEditorViewModel>().Last();
     }
 
+    // ------------------------------------------------------------------ las bandas
+
+    /// <summary>
+    /// Las otras dos bandas se ofrecen según lo alto que vaya a ser el mapa.
+    /// </summary>
+    /// <remarks>
+    /// Uno más alto que la pantalla no se reparte: sus filas cambian de tercio al
+    /// desplazarse, y no queda banda que atar a un banco.
+    /// </remarks>
+    [AvaloniaTheory]
+    [InlineData(8, false, false)]
+    [InlineData(16, true, false)]
+    [InlineData(24, true, true)]
+    [InlineData(30, false, false)]
+    public void Las_bandas_se_ofrecen_segun_el_alto(int rows, bool middle, bool bottom)
+    {
+        MainWindowViewModel main = WithTileSet("Bosque");
+
+        main.AddMapCommand.Execute(null);
+
+        var form = (EditMapViewModel)main.RightPanViewModel!;
+
+        form.Rows = rows;
+
+        Assert.Equal(middle, form.ShowsMiddleThird);
+        Assert.Equal(bottom, form.ShowsBottomThird);
+    }
+
+    /// <summary>Y en screen 1 no se ofrecen, que allí la tabla de patrones es una sola.</summary>
+    [AvaloniaFact]
+    public void En_screen_1_no_se_ofrecen_bandas()
+    {
+        var main = new MainWindowViewModel();
+
+        main.OpenTileSet(new TileSet("Marcador", TileSet.GraphicMode.Graphic1));
+        main.AddMapCommand.Execute(null);
+
+        var form = (EditMapViewModel)main.RightPanViewModel!;
+
+        Assert.False(form.ShowsMiddleThird);
+        Assert.False(form.ShowsBottomThird);
+    }
+
+    /// <summary>El mapa creado lleva el juego de cada banda.</summary>
+    [AvaloniaFact]
+    public void El_mapa_creado_lleva_el_juego_de_cada_banda()
+    {
+        var main = new MainWindowViewModel();
+
+        TileSetEditorViewModel cielo = main.OpenTileSet(new TileSet("Cielo"));
+        TileSetEditorViewModel ciudad = main.OpenTileSet(new TileSet("Ciudad"));
+
+        main.AddMapCommand.Execute(null);
+
+        var form = (EditMapViewModel)main.RightPanViewModel!;
+
+        form.Name = "Nivel";
+        form.TileSet = cielo;
+        form.MiddleTileSet = ciudad;
+
+        form.AcceptMapCommand.Execute(null);
+
+        TileMap map = main.Tabs.OfType<MapEditorViewModel>().Single().Map;
+
+        Assert.Equal(3, map.TileSets.Count);
+
+        Assert.Equal("Cielo", map.TileSetFor(0).Name);
+        Assert.Equal("Ciudad", map.TileSetFor(8).Name);
+
+        // La de abajo no se tocó, así que se queda con el juego del mapa.
+        Assert.Equal("Cielo", map.TileSetFor(16).Name);
+    }
+
+    /// <summary>
+    /// No deja mezclar paletas entre bandas.
+    /// </summary>
+    /// <remarks>
+    /// En la pantalla hay una sola paleta, así que tres juegos con tres paletas es algo que la
+    /// máquina no puede pintar. Se dice al aceptar y con el nombre del que no encaja, que es lo
+    /// único que hace falta para arreglarlo.
+    /// </remarks>
+    [AvaloniaFact]
+    public void No_deja_mezclar_paletas_entre_bandas()
+    {
+        var main = new MainWindowViewModel();
+
+        TileSetEditorViewModel cielo = main.OpenTileSet(new TileSet("Cielo"));
+
+        main.OpenTileSet(new TileSet("Ciudad"), ColorPalette.CreateMsxStandard());
+
+        main.AddMapCommand.Execute(null);
+
+        var form = (EditMapViewModel)main.RightPanViewModel!;
+
+        form.Name = "Nivel";
+        form.TileSet = cielo;
+        form.MiddleTileSet = main.TileSets[1];
+
+        form.AcceptMapCommand.Execute(null);
+
+        Assert.True(form.HasError);
+        Assert.Contains("Ciudad", form.ErrorMessage);
+
+        Assert.Empty(main.Tabs.OfType<MapEditorViewModel>());
+    }
+
+    /// <summary>Las bandas siguen al juego del mapa mientras no se toquen.</summary>
+    [AvaloniaFact]
+    public void Las_bandas_siguen_al_juego_del_mapa()
+    {
+        MainWindowViewModel main = WithTileSet("Bosque");
+
+        TileSetEditorViewModel ciudad = main.OpenTileSet(new TileSet("Ciudad"));
+
+        main.AddMapCommand.Execute(null);
+
+        var form = (EditMapViewModel)main.RightPanViewModel!;
+
+        Assert.Same(main.TileSets[0], form.MiddleTileSet);
+
+        form.TileSet = ciudad;
+
+        Assert.Same(ciudad, form.MiddleTileSet);
+        Assert.Same(ciudad, form.BottomTileSet);
+    }
+
     private static MainWindowViewModel WithTileSet(string name)
     {
         var main = new MainWindowViewModel();

@@ -212,6 +212,10 @@
   <data name="NewMapColumns" xml:space="preserve"><value>Columnes</value></data>
   <data name="NewMapRows" xml:space="preserve"><value>Files</value></data>
   <data name="NewMapTileSet" xml:space="preserve"><value>Tiles</value></data>
+  <data name="NewMapMiddleThird" xml:space="preserve"><value>Mig</value></data>
+  <data name="NewMapBottomThird" xml:space="preserve"><value>Baix</value></data>
+  <data name="NewMapThirdsTip" xml:space="preserve"><value>A l'screen 2 cada terç de la pantalla llegeix el seu propi banc de patrons, així que cada banda pot portar un joc diferent. La de dalt és la del mapa.</value></data>
+  <data name="NewMapThirdPalette" xml:space="preserve"><value>«{0}» fa servir una altra paleta. A la pantalla només n'hi ha una, així que les bandes l'han de compartir: assigna'ls la mateixa des de la barra.</value></data>
 
   <data name="PreferencesTitle" xml:space="preserve"><value>Preferències</value></data>
   <data name="PreferencesLanguage" xml:space="preserve"><value>Idioma</value></data>
