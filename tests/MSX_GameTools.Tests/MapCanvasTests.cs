@@ -47,7 +47,7 @@ public class MapCanvasTests : IDisposable
         _canvas = new MapCanvas
         {
             Map = Map,
-            Tiles = tiles.Thumbnails,
+            TilesByThird = [tiles.Thumbnails],
             Zoom = Zoom,
             Background = Brushes.Magenta,
             ShowGrid = false,
@@ -177,6 +177,88 @@ public class MapCanvasTests : IDisposable
         Pump();
 
         Assert.Equal(Colors.Magenta, PixelAt((int)(CellSize * 2) + 4, (int)(CellSize * 2) + 4));
+    }
+
+    /// <summary>
+    /// Cada tercio se pinta con el juego de tiles que le toca.
+    /// </summary>
+    /// <remarks>
+    /// Es el corazón de lo de los tercios: el mismo número de tile en la fila 0, en la 8 y en la
+    /// 16 son tres dibujos distintos, como en la máquina, donde cada tercio de la pantalla lee
+    /// su propio banco de patrones.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Cada_tercio_se_pinta_con_el_juego_que_le_toca()
+    {
+        ColorPalette palette = ColorPalette.CreateMsxStandard();
+
+        // A x1 la celda mide ocho, y así los tres tercios entran en la ventana.
+        _canvas.Zoom = 1;
+        _canvas.Map = OneTilePerThird();
+        _canvas.TilesByThird = [Solid(4), Solid(8), Solid(12)];
+
+        Redraw();
+
+        Assert.Equal(palette[4].Color, PixelAt(4, 4));
+        Assert.Equal(palette[8].Color, PixelAt(4, 68));
+        Assert.Equal(palette[12].Color, PixelAt(4, 132));
+    }
+
+    /// <summary>
+    /// Y el fantasma enseña el dibujo del tercio donde va a caer.
+    /// </summary>
+    /// <remarks>
+    /// Es lo que hace honesto estampar a caballo de una frontera: el mismo número cambia de
+    /// dibujo al cruzarla, y con el fantasma pintado del juego de origen se estaría prometiendo
+    /// una cosa y soltando otra.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_fantasma_se_pinta_con_el_juego_del_tercio_donde_cae()
+    {
+        ColorPalette palette = ColorPalette.CreateMsxStandard();
+
+        _canvas.Zoom = 1;
+        _canvas.Map = new TileMap("Nivel", 8, 24);
+        _canvas.TilesByThird = [Solid(4), Solid(8), Solid(12)];
+        _canvas.Brush = TilePatch.Single(1);
+
+        // El ratón en la fila 9, que es del tercio de en medio.
+        _window.MouseMove(new Point(4, (9 * 8) + 4));
+        Pump();
+
+        Color ghost = PixelAt(4, (9 * 8) + 4);
+
+        // Translucido sobre el fondo, así que no es el color pelado; lo que se comprueba es
+        // que tira del de en medio y no del de arriba.
+        Assert.True(
+            Near(ghost, palette[8].Color) < Near(ghost, palette[4].Color),
+            $"el fantasma de la fila 9 se parece más al juego de arriba que al del tercio en el que cae");
+    }
+
+    /// <summary>Lo lejos que está un color de otro, para comparar el fantasma translucido.</summary>
+    private static int Near(Color painted, Color wanted) =>
+        Math.Abs(painted.R - wanted.R) + Math.Abs(painted.G - wanted.G) + Math.Abs(painted.B - wanted.B);
+
+    /// <summary>Un mapa de una pantalla con el tile 1 puesto en cada tercio.</summary>
+    private static TileMap OneTilePerThird()
+    {
+        var map = new TileMap("Nivel", 8, 24);
+
+        foreach (int row in (int[])[0, 8, 16])
+            map.Stamp(0, 0, row, TilePatch.Single(1));
+
+        return map;
+    }
+
+    /// <summary>Las miniaturas de un juego cuyo tile 1 es un cuadrado macizo de ese color.</summary>
+    private static IReadOnlyList<ImageMini> Solid(int color)
+    {
+        var tileSet = new TileSet("Juego");
+
+        foreach (TileRow line in tileSet.ListOfTiles[1].ArrayTileRows)
+            line.BackColor = color;
+
+        return new TileSetEditorViewModel(tileSet, ColorPalette.CreateMsxStandard()).Thumbnails;
     }
 
     // ------------------------------------------------------------------ lo visible
@@ -359,7 +441,12 @@ public class MapCanvasTests : IDisposable
 
         int pixel = row[(int)origin.X + x];
 
-        return Color.FromRgb((byte)(pixel >> 16), (byte)(pixel >> 8), (byte)pixel);
+        // El orden de los canales lo dice el formato del framebuffer. Leyendo siempre como
+        // BGRA salia el color con el rojo y el azul cambiados, y no se veia: las pruebas de
+        // aqui comparaban con blanco y con magenta, que son iguales del derecho y del reves.
+        return buffer.Format == PixelFormat.Rgba8888
+            ? Color.FromRgb((byte)pixel, (byte)(pixel >> 8), (byte)(pixel >> 16))
+            : Color.FromRgb((byte)(pixel >> 16), (byte)(pixel >> 8), (byte)pixel);
     }
 
     private static void Pump() => Dispatcher.UIThread.RunJobs();

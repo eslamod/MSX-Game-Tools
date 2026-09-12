@@ -47,7 +47,7 @@ public class MapHoverRepaintTests : IDisposable
         _canvas = new CountingCanvas
         {
             Map = new TileMap("Mapa", 40, 30),
-            Tiles = tiles.Thumbnails,
+            TilesByThird = [tiles.Thumbnails],
             Zoom = Zoom,
             Background = Brushes.Magenta,
             Brush = TilePatch.Single(1),

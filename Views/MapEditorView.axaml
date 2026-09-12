@@ -163,7 +163,7 @@
            unico que le hace falta es cuanto mide la celda. -->
       <views:MapCanvas x:Name="Canvas" Grid.Column="0"
                        Map="{Binding Map}"
-                       Tiles="{Binding CellImages}"
+                       TilesByThird="{Binding CellImagesByThird}"
                        CellTilesWidth="{Binding CellTilesWidth}"
                        CellTilesHeight="{Binding CellTilesHeight}"
                        Zoom="{Binding Zoom}"

@@ -421,6 +421,81 @@ public class MapEditorTests
         Assert.Contains("Uno", editor.BrushName);
     }
 
+    // ------------------------------------------------------------------ los tercios
+
+    /// <summary>
+    /// Un mapa de una pantalla se abre con un juego de tiles por tercio.
+    /// </summary>
+    /// <remarks>
+    /// Los paneles los pone quien abre el mapa, que es el único que sabe cuáles están abiertos.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_mapa_se_abre_con_un_juego_de_tiles_por_tercio()
+    {
+        var main = new MainWindowViewModel();
+
+        TileSetEditorViewModel cielo = main.OpenTileSet(new TileSet("Cielo"));
+        TileSetEditorViewModel ciudad = main.OpenTileSet(new TileSet("Ciudad"));
+        TileSetEditorViewModel suelo = main.OpenTileSet(new TileSet("Suelo"));
+
+        var map = new TileMap("Nivel", 32, 24);
+
+        map.UseTileSets([Ref(cielo), Ref(ciudad), Ref(suelo)]);
+
+        MapEditorViewModel editor = main.OpenMap(map, cielo);
+
+        Assert.Equal(3, editor.CellImagesByThird.Count);
+
+        Assert.Same(cielo.Thumbnails, editor.CellImagesByThird[0]);
+        Assert.Same(ciudad.Thumbnails, editor.CellImagesByThird[1]);
+        Assert.Same(suelo.Thumbnails, editor.CellImagesByThird[2]);
+    }
+
+    /// <summary>Y uno de los de siempre se pinta entero con el suyo.</summary>
+    [AvaloniaFact]
+    public void Un_mapa_de_un_solo_juego_se_pinta_entero_con_el()
+    {
+        var main = new MainWindowViewModel();
+
+        TileSetEditorViewModel bosque = main.OpenTileSet(new TileSet("Bosque"));
+
+        MapEditorViewModel editor = main.OpenMap(new TileMap("Nivel", 32, 24), bosque);
+
+        Assert.Single(editor.CellImagesByThird);
+        Assert.Same(bosque.Thumbnails, editor.CellImagesByThird[0]);
+    }
+
+    /// <summary>
+    /// El tercio cuyo juego no está abierto se dibuja con el primero.
+    /// </summary>
+    /// <remarks>
+    /// Negarse a abrir el mapa sería peor que dibujarlo: el mapa está ahí, y el juego del primer
+    /// tercio también.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_tercio_sin_juego_abierto_se_dibuja_con_el_primero()
+    {
+        var main = new MainWindowViewModel();
+
+        TileSetEditorViewModel cielo = main.OpenTileSet(new TileSet("Cielo"));
+
+        var map = new TileMap("Nivel", 32, 24);
+
+        TileSetEditorViewModel ciudad = main.OpenTileSet(new TileSet("Ciudad"));
+
+        map.UseTileSets([Ref(cielo), Ref(ciudad), new TileSetRef(Guid.NewGuid(), "El que no está")]);
+
+        MapEditorViewModel editor = main.OpenMap(map, cielo);
+
+        Assert.Equal(3, editor.CellImagesByThird.Count);
+
+        Assert.Same(ciudad.Thumbnails, editor.CellImagesByThird[1]);
+        Assert.Same(cielo.Thumbnails, editor.CellImagesByThird[2]);
+    }
+
+    private static TileSetRef Ref(TileSetEditorViewModel panel) =>
+        new(panel.TileSet.Id, panel.TileSet.Name);
+
     private static MapEditorViewModel NewEditor() => NewEditor(out _);
 
     private static MapEditorViewModel NewEditor(out TileSet tileSet)

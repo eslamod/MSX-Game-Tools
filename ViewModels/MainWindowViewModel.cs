@@ -322,10 +322,14 @@ public partial class MainWindowViewModel : ObservableObject
     /// que la identidad existiera no la traen, y para ésos se recurre al nombre; en cuanto
     /// se vuelven a guardar ya llevan la del juego y dejan de depender de él.
     /// </remarks>
-    public TileSetEditorViewModel? TileSetOf(TileMap map) =>
-        map.TileSetId != Guid.Empty
-            ? TileSets.FirstOrDefault(tiles => tiles.TileSet.Id == map.TileSetId)
-            : TileSets.FirstOrDefault(tiles => tiles.TileSet.Name == map.TileSetName);
+    public TileSetEditorViewModel? TileSetOf(TileMap map) => TileSetOf(map.TileSets[0]);
+
+    /// <summary>The open panel of one of the tile sets of a map, or null when it is not open.</summary>
+    /// <inheritdoc cref="TileSetOf(TileMap)" path="/remarks"/>
+    public TileSetEditorViewModel? TileSetOf(TileSetRef tileSet) =>
+        tileSet.Id != Guid.Empty
+            ? TileSets.FirstOrDefault(tiles => tiles.TileSet.Id == tileSet.Id)
+            : TileSets.FirstOrDefault(tiles => tiles.TileSet.Name == tileSet.Name);
 
     /// <summary>
     /// Le cambia el nombre a un documento, con todo lo que eso arrastra.
@@ -430,7 +434,7 @@ public partial class MainWindowViewModel : ObservableObject
         map.TileSetId = tiles.TileSet.Id;
         map.TileSetName = tiles.TileSet.Name;
 
-        var panel = new MapEditorViewModel(map, tiles, Preferences)
+        var panel = new MapEditorViewModel(map, tiles, Preferences, ThirdsOf(map, tiles))
         {
             TagId = $"map{CurrentMapCounter}",
         };
@@ -446,6 +450,16 @@ public partial class MainWindowViewModel : ObservableObject
 
         return panel;
     }
+
+    /// <summary>The panel that draws each third of a map, one per third it covers.</summary>
+    /// <remarks>
+    /// A tile set that is not open falls back to the first one, which is the map drawing that
+    /// band with the set it always had. Refusing to open the map would be worse than drawing
+    /// it: the map is there, and so is the tile set it used to have.
+    /// </remarks>
+    private IReadOnlyList<TileSetEditorViewModel> ThirdsOf(TileMap map, TileSetEditorViewModel first) =>
+        [.. Enumerable.Range(0, map.Thirds).Select(third =>
+            TileSetOf(map.TileSetFor(third * TileMap.RowsPerThird)) ?? first)];
 
     public int CurrentMapCounter { get; set; }
 

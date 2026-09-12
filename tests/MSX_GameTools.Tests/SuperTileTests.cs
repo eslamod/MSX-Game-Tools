@@ -223,12 +223,13 @@ public class SuperTileTests
         Assert.False(normal.UsesSuperTiles);
         Assert.Equal(1, normal.CellTilesWidth);
         Assert.Equal(1, normal.CellTilesHeight);
-        Assert.Same(normal.Tiles, normal.CellImages);
+        Assert.Same(normal.Tiles, normal.CellImagesByThird[0]);
 
         Assert.True(super.UsesSuperTiles);
         Assert.Equal(3, super.CellTilesWidth);
         Assert.Equal(2, super.CellTilesHeight);
-        Assert.Same(super.SuperTiles, super.CellImages);
+        Assert.Single(super.CellImagesByThird);
+        Assert.Same(super.SuperTiles, super.CellImagesByThird[0]);
     }
 
     /// <summary>Cada supertile trae su imagen, del tamaño que le toca.</summary>

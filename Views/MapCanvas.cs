@@ -28,9 +28,17 @@ public class MapCanvas : Control
     public static readonly StyledProperty<TileMap?> MapProperty =
         AvaloniaProperty.Register<MapCanvas, TileMap?>(nameof(Map));
 
-    /// <summary>Las miniaturas del juego de tiles, indexadas por número de tile.</summary>
-    public static readonly StyledProperty<IList<ImageMini>?> TilesProperty =
-        AvaloniaProperty.Register<MapCanvas, IList<ImageMini>?>(nameof(Tiles));
+    /// <summary>
+    /// The thumbnails the map is painted with, one list per screen third.
+    /// </summary>
+    /// <remarks>
+    /// Nearly always one, and then that one paints the whole map. With more than one it is the
+    /// row that decides: in GRAPHIC 2 each third of the screen reads its own bank of patterns,
+    /// so the tile 77 of the top band and the one of the bottom need not be the same drawing.
+    /// Whoever hands the lists over makes sure there is one per third the map covers.
+    /// </remarks>
+    public static readonly StyledProperty<IReadOnlyList<IReadOnlyList<ImageMini>>?> TilesByThirdProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyList<IReadOnlyList<ImageMini>>?>(nameof(TilesByThird));
 
     public static readonly StyledProperty<double> ZoomProperty =
         AvaloniaProperty.Register<MapCanvas, double>(nameof(Zoom), defaultValue: 2);
@@ -101,7 +109,7 @@ public class MapCanvas : Control
             ZoomProperty,
             BackgroundProperty,
             ShowGridProperty,
-            TilesProperty,
+            TilesByThirdProperty,
             CellTilesWidthProperty,
             CellTilesHeightProperty);
     }
@@ -138,10 +146,10 @@ public class MapCanvas : Control
         set => SetValue(MapProperty, value);
     }
 
-    public IList<ImageMini>? Tiles
+    public IReadOnlyList<IReadOnlyList<ImageMini>>? TilesByThird
     {
-        get => GetValue(TilesProperty);
-        set => SetValue(TilesProperty, value);
+        get => GetValue(TilesByThirdProperty);
+        set => SetValue(TilesByThirdProperty, value);
     }
 
     public double Zoom
@@ -295,7 +303,7 @@ public class MapCanvas : Control
     {
         context.FillRectangle(Background, new Rect(Bounds.Size));
 
-        if (Map is not { } map || Tiles is not { Count: > 0 } tiles)
+        if (Map is not { } map || TilesByThird is not { Count: > 0 } thirds)
             return;
 
         double cellWidth = CellWidth;
@@ -304,6 +312,8 @@ public class MapCanvas : Control
 
         for (int row = visible.Top; row < visible.Top + visible.Height; row++)
         {
+            IReadOnlyList<ImageMini> tiles = TilesFor(thirds, row);
+
             for (int column = visible.Left; column < visible.Left + visible.Width; column++)
             {
                 var rect = new Rect(
@@ -329,8 +339,8 @@ public class MapCanvas : Control
         double cellWidth = CellWidth;
         double cellHeight = CellHeight;
 
-        if (Map is { } map && Tiles is { Count: > 0 } tiles)
-            DrawGhost(context, map, tiles, cellWidth, cellHeight);
+        if (Map is { } map && TilesByThird is { Count: > 0 } thirds)
+            DrawGhost(context, map, thirds, cellWidth, cellHeight);
 
         DrawSelection(context, cellWidth, cellHeight);
     }
@@ -362,8 +372,24 @@ public class MapCanvas : Control
     /// Se ve translúcido para distinguirlo de lo que ya está puesto. Sin esto hay que
     /// acordarse de lo que se cogió abajo, y con un bloque además de por dónde cae.
     /// </remarks>
+    /// <summary>
+    /// The thumbnails a row of the map is painted with.
+    /// </summary>
+    /// <remarks>
+    /// The last list covers everything below it, which is what makes a single list paint the
+    /// map from top to bottom. Dividing is all there is to it: which tile set each third uses
+    /// was already settled by whoever built the lists.
+    /// </remarks>
+    private static IReadOnlyList<ImageMini> TilesFor(
+        IReadOnlyList<IReadOnlyList<ImageMini>> thirds, int row) =>
+        thirds[Math.Min(row / TileMap.RowsPerThird, thirds.Count - 1)];
+
     private void DrawGhost(
-        DrawingContext context, TileMap map, IList<ImageMini> tiles, double cellWidth, double cellHeight)
+        DrawingContext context,
+        TileMap map,
+        IReadOnlyList<IReadOnlyList<ImageMini>> thirds,
+        double cellWidth,
+        double cellHeight)
     {
         if (_hover is not { } hover || Brush is not { } brush || Tool != MapTool.Stamp)
             return;
@@ -374,13 +400,21 @@ public class MapCanvas : Control
             {
                 for (int column = 0; column < brush.Width; column++)
                 {
-                    if (brush[column, row] is not int tile || (uint)tile >= (uint)tiles.Count)
+                    if (brush[column, row] is not int tile)
                         continue;
 
                     int atColumn = hover.Column + column;
                     int atRow = hover.Row + row;
 
                     if (atColumn >= map.Width || atRow >= map.Height)
+                        continue;
+
+                    // The ones of the third it is going to land on, and not the ones it was
+                    // picked from: it is what makes the ghost tell the truth when a brush
+                    // crosses the line between two bands and the same number is another drawing.
+                    IReadOnlyList<ImageMini> tiles = TilesFor(thirds, atRow);
+
+                    if ((uint)tile >= (uint)tiles.Count)
                         continue;
 
                     context.DrawImage(tiles[tile].SpritePreview, new Rect(

@@ -70,6 +70,9 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
 
     private readonly TileSetEditorViewModel _tiles;
 
+    /// <summary>The panels handed over when the map was opened, one per third, as far as they went.</summary>
+    private readonly IReadOnlyList<TileSetEditorViewModel> _chosen;
+
     /// <summary>El bloque que se cogió, para poder pasar al siguiente con la rueda.</summary>
     private int _blockIndex = -1;
 
@@ -118,10 +121,19 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
     [NotifyPropertyChangedFor(nameof(HoverLabel))]
     private (int Column, int Row)? _hover;
 
-    public MapEditorViewModel(TileMap map, TileSetEditorViewModel tiles, EditorPreferences? preferences = null)
+    /// <param name="thirds">
+    /// The tile set of each screen third, when the map splits. Whoever opens the map is the one
+    /// that knows which panels are open; what does not come falls back to <paramref name="tiles"/>.
+    /// </param>
+    public MapEditorViewModel(
+        TileMap map,
+        TileSetEditorViewModel tiles,
+        EditorPreferences? preferences = null,
+        IReadOnlyList<TileSetEditorViewModel>? thirds = null)
     {
         Map = map;
         _tiles = tiles;
+        _chosen = thirds ?? [];
         Preferences = preferences ?? new EditorPreferences();
 
         foreach (MapLayer layer in map.Layers)
@@ -221,7 +233,33 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
     /// supertiles. Así el lienzo dibuja una imagen por celda en los dos casos y no tiene
     /// que saber de qué van.
     /// </remarks>
-    public ObservableCollection<ImageMini> CellImages => UsesSuperTiles ? SuperTiles : Tiles;
+    public IReadOnlyList<IReadOnlyList<ImageMini>> CellImagesByThird
+    {
+        get
+        {
+            if (UsesSuperTiles)
+                return [SuperTiles];
+
+            TileSetEditorViewModel[] thirds = [.. Enumerable.Range(0, Map.Thirds).Select(PanelOfThird)];
+
+            // One list when the three thirds draw with the same tile set, which is every map
+            // that does not split: then the row decides nothing and there is nothing to repeat.
+            return thirds.All(panel => ReferenceEquals(panel, thirds[0]))
+                ? [thirds[0].Thumbnails]
+                : [.. thirds.Select(panel => (IReadOnlyList<ImageMini>)panel.Thumbnails)];
+        }
+    }
+
+    /// <summary>
+    /// The tile set panel a third of the map is drawn with.
+    /// </summary>
+    /// <remarks>
+    /// What was never handed over falls back to the first one: a third nobody chose, or one
+    /// whose tile set is not open. That is a map repeating its bank, which is what every map
+    /// did before the thirds existed.
+    /// </remarks>
+    private TileSetEditorViewModel PanelOfThird(int third) =>
+        third < _chosen.Count ? _chosen[third] : _tiles;
 
     /// <summary>Cada supertile compuesto en una sola imagen.</summary>
     public ObservableCollection<ImageMini> SuperTiles { get; } = [];
@@ -297,7 +335,7 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
         OnPropertyChanged(nameof(UsesSuperTiles));
         OnPropertyChanged(nameof(CellTilesWidth));
         OnPropertyChanged(nameof(CellTilesHeight));
-        OnPropertyChanged(nameof(CellImages));
+        OnPropertyChanged(nameof(CellImagesByThird));
 
         RefreshRequested?.Invoke();
     }
