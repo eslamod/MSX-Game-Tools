@@ -21,12 +21,12 @@ public class TileSetPngCommandsTests : IDisposable
     public async Task Exportar_escribe_un_png_del_tamano_del_juego()
     {
         string path = Path.Combine(_folder, "bosque.png");
-        var main = new MainWindowViewModel(new TestDialogService { SavePath = path });
+        var main = new MainWindowViewModel(new TestDialogService());
 
         TileSetEditorViewModel editor = main.OpenTileSet(new TileSet("Bosque"));
         editor.PixelSurface.Set(2, 3, true);
 
-        await main.ExportTileSetPngCommand.ExecuteAsync(null);
+        await TestExport.TileSetAsync(main, ExportFormat.Png, path);
 
         (int[] pixels, PixelSize size) = PngFile.Read(path);
 
@@ -36,7 +36,7 @@ public class TileSetPngCommandsTests : IDisposable
 
     [AvaloniaFact]
     public void Exportar_esta_deshabilitado_sin_un_juego_delante()
-        => Assert.False(new MainWindowViewModel().ExportTileSetPngCommand.CanExecute(null));
+        => Assert.False(new MainWindowViewModel().ExportTileSetCommand.CanExecute(null));
 
     /// <summary>Ida y vuelta pasando por el disco, que es como lo va a usar.</summary>
     [AvaloniaFact]
@@ -59,7 +59,7 @@ public class TileSetPngCommandsTests : IDisposable
         editor.PixelSurface.Set(0, 0, true);
         editor.PixelSurface.Set(1, 0, true);
 
-        await main.ExportTileSetPngCommand.ExecuteAsync(null);
+        await TestExport.TileSetAsync(main, ExportFormat.Png, path);
         await main.ImportTileSetPngCommand.ExecuteAsync(null);
 
         Assert.Equal(2, main.Tabs.Count);

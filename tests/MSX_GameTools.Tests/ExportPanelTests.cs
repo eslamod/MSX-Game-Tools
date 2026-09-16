@@ -1,0 +1,163 @@
+using Avalonia.Headless.XUnit;
+using MSX_GameTools.Entities;
+using MSX_GameTools.ViewModels;
+using Xunit;
+
+namespace MSX_GameTools.Tests;
+
+/// <summary>
+/// El panel de exportar: qué formatos ofrece, qué ficheros dice que va a escribir y cuáles
+/// escribe.
+/// </summary>
+/// <remarks>
+/// Lo que justifica el panel es la lista: de un juego de tiles salen hasta cuatro ficheros y el
+/// selector del sistema sólo avisa del que se nombra, así que los otros tres se sobrescribían
+/// sin decir nada.
+/// </remarks>
+public class ExportPanelTests : IDisposable
+{
+    private readonly string _folder =
+        Path.Combine(Path.GetTempPath(), $"msxexport-{Guid.NewGuid():N}");
+
+    public ExportPanelTests() => Directory.CreateDirectory(_folder);
+
+    public void Dispose() => Directory.Delete(_folder, recursive: true);
+
+    /// <summary>De un juego con supertiles y atributos salen cuatro ficheros.</summary>
+    [AvaloniaFact]
+    public void El_panel_dice_los_cuatro_ficheros_que_va_a_escribir()
+    {
+        ExportViewModel form = Panel(Rich());
+
+        Assert.Equal(
+            (string[])["bosque_patterns.asm", "bosque_colors.asm", "bosque_supertiles.asm", "bosque_attributes.asm"],
+            form.Files.Select(file => file.Name));
+    }
+
+    /// <summary>Y de uno normal, los dos de siempre.</summary>
+    [AvaloniaFact]
+    public void De_un_juego_normal_salen_los_dos_de_siempre()
+    {
+        ExportViewModel form = Panel(new TileSet("Bosque"));
+
+        Assert.Equal(
+            (string[])["bosque_patterns.asm", "bosque_colors.asm"],
+            form.Files.Select(file => file.Name));
+    }
+
+    /// <summary>El formato cambia las extensiones, y el png sale de una pieza.</summary>
+    [AvaloniaFact]
+    public void El_formato_cambia_lo_que_va_a_salir()
+    {
+        ExportViewModel form = Panel(new TileSet("Bosque"));
+
+        Use(form, ExportFormat.Binary);
+
+        Assert.Equal(
+            (string[])["bosque_patterns.bin", "bosque_colors.bin"],
+            form.Files.Select(file => file.Name));
+
+        Use(form, ExportFormat.Png);
+
+        Assert.Equal((string[])["bosque.png"], form.Files.Select(file => file.Name));
+    }
+
+    /// <summary>Los nombres salen del destino elegido en cuanto lo hay.</summary>
+    [AvaloniaFact]
+    public void Los_nombres_salen_del_destino_elegido()
+    {
+        ExportViewModel form = Panel(new TileSet("Bosque"));
+
+        form.Destination = Path.Combine(_folder, "nivel1.asm");
+
+        Assert.Equal(
+            (string[])["nivel1_patterns.asm", "nivel1_colors.asm"],
+            form.Files.Select(file => file.Name));
+    }
+
+    /// <summary>
+    /// Los que ya están se marcan, y se dice cuántos son.
+    /// </summary>
+    /// <remarks>
+    /// Es lo que el selector del sistema no puede decir: pregunta por el fichero que se nombra
+    /// y de aquí salen cuatro, así que los otros tres se pisaban en silencio.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Los_ficheros_que_ya_estan_se_marcan()
+    {
+        ExportViewModel form = Panel(new TileSet("Bosque"));
+
+        File.WriteAllText(Path.Combine(_folder, "bosque_colors.asm"), "lo que hubiera");
+
+        form.Destination = Path.Combine(_folder, "bosque.asm");
+
+        Assert.False(form.Files[0].Exists);
+        Assert.True(form.Files[1].Exists);
+
+        Assert.True(form.HasOverwrites);
+        Assert.Contains("1", form.Overwrites!);
+    }
+
+    /// <summary>Sin destino no se escribe nada, y el panel se queda abierto para ponerlo.</summary>
+    [AvaloniaFact]
+    public async Task Sin_destino_no_escribe_nada()
+    {
+        var main = new MainWindowViewModel(new TestDialogService());
+
+        main.OpenTileSet(new TileSet("Bosque"));
+        main.ExportTileSetCommand.Execute(null);
+
+        var form = (ExportViewModel)main.RightPanViewModel!;
+
+        await form.AcceptExportCommand.ExecuteAsync(null);
+
+        Assert.True(form.HasError);
+        Assert.Same(form, main.RightPanViewModel);
+
+        Assert.Empty(Directory.GetFiles(_folder));
+    }
+
+    /// <summary>Y al aceptar salen todos, no sólo el que se nombró.</summary>
+    [AvaloniaFact]
+    public async Task Aceptar_escribe_todos_los_ficheros()
+    {
+        var main = new MainWindowViewModel(new TestDialogService());
+
+        main.OpenTileSet(Rich());
+
+        await TestExport.TileSetAsync(main, ExportFormat.Binary, Path.Combine(_folder, "bosque.bin"));
+
+        Assert.Equal(
+            (string[])["bosque_attributes.bin", "bosque_colors.bin", "bosque_patterns.bin", "bosque_supertiles.bin"],
+            Directory.GetFiles(_folder).Select(Path.GetFileName).Order());
+
+        // Y el panel se cierra, que ya ha hecho lo suyo.
+        Assert.Null(main.RightPanViewModel);
+    }
+
+    // ------------------------------------------------------------------ los andamios
+
+    /// <summary>Un juego con todo lo que puede salir: supertiles y atributos.</summary>
+    private static TileSet Rich()
+    {
+        var tileSet = new TileSet("Bosque") { SuperTileWidth = 2, SuperTileHeight = 2 };
+
+        tileSet.AttributeNames.Define(0, "Sólido");
+
+        return tileSet;
+    }
+
+    /// <summary>El panel abierto por donde lo abre el usuario.</summary>
+    private static ExportViewModel Panel(TileSet tileSet)
+    {
+        var main = new MainWindowViewModel(new TestDialogService());
+
+        main.OpenTileSet(tileSet);
+        main.ExportTileSetCommand.Execute(null);
+
+        return (ExportViewModel)main.RightPanViewModel!;
+    }
+
+    private static void Use(ExportViewModel form, ExportFormat format) =>
+        form.Format = form.Formats.Single(choice => choice.Format == format);
+}

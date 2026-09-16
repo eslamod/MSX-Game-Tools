@@ -121,10 +121,8 @@
         <MenuItem Header="{l:Localize TreeBlocks}" Command="{Binding ShowBlocksCommand}" />
         <Separator />
         <MenuItem Header="{l:Localize MenuImportFromPng}" Command="{Binding ImportTileSetPngCommand}" />
-        <MenuItem Header="{l:Localize MenuExportToPng}" Command="{Binding ExportTileSetPngCommand}" />
         <Separator />
-        <MenuItem Header="{l:Localize MenuExportToBinary}" Command="{Binding ExportTileSetBinaryCommand}" />
-        <MenuItem Header="{l:Localize MenuExportToAssembler}" Command="{Binding ExportTileSetAssemblerCommand}" />
+        <MenuItem Header="{l:Localize MenuExport}" Command="{Binding ExportTileSetCommand}" />
       </MenuItem>
 
       <MenuItem Header="{l:Localize MenuMaps}">

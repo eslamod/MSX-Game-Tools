@@ -27,9 +27,7 @@ public partial class MainWindowViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(ExportPatternRangeCommand))]
     [NotifyCanExecuteChangedFor(nameof(ConvertSpriteBankToMsx1Command))]
     [NotifyCanExecuteChangedFor(nameof(ConvertSpriteBankToMsx2Command))]
-    [NotifyCanExecuteChangedFor(nameof(ExportTileSetBinaryCommand))]
-    [NotifyCanExecuteChangedFor(nameof(ExportTileSetAssemblerCommand))]
-    [NotifyCanExecuteChangedFor(nameof(ExportTileSetPngCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExportTileSetCommand))]
     [NotifyCanExecuteChangedFor(nameof(ShowBlocksCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportMapCsvCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportMapBinaryCommand))]
@@ -1924,101 +1922,23 @@ public partial class MainWindowViewModel : ObservableObject
         _ => TileSets.Count == 1 ? TileSets[0] : null,
     };
 
-    [RelayCommand(CanExecute = nameof(IsTileSetSelected))]
-    private Task ExportTileSetBinaryAsync() => ExportTileSetAsync(binary: true);
-
-    [RelayCommand(CanExecute = nameof(IsTileSetSelected))]
-    private Task ExportTileSetAssemblerAsync() => ExportTileSetAsync(binary: false);
-
     /// <summary>
-    /// Escribe la tabla de patrones y la de colores. Igual que con los bancos, se pide un
-    /// nombre base y de ahí salen los dos ficheros.
+    /// Opens the panel that asks what to export and where, and says what is going to come out.
     /// </summary>
-    private async Task ExportTileSetAsync(bool binary)
+    /// <remarks>
+    /// One entry and not three -binary, assembler and png-: it is the same question with three
+    /// answers, and what comes out of any of them is more than one file.
+    /// </remarks>
+    [RelayCommand(CanExecute = nameof(IsTileSetSelected))]
+    private void ExportTileSet()
     {
-        if (SelectedTab is not TileSetEditorViewModel editor)
+        if (SelectedTab is not TileSetEditorViewModel tiles)
             return;
 
-        TileSet tileSet = editor.TileSet;
-        string extension = binary ? ".bin" : ".asm";
+        if (RightPanels.OfType<ExportViewModel>().FirstOrDefault() is { } open)
+            CloseRightPanel(open);
 
-        string? path = await Dialogs.PickFileToSaveAsync(
-            Text[binary ? "PickExportBinary" : "PickExportAssembler"],
-            $"{SpriteBankExporter.LabelOf(tileSet.Name)}{extension}",
-            FormatOf(binary));
-
-        if (path is null)
-            return;
-
-        string folder = Path.GetDirectoryName(path) ?? string.Empty;
-        string stem = Path.GetFileNameWithoutExtension(path);
-
-        string patternsPath = Path.Combine(folder, $"{stem}_patterns{extension}");
-        string colorsPath = Path.Combine(folder, $"{stem}_colors{extension}");
-
-        // La tabla de supertiles sale con el juego y no con el mapa: es del juego, y todos
-        // los mapas dibujados con el comparten la misma. Con cada mapa se repetiria igual.
-        string superPath = Path.Combine(folder, $"{stem}_supertiles{extension}");
-
-        // Y la de atributos sólo si se han definido: quien no los usa no tiene por qué
-        // encontrarse un fichero de 256 ceros que no sabe para qué es.
-        string attributesPath = Path.Combine(folder, $"{stem}_attributes{extension}");
-
-        try
-        {
-            if (binary)
-            {
-                await File.WriteAllBytesAsync(patternsPath, TileSetExporter.PatternsToBinary(tileSet));
-                await File.WriteAllBytesAsync(colorsPath, TileSetExporter.ColorsToBinary(tileSet));
-
-                if (tileSet.HasSuperTiles)
-                    await File.WriteAllBytesAsync(superPath, SuperTileExporter.ToBinary(tileSet));
-
-                if (tileSet.AttributeNames.Any)
-                    await File.WriteAllBytesAsync(attributesPath, TileSetExporter.AttributesToBinary(tileSet));
-            }
-            else
-            {
-                await File.WriteAllTextAsync(patternsPath, TileSetExporter.PatternsToAssembler(tileSet, Preferences.AsmStyle));
-                await File.WriteAllTextAsync(colorsPath, TileSetExporter.ColorsToAssembler(tileSet, Preferences.AsmStyle));
-
-                if (tileSet.HasSuperTiles)
-                    await File.WriteAllTextAsync(superPath, SuperTileExporter.ToAssembler(tileSet, Preferences.AsmStyle));
-
-                if (tileSet.AttributeNames.Any)
-                    await File.WriteAllTextAsync(attributesPath, TileSetExporter.AttributesToAssembler(tileSet, Preferences.AsmStyle));
-            }
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            await Dialogs.ShowMessageAsync(Text["ErrorExportTileSet"], exception.Message);
-
-            return;
-        }
-
-        string done = Text.Format(
-            "ExportedTileSetBody",
-            Path.GetFileName(patternsPath),
-            Path.GetFileName(colorsPath),
-            TileSetExporter.ScreenThirds);
-
-        if (tileSet.HasSuperTiles)
-        {
-            done += " " + Text.Format(
-                "ExportedSuperTiles", Path.GetFileName(superPath), SuperTileExporter.CountOf(tileSet));
-
-            // Una celda del mapa es un byte, asi que de 256 para arriba hay supertiles que
-            // ningun mapa puede nombrar. Mejor decirlo que dejar una tabla que no cuadra.
-            if (tileSet.Blocks.Count > SuperTileExporter.MaxSuperTiles)
-            {
-                done += " " + Text.Format(
-                    "ExportedSuperTilesTooMany",
-                    tileSet.Blocks.Count,
-                    SuperTileExporter.MaxSuperTiles);
-            }
-        }
-
-        await Dialogs.ShowMessageAsync(Text["ExportedTileSetTitle"], done);
+        RightPanViewModel = new ExportViewModel(this, tiles);
     }
 
     [RelayCommand]
@@ -2057,33 +1977,6 @@ public partial class MainWindowViewModel : ObservableObject
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             await Dialogs.ShowMessageAsync(Text["ErrorExportPalette"], exception.Message);
-        }
-    }
-
-    [RelayCommand(CanExecute = nameof(IsTileSetSelected))]
-    private async Task ExportTileSetPngAsync()
-    {
-        if (SelectedTab is not TileSetEditorViewModel editor)
-            return;
-
-        string? path = await Dialogs.PickFileToSaveAsync(
-            Text["PickExportTileSetPng"],
-            $"{SpriteBankExporter.LabelOf(editor.TileSet.Name)}.png",
-            PickerFileKind.Image);
-
-        if (path is null)
-            return;
-
-        try
-        {
-            PngFile.Write(
-                path,
-                TileSetPngConverter.ToPixels(editor.TileSet, editor.ColorPalette),
-                TileSetPngConverter.FullSize);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            await Dialogs.ShowMessageAsync(Text["ErrorExportPng"], exception.Message);
         }
     }
 

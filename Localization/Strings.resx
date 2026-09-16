@@ -157,6 +157,20 @@
   <data name="MenuExportToAssembler" xml:space="preserve">
     <value>Exportar a ensamblador...</value>
   </data>
+  <data name="MenuExport" xml:space="preserve"><value>Exportar...</value></data>
+  <data name="ExportTitle" xml:space="preserve"><value>Exportar</value></data>
+  <data name="ExportFormatLabel" xml:space="preserve"><value>Formato</value></data>
+  <data name="ExportFormatAsm" xml:space="preserve"><value>Ensamblador (.asm)</value></data>
+  <data name="ExportFormatBin" xml:space="preserve"><value>Binario (.bin)</value></data>
+  <data name="ExportFormatPng" xml:space="preserve"><value>Imagen (.png)</value></data>
+  <data name="ExportTo" xml:space="preserve"><value>Destino</value></data>
+  <data name="ExportToHint" xml:space="preserve"><value>Elige dónde guardarlo</value></data>
+  <data name="ExportBrowseTip" xml:space="preserve"><value>Elegir la carpeta y el nombre</value></data>
+  <data name="ExportFiles" xml:space="preserve"><value>Se va a escribir</value></data>
+  <data name="ExportExists" xml:space="preserve"><value>ya existe</value></data>
+  <data name="ExportOverwrites" xml:space="preserve"><value>{0} de {1} ya existen y se sobrescriben.</value></data>
+  <data name="ExportNoDestination" xml:space="preserve"><value>Elige dónde guardarlo.</value></data>
+  <data name="PickExportTo" xml:space="preserve"><value>Exportar a</value></data>
 
   <data name="MenuPreferences" xml:space="preserve">
     <value>Preferencias...</value>

@@ -1,0 +1,82 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:l="clr-namespace:MSX_GameTools.Localization"
+             mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="320"
+             x:Class="MSX_GameTools.Views.ExportView"
+             x:DataType="vm:ExportViewModel"
+             Background="{DynamicResource AppPanelBackground}">
+
+  <!-- Title at the top, buttons at the bottom and a scroll bar in between, like the other
+       forms of the side panel: the list of files grows, and it cannot be allowed to push
+       Accept out of the panel. -->
+  <Grid Margin="10" RowDefinitions="Auto,*,Auto">
+
+    <TextBlock Grid.Row="0" Text="{Binding Header}" FontWeight="Bold" Margin="0,0,0,10" />
+
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel>
+
+        <Grid ColumnDefinitions="80,*" Margin="0,0,0,6">
+          <TextBlock Grid.Column="0" Text="{l:Localize ExportFormatLabel}" VerticalAlignment="Center" />
+          <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                    ItemsSource="{Binding Formats}"
+                    SelectedItem="{Binding Format}">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:ExportChoice">
+                <TextBlock Text="{Binding Label}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+        </Grid>
+
+        <!-- The other files take their name from whatever is chosen here, which is what the
+             export already did: one name is asked for and the rest are called after it. -->
+        <Grid ColumnDefinitions="80,*,Auto" Margin="0,0,0,6">
+          <TextBlock Grid.Column="0" Text="{l:Localize ExportTo}" VerticalAlignment="Center" />
+          <TextBox Grid.Column="1" Text="{Binding Destination}"
+                   PlaceholderText="{l:Localize ExportToHint}" />
+          <Button Grid.Column="2" Content="..." MinWidth="34" Margin="4,0,0,0"
+                  Command="{Binding BrowseCommand}"
+                  ToolTip.Tip="{l:Localize ExportBrowseTip}" />
+        </Grid>
+
+        <!-- What is going to come out, before a single file is written. The picker of the
+             system only warns about the one that gets named, and a tile set writes up to
+             four. -->
+        <TextBlock Text="{l:Localize ExportFiles}" FontWeight="Bold" Margin="0,8,0,4" />
+
+        <ItemsControl ItemsSource="{Binding Files}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:ExportFileRow">
+              <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,2">
+                <TextBlock Grid.Column="0" Text="{Binding Name}"
+                           FontFamily="Consolas" TextWrapping="Wrap" />
+                <TextBlock Grid.Column="1" Text="{l:Localize ExportExists}"
+                           IsVisible="{Binding Exists}"
+                           Foreground="{DynamicResource AppTextWarning}" Margin="6,0,0,0" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <TextBlock Text="{Binding Overwrites}" IsVisible="{Binding HasOverwrites}"
+                   Foreground="{DynamicResource AppTextWarning}" TextWrapping="Wrap"
+                   Margin="0,6,0,0" />
+
+        <TextBlock Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}"
+                   Foreground="{DynamicResource AppTextError}" TextWrapping="Wrap"
+                   Margin="0,6,0,0" />
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right"
+                Margin="0,10,0,0">
+      <Button Content="{l:Localize FormAccept}" MinWidth="90" Command="{Binding AcceptExportCommand}" />
+      <Button Content="{l:Localize FormCancel}" MinWidth="90" Margin="8,0,0,0" Command="{Binding CancelExportCommand}" />
+    </StackPanel>
+  </Grid>
+</UserControl>

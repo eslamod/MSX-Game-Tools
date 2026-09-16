@@ -32,8 +32,12 @@ public class ExportPickerTests
         await Check(main.ExportSpriteBankAssemblerCommand);
 
         TileSetEditorViewModel tiles = main.OpenTileSet(new TileSet("Bosque"));
-        await Check(main.ExportTileSetBinaryCommand);
-        await Check(main.ExportTileSetAssemblerCommand);
+
+        // El juego de tiles pregunta desde su panel, así que el selector lo abre el botón de
+        // elegir destino y no una entrada del menú.
+        await CheckPanel(ExportFormat.Binary);
+        await CheckPanel(ExportFormat.Assembler);
+        await CheckPanel(ExportFormat.Png);
 
         main.OpenMap(new TileMap("Nivel 1", 8, 8), tiles);
         await Check(main.ExportMapBinaryCommand);
@@ -46,6 +50,17 @@ public class ExportPickerTests
         await Check(main.ExportPaletteAssemblerCommand);
 
         Assert.Empty(wrong);
+
+        async Task CheckPanel(ExportFormat format)
+        {
+            main.ExportTileSetCommand.Execute(null);
+
+            var form = (ExportViewModel)main.RightPanViewModel!;
+
+            form.Format = form.Formats.Single(choice => choice.Format == format);
+
+            await Check(form.BrowseCommand);
+        }
 
         async Task Check(IAsyncRelayCommand command)
         {
@@ -70,6 +85,7 @@ public class ExportPickerTests
         ".asm" => PickerFileKind.Assembler,
         ".bin" => PickerFileKind.Binary,
         ".csv" => PickerFileKind.Csv,
+        ".png" => PickerFileKind.Image,
         _ => null,
     };
 }

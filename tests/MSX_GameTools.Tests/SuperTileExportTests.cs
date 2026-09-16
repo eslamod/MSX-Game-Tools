@@ -140,14 +140,13 @@ public class SuperTileExportTests
 
         try
         {
-            var dialogs = new TestDialogService { SavePath = Path.Combine(folder, "bosque.bin") };
-            var main = new MainWindowViewModel(dialogs);
+            var main = new MainWindowViewModel(new TestDialogService());
 
             TileSet tileSet = superTiles ? WithSuperTiles(2, 2, count: 2) : new TileSet("Bosque");
 
             main.OpenTileSet(tileSet);
 
-            await main.ExportTileSetBinaryCommand.ExecuteAsync(null);
+            await TestExport.TileSetAsync(main, ExportFormat.Binary, Path.Combine(folder, "bosque.bin"));
 
             Assert.True(File.Exists(Path.Combine(folder, "bosque_patterns.bin")));
             Assert.Equal(superTiles, File.Exists(Path.Combine(folder, "bosque_supertiles.bin")));

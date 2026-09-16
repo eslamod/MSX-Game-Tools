@@ -159,12 +159,12 @@ public class TileSetFileTests : IDisposable
         var main = new MainWindowViewModel(new TestDialogService { SavePath = Path.Combine(_folder, "b.json") });
 
         Assert.False(main.SaveDocumentCommand.CanExecute(null));
-        Assert.False(main.ExportTileSetBinaryCommand.CanExecute(null));
+        Assert.False(main.ExportTileSetCommand.CanExecute(null));
 
         main.OpenTileSet(new TileSet("Bosque"));
 
         Assert.True(main.SaveDocumentCommand.CanExecute(null));
-        Assert.True(main.ExportTileSetBinaryCommand.CanExecute(null));
+        Assert.True(main.ExportTileSetCommand.CanExecute(null));
 
         await Task.CompletedTask;
     }
@@ -195,11 +195,11 @@ public class TileSetFileTests : IDisposable
     [AvaloniaFact]
     public async Task Exportar_escribe_los_dos_ficheros_y_recuerda_lo_de_los_tercios()
     {
-        var dialogs = new TestDialogService { SavePath = Path.Combine(_folder, "bosque.bin") };
+        var dialogs = new TestDialogService();
         var main = new MainWindowViewModel(dialogs);
         main.OpenTileSet(new TileSet("Bosque"));
 
-        await main.ExportTileSetBinaryCommand.ExecuteAsync(null);
+        await TestExport.TileSetAsync(main, ExportFormat.Binary, Path.Combine(_folder, "bosque.bin"));
 
         Assert.Equal(2048, new FileInfo(Path.Combine(_folder, "bosque_patterns.bin")).Length);
         Assert.Equal(2048, new FileInfo(Path.Combine(_folder, "bosque_colors.bin")).Length);
