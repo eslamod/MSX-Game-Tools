@@ -37,4 +37,11 @@
     <PackageReference Include="Material.Icons.Avalonia" Version="3.0.2" />
   </ItemGroup>
 
+  <!-- La plantilla de la ROM de ejemplo viaja dentro del binario: al exportar se
+       rellena y sale al lado de los ficheros de datos, para el ensamblador elegido. -->
+  <ItemGroup>
+    <None Remove="Templates/*.asm" />
+    <EmbeddedResource Include="Templates/*.asm" />
+  </ItemGroup>
+
 </Project>

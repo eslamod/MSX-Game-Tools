@@ -159,6 +159,9 @@
   <data name="ExportExists" xml:space="preserve"><value>ja existeix</value></data>
   <data name="ExportOverwrites" xml:space="preserve"><value>{0} de {1} ja existeixen i se sobreescriuen.</value></data>
   <data name="ExportNoDestination" xml:space="preserve"><value>Tria on desar-ho.</value></data>
+  <data name="ExportExampleRom" xml:space="preserve"><value>Afegir una ROM d'exemple</value></data>
+  <data name="ExportExampleRomTip" xml:space="preserve"><value>Un .asm que carrega el que s'exporta i ho ensenya a la pantalla, a punt per ensamblar.</value></data>
+  <data name="ExportAssembler" xml:space="preserve"><value>Assemblador</value></data>
   <data name="PickExportTo" xml:space="preserve"><value>Exporta a</value></data>
 
   <data name="MenuPreferences" xml:space="preserve">

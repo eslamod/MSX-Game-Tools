@@ -39,8 +39,8 @@ public sealed record ExportFileRow(string Name, bool Exists);
 /// word. Here they are all listed before a single one is written.
 /// </para>
 /// <para>
-/// And it is where the two questions that are coming will fit: whether the asm of an example
-/// ROM is wanted as well, and which assembler it is for.
+/// It is also where the two questions that only make sense one after the other are asked:
+/// whether an asm of an example ROM is wanted as well, and which assembler it is for.
 /// </para>
 /// </remarks>
 public partial class ExportViewModel : PanelBaseViewModel
@@ -49,6 +49,7 @@ public partial class ExportViewModel : PanelBaseViewModel
     private readonly TileSetEditorViewModel _tiles;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsExampleRom))]
     private ExportChoice _format;
 
     /// <summary>Where the first of the files goes; the others take their name from it.</summary>
@@ -58,6 +59,21 @@ public partial class ExportViewModel : PanelBaseViewModel
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
     private string? _errorMessage;
+
+    /// <summary>
+    /// Whether an asm of a ROM that shows this goes out as well.
+    /// </summary>
+    /// <remarks>
+    /// Off by default: whoever already knows what to do with the tables does not need it, and
+    /// it would be one more file landing in their folder without being asked for.
+    /// </remarks>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsAssembler))]
+    private bool _wantsExampleRom;
+
+    /// <summary>The one that example ROM is written for.</summary>
+    [ObservableProperty]
+    private AsmDialect _assembler = AsmDialect.Default;
 
     public ExportViewModel(MainWindowViewModel mainWindowVm, TileSetEditorViewModel tiles)
     {
@@ -83,6 +99,22 @@ public partial class ExportViewModel : PanelBaseViewModel
 
     /// <summary>The formats this document can come out in.</summary>
     public IReadOnlyList<ExportChoice> Formats { get; }
+
+    /// <summary>The assemblers an example ROM can be written for.</summary>
+    public IReadOnlyList<AsmDialect> Assemblers { get; } = AsmDialect.All;
+
+    /// <summary>
+    /// The assembler is only asked for with the box ticked.
+    /// </summary>
+    /// <remarks>
+    /// With it unticked there is no asm of ours going out, and the exported files follow what
+    /// the preferences say: asking here as well would be the same question twice, with two
+    /// answers that could disagree.
+    /// </remarks>
+    public bool ShowsAssembler => WantsExampleRom;
+
+    /// <summary>A png is a picture: there is no ROM to go with it.</summary>
+    public bool ShowsExampleRom => Format.Format != ExportFormat.Png;
 
     /// <summary>The files that are going to be written, with their names already worked out.</summary>
     public ObservableCollection<ExportFileRow> Files { get; } = [];
@@ -180,6 +212,9 @@ public partial class ExportViewModel : PanelBaseViewModel
 
     partial void OnDestinationChanged(string value) => Refresh();
 
+    /// <summary>The ROM is one more file in the list, so the list has to hear about it.</summary>
+    partial void OnWantsExampleRomChanged(bool value) => Refresh();
+
     /// <summary>Rebuilds the list of what is going to come out.</summary>
     private void Refresh()
     {
@@ -197,7 +232,15 @@ public partial class ExportViewModel : PanelBaseViewModel
         OnPropertyChanged(nameof(HasOverwrites));
     }
 
-    private string NameOf(Piece piece) => $"{Stem}{piece.Suffix}{Format.Extension}";
+    /// <summary>
+    /// What one of them is called.
+    /// </summary>
+    /// <remarks>
+    /// With the format's extension, except for the one that brings its own: the example ROM is
+    /// assembler even when what is being exported is binary.
+    /// </remarks>
+    private string NameOf(Piece piece) =>
+        $"{Stem}{piece.Suffix}{piece.Extension ?? Format.Extension}";
 
     /// <summary>
     /// What comes out of exporting this in this format: the end of each name and who writes it.
@@ -209,7 +252,11 @@ public partial class ExportViewModel : PanelBaseViewModel
     private IEnumerable<Piece> Pieces()
     {
         TileSet tileSet = _tiles.TileSet;
-        AsmStyle style = _mainWindowVm.Preferences.AsmStyle;
+
+        // With the box ticked the chosen assembler rules over the whole batch, the data files
+        // included: the ROM brings them in with an include, and a file written with a
+        // directive that assembler does not take would stop it on a line nobody wrote.
+        AsmStyle style = WantsExampleRom ? Assembler.Style : _mainWindowVm.Preferences.AsmStyle;
 
         if (Format.Format == ExportFormat.Png)
         {
@@ -252,6 +299,17 @@ public partial class ExportViewModel : PanelBaseViewModel
             yield return new Piece("_attributes", path => binary
                 ? File.WriteAllBytesAsync(path, TileSetExporter.AttributesToBinary(tileSet))
                 : File.WriteAllTextAsync(path, TileSetExporter.AttributesToAssembler(tileSet, style)));
+        }
+
+        // Last of all because it is the one that ties the rest together: it loads them and
+        // puts them on screen, and it is named after them.
+        if (WantsExampleRom)
+        {
+            yield return new Piece(
+                ExampleRom.Suffix,
+                path => File.WriteAllTextAsync(
+                    path, ExampleRom.ForTileSet(tileSet, _tiles.ColorPalette, Assembler, Stem, binary)),
+                ExampleRom.Extension);
         }
     }
 
@@ -301,6 +359,6 @@ public partial class ExportViewModel : PanelBaseViewModel
         _ => PickerFileKind.Assembler,
     };
 
-    /// <summary>One of the files going out: how its name ends, and who writes it.</summary>
-    private sealed record Piece(string Suffix, Func<string, Task> Write);
+    /// <summary>One of the files going out: how its name ends, who writes it, and what it is.</summary>
+    private sealed record Piece(string Suffix, Func<string, Task> Write, string? Extension = null);
 }

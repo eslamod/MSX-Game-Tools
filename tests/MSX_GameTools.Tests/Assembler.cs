@@ -42,6 +42,35 @@ internal static class Assembler
         return Places(name).FirstOrDefault(File.Exists) ?? OnPath(name);
     }
 
+    /// <summary>
+    /// Ensambla ese fichero y deja el binario donde se diga. Devuelve lo que haya dicho.
+    /// </summary>
+    /// <remarks>
+    /// Aquí y no en cada prueba porque la forma de nombrar la salida cambia de uno a otro, y
+    /// con dos copias el día que una cambiara la otra seguiría ensamblando lo de antes. Se
+    /// ejecuta en la carpeta del fuente, que es donde están los ficheros que se trae.
+    /// </remarks>
+    public static string Run(string tool, string name, string source, string binary)
+    {
+        string arguments = name == "sjasmplus"
+            ? $"--nologo --raw=\"{binary}\" \"{source}\""
+            : $"\"{source}\" \"{binary}\"";
+
+        var run = System.Diagnostics.Process.Start(
+            new System.Diagnostics.ProcessStartInfo(tool, arguments)
+            {
+                WorkingDirectory = Path.GetDirectoryName(source)!,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            })!;
+
+        string said = run.StandardOutput.ReadToEnd() + run.StandardError.ReadToEnd();
+
+        run.WaitForExit();
+
+        return said;
+    }
+
     /// <summary>La variable que dice dónde está ese: <c>SASSX</c>, <c>PASMO</c>…</summary>
     public static string VariableFor(string name) => name.ToUpperInvariant();
 

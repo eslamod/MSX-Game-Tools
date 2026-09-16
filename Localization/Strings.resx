@@ -170,6 +170,9 @@
   <data name="ExportExists" xml:space="preserve"><value>ya existe</value></data>
   <data name="ExportOverwrites" xml:space="preserve"><value>{0} de {1} ya existen y se sobrescriben.</value></data>
   <data name="ExportNoDestination" xml:space="preserve"><value>Elige dónde guardarlo.</value></data>
+  <data name="ExportExampleRom" xml:space="preserve"><value>Añadir una ROM de ejemplo</value></data>
+  <data name="ExportExampleRomTip" xml:space="preserve"><value>Un .asm que carga lo exportado y lo enseña en pantalla, listo para ensamblar.</value></data>
+  <data name="ExportAssembler" xml:space="preserve"><value>Ensamblador</value></data>
   <data name="PickExportTo" xml:space="preserve"><value>Exportar a</value></data>
 
   <data name="MenuPreferences" xml:space="preserve">

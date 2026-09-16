@@ -13,7 +13,16 @@ namespace MSX_GameTools.Tests;
 /// </remarks>
 internal static class TestExport
 {
-    public static async Task TileSetAsync(MainWindowViewModel main, ExportFormat format, string path)
+    /// <param name="answering">
+    /// Lo que se conteste además del formato y el destino, como la casilla de la ROM de
+    /// ejemplo. Después del formato a propósito: el formato es el que decide qué preguntas
+    /// salen.
+    /// </param>
+    public static async Task TileSetAsync(
+        MainWindowViewModel main,
+        ExportFormat format,
+        string path,
+        Action<ExportViewModel>? answering = null)
     {
         main.ExportTileSetCommand.Execute(null);
 
@@ -21,6 +30,8 @@ internal static class TestExport
 
         form.Format = form.Formats.Single(choice => choice.Format == format);
         form.Destination = path;
+
+        answering?.Invoke(form);
 
         await form.AcceptExportCommand.ExecuteAsync(null);
     }

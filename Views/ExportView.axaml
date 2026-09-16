@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:MSX_GameTools.ViewModels"
+             xmlns:e="clr-namespace:MSX_GameTools.Entities"
              xmlns:l="clr-namespace:MSX_GameTools.Localization"
              mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="320"
              x:Class="MSX_GameTools.Views.ExportView"
@@ -41,6 +42,30 @@
           <Button Grid.Column="2" Content="..." MinWidth="34" Margin="4,0,0,0"
                   Command="{Binding BrowseCommand}"
                   ToolTip.Tip="{l:Localize ExportBrowseTip}" />
+        </Grid>
+
+        <!-- The ROM question goes above the list because it puts a file in it. Off by
+             default: it is for whoever does not know yet what to do with the tables. -->
+        <CheckBox Content="{l:Localize ExportExampleRom}"
+                  IsChecked="{Binding WantsExampleRom}"
+                  IsVisible="{Binding ShowsExampleRom}" Margin="0,2,0,0" />
+
+        <TextBlock Text="{l:Localize ExportExampleRomTip}" IsVisible="{Binding ShowsExampleRom}"
+                   Opacity="0.7" TextWrapping="Wrap" Margin="0,0,0,6" />
+
+        <!-- And the assembler only with the box ticked: with it unticked there is no asm of
+             ours to write, and asking would be a question with nothing hanging on it. -->
+        <Grid ColumnDefinitions="80,*" Margin="0,0,0,6" IsVisible="{Binding ShowsAssembler}">
+          <TextBlock Grid.Column="0" Text="{l:Localize ExportAssembler}" VerticalAlignment="Center" />
+          <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                    ItemsSource="{Binding Assemblers}"
+                    SelectedItem="{Binding Assembler}">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="e:AsmDialect">
+                <TextBlock Text="{Binding Name}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
         </Grid>
 
         <!-- What is going to come out, before a single file is written. The picker of the

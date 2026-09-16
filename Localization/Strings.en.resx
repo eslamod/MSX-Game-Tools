@@ -158,6 +158,9 @@
   <data name="ExportExists" xml:space="preserve"><value>already there</value></data>
   <data name="ExportOverwrites" xml:space="preserve"><value>{0} of {1} are already there and get overwritten.</value></data>
   <data name="ExportNoDestination" xml:space="preserve"><value>Choose where to save it.</value></data>
+  <data name="ExportExampleRom" xml:space="preserve"><value>Add an example ROM</value></data>
+  <data name="ExportExampleRomTip" xml:space="preserve"><value>An .asm that loads what is exported and shows it on screen, ready to assemble.</value></data>
+  <data name="ExportAssembler" xml:space="preserve"><value>Assembler</value></data>
   <data name="PickExportTo" xml:space="preserve"><value>Export to</value></data>
 
   <data name="MenuPreferences" xml:space="preserve">

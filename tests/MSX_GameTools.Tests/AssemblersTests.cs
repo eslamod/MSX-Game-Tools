@@ -83,22 +83,7 @@ public class AssemblersTests
 
             File.WriteAllText(source, asm);
 
-            // sjasmplus escribe donde le digan con --raw; los otros dos toman el destino como
-            // segundo argumento suelto.
-            string arguments = name == "sjasmplus"
-                ? $"--nologo --raw=\"{binary}\" \"{source}\""
-                : $"\"{source}\" \"{binary}\"";
-
-            var run = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(tool, arguments)
-            {
-                WorkingDirectory = folder,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-            })!;
-
-            string said = run.StandardOutput.ReadToEnd() + run.StandardError.ReadToEnd();
-
-            run.WaitForExit();
+            string said = Assembler.Run(tool, name, source, binary);
 
             Assert.True(File.Exists(binary), $"{name} no sacó binario: {said}");
 
