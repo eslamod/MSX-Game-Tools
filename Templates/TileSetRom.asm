@@ -50,19 +50,14 @@ PALETTE_BYTES   {EQU} 32         ; 16 colours of two bytes
 ;-----------------------------------------------------------------------------
 ; Cartridge header
 ;-----------------------------------------------------------------------------
-                {ORG} 0x4000
-
-                {DB} "AB"
-                {DW} Start       ; INIT
-                {DW} 0           ; STATEMENT
-                {DW} 0           ; DEVICE
-                {DW} 0           ; TEXT
-                {DB} 0,0,0,0,0,0 ; reserved
+; The "AB" and the four vectors the BIOS goes looking for in page 1. Only the
+; first one is used here: it is the address it calls to start.
+{HEADER}
 
 ;-----------------------------------------------------------------------------
 ; Start
 ;-----------------------------------------------------------------------------
-Start:
+{START}:
                 call SetupVdp
                 call LoadPalette
                 call LoadTables
@@ -352,8 +347,4 @@ ColorsData:
 {COLORS_ALT}
 ColorsEnd:
 
-; Padding up to 16K, the size a cartridge in page 1 is expected to be. With a
-; label and not with $, because in sasSX a $ inside an expression does not give
-; the PC: it stays at zero and a 32K ROM comes out.
-RomEnd:
-                {DS} 0x8000 - RomEnd, 0xFF
+{TAIL}

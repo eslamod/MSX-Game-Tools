@@ -52,9 +52,14 @@ internal static class Assembler
     /// </remarks>
     public static string Run(string tool, string name, string source, string binary)
     {
-        string arguments = name == "sjasmplus"
-            ? $"--nologo --raw=\"{binary}\" \"{source}\""
-            : $"\"{source}\" \"{binary}\"";
+        // asMSX no lleva destino en la línea de órdenes: lo saca del .filename de dentro,
+        // así que el binario que se le pida tiene que ser el que nombre el fuente.
+        string arguments = name switch
+        {
+            "sjasmplus" => $"--nologo --raw=\"{binary}\" \"{source}\"",
+            "asMSX" => $"\"{source}\"",
+            _ => $"\"{source}\" \"{binary}\"",
+        };
 
         var run = System.Diagnostics.Process.Start(
             new System.Diagnostics.ProcessStartInfo(tool, arguments)
@@ -107,6 +112,10 @@ internal static class Assembler
     {
         "sjasmplus" => [@"D:\utils\MSx\sjasmplus-1.24.0.win\sjasmplus.exe"],
         "pasmo" => [@"D:\utils\MSx\pasmo-0.5.3\pasmo.exe"],
+
+        // El .win es el ejecutable de Windows sin renombrar, que es como se distribuye;
+        // Windows lo ejecuta igual, que mira la cabecera del PE y no la extensión.
+        "asMSX" => [@"D:\utils\MSX\asMSX\bin\asmsx.win", @"D:\utils\MSX\asMSX\bin\asmsx.exe"],
         _ => [],
     };
 

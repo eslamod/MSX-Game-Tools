@@ -10,7 +10,7 @@ para los mapas hechos con supertiles.
 
 La de tiles ya no hay que escribirla a mano: al exportar un juego de tiles se
 puede pedir la ROM de ejemplo, y sale de `Templates/TileSetRom.asm` rellenada
-para el ensamblador que se elija —sasSX, sjasmplus o pasmo— y para el modo del
+para el ensamblador que se elija —sasSX, sjasmplus, pasmo o asMSX— y para el modo del
 juego. `tileset_test.asm` se queda como la escrita a mano de la que salió la
 plantilla; cuando las otras tres tengan la suya, aquí no debería quedar
 ninguna.

@@ -22,9 +22,6 @@ namespace MSX_GameTools.Tests;
 /// </remarks>
 public class ExampleRomTests : IDisposable
 {
-    /// <summary>Lo que ocupa un cartucho de la página 1, que es lo que tiene que salir.</summary>
-    private const int RomBytes = 16384;
-
     private readonly string _folder =
         Path.Combine(Path.GetTempPath(), $"msxrom-{Guid.NewGuid():N}");
 
@@ -32,22 +29,32 @@ public class ExampleRomTests : IDisposable
 
     public void Dispose() => Directory.Delete(_folder, recursive: true);
 
-    /// <summary>Los tres ensambladores, con las dos salidas de datos: incbin e include.</summary>
-    public static TheoryData<string, ExportFormat> Bundles => new()
+    /// <summary>
+    /// Los cuatro ensambladores, con las dos salidas de datos —incbin e include— y lo que
+    /// tiene que salir de cada uno.
+    /// </summary>
+    /// <remarks>
+    /// El tamaño va aquí porque no es el mismo para todos: tres rellenan hasta los 16K de la
+    /// página 1 porque se lo dice la plantilla, y asMSX redondea él al cartucho más pequeño
+    /// donde quepa, que para esta ROM son 8K.
+    /// </remarks>
+    public static TheoryData<string, ExportFormat, int> Bundles => new()
     {
-        { "sasSX", ExportFormat.Binary },
-        { "sasSX", ExportFormat.Assembler },
-        { "sjasmplus", ExportFormat.Binary },
-        { "sjasmplus", ExportFormat.Assembler },
-        { "pasmo", ExportFormat.Binary },
-        { "pasmo", ExportFormat.Assembler },
+        { "sasSX", ExportFormat.Binary, 16384 },
+        { "sasSX", ExportFormat.Assembler, 16384 },
+        { "sjasmplus", ExportFormat.Binary, 16384 },
+        { "sjasmplus", ExportFormat.Assembler, 16384 },
+        { "pasmo", ExportFormat.Binary, 16384 },
+        { "pasmo", ExportFormat.Assembler, 16384 },
+        { "asMSX", ExportFormat.Binary, 8192 },
+        { "asMSX", ExportFormat.Assembler, 8192 },
     };
 
     /// <summary>Lo que sale del panel ensambla tal cual, sin tocar nada.</summary>
     [AvaloniaTheory]
     [MemberData(nameof(Bundles))]
-    public async Task La_rom_que_sale_del_panel_ensambla_y_da_un_cartucho_de_16k(
-        string name, ExportFormat format)
+    public async Task La_rom_que_sale_del_panel_ensambla_y_da_un_cartucho(
+        string name, ExportFormat format, int size)
     {
         string? tool = Assembler.Find(name);
 
@@ -66,7 +73,7 @@ public class ExampleRomTests : IDisposable
         // El tamaño y la «AB» del principio: si el relleno del final no se hubiera puesto
         // saldría más corta, y si el org no estuviera, empezaría en otro sitio. Las dos cosas
         // ensamblan sin una palabra y las dos dejan un cartucho que no arranca.
-        Assert.Equal(RomBytes, bytes.Length);
+        Assert.Equal(size, bytes.Length);
         Assert.Equal("AB", System.Text.Encoding.ASCII.GetString(bytes, 0, 2));
     }
 
@@ -176,6 +183,47 @@ public class ExampleRomTests : IDisposable
 
         Assert.Contains(".db  3, 0xFF", rom);
         Assert.Contains(".db  4, 0x03", rom);
+    }
+
+    /// <summary>
+    /// Con asMSX la cabecera del cartucho no se escribe a mano.
+    /// </summary>
+    /// <remarks>
+    /// La escribe él desde <c>.rom</c> y <c>.start</c>, y el nombre de la ROM sale del
+    /// <c>.filename</c> porque no lo lleva en la línea de órdenes. El relleno del final
+    /// tampoco va: su <c>ds</c> no admite byte de relleno y esa línea no ensamblaría.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Con_asmsx_la_cabecera_del_cartucho_no_se_escribe_a_mano()
+    {
+        string rom = ExampleRom.ForTileSet(
+            new TileSet("Bosque"),
+            ColorPalette.CreateMsxStandard(),
+            AsmDialect.AsMsx,
+            "bosque",
+            binary: true);
+
+        Assert.Contains(".filename \"bosque\"", rom);
+        Assert.Contains(".start Begin", rom);
+
+        Assert.DoesNotContain("db \"AB\"", rom);
+        Assert.DoesNotContain("0x8000 - RomEnd", rom);
+    }
+
+    /// <summary>Y los otros sí la llevan, con el vector que apunta al arranque.</summary>
+    [AvaloniaFact]
+    public void Los_demas_llevan_la_cabecera_del_cartucho_escrita()
+    {
+        string rom = ExampleRom.ForTileSet(
+            new TileSet("Bosque"),
+            ColorPalette.CreateMsxStandard(),
+            AsmDialect.Pasmo,
+            "bosque",
+            binary: true);
+
+        Assert.Contains("db \"AB\"", rom);
+        Assert.Contains("dw Begin", rom);
+        Assert.Contains("ds 0x8000 - RomEnd, 0xFF", rom);
     }
 
     /// <summary>La cabecera dice con qué se ensambla y qué ficheros hacen falta al lado.</summary>

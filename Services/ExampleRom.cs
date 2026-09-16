@@ -40,6 +40,15 @@ public static class ExampleRom
     /// <summary>What is left to fill in: <c>{NAME}</c>, <c>{PALETTE}</c>…</summary>
     private const string TokenPattern = @"\{([A-Z0-9_]+)\}";
 
+    /// <summary>
+    /// What the entry point of the ROM is called.
+    /// </summary>
+    /// <remarks>
+    /// Begin and not Start because in asMSX <c>start</c> is a directive, and a label by that
+    /// name is read as one: the file stops on the line where the header names it.
+    /// </remarks>
+    private const string Entry = "Begin";
+
     /// <summary>What the ROM of that export is called.</summary>
     public static string NameOf(string stem) => $"{stem}{Suffix}{Extension}";
 
@@ -67,6 +76,8 @@ public static class ExampleRom
         return Fill("TileSetRom.asm", dialect, new Dictionary<string, string>
         {
             ["NAME"] = tileSet.Name,
+            ["STEM"] = stem,
+            ["START"] = Entry,
             ["ASSEMBLER"] = dialect.Name,
             ["COMMAND"] = dialect.CommandFor(NameOf(stem), $"{stem}.rom"),
             ["FILES"] = $";     {patterns}{extension}\n;     {colors}{extension}",
@@ -104,7 +115,13 @@ public static class ExampleRom
     private static string Fill(
         string template, AsmDialect dialect, IReadOnlyDictionary<string, string> values)
     {
-        string source = Read(template).Replace("\r\n", "\n");
+        // The two pieces of the assembler first: how a ROM opens and how it closes is the
+        // one thing that is not the same program for all of them, and what they bring in
+        // carries tokens of its own.
+        string source = Read(template)
+            .Replace("\r\n", "\n")
+            .Replace("{HEADER}", dialect.Header)
+            .Replace("{TAIL}", dialect.Tail);
 
         foreach (Match token in Regex.Matches(source, TokenPattern))
         {
@@ -116,11 +133,13 @@ public static class ExampleRom
 
         var text = new StringBuilder(source);
 
-        foreach (string directive in Directives)
-            text.Replace($"{{{directive.ToUpperInvariant()}}}", dialect.Directive(directive));
-
         foreach ((string token, string value) in values)
             text.Replace($"{{{token}}}", value);
+
+        // The directives last: by then everything is in —what the assembler brought in and
+        // the lines built above— and all of it comes out spelled the way it wants.
+        foreach (string directive in Directives)
+            text.Replace($"{{{directive.ToUpperInvariant()}}}", dialect.Directive(directive));
 
         // The template is written with line feeds and what is put into it too, so the endings
         // are settled once here and the file comes out like the rest of what is exported.
