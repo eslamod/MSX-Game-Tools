@@ -134,9 +134,7 @@
         <MenuItem Header="{l:Localize MenuImportFromCsv}" Command="{Binding ImportMapCsvCommand}" />
         <MenuItem Header="{l:Localize MenuImportFromBinary}" Command="{Binding ImportMapBinaryCommand}" />
         <Separator />
-        <MenuItem Header="{l:Localize MenuExportToCsv}" Command="{Binding ExportMapCsvCommand}" />
-        <MenuItem Header="{l:Localize MenuExportToBinary}" Command="{Binding ExportMapBinaryCommand}" />
-        <MenuItem Header="{l:Localize MenuExportToAssembler}" Command="{Binding ExportMapAssemblerCommand}" />
+        <MenuItem Header="{l:Localize MenuExport}" Command="{Binding ExportMapCommand}" />
       </MenuItem>
       <!-- Cargar una paleta no esta aqui: la trae Abrir, como todo lo demas. -->
       <MenuItem Header="{l:Localize MenuPalette}">

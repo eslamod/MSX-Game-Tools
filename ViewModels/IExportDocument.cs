@@ -8,6 +8,7 @@ public enum ExportFormat
     Assembler,
     Binary,
     Png,
+    Csv,
 }
 
 /// <summary>One of the formats on offer, with the label it is read by and what it writes.</summary>

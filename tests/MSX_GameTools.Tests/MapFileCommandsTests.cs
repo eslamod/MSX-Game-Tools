@@ -21,19 +21,19 @@ public class MapFileCommandsTests : IDisposable
         var main = new MainWindowViewModel();
 
         Assert.False(main.SaveDocumentCommand.CanExecute(null));
-        Assert.False(main.ExportMapCsvCommand.CanExecute(null));
+        Assert.False(main.ExportMapCommand.CanExecute(null));
 
         main.OpenTileSet(new TileSet("Bosque"));
 
         // Guardar vale para cualquier documento, asi que con el tileset delante guarda
         // el tileset; lo que es del mapa y solo del mapa es exportarlo.
         Assert.True(main.SaveDocumentCommand.CanExecute(null));
-        Assert.False(main.ExportMapCsvCommand.CanExecute(null));
+        Assert.False(main.ExportMapCommand.CanExecute(null));
 
         NewMap(main, "Nivel 1");
 
         Assert.True(main.SaveDocumentCommand.CanExecute(null));
-        Assert.True(main.ExportMapCsvCommand.CanExecute(null));
+        Assert.True(main.ExportMapCommand.CanExecute(null));
     }
 
     [AvaloniaFact]
@@ -151,7 +151,7 @@ public class MapFileCommandsTests : IDisposable
     public async Task Exportar_a_csv_escribe_el_mapa_aplastado()
     {
         string path = Path.Combine(_folder, "nivel.csv");
-        var main = new MainWindowViewModel(new TestDialogService { SavePath = path });
+        var main = new MainWindowViewModel(new TestDialogService());
 
         main.OpenTileSet(new TileSet("Bosque"));
 
@@ -159,7 +159,7 @@ public class MapFileCommandsTests : IDisposable
         editor.PickTile(TilePatch.Single(5), "Tile 5");
         editor.Paint(1, 0);
 
-        await main.ExportMapCsvCommand.ExecuteAsync(null);
+        await TestExport.MapAsync(main, ExportFormat.Csv, path);
 
         Assert.Equal("-1,5,-1\n-1,-1,-1\n", await File.ReadAllTextAsync(path));
     }
@@ -171,7 +171,7 @@ public class MapFileCommandsTests : IDisposable
 
         main.OpenTileSet(new TileSet("Bosque"));
 
-        Assert.False(main.ExportMapCsvCommand.CanExecute(null));
+        Assert.False(main.ExportMapCommand.CanExecute(null));
     }
 
     /// <summary>El csv se abre como un mapa nuevo, con el nombre del fichero.</summary>
@@ -293,7 +293,7 @@ public class MapFileCommandsTests : IDisposable
     public async Task Exportar_a_binario_escribe_la_cabecera_y_la_tabla()
     {
         string path = Path.Combine(_folder, "nivel.bin");
-        var main = new MainWindowViewModel(new TestDialogService { SavePath = path });
+        var main = new MainWindowViewModel(new TestDialogService());
 
         main.OpenTileSet(new TileSet("Bosque"));
 
@@ -301,7 +301,7 @@ public class MapFileCommandsTests : IDisposable
         editor.PickTile(TilePatch.Single(9), "Tile 9");
         editor.Paint(0, 0);
 
-        await main.ExportMapBinaryCommand.ExecuteAsync(null);
+        await TestExport.MapAsync(main, ExportFormat.Binary, path);
 
         byte[] bytes = await File.ReadAllBytesAsync(path);
 
@@ -317,13 +317,14 @@ public class MapFileCommandsTests : IDisposable
     [AvaloniaFact]
     public async Task Al_exportar_con_huecos_se_avisa_del_tile_de_relleno()
     {
-        var dialogs = new TestDialogService { SavePath = Path.Combine(_folder, "nivel.bin") };
+        var dialogs = new TestDialogService();
         var main = new MainWindowViewModel(dialogs);
 
         main.OpenTileSet(new TileSet("Bosque"));
         NewMap(main, "Nivel 1", 2, 1);
 
-        await main.ExportMapBinaryCommand.ExecuteAsync(null);
+        await TestExport.MapAsync(
+            main, ExportFormat.Binary, Path.Combine(_folder, "nivel.bin"));
 
         Assert.Single(dialogs.Messages);
         Assert.Contains("celdas vacías", dialogs.Messages[0]);
@@ -332,7 +333,7 @@ public class MapFileCommandsTests : IDisposable
     [AvaloniaFact]
     public async Task Sin_huecos_no_se_avisa_de_nada()
     {
-        var dialogs = new TestDialogService { SavePath = Path.Combine(_folder, "nivel.bin") };
+        var dialogs = new TestDialogService();
         var main = new MainWindowViewModel(dialogs);
 
         main.OpenTileSet(new TileSet("Bosque"));
@@ -341,7 +342,8 @@ public class MapFileCommandsTests : IDisposable
         editor.Select(0, 0, 1, 0);
         editor.FillSelectionCommand.Execute(null);
 
-        await main.ExportMapBinaryCommand.ExecuteAsync(null);
+        await TestExport.MapAsync(
+            main, ExportFormat.Binary, Path.Combine(_folder, "nivel.bin"));
 
         Assert.Empty(dialogs.Messages);
     }
@@ -354,12 +356,12 @@ public class MapFileCommandsTests : IDisposable
     public async Task Exportar_a_asm_escribe_el_fichero_con_su_etiqueta()
     {
         string path = Path.Combine(_folder, "nivel.asm");
-        var main = new MainWindowViewModel(new TestDialogService { SavePath = path });
+        var main = new MainWindowViewModel(new TestDialogService());
 
         main.OpenTileSet(new TileSet("Bosque"));
         NewMap(main, "Nivel 1", 4, 3);
 
-        await main.ExportMapAssemblerCommand.ExecuteAsync(null);
+        await TestExport.MapAsync(main, ExportFormat.Assembler, path);
 
         string asm = await File.ReadAllTextAsync(path);
 

@@ -30,6 +30,14 @@ internal static class TestExport
         Action<ExportViewModel>? answering = null) =>
         ThroughPanelAsync(main, main.ExportSpriteBankCommand, format, path, answering);
 
+    /// <inheritdoc cref="ThroughPanelAsync"/>
+    public static Task MapAsync(
+        MainWindowViewModel main,
+        ExportFormat format,
+        string path,
+        Action<ExportViewModel>? answering = null) =>
+        ThroughPanelAsync(main, main.ExportMapCommand, format, path, answering);
+
     /// <param name="open">La entrada de menú del documento, que es la que abre el panel.</param>
     /// <param name="answering">
     /// Lo que se conteste además del formato y el destino, como la casilla de la ROM de

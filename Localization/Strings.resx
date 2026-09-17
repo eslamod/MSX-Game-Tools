@@ -163,6 +163,7 @@
   <data name="ExportFormatAsm" xml:space="preserve"><value>Ensamblador (.asm)</value></data>
   <data name="ExportFormatBin" xml:space="preserve"><value>Binario (.bin)</value></data>
   <data name="ExportFormatPng" xml:space="preserve"><value>Imagen (.png)</value></data>
+  <data name="ExportFormatCsv" xml:space="preserve"><value>CSV (.csv)</value></data>
   <data name="ExportTo" xml:space="preserve"><value>Destino</value></data>
   <data name="ExportToHint" xml:space="preserve"><value>Elige dónde guardarlo</value></data>
   <data name="ExportBrowseTip" xml:space="preserve"><value>Elegir la carpeta y el nombre</value></data>

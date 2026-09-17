@@ -258,6 +258,7 @@ public partial class ExportViewModel : PanelBaseViewModel
     {
         ExportFormat.Binary => PickerFileKind.Binary,
         ExportFormat.Png => PickerFileKind.Image,
+        ExportFormat.Csv => PickerFileKind.Csv,
         _ => PickerFileKind.Assembler,
     };
 }

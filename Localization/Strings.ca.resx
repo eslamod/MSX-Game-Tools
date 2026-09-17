@@ -152,6 +152,7 @@
   <data name="ExportFormatAsm" xml:space="preserve"><value>Ensamblador (.asm)</value></data>
   <data name="ExportFormatBin" xml:space="preserve"><value>Binari (.bin)</value></data>
   <data name="ExportFormatPng" xml:space="preserve"><value>Imatge (.png)</value></data>
+  <data name="ExportFormatCsv" xml:space="preserve"><value>CSV (.csv)</value></data>
   <data name="ExportTo" xml:space="preserve"><value>Destí</value></data>
   <data name="ExportToHint" xml:space="preserve"><value>Tria on desar-ho</value></data>
   <data name="ExportBrowseTip" xml:space="preserve"><value>Tria la carpeta i el nom</value></data>

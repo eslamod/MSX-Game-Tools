@@ -151,6 +151,7 @@
   <data name="ExportFormatAsm" xml:space="preserve"><value>Assembler (.asm)</value></data>
   <data name="ExportFormatBin" xml:space="preserve"><value>Binary (.bin)</value></data>
   <data name="ExportFormatPng" xml:space="preserve"><value>Image (.png)</value></data>
+  <data name="ExportFormatCsv" xml:space="preserve"><value>CSV (.csv)</value></data>
   <data name="ExportTo" xml:space="preserve"><value>Where</value></data>
   <data name="ExportToHint" xml:space="preserve"><value>Choose where to save it</value></data>
   <data name="ExportBrowseTip" xml:space="preserve"><value>Choose the folder and the name</value></data>

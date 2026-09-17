@@ -1,0 +1,79 @@
+using MSX_GameTools.Entities;
+using MSX_GameTools.Localization;
+using MSX_GameTools.Services;
+
+namespace MSX_GameTools.ViewModels;
+
+/// <summary>
+/// What comes out of exporting a map: the name table with its size in front of it.
+/// </summary>
+/// <remarks>
+/// One file and not several, so the list of what is coming says less here than for the others.
+/// What the panel does bring is the csv into the same question: it was a third menu entry
+/// answering what the other two answered, with another format.
+/// </remarks>
+public sealed class MapExport(MapEditorViewModel map) : IExportDocument
+{
+    private static Localizer Text => Localizer.Instance;
+
+    public string DocumentName => map.DocumentName;
+
+    public string Stem => MainWindowViewModel.CleanFileName(map.Map.Name);
+
+    public IReadOnlyList<ExportChoice> Formats { get; } =
+    [
+        new(ExportFormat.Assembler, Text["ExportFormatAsm"], ".asm"),
+        new(ExportFormat.Binary, Text["ExportFormatBin"], ".bin"),
+        new(ExportFormat.Csv, Text["ExportFormatCsv"], ".csv"),
+    ];
+
+    /// <summary>Not yet: its template is the one that is left.</summary>
+    public bool HasExampleRom => false;
+
+    public IEnumerable<ExportPiece> Pieces(ExportRequest request)
+    {
+        TileMap tileMap = map.Map;
+
+        yield return new ExportPiece(string.Empty, path => request.Format switch
+        {
+            ExportFormat.Binary => File.WriteAllBytesAsync(path, MapExporter.ToBinary(tileMap)),
+            ExportFormat.Csv => File.WriteAllTextAsync(path, MapCsv.Write(tileMap)),
+            _ => File.WriteAllTextAsync(path, MapExporter.ToAssembler(tileMap, request.Style)),
+        });
+    }
+
+    /// <summary>Nothing to ask: a map always exports.</summary>
+    public Task<bool> ReadyAsync() => Task.FromResult(true);
+
+    /// <summary>
+    /// That the empty cells have come out with the filler tile.
+    /// </summary>
+    /// <remarks>
+    /// The name table of the VDP always draws something and a byte has no room for a hole, so
+    /// what was empty in the editor is a tile in the file. Better said than written in silence.
+    /// Not for the csv, which does have a way of saying empty and keeps them.
+    /// </remarks>
+    public (string Title, string Body)? Note(ExportRequest request)
+    {
+        if (request.Format == ExportFormat.Csv || !HasEmptyCells(map.Map))
+            return null;
+
+        return (Text["ExportedMapTitle"], Text.Format("ExportedMapEmptyBody", map.Map.EmptyTile));
+    }
+
+    private static bool HasEmptyCells(TileMap map)
+    {
+        TileGrid flat = map.Flatten();
+
+        for (int row = 0; row < flat.Height; row++)
+        {
+            for (int column = 0; column < flat.Width; column++)
+            {
+                if (flat[column, row] is null)
+                    return true;
+            }
+        }
+
+        return false;
+    }
+}

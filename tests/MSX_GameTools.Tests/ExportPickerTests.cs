@@ -41,9 +41,10 @@ public class ExportPickerTests
         await CheckPanel(main.ExportTileSetCommand, ExportFormat.Png);
 
         main.OpenMap(new TileMap("Nivel 1", 8, 8), tiles);
-        await Check(main.ExportMapBinaryCommand);
-        await Check(main.ExportMapAssemblerCommand);
-        await Check(main.ExportMapCsvCommand);
+
+        await CheckPanel(main.ExportMapCommand, ExportFormat.Binary);
+        await CheckPanel(main.ExportMapCommand, ExportFormat.Assembler);
+        await CheckPanel(main.ExportMapCommand, ExportFormat.Csv);
 
         // La paleta es la de la barra, no la del documento de delante: se exporta con
         // cualquier pestaña abierta.

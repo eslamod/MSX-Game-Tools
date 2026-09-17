@@ -203,6 +203,42 @@ public class ExportPanelTests : IDisposable
             form.Files.Select(file => file.Name));
     }
 
+    /// <summary>
+    /// El mapa ofrece el csv en la misma lista que el binario y el ensamblador.
+    /// </summary>
+    /// <remarks>
+    /// Era una tercera entrada de menú contestando lo que contestaban las otras dos con otro
+    /// formato. Y el aviso de las celdas vacías no sale con csv, que sí sabe decir vacío.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task El_mapa_ofrece_el_csv_como_un_formato_mas()
+    {
+        var dialogs = new TestDialogService();
+        var main = new MainWindowViewModel(dialogs);
+
+        TileSetEditorViewModel tiles = main.OpenTileSet(new TileSet("Bosque"));
+
+        main.OpenMap(new TileMap("Nivel 1", 2, 1), tiles);
+        main.ExportMapCommand.Execute(null);
+
+        var form = (ExportViewModel)main.RightPanViewModel!;
+
+        Assert.Equal(
+            (ExportFormat[])[ExportFormat.Assembler, ExportFormat.Binary, ExportFormat.Csv],
+            form.Formats.Select(choice => choice.Format));
+
+        Use(form, ExportFormat.Csv);
+
+        Assert.Equal((string[])["Nivel 1.csv"], form.Files.Select(file => file.Name));
+
+        form.Destination = Path.Combine(_folder, "Nivel 1.csv");
+
+        await form.AcceptExportCommand.ExecuteAsync(null);
+
+        // El mapa está vacío entero y aun así no se avisa: el csv guarda los huecos.
+        Assert.Empty(dialogs.Messages);
+    }
+
     // ------------------------------------------------------------------ los andamios
 
     /// <summary>Un juego con todo lo que puede salir: supertiles y atributos.</summary>

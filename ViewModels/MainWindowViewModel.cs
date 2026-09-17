@@ -28,9 +28,7 @@ public partial class MainWindowViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(ConvertSpriteBankToMsx2Command))]
     [NotifyCanExecuteChangedFor(nameof(ExportTileSetCommand))]
     [NotifyCanExecuteChangedFor(nameof(ShowBlocksCommand))]
-    [NotifyCanExecuteChangedFor(nameof(ExportMapCsvCommand))]
-    [NotifyCanExecuteChangedFor(nameof(ExportMapBinaryCommand))]
-    [NotifyCanExecuteChangedFor(nameof(ExportMapAssemblerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExportMapCommand))]
     [NotifyCanExecuteChangedFor(nameof(ResizeMapCommand))]
     [NotifyCanExecuteChangedFor(nameof(ReplaceTilesCommand))]
     [NotifyCanExecuteChangedFor(nameof(ShiftReportCommand))]
@@ -1577,28 +1575,12 @@ public partial class MainWindowViewModel : ObservableObject
         OpenMap(map, tileSet).MarkSaved(path);
     }
 
+    /// <inheritdoc cref="OpenExport"/>
     [RelayCommand(CanExecute = nameof(IsMapSelected))]
-    private async Task ExportMapCsvAsync()
+    private void ExportMap()
     {
-        if (SelectedTab is not MapEditorViewModel editor)
-            return;
-
-        string? path = await Dialogs.PickFileToSaveAsync(
-            Text["PickExportMapCsv"],
-            $"{CleanFileName(editor.Map.Name)}.csv",
-            PickerFileKind.Csv);
-
-        if (path is null)
-            return;
-
-        try
-        {
-            await File.WriteAllTextAsync(path, MapCsv.Write(editor.Map));
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            await Dialogs.ShowMessageAsync(Text["ErrorExportMap"], exception.Message);
-        }
+        if (SelectedTab is MapEditorViewModel editor)
+            OpenExport(new MapExport(editor));
     }
 
     /// <summary>
@@ -1702,71 +1684,6 @@ public partial class MainWindowViewModel : ObservableObject
     {
         if (SelectedTab is MapEditorViewModel editor)
             OpenForm(() => new ShiftReportViewModel(this, editor));
-    }
-
-    [RelayCommand(CanExecute = nameof(IsMapSelected))]
-    private Task ExportMapBinaryAsync() => ExportMapAsync(binary: true);
-
-    [RelayCommand(CanExecute = nameof(IsMapSelected))]
-    private Task ExportMapAssemblerAsync() => ExportMapAsync(binary: false);
-
-    /// <summary>
-    /// Escribe la tabla de nombres con su tamaño delante.
-    /// </summary>
-    /// <remarks>
-    /// Avisa si el mapa tiene celdas vacías: en un byte no cabe el hueco y van a salir con
-    /// el tile de relleno, que más vale decirlo que escribirlo en silencio.
-    /// </remarks>
-    private async Task ExportMapAsync(bool binary)
-    {
-        if (SelectedTab is not MapEditorViewModel editor)
-            return;
-
-        TileMap map = editor.Map;
-        string extension = binary ? "bin" : "asm";
-
-        string? path = await Dialogs.PickFileToSaveAsync(
-            Text[binary ? "PickExportMapBinary" : "PickExportMapAssembler"],
-            $"{CleanFileName(map.Name)}.{extension}",
-            FormatOf(binary));
-
-        if (path is null)
-            return;
-
-        try
-        {
-            if (binary)
-                await File.WriteAllBytesAsync(path, MapExporter.ToBinary(map));
-            else
-                await File.WriteAllTextAsync(path, MapExporter.ToAssembler(map, Preferences.AsmStyle));
-
-            if (HasEmptyCells(map))
-            {
-                await Dialogs.ShowMessageAsync(
-                    Text["ExportedMapTitle"],
-                    Text.Format("ExportedMapEmptyBody", map.EmptyTile));
-            }
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            await Dialogs.ShowMessageAsync(Text["ErrorExportMap"], exception.Message);
-        }
-    }
-
-    private static bool HasEmptyCells(TileMap map)
-    {
-        TileGrid flat = map.Flatten();
-
-        for (int row = 0; row < flat.Height; row++)
-        {
-            for (int column = 0; column < flat.Width; column++)
-            {
-                if (flat[column, row] is null)
-                    return true;
-            }
-        }
-
-        return false;
     }
 
     /// <inheritdoc cref="ImportMapCsvAsync"/>
