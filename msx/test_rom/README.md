@@ -4,21 +4,23 @@ Comprueban en una máquina real (o en un emulador) que lo que exporta el editor 
 lo que espera el VDP. No son parte de la herramienta: son el banco de pruebas de
 los exportadores.
 
-Hay cuatro: `sprites_test.asm` para los grupos de sprites, `tileset_test.asm`
-para los juegos de tiles, `map_test.asm` para los mapas y `supertile_test.asm`
-para los mapas hechos con supertiles.
+Quedan tres escritas a mano: `sprites_test.asm` para los grupos de sprites,
+`map_test.asm` para los mapas y `supertile_test.asm` para los mapas hechos con
+supertiles.
 
-La de tiles ya no hay que escribirla a mano: al exportar un juego de tiles se
-puede pedir la ROM de ejemplo, y sale de `Templates/TileSetRom.asm` rellenada
-para el ensamblador que se elija —sasSX, sjasmplus, pasmo o asMSX— y para el modo del
-juego. `tileset_test.asm` se queda como la escrita a mano de la que salió la
-plantilla; cuando las otras tres tengan la suya, aquí no debería quedar
+**La de los juegos de tiles ya no está aquí: la genera el editor.** Al exportar un
+juego se puede pedir la ROM de ejemplo, y sale de `Templates/TileSetRom.asm`
+rellenada para el ensamblador que se elija —sasSX, sjasmplus, pasmo o asMSX—,
+para el modo del juego y con los nombres de los ficheros que se acaban de
+escribir. Cuando las otras tres tengan su plantilla, aquí no debería quedar
 ninguna.
 
 ## La paleta
 
-Las dos cargan también la paleta exportada (`msx_palette.bin`), y las dos hacen lo
-mismo con ella: **miran en ejecución si la máquina la tiene**. El byte `002DH` de la
+Todas cargan también la paleta exportada (`msx_palette.bin`) y todas hacen lo
+mismo con ella: **miran en ejecución si la máquina la tiene**. La generada de
+tiles igual, sólo que la lleva dentro del propio fichero en vez de al lado, para
+que el lote sea lo exportado y nada más. El byte `002DH` de la
 BIOS dice la versión —0 es MSX1, 1 es MSX2— y en un MSX1 los 16 colores son fijos,
 así que no hay nada que cargar y se salta.
 
@@ -61,10 +63,6 @@ sasSX.exe sprites_test.asm --output sprites_test.rom
 ```
 
 ```bash
-sasSX.exe tileset_test.asm --output tileset_test.rom
-```
-
-```bash
 sasSX.exe map_test.asm --output map_test.rom
 ```
 
@@ -72,8 +70,10 @@ sasSX.exe map_test.asm --output map_test.rom
 sasSX.exe supertile_test.asm --output supertile_test.rom
 ```
 
-Las dos primeras salen de 16384 bytes exactos, que es lo que espera un cartucho
-en la página 1. Las dos de mapas salen de 32768 y ocupan las páginas 1 y 2,
+La de sprites sale de 16384 bytes exactos, que es lo que espera un cartucho en
+la página 1 —y la generada de tiles también, salvo con asMSX, que redondea al
+cartucho más pequeño donde quepa—. Las dos de mapas salen de 32768 y ocupan las
+páginas 1 y 2,
 porque el mapa viaja dentro de la ROM y con 16K se quedaban cortas enseguida.
 
 Un cartucho de 32K no es sólo cuestión de tamaño: **la BIOS busca la `AB` en la
@@ -263,7 +263,11 @@ atributos: no se direcciona aparte.
 
 # La ROM del tileset
 
-Pone GRAPHIC 2 (SCREEN 2), carga las dos tablas y enseña el juego entero.
+Pone el modo del juego —GRAPHIC 2 o GRAPHIC 1—, carga las dos tablas y enseña el
+juego entero. **No está en esta carpeta: la escribe el editor.** En el panel de
+exportar un juego de tiles, marca la casilla de la ROM de ejemplo y elige el
+ensamblador; sale un `..._rom.asm` al lado de los ficheros de datos, con la
+orden para ensamblarlo en su cabecera.
 
 ## Lo que de verdad comprueba
 
@@ -288,13 +292,13 @@ color: si la tabla de colores no hubiera viajado, se veria de inmediato.
 
 ## Con tus propios datos
 
-1. En el editor, **Export tileset**, en binario o en ensamblador.
-2. Copia los dos ficheros aquí como `tiles_patterns` y `tiles_colors`, con la
-   extensión que toque.
-3. Vuelve a ensamblar.
+No hay nada que copiar ni que renombrar: la ROM sale nombrando los ficheros que
+se acaban de exportar. Igual que en la de sprites, el `.incbin` está activo y el
+`.include` comentado al lado, así que para probar la otra salida basta con
+cambiar el comentario de sitio.
 
-Igual que en la de sprites, el `.incbin` está activo y el `.include` comentado al
-lado; las dos rutas dan la misma ROM byte a byte.
+Los tiles de ejemplo de esta carpeta —`tiles_patterns` y `tiles_colors`— se
+quedan: los nombran las ROMs de mapas.
 
 ## En marcha
 

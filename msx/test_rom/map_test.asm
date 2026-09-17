@@ -14,7 +14,8 @@
 ;
 ; Que hace:
 ;   - Pone GRAPHIC 2 y carga el juego de tiles en los tres tercios, igual que
-;     tileset_test. Sin el juego de tiles el mapa no es nada: son indices.
+;     la ROM de ejemplo que saca el editor. Sin el juego de tiles el mapa no es
+;     nada: son indices.
 ;   - Lee el tamano del mapa de su cabecera, que son los cuatro primeros bytes
 ;     del fichero: dos de ancho y dos de alto, byte bajo primero. Esa cabecera
 ;     es lo unico del exportador que ninguna maquina habia leido nunca, y aqui
@@ -242,10 +243,10 @@ CopyNext:
 ;-----------------------------------------------------------------------------
 ; Las dos tablas del juego de tiles, en los tres tercios
 ;-----------------------------------------------------------------------------
-; Igual que en tileset_test: en GRAPHIC 2 cada tercio de pantalla tiene su
-; propia tabla de patrones y de colores, y el editor define un solo juego de
-; 256 que hay que copiar tres veces. Aqui importa mas todavia, porque el mapa
-; usa el mismo tile arriba y abajo y tiene que verse igual en los tres.
+; Igual que en la ROM del juego de tiles: en GRAPHIC 2 cada tercio de pantalla
+; tiene su propia tabla de patrones y de colores, y el editor define un solo
+; juego de 256 que hay que copiar tres veces. Aqui importa mas todavia, porque
+; el mapa usa el mismo tile arriba y abajo y tiene que verse igual en los tres.
 LoadTables:
                 ld hl,PatternsData
                 ld de,PATTERN_TABLE
