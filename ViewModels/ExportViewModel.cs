@@ -104,10 +104,12 @@ public partial class ExportViewModel : PanelBaseViewModel
     /// The box only comes out where there is a ROM to write.
     /// </summary>
     /// <remarks>
-    /// A png is a picture and there is no ROM to go with it; and a document whose template is
-    /// not written yet would be offering a tick that does nothing.
+    /// The ROM brings the exported files in, so it only makes sense for the two formats it can
+    /// bring in: a png is a picture and a csv is for a spreadsheet. And a document whose
+    /// template is not written yet would be offering a tick that does nothing.
     /// </remarks>
-    public bool ShowsExampleRom => _document.HasExampleRom && Format.Format != ExportFormat.Png;
+    public bool ShowsExampleRom => _document.HasExampleRom
+        && Format.Format is ExportFormat.Assembler or ExportFormat.Binary;
 
     /// <summary>The files that are going to be written, with their names already worked out.</summary>
     public ObservableCollection<ExportFileRow> Files { get; } = [];
@@ -151,6 +153,15 @@ public partial class ExportViewModel : PanelBaseViewModel
         : Path.GetFileNameWithoutExtension(Destination);
 
     /// <summary>
+    /// Whether a ROM is going out: the box ticked, and a format it makes sense for.
+    /// </summary>
+    /// <remarks>
+    /// Ticked and then the format changed to png or csv, the box stays as it was but the ROM
+    /// does not go out: it would be naming a file it cannot read.
+    /// </remarks>
+    private bool WithRom => WantsExampleRom && ShowsExampleRom;
+
+    /// <summary>
     /// Everything that has been answered, which is what the document writes from.
     /// </summary>
     /// <remarks>
@@ -161,8 +172,8 @@ public partial class ExportViewModel : PanelBaseViewModel
     private ExportRequest Request => new(
         Format.Format,
         Stem,
-        WantsExampleRom ? Assembler.Style : _mainWindowVm.Preferences.AsmStyle,
-        WantsExampleRom ? Assembler : null);
+        WithRom ? Assembler.Style : _mainWindowVm.Preferences.AsmStyle,
+        WithRom ? Assembler : null);
 
     [RelayCommand]
     private async Task BrowseAsync()

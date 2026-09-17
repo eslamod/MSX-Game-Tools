@@ -27,8 +27,15 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
         new(ExportFormat.Csv, Text["ExportFormatCsv"], ".csv"),
     ];
 
-    /// <summary>Not yet: its template is the one that is left.</summary>
-    public bool HasExampleRom => false;
+    /// <summary>
+    /// Any map except one made of super tiles.
+    /// </summary>
+    /// <remarks>
+    /// The cells of that one are places in the super tile table and not tile numbers, so this
+    /// ROM would draw something else entirely. That one is still written by hand in
+    /// <c>msx/test_rom</c>.
+    /// </remarks>
+    public bool HasExampleRom => !map.UsesSuperTiles;
 
     public IEnumerable<ExportPiece> Pieces(ExportRequest request)
     {
@@ -40,7 +47,29 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
             ExportFormat.Csv => File.WriteAllTextAsync(path, MapCsv.Write(tileMap)),
             _ => File.WriteAllTextAsync(path, MapExporter.ToAssembler(tileMap, request.Style)),
         });
+
+        // The ROM, which is the only thing here that knows about the tile set: the map is
+        // indices, and what draws them comes out of another document.
+        if (request.Rom is { } dialect)
+        {
+            yield return new ExportPiece(
+                ExampleRom.Suffix,
+                path => File.WriteAllTextAsync(
+                    path,
+                    ExampleRom.ForMap(
+                        tileMap,
+                        Bands(),
+                        map.ColorPalette,
+                        dialect,
+                        request.Stem,
+                        request.Format == ExportFormat.Binary)),
+                ExampleRom.Extension);
+        }
     }
+
+    /// <summary>The tile set of each band, which is one when the map is not banded.</summary>
+    private IReadOnlyList<TileSet> Bands() =>
+        [.. Enumerable.Range(0, map.BandCount).Select(map.TileSetOfBand)];
 
     /// <summary>Nothing to ask: a map always exports.</summary>
     public Task<bool> ReadyAsync() => Task.FromResult(true);

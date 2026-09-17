@@ -18,7 +18,19 @@ escribir.
 juntas porque la ROM se trae el reproductor con un `include`. Sólo para bancos de
 MSX2: la ROM pone sprites de modo 2, y uno de MSX1 sería otro programa.
 
-Cuando las dos de mapas tengan su plantilla, aquí no debería quedar ninguna.
+**Y la del mapa sale ya del editor también**, de `Templates/MapRom.asm`, con una
+diferencia sobre la escrita a mano: carga las tablas del juego de tiles
+recorriendo una lista en vez de copiar la misma tres veces, que es lo que deja
+que cada tercio lleve un juego distinto. No se ofrece para mapas de supertiles,
+que son los que dibuja la otra. `map_test.asm` se queda hasta que la generada se
+haya visto corriendo en una máquina, como se hizo con las otras dos.
+
+La ROM del mapa necesita además los ficheros del **juego de tiles**, que no salen
+del mapa: hay que exportarlo también, y con la salida en ensamblador, para el
+mismo ensamblador —un `include` de un fichero escrito para otro para en su
+primera línea—. Con la salida binaria da igual, que son bytes.
+
+Cuando la de supertiles tenga la suya, aquí no debería quedar ninguna.
 
 ## La paleta
 

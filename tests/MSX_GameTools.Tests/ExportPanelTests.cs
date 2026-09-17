@@ -239,6 +239,65 @@ public class ExportPanelTests : IDisposable
         Assert.Empty(dialogs.Messages);
     }
 
+    /// <summary>
+    /// Un mapa de supertiles no ofrece ROM de ejemplo.
+    /// </summary>
+    /// <remarks>
+    /// Sus celdas son sitios de la tabla de supertiles y no números de tile, así que esta ROM
+    /// dibujaría otra cosa. Esa sigue escrita a mano en msx/test_rom.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Un_mapa_de_supertiles_no_ofrece_rom_de_ejemplo()
+    {
+        var main = new MainWindowViewModel(new TestDialogService());
+
+        var tileSet = new TileSet("Bosque") { SuperTileWidth = 2, SuperTileHeight = 2 };
+
+        TileSetEditorViewModel tiles = main.OpenTileSet(tileSet);
+
+        main.OpenMap(new TileMap("Nivel 1", 8, 8), tiles);
+        main.ExportMapCommand.Execute(null);
+
+        Assert.False(((ExportViewModel)main.RightPanViewModel!).ShowsExampleRom);
+    }
+
+    /// <summary>
+    /// Con csv no sale la casilla de la ROM, que no sabría qué traerse.
+    /// </summary>
+    /// <remarks>
+    /// La ROM se trae lo exportado con un incbin o un include, y un csv no es ninguna de las
+    /// dos cosas. Marcarla y cambiar luego de formato tampoco la saca.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Con_csv_la_rom_de_ejemplo_no_sale()
+    {
+        var main = new MainWindowViewModel(new TestDialogService());
+
+        TileSetEditorViewModel tiles = main.OpenTileSet(new TileSet("Bosque"));
+
+        main.OpenMap(new TileMap("Nivel 1", 8, 8), tiles);
+        main.ExportMapCommand.Execute(null);
+
+        var form = (ExportViewModel)main.RightPanViewModel!;
+
+        form.WantsExampleRom = true;
+
+        Assert.True(form.ShowsExampleRom);
+
+        Use(form, ExportFormat.Csv);
+
+        Assert.False(form.ShowsExampleRom);
+        Assert.Equal((string[])["Nivel 1.csv"], form.Files.Select(file => file.Name));
+
+        form.Destination = Path.Combine(_folder, "Nivel 1.csv");
+
+        await form.AcceptExportCommand.ExecuteAsync(null);
+
+        Assert.Equal(
+            (string[])["Nivel 1.csv"],
+            Directory.GetFiles(_folder).Select(Path.GetFileName));
+    }
+
     // ------------------------------------------------------------------ los andamios
 
     /// <summary>Un juego con todo lo que puede salir: supertiles y atributos.</summary>

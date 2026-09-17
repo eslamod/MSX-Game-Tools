@@ -91,19 +91,19 @@ public sealed record AsmDialect(
         """;
 
     /// <summary>
-    /// Padding up to 16K by hand.
+    /// Padding up to where the cartridge ends, which the ROM says in <c>{ROM_END}</c>.
     /// </summary>
     /// <remarks>
     /// With a label and not with <c>$</c>, because in sasSX a <c>$</c> inside an expression does
-    /// not give the program counter: it stays at zero and a 32K ROM comes out.
+    /// not give the program counter: it stays at zero and a ROM twice the size comes out.
     /// </remarks>
     private const string Padding =
         """
-        ; Padding up to 16K, the size a cartridge in page 1 is expected to be. With a
-        ; label and not with $, because in sasSX a $ inside an expression does not give
-        ; the PC: it stays at zero and a 32K ROM comes out.
+        ; Padding up to the end of the cartridge. With a label and not with $, because in
+        ; sasSX a $ inside an expression does not give the PC: it stays at zero and a ROM
+        ; twice the size comes out.
         RomEnd:
-                        {DS} 0x8000 - RomEnd, 0xFF
+                        {DS} {ROM_END} - RomEnd, 0xFF
         """;
 
     /// <inheritdoc cref="AsmDialect"/>
@@ -125,7 +125,7 @@ public sealed record AsmDialect(
     private const string AsMsxPadding =
         """
         ; No padding by hand here: asMSX rounds the ROM up to the smallest cartridge that
-        ; holds it, which for this one is 8 KB. And its ds takes a length and no filler
-        ; byte, so the line the other assemblers use would not even assemble.
+        ; holds it. And its ds takes a length and no filler byte, so the line the other
+        ; assemblers use would not even assemble.
         """;
 }

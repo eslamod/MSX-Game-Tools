@@ -165,6 +165,148 @@ public class ExampleRomTests : IDisposable
         Assert.Contains("AnimationsEnd:", rom);
     }
 
+    /// <summary>Y la del mapa sale igual de todos, que es donde más piezas hay que juntar.</summary>
+    /// <inheritdoc cref="Todos_los_ensambladores_sacan_el_mismo_programa" path="/remarks"/>
+    [AvaloniaFact]
+    public async Task Todos_los_ensambladores_sacan_el_mismo_mapa()
+    {
+        var made = new Dictionary<string, byte[]>();
+
+        foreach (string name in (string[])["sasSX", "sjasmplus", "pasmo", "asMSX"])
+        {
+            if (Assembler.Find(name) is not { } tool)
+                continue;
+
+            string folder = Path.Combine(_folder, name);
+
+            Directory.CreateDirectory(folder);
+
+            await ExportMapAsync(ExportFormat.Binary, name, folder);
+
+            string rom = Path.Combine(folder, "nivel.rom");
+
+            Assembler.Run(tool, name, Path.Combine(folder, "nivel_rom.asm"), rom);
+
+            if (File.Exists(rom))
+                made[name] = Code(File.ReadAllBytes(rom));
+        }
+
+        Assert.SkipWhen(made.Count < 2, "aquí no hay dos ensambladores con los que comparar");
+
+        foreach ((string name, byte[] bytes) in made)
+        {
+            Assert.Equal(made.First().Value, bytes);
+            Assert.True(bytes.Length > 1000, $"{name} se quedó en {bytes.Length} bytes");
+        }
+    }
+
+    /// <summary>
+    /// Los cuatro con la del mapa, que es de 32K.
+    /// </summary>
+    /// <remarks>
+    /// El cartucho ocupa las páginas 1 y 2 porque el mapa viaja dentro. asMSX redondea al
+    /// más pequeño donde quepa, y con este mapa y sus tres juegos de tiles le bastan 16K.
+    /// </remarks>
+    public static TheoryData<string, ExportFormat, int> MapBundles => new()
+    {
+        { "sasSX", ExportFormat.Binary, 32768 },
+        { "sasSX", ExportFormat.Assembler, 32768 },
+        { "sjasmplus", ExportFormat.Binary, 32768 },
+        { "sjasmplus", ExportFormat.Assembler, 32768 },
+        { "pasmo", ExportFormat.Binary, 32768 },
+        { "pasmo", ExportFormat.Assembler, 32768 },
+        { "asMSX", ExportFormat.Binary, 16384 },
+        { "asMSX", ExportFormat.Assembler, 16384 },
+    };
+
+    /// <summary>La del mapa ensambla con lo que sale del juego de tiles al lado.</summary>
+    [AvaloniaTheory]
+    [MemberData(nameof(MapBundles))]
+    public async Task La_rom_del_mapa_ensambla_y_da_un_cartucho(
+        string name, ExportFormat format, int size)
+    {
+        string? tool = Assembler.Find(name);
+
+        Assert.SkipUnless(tool is not null, $"{name} no está aquí: {Assembler.HowToGetIt(name)}");
+
+        await ExportMapAsync(format, name);
+
+        string rom = Path.Combine(_folder, "nivel.rom");
+        string said = Assembler.Run(
+            tool!, name, Path.Combine(_folder, "nivel_rom.asm"), rom);
+
+        Assert.True(File.Exists(rom), $"{name} no sacó ROM: {said}");
+
+        byte[] bytes = File.ReadAllBytes(rom);
+
+        Assert.Equal(size, bytes.Length);
+        Assert.Equal("AB", System.Text.Encoding.ASCII.GetString(bytes, 0, 2));
+    }
+
+    /// <summary>
+    /// Un mapa con tres juegos de tiles carga una tabla distinta en cada tercio.
+    /// </summary>
+    /// <remarks>
+    /// Es lo que hace la lista de bloques: el programa no sabe de bandas, recorre lo que le
+    /// pongan. Con un solo juego las tres entradas apuntan al mismo sitio.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Un_mapa_con_tres_bandas_carga_una_tabla_por_tercio()
+    {
+        string rom = MapRom(Bands(3));
+
+        Assert.Contains("Patterns0, 0x0000", rom);
+        Assert.Contains("Patterns1, 0x0800", rom);
+        Assert.Contains("Patterns2, 0x1000", rom);
+        Assert.Contains("Colors2, 0x3000", rom);
+
+        // Y cada uno se trae los suyos.
+        Assert.Contains("\"bosque_patterns.bin\"", rom);
+        Assert.Contains("\"cielo_patterns.bin\"", rom);
+        Assert.Contains("\"cueva_patterns.bin\"", rom);
+    }
+
+    /// <summary>Y con uno solo, la misma en los tres.</summary>
+    [AvaloniaFact]
+    public void Un_mapa_de_una_banda_carga_la_misma_tabla_en_los_tres_tercios()
+    {
+        string rom = MapRom(Bands(1));
+
+        Assert.Contains("Patterns0, 0x0000", rom);
+        Assert.Contains("Patterns0, 0x0800", rom);
+        Assert.Contains("Patterns0, 0x1000", rom);
+
+        Assert.DoesNotContain("Patterns1", rom);
+    }
+
+    /// <summary>
+    /// Con un juego de screen 1 son dos bloques y no seis.
+    /// </summary>
+    /// <remarks>
+    /// Una tabla de patrones y otra de colores de 32 bytes para toda la pantalla, que es lo
+    /// que hay en GRAPHIC 1. Copiarlas por tercios escribiría encima de lo que viene detrás.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Un_mapa_de_screen_1_carga_dos_bloques()
+    {
+        string rom = MapRom([new TileSet("Bosque", TileSet.GraphicMode.Graphic1)]);
+
+        Assert.Contains("TABLE_LOADS     .equ 2", rom);
+        Assert.Contains($"Colors0, 0x2000, {TileSet.ColorGroupCount}", rom);
+        Assert.DoesNotContain("0x0800", rom);
+    }
+
+    /// <summary>La cabecera pide los ficheros del juego de tiles, que el mapa no exporta.</summary>
+    [AvaloniaFact]
+    public void La_rom_del_mapa_pide_los_ficheros_del_juego_de_tiles()
+    {
+        string rom = MapRom(Bands(1));
+
+        Assert.Contains(";     bosque_patterns.bin", rom);
+        Assert.Contains(";     bosque_colors.bin", rom);
+        Assert.Contains(";     nivel.bin", rom);
+    }
+
     /// <summary>
     /// El reproductor sabe donde va el color de un sprite en el modo del banco.
     /// </summary>
@@ -386,6 +528,68 @@ public class ExampleRomTests : IDisposable
             main,
             format,
             Path.Combine(folder ?? _folder, "bosque.bin"),
+            form =>
+            {
+                form.WantsExampleRom = true;
+                form.Assembler = form.Assemblers.Single(one => one.Name == assembler);
+            });
+    }
+
+    /// <summary>Un mapa dibujado con esos juegos de tiles, sin pasar por el panel.</summary>
+    private static string MapRom(IReadOnlyList<TileSet> bands) =>
+        ExampleRom.ForMap(
+            new TileMap("Nivel", 32, 24),
+            bands,
+            ColorPalette.CreateMsxStandard(),
+            AsmDialect.SasSx,
+            "nivel",
+            binary: true);
+
+    /// <summary>Uno, dos o tres juegos de tiles distintos.</summary>
+    private static IReadOnlyList<TileSet> Bands(int many) =>
+        [.. new[] { "Bosque", "Cielo", "Cueva" }
+            .Take(many)
+            .Select(one => new TileSet(one))];
+
+    /// <summary>
+    /// Exportar el juego de tiles y el mapa a la misma carpeta, con la ROM marcada.
+    /// </summary>
+    /// <remarks>
+    /// En ese orden y los dos, que es lo que hace falta para que la ROM ensamble: los
+    /// ficheros del juego de tiles no salen del mapa, y la ROM los nombra.
+    /// </remarks>
+    private async Task ExportMapAsync(ExportFormat format, string assembler, string? folder = null)
+    {
+        folder ??= _folder;
+
+        var main = new MainWindowViewModel(new TestDialogService());
+        var panels = new List<TileSetEditorViewModel>();
+
+        foreach (TileSet one in Bands(3))
+        {
+            panels.Add(main.OpenTileSet(one));
+
+            // Con el mismo ensamblador que la ROM del mapa: si el juego de tiles sale con
+            // otra directiva, el include de la ROM para en su primera línea.
+            await TestExport.TileSetAsync(
+                main,
+                format,
+                Path.Combine(folder, $"{one.Name.ToLowerInvariant()}.bin"),
+                form =>
+                {
+                    form.WantsExampleRom = true;
+                    form.Assembler = form.Assemblers.Single(two => two.Name == assembler);
+                });
+        }
+
+        MapEditorViewModel editor = main.OpenMap(new TileMap("Nivel", 32, 24), panels[0]);
+
+        editor.UseTileSets(panels);
+
+        await TestExport.MapAsync(
+            main,
+            format,
+            Path.Combine(folder, "nivel.bin"),
             form =>
             {
                 form.WantsExampleRom = true;

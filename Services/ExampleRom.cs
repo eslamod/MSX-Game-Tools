@@ -50,6 +50,18 @@ public static class ExampleRom
     /// </remarks>
     private const string Entry = "Begin";
 
+    /// <summary>Where a 16K cartridge ends, which is where page 2 starts.</summary>
+    private const string PageTwo = "0x8000";
+
+    /// <summary>And where a 32K one does, taking pages 1 and 2.</summary>
+    private const string PageThree = "0xC000";
+
+    /// <summary>Where the pattern and the colour tables live in VRAM, as always.</summary>
+    private const int PatternTable = 0x0000;
+
+    /// <inheritdoc cref="PatternTable"/>
+    private const int ColorTable = 0x2000;
+
     /// <summary>
     /// What the routine that plays the animations is called.
     /// </summary>
@@ -91,6 +103,7 @@ public static class ExampleRom
             ["NAME"] = tileSet.Name,
             ["STEM"] = stem,
             ["START"] = Entry,
+            ["ROM_END"] = PageTwo,
             ["ASSEMBLER"] = dialect.Name,
             ["COMMAND"] = dialect.CommandFor(NameOf(stem), $"{stem}.rom"),
             ["FILES"] = $";     {patterns}{extension}\n;     {colors}{extension}",
@@ -148,6 +161,7 @@ public static class ExampleRom
             ["NAME"] = bank.Name,
             ["STEM"] = stem,
             ["START"] = Entry,
+            ["ROM_END"] = PageTwo,
             ["ASSEMBLER"] = dialect.Name,
             ["COMMAND"] = dialect.CommandFor(NameOf(stem), $"{stem}.rom"),
             ["FILES"] = files,
@@ -178,6 +192,150 @@ public static class ExampleRom
             // it travels in the fourth byte of the attribute, and the player takes both.
             ["ANIM_COLOR_TABLE"] = bank.Type == SpriteBank.SpriteType.MSX2 ? "1" : "0",
         });
+
+    /// <summary>
+    /// The ROM that shows a map: the tile set in VRAM, the map drawn over it and the cursor
+    /// keys to move around one that is bigger than the screen.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A 32K cartridge taking pages 1 and 2, because the map travels inside the ROM and 16K
+    /// ran short straight away.
+    /// </para>
+    /// <para>
+    /// The files of the tile set are not the map's: they come out of exporting the tile set,
+    /// and this names them the way that export names them when nobody changes the name. What
+    /// it cannot do is write them, so the header of the ROM says which ones have to be next
+    /// to it.
+    /// </para>
+    /// </remarks>
+    /// <param name="bands">
+    /// The tile set of each band, one to three of them. More than one means a different set
+    /// in each screen third, and that is what the list of blocks is for.
+    /// </param>
+    public static string ForMap(
+        TileMap map,
+        IReadOnlyList<TileSet> bands,
+        ColorPalette palette,
+        AsmDialect dialect,
+        string stem,
+        bool binary)
+    {
+        bool graphic1 = bands[0].IsGraphic1;
+        string extension = binary ? ".bin" : Extension;
+
+        // In GRAPHIC 1 there is one table of each for the whole screen; in GRAPHIC 2, one per
+        // third, and they are only the same table when the map has a single band.
+        int thirds = graphic1 ? 1 : TileSetExporter.ScreenThirds;
+        int colorBytes = graphic1 ? TileSet.ColorGroupCount : TileSetExporter.TableBytes;
+
+        var tables = new List<string>();
+
+        for (int third = 0; third < thirds; third++)
+        {
+            tables.Add(Block(
+                dialect,
+                $"Patterns{BandOf(bands, third)}",
+                PatternTable + (third * TileSetExporter.TableBytes),
+                TileSetExporter.TableBytes,
+                $"patterns, third {third + 1}"));
+        }
+
+        for (int third = 0; third < thirds; third++)
+        {
+            tables.Add(Block(
+                dialect,
+                $"Colors{BandOf(bands, third)}",
+                ColorTable + (third * colorBytes),
+                colorBytes,
+                $"colours, third {third + 1}"));
+        }
+
+        return Fill("MapRom.asm", dialect, new Dictionary<string, string>
+        {
+            ["NAME"] = map.Name,
+            ["STEM"] = stem,
+            ["START"] = Entry,
+            ["ROM_END"] = PageThree,
+            ["ASSEMBLER"] = dialect.Name,
+            ["COMMAND"] = dialect.CommandFor(NameOf(stem), $"{stem}.rom"),
+            ["FILES"] = FilesOf(bands, stem, extension),
+            ["MODE"] = graphic1 ? "GRAPHIC 1" : "GRAPHIC 2",
+            ["SCREEN"] = graphic1 ? "SCREEN 1" : "SCREEN 2",
+            ["R0"] = graphic1 ? "0x00" : "0x02",
+            ["R3"] = graphic1 ? "0x80" : "0xFF",
+            ["R4"] = graphic1 ? "0x00" : "0x03",
+            ["TABLE_LOADS"] = tables.Count.ToString(),
+            ["TABLES"] = string.Join("\n", tables),
+            ["PALETTE"] = PaletteLines(palette, dialect),
+            ["TILESETS"] = TileSetsOf(bands, dialect, binary),
+            ["MAP"] = Loads(dialect, stem, binary),
+            ["MAP_ALT"] = Loads(dialect, stem, !binary, commented: true),
+        });
+    }
+
+    /// <summary>Which band a screen third takes its tile set from.</summary>
+    /// <remarks>
+    /// The same rule the map itself follows: a third with no band of its own falls back to the
+    /// first one, which is what a map with a single tile set is.
+    /// </remarks>
+    private static int BandOf(IReadOnlyList<TileSet> bands, int third) =>
+        third < bands.Count ? third : 0;
+
+    /// <summary>One entry of the list: where it comes from, where it goes and how much.</summary>
+    private static string Block(
+        AsmDialect dialect, string source, int destination, int length, string what) =>
+        $"                {{DW}} {source}, 0x{destination:X4}, {length}".PadRight(58) + $"; {what}";
+
+    /// <summary>The blocks of every band, each one behind the label the list names.</summary>
+    private static string TileSetsOf(
+        IReadOnlyList<TileSet> bands, AsmDialect dialect, bool binary)
+    {
+        var lines = new List<string>();
+
+        for (int band = 0; band < bands.Count; band++)
+        {
+            string label = SpriteBankExporter.LabelOf(bands[band].Name);
+
+            lines.Add(bands.Count == 1
+                ? $"; The tile set of the map: {bands[band].Name}"
+                : $"; Rows {band * TileMap.RowsPerThird}-{(band * TileMap.RowsPerThird) + TileMap.RowsPerThird - 1}: {bands[band].Name}");
+
+            lines.Add($"Patterns{band}:");
+            lines.Add(Loads(dialect, $"{label}_patterns", binary));
+            lines.Add(Loads(dialect, $"{label}_patterns", !binary, commented: true));
+            lines.Add(string.Empty);
+            lines.Add($"Colors{band}:");
+            lines.Add(Loads(dialect, $"{label}_colors", binary));
+            lines.Add(Loads(dialect, $"{label}_colors", !binary, commented: true));
+
+            if (band < bands.Count - 1)
+                lines.Add(string.Empty);
+        }
+
+        return string.Join("\n", lines);
+    }
+
+    /// <summary>What has to be next to it, the tile set files included.</summary>
+    private static string FilesOf(IReadOnlyList<TileSet> bands, string stem, string extension)
+    {
+        var names = new List<string>();
+
+        foreach (TileSet band in bands)
+        {
+            string label = SpriteBankExporter.LabelOf(band.Name);
+
+            foreach (string one in (string[])[$"{label}_patterns", $"{label}_colors"])
+            {
+                if (!names.Contains(one))
+                    names.Add(one);
+            }
+        }
+
+        names.Add(stem);
+
+        return string.Join("\n", names.Select(one => $";     {one}{extension}"));
+    }
 
     // ------------------------------------------------------------------ the filling in
 

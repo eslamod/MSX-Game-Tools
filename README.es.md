@@ -226,13 +226,15 @@ un MSX de verdad o en openMSX:
   tabla de supertiles, y con supertiles rectangulares a propósito: uno cuadrado disimularía
   un ancho y un alto intercambiados.
 
-Las del juego de tiles y el banco de sprites no están ahí porque **las escribe el
-editor**: al exportar se puede pedir la ROM de ejemplo, y sale rellenada para el
+Las del juego de tiles, el banco de sprites y el mapa no están ahí porque **las escribe
+el editor**: al exportar se puede pedir la ROM de ejemplo, y sale rellenada para el
 ensamblador que se elija —sasSX, sjasmplus, pasmo o asMSX—, para el modo del documento y
 nombrando los ficheros recién exportados. La del banco se trae además el reproductor de
 animaciones al lado, y sólo se ofrece para bancos de MSX2 —GRAPHIC 3 con sprites de modo
 2, con los grupos colocados; las teclas 0-F cambian el fondo y F1 conmuta la
-magnificación—.
+magnificación—. La del mapa es de 32K y carga un juego de tiles por tercio si el mapa
+lleva bandas, así que hay que exportar también el juego o los juegos con los que está
+dibujado.
 
 Todas detectan en ejecución si están en un MSX1 o en un MSX2 para cargar la paleta sólo
 donde se puede. El README de esa carpeta explica los mapas de VRAM y cómo cambiar entre
