@@ -20,12 +20,12 @@ public class SpriteBankFileCommandsTests : IDisposable
         var main = new MainWindowViewModel();
 
         Assert.False(main.SaveDocumentCommand.CanExecute(null));
-        Assert.False(main.ExportSpriteBankBinaryCommand.CanExecute(null));
+        Assert.False(main.ExportSpriteBankCommand.CanExecute(null));
 
         main.OpenSpriteBank(new SpriteBank(SpriteBank.SpriteType.MSX2, "Uno"));
 
         Assert.True(main.SaveDocumentCommand.CanExecute(null));
-        Assert.True(main.ExportSpriteBankBinaryCommand.CanExecute(null));
+        Assert.True(main.ExportSpriteBankCommand.CanExecute(null));
     }
 
     [AvaloniaFact]
@@ -158,11 +158,12 @@ public class SpriteBankFileCommandsTests : IDisposable
     [AvaloniaFact]
     public async Task Exportar_a_binario_escribe_los_dos_ficheros()
     {
-        var dialogs = new TestDialogService { SavePath = Path.Combine(_folder, "bicho.bin") };
+        var dialogs = new TestDialogService();
         var main = new MainWindowViewModel(dialogs);
         main.OpenSpriteBank(new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"));
 
-        await main.ExportSpriteBankBinaryCommand.ExecuteAsync(null);
+        await TestExport.SpriteBankAsync(
+            main, ExportFormat.Binary, Path.Combine(_folder, "bicho.bin"));
 
         Assert.True(File.Exists(Path.Combine(_folder, "bicho_patterns.bin")));
         Assert.True(File.Exists(Path.Combine(_folder, "bicho_groups.bin")));
@@ -179,11 +180,11 @@ public class SpriteBankFileCommandsTests : IDisposable
     [AvaloniaFact]
     public async Task Exportar_a_ensamblador_escribe_texto_con_etiquetas()
     {
-        var dialogs = new TestDialogService { SavePath = Path.Combine(_folder, "bicho.asm") };
-        var main = new MainWindowViewModel(dialogs);
+        var main = new MainWindowViewModel(new TestDialogService());
         main.OpenSpriteBank(new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"));
 
-        await main.ExportSpriteBankAssemblerCommand.ExecuteAsync(null);
+        await TestExport.SpriteBankAsync(
+            main, ExportFormat.Assembler, Path.Combine(_folder, "bicho.asm"));
 
         string patterns = await File.ReadAllTextAsync(Path.Combine(_folder, "bicho_patterns.asm"));
 
@@ -198,24 +199,29 @@ public class SpriteBankFileCommandsTests : IDisposable
     {
         var main = new MainWindowViewModel();
 
-        Assert.False(main.ExportSpriteBankBinaryCommand.CanExecute(null));
-        Assert.False(main.ExportSpriteBankAssemblerCommand.CanExecute(null));
+        Assert.False(main.ExportSpriteBankCommand.CanExecute(null));
 
         main.OpenSpriteBank(new SpriteBank(SpriteBank.SpriteType.MSX2, "Uno"));
 
-        Assert.True(main.ExportSpriteBankBinaryCommand.CanExecute(null));
-        Assert.True(main.ExportSpriteBankAssemblerCommand.CanExecute(null));
+        Assert.True(main.ExportSpriteBankCommand.CanExecute(null));
     }
 
+    /// <summary>Cancelar cierra el panel sin escribir, aunque el destino esté puesto.</summary>
     [AvaloniaFact]
-    public async Task Cancelar_la_exportacion_no_escribe_nada()
+    public void Cancelar_la_exportacion_no_escribe_nada()
     {
-        var dialogs = new TestDialogService { SavePath = null };
+        var dialogs = new TestDialogService();
         var main = new MainWindowViewModel(dialogs);
         main.OpenSpriteBank(new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"));
 
-        await main.ExportSpriteBankBinaryCommand.ExecuteAsync(null);
+        main.ExportSpriteBankCommand.Execute(null);
 
+        var form = (ExportViewModel)main.RightPanViewModel!;
+
+        form.Destination = Path.Combine(_folder, "bicho.bin");
+        form.CancelExportCommand.Execute(null);
+
+        Assert.Null(main.RightPanViewModel);
         Assert.Empty(Directory.GetFiles(_folder));
         Assert.Empty(dialogs.Messages);
     }

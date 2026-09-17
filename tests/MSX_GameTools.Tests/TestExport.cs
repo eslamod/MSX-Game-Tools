@@ -1,9 +1,10 @@
+using CommunityToolkit.Mvvm.Input;
 using MSX_GameTools.ViewModels;
 
 namespace MSX_GameTools.Tests;
 
 /// <summary>
-/// Exportar un juego de tiles pasando por su panel, que es como se hace desde el menú.
+/// Exportar un documento pasando por su panel, que es como se hace desde el menú.
 /// </summary>
 /// <remarks>
 /// El panel es el punto de entrada desde que exportar dejó de ser dos entradas de menú:
@@ -13,18 +14,36 @@ namespace MSX_GameTools.Tests;
 /// </remarks>
 internal static class TestExport
 {
+    /// <inheritdoc cref="ThroughPanelAsync"/>
+    public static Task TileSetAsync(
+        MainWindowViewModel main,
+        ExportFormat format,
+        string path,
+        Action<ExportViewModel>? answering = null) =>
+        ThroughPanelAsync(main, main.ExportTileSetCommand, format, path, answering);
+
+    /// <inheritdoc cref="ThroughPanelAsync"/>
+    public static Task SpriteBankAsync(
+        MainWindowViewModel main,
+        ExportFormat format,
+        string path,
+        Action<ExportViewModel>? answering = null) =>
+        ThroughPanelAsync(main, main.ExportSpriteBankCommand, format, path, answering);
+
+    /// <param name="open">La entrada de menú del documento, que es la que abre el panel.</param>
     /// <param name="answering">
     /// Lo que se conteste además del formato y el destino, como la casilla de la ROM de
     /// ejemplo. Después del formato a propósito: el formato es el que decide qué preguntas
     /// salen.
     /// </param>
-    public static async Task TileSetAsync(
+    private static async Task ThroughPanelAsync(
         MainWindowViewModel main,
+        IRelayCommand open,
         ExportFormat format,
         string path,
-        Action<ExportViewModel>? answering = null)
+        Action<ExportViewModel>? answering)
     {
-        main.ExportTileSetCommand.Execute(null);
+        open.Execute(null);
 
         var form = (ExportViewModel)main.RightPanViewModel!;
 

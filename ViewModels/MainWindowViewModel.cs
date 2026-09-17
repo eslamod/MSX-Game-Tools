@@ -22,8 +22,7 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveDocumentCommand))]
     [NotifyCanExecuteChangedFor(nameof(SaveDocumentAsCommand))]
-    [NotifyCanExecuteChangedFor(nameof(ExportSpriteBankBinaryCommand))]
-    [NotifyCanExecuteChangedFor(nameof(ExportSpriteBankAssemblerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExportSpriteBankCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportPatternRangeCommand))]
     [NotifyCanExecuteChangedFor(nameof(ConvertSpriteBankToMsx1Command))]
     [NotifyCanExecuteChangedFor(nameof(ConvertSpriteBankToMsx2Command))]
@@ -1512,112 +1511,12 @@ public partial class MainWindowViewModel : ObservableObject
             OpenForm(() => new ExportPatternsViewModel(this, editor));
     }
 
+    /// <inheritdoc cref="OpenExport"/>
     [RelayCommand(CanExecute = nameof(IsSpriteBankSelected))]
-    private Task ExportSpriteBankBinaryAsync() => ExportSpriteBankAsync(binary: true);
-
-    [RelayCommand(CanExecute = nameof(IsSpriteBankSelected))]
-    private Task ExportSpriteBankAssemblerAsync() => ExportSpriteBankAsync(binary: false);
-
-    /// <summary>
-    /// Escribe las dos tablas. Se pide un nombre base y de ahí salen los dos ficheros,
-    /// para no encadenar dos selectores seguidos.
-    /// </summary>
-    private async Task ExportSpriteBankAsync(bool binary)
+    private void ExportSpriteBank()
     {
-        if (SelectedTab is not SpritesEditorViewModel editor)
-            return;
-
-        SpriteBank bank = editor.SpritesBank;
-        string extension = binary ? ".bin" : ".asm";
-
-        string? path = await Dialogs.PickFileToSaveAsync(
-            Text[binary ? "PickExportBinary" : "PickExportAssembler"],
-            $"{SpriteBankExporter.LabelOf(bank.Name)}{extension}",
-            FormatOf(binary));
-
-        if (path is null)
-            return;
-
-        string folder = Path.GetDirectoryName(path) ?? string.Empty;
-        string stem = Path.GetFileNameWithoutExtension(path);
-
-        string patternsPath = Path.Combine(folder, $"{stem}_patterns{extension}");
-        string groupsPath = Path.Combine(folder, $"{stem}_groups{extension}");
-
-        // Sólo si hay: un fichero de cero bytes junto a los otros dos parece que algo ha
-        // fallado, y quien no anima nada no tiene por qué encontrárselo.
-        string? animationsPath = bank.Animations.Count == 0
-            ? null
-            : Path.Combine(folder, $"{stem}_animations{extension}");
-
-        if (animationsPath is not null && !await AnimationsAreSoundAsync(bank))
-            return;
-
-        try
-        {
-            if (binary)
-            {
-                await File.WriteAllBytesAsync(patternsPath, SpriteBankExporter.PatternsToBinary(bank));
-                await File.WriteAllBytesAsync(groupsPath, SpriteBankExporter.GroupsToBinary(bank));
-
-                if (animationsPath is not null)
-                    await File.WriteAllBytesAsync(animationsPath, SpriteAnimationExporter.ToBinary(bank));
-            }
-            else
-            {
-                await File.WriteAllTextAsync(patternsPath, SpriteBankExporter.PatternsToAssembler(bank, Preferences.AsmStyle));
-                await File.WriteAllTextAsync(groupsPath, SpriteBankExporter.GroupsToAssembler(bank, Preferences.AsmStyle));
-
-                if (animationsPath is not null)
-                    await File.WriteAllTextAsync(animationsPath, SpriteAnimationExporter.ToAssembler(bank, Preferences.AsmStyle));
-            }
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            await Dialogs.ShowMessageAsync(Text["ErrorExportSpriteBank"], exception.Message);
-
-            return;
-        }
-
-        // El nombre elegido se reparte en varios, asi que conviene decir cuales han salido.
-        await Dialogs.ShowMessageAsync(
-            Text["ExportedSpriteBankTitle"],
-            animationsPath is null
-                ? Text.Format(
-                    "ExportedTwoFiles",
-                    Path.GetFileName(patternsPath),
-                    Path.GetFileName(groupsPath))
-                : Text.Format(
-                    "ExportedThreeFiles",
-                    Path.GetFileName(patternsPath),
-                    Path.GetFileName(groupsPath),
-                    Path.GetFileName(animationsPath)));
-    }
-
-    /// <summary>
-    /// Avisa si alguna animación pide un grupo que ya no existe, y deja decidir.
-    /// </summary>
-    /// <remarks>
-    /// Borrar un grupo no toca las animaciones, así que se puede llegar aquí con una apuntando
-    /// a un número que ya no está. Se exporta igual —cortar la exportación por esto sería peor—,
-    /// pero diciéndolo: en el fichero es un 0xFF y en la máquina, un sprite que no aparece.
-    /// </remarks>
-    private async Task<bool> AnimationsAreSoundAsync(SpriteBank bank)
-    {
-        IReadOnlyList<SpriteAnimationExporter.MissingGroup> missing =
-            SpriteAnimationExporter.MissingGroups(bank);
-
-        if (missing.Count == 0)
-            return true;
-
-        string what = string.Join(
-            Environment.NewLine,
-            missing.Select(one => $"{one.Animation}: {one.Group}").Distinct());
-
-        return await Dialogs.ConfirmAsync(
-            Text["ExportMissingGroupsTitle"],
-            Text.Format("ExportMissingGroupsBody", what),
-            Text["ExportAnywayLabel"]);
+        if (SelectedTab is SpritesEditorViewModel sprites)
+            OpenExport(new SpriteBankExport(sprites, Dialogs));
     }
 
     private bool IsTileSetSelected() => SelectedTab is TileSetEditorViewModel;
@@ -1922,23 +1821,28 @@ public partial class MainWindowViewModel : ObservableObject
         _ => TileSets.Count == 1 ? TileSets[0] : null,
     };
 
+    /// <inheritdoc cref="OpenExport"/>
+    [RelayCommand(CanExecute = nameof(IsTileSetSelected))]
+    private void ExportTileSet()
+    {
+        if (SelectedTab is TileSetEditorViewModel tiles)
+            OpenExport(new TileSetExport(tiles));
+    }
+
     /// <summary>
     /// Opens the panel that asks what to export and where, and says what is going to come out.
     /// </summary>
     /// <remarks>
-    /// One entry and not three -binary, assembler and png-: it is the same question with three
-    /// answers, and what comes out of any of them is more than one file.
+    /// One entry per document and not two or three -binary, assembler, png-: it is the same
+    /// question with several answers, and what comes out of any of them is more than one file.
+    /// Only one panel at a time, so that the open one is always the document in front.
     /// </remarks>
-    [RelayCommand(CanExecute = nameof(IsTileSetSelected))]
-    private void ExportTileSet()
+    private void OpenExport(IExportDocument document)
     {
-        if (SelectedTab is not TileSetEditorViewModel tiles)
-            return;
-
         if (RightPanels.OfType<ExportViewModel>().FirstOrDefault() is { } open)
             CloseRightPanel(open);
 
-        RightPanViewModel = new ExportViewModel(this, tiles);
+        RightPanViewModel = new ExportViewModel(this, document);
     }
 
     [RelayCommand]

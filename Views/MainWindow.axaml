@@ -110,8 +110,7 @@
         <MenuItem Header="{l:Localize MenuSpriteBankToMsx1}" Command="{Binding ConvertSpriteBankToMsx1Command}" />
         <MenuItem Header="{l:Localize MenuSpriteBankToMsx2}" Command="{Binding ConvertSpriteBankToMsx2Command}" />
         <Separator />
-        <MenuItem Header="{l:Localize MenuExportToBinary}" Command="{Binding ExportSpriteBankBinaryCommand}" />
-        <MenuItem Header="{l:Localize MenuExportToAssembler}" Command="{Binding ExportSpriteBankAssemblerCommand}" />
+        <MenuItem Header="{l:Localize MenuExport}" Command="{Binding ExportSpriteBankCommand}" />
         <MenuItem Header="{l:Localize MenuExportPatternRange}" Command="{Binding ExportPatternRangeCommand}" />
       </MenuItem>
 

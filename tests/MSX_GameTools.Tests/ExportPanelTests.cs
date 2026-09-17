@@ -135,6 +135,46 @@ public class ExportPanelTests : IDisposable
         Assert.Null(main.RightPanViewModel);
     }
 
+    /// <summary>De un banco salen los dos de siempre.</summary>
+    [AvaloniaFact]
+    public void De_un_banco_salen_los_patrones_y_los_grupos()
+    {
+        Assert.Equal(
+            (string[])["bicho_patterns.asm", "bicho_groups.asm"],
+            BankPanel(new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"))
+                .Files.Select(file => file.Name));
+    }
+
+    /// <summary>Y tres si hay animaciones, que es el mismo problema del selector.</summary>
+    [AvaloniaFact]
+    public void De_un_banco_con_animaciones_sale_tambien_el_de_animaciones()
+    {
+        Assert.Equal(
+            (string[])["bicho_patterns.asm", "bicho_groups.asm", "bicho_animations.asm"],
+            BankPanel(Animated()).Files.Select(file => file.Name));
+    }
+
+    /// <summary>
+    /// Las animaciones que piden grupos borrados se avisan antes de escribir nada.
+    /// </summary>
+    /// <remarks>
+    /// Se pregunta antes de tocar el disco: decir que no tiene que dejar la carpeta como
+    /// estaba, y el panel abierto para poder arreglarlo.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Las_animaciones_rotas_se_avisan_antes_de_escribir()
+    {
+        var main = new MainWindowViewModel(new TestDialogService { ConfirmAnswer = false });
+
+        main.OpenSpriteBank(Animated());
+
+        await TestExport.SpriteBankAsync(
+            main, ExportFormat.Binary, Path.Combine(_folder, "bicho.bin"));
+
+        Assert.Empty(Directory.GetFiles(_folder));
+        Assert.NotNull(main.RightPanViewModel);
+    }
+
     // ------------------------------------------------------------------ los andamios
 
     /// <summary>Un juego con todo lo que puede salir: supertiles y atributos.</summary>
@@ -160,4 +200,27 @@ public class ExportPanelTests : IDisposable
 
     private static void Use(ExportViewModel form, ExportFormat format) =>
         form.Format = form.Formats.Single(choice => choice.Format == format);
+
+    /// <summary>Un banco con una animación que pide un grupo que no está.</summary>
+    private static SpriteBank Animated()
+    {
+        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho");
+        var animation = new SpriteAnimation("Andar", AnimationKind.Groups);
+
+        animation.Steps.Add(new AnimationFrame { Target = 3, Wait = 7 });
+        bank.Animations.Add(animation);
+
+        return bank;
+    }
+
+    /// <summary>El panel de un banco, abierto por donde lo abre el usuario.</summary>
+    private static ExportViewModel BankPanel(SpriteBank bank)
+    {
+        var main = new MainWindowViewModel(new TestDialogService());
+
+        main.OpenSpriteBank(bank);
+        main.ExportSpriteBankCommand.Execute(null);
+
+        return (ExportViewModel)main.RightPanViewModel!;
+    }
 }

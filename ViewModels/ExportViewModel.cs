@@ -7,17 +7,6 @@ using MSX_GameTools.Services;
 
 namespace MSX_GameTools.ViewModels;
 
-/// <summary>What a document comes out as when it is exported.</summary>
-public enum ExportFormat
-{
-    Assembler,
-    Binary,
-    Png,
-}
-
-/// <summary>One of the formats on offer, with the label it is read by and what it writes.</summary>
-public sealed record ExportChoice(ExportFormat Format, string Label, string Extension);
-
 /// <summary>
 /// One of the files an export is going to write.
 /// </summary>
@@ -34,9 +23,14 @@ public sealed record ExportFileRow(string Name, bool Exists);
 /// <para>
 /// A panel and not two menu entries because exporting is more than one question, and above all
 /// because what comes out is more than one file: a tile set writes its patterns, its colours
-/// and, when it has them, its super tiles and its attributes. The file picker of the system
-/// only warns about the one that gets named, so the other three could be overwritten without a
-/// word. Here they are all listed before a single one is written.
+/// and, when it has them, its super tiles and its attributes; a sprite bank writes its patterns,
+/// its groups and its animations. The file picker of the system only warns about the one that
+/// gets named, so the others could be overwritten without a word. Here they are all listed
+/// before a single one is written.
+/// </para>
+/// <para>
+/// What each kind of document writes is not here but behind <see cref="IExportDocument"/>: this
+/// asks the questions, lists what is coming and writes it, and the same panel serves them all.
 /// </para>
 /// <para>
 /// It is also where the two questions that only make sense one after the other are asked:
@@ -46,7 +40,7 @@ public sealed record ExportFileRow(string Name, bool Exists);
 public partial class ExportViewModel : PanelBaseViewModel
 {
     private readonly MainWindowViewModel _mainWindowVm;
-    private readonly TileSetEditorViewModel _tiles;
+    private readonly IExportDocument _document;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsExampleRom))]
@@ -75,21 +69,14 @@ public partial class ExportViewModel : PanelBaseViewModel
     [ObservableProperty]
     private AsmDialect _assembler = AsmDialect.Default;
 
-    public ExportViewModel(MainWindowViewModel mainWindowVm, TileSetEditorViewModel tiles)
+    public ExportViewModel(MainWindowViewModel mainWindowVm, IExportDocument document)
     {
         _mainWindowVm = mainWindowVm;
-        _tiles = tiles;
+        _document = document;
 
-        Formats =
-        [
-            new(ExportFormat.Assembler, Text["ExportFormatAsm"], ".asm"),
-            new(ExportFormat.Binary, Text["ExportFormatBin"], ".bin"),
-            new(ExportFormat.Png, Text["ExportFormatPng"], ".png"),
-        ];
+        _format = document.Formats[0];
 
-        _format = Formats[0];
-
-        Header = $"{Text["ExportTitle"]}: {tiles.DocumentName}";
+        Header = $"{Text["ExportTitle"]}: {document.DocumentName}";
         TagId = "export";
 
         Refresh();
@@ -98,7 +85,7 @@ public partial class ExportViewModel : PanelBaseViewModel
     private static Localizer Text => Localizer.Instance;
 
     /// <summary>The formats this document can come out in.</summary>
-    public IReadOnlyList<ExportChoice> Formats { get; }
+    public IReadOnlyList<ExportChoice> Formats => _document.Formats;
 
     /// <summary>The assemblers an example ROM can be written for.</summary>
     public IReadOnlyList<AsmDialect> Assemblers { get; } = AsmDialect.All;
@@ -113,8 +100,14 @@ public partial class ExportViewModel : PanelBaseViewModel
     /// </remarks>
     public bool ShowsAssembler => WantsExampleRom;
 
-    /// <summary>A png is a picture: there is no ROM to go with it.</summary>
-    public bool ShowsExampleRom => Format.Format != ExportFormat.Png;
+    /// <summary>
+    /// The box only comes out where there is a ROM to write.
+    /// </summary>
+    /// <remarks>
+    /// A png is a picture and there is no ROM to go with it; and a document whose template is
+    /// not written yet would be offering a tick that does nothing.
+    /// </remarks>
+    public bool ShowsExampleRom => _document.HasExampleRom && Format.Format != ExportFormat.Png;
 
     /// <summary>The files that are going to be written, with their names already worked out.</summary>
     public ObservableCollection<ExportFileRow> Files { get; } = [];
@@ -154,8 +147,22 @@ public partial class ExportViewModel : PanelBaseViewModel
     /// what the export already did.
     /// </remarks>
     private string Stem => string.IsNullOrWhiteSpace(Destination)
-        ? SpriteBankExporter.LabelOf(_tiles.TileSet.Name)
+        ? _document.Stem
         : Path.GetFileNameWithoutExtension(Destination);
+
+    /// <summary>
+    /// Everything that has been answered, which is what the document writes from.
+    /// </summary>
+    /// <remarks>
+    /// With the box ticked the chosen assembler rules over the whole batch, the data files
+    /// included: the ROM brings them in with an include, and a file written with a directive
+    /// that assembler does not take would stop it on a line nobody wrote.
+    /// </remarks>
+    private ExportRequest Request => new(
+        Format.Format,
+        Stem,
+        WantsExampleRom ? Assembler.Style : _mainWindowVm.Preferences.AsmStyle,
+        WantsExampleRom ? Assembler : null);
 
     [RelayCommand]
     private async Task BrowseAsync()
@@ -179,9 +186,13 @@ public partial class ExportViewModel : PanelBaseViewModel
 
         ErrorMessage = null;
 
+        // Before a single file is written: saying no here leaves the folder as it was.
+        if (!await _document.ReadyAsync())
+            return;
+
         try
         {
-            foreach (Piece piece in Pieces())
+            foreach (ExportPiece piece in _document.Pieces(Request))
                 await piece.Write(Path.Combine(Folder, NameOf(piece)));
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
@@ -193,7 +204,8 @@ public partial class ExportViewModel : PanelBaseViewModel
             return;
         }
 
-        await Told();
+        if (_document.Note(Request) is { } note)
+            await _mainWindowVm.Dialogs.ShowMessageAsync(note.Title, note.Body);
 
         _mainWindowVm.RightPanViewModel = null;
     }
@@ -220,7 +232,7 @@ public partial class ExportViewModel : PanelBaseViewModel
     {
         Files.Clear();
 
-        foreach (Piece piece in Pieces())
+        foreach (ExportPiece piece in _document.Pieces(Request))
         {
             string name = NameOf(piece);
 
@@ -239,118 +251,8 @@ public partial class ExportViewModel : PanelBaseViewModel
     /// With the format's extension, except for the one that brings its own: the example ROM is
     /// assembler even when what is being exported is binary.
     /// </remarks>
-    private string NameOf(Piece piece) =>
+    private string NameOf(ExportPiece piece) =>
         $"{Stem}{piece.Suffix}{piece.Extension ?? Format.Extension}";
-
-    /// <summary>
-    /// What comes out of exporting this in this format: the end of each name and who writes it.
-    /// </summary>
-    /// <remarks>
-    /// One list for showing and for writing. With two, the day one of them changed the panel
-    /// would be promising one thing and writing another.
-    /// </remarks>
-    private IEnumerable<Piece> Pieces()
-    {
-        TileSet tileSet = _tiles.TileSet;
-
-        // With the box ticked the chosen assembler rules over the whole batch, the data files
-        // included: the ROM brings them in with an include, and a file written with a
-        // directive that assembler does not take would stop it on a line nobody wrote.
-        AsmStyle style = WantsExampleRom ? Assembler.Style : _mainWindowVm.Preferences.AsmStyle;
-
-        if (Format.Format == ExportFormat.Png)
-        {
-            yield return new Piece(string.Empty, path =>
-            {
-                PngFile.Write(
-                    path,
-                    TileSetPngConverter.ToPixels(tileSet, _tiles.ColorPalette),
-                    TileSetPngConverter.FullSize);
-
-                return Task.CompletedTask;
-            });
-
-            yield break;
-        }
-
-        bool binary = Format.Format == ExportFormat.Binary;
-
-        yield return new Piece("_patterns", path => binary
-            ? File.WriteAllBytesAsync(path, TileSetExporter.PatternsToBinary(tileSet))
-            : File.WriteAllTextAsync(path, TileSetExporter.PatternsToAssembler(tileSet, style)));
-
-        yield return new Piece("_colors", path => binary
-            ? File.WriteAllBytesAsync(path, TileSetExporter.ColorsToBinary(tileSet))
-            : File.WriteAllTextAsync(path, TileSetExporter.ColorsToAssembler(tileSet, style)));
-
-        // La tabla de supertiles sale con el juego y no con el mapa: es del juego, y todos
-        // los mapas dibujados con el comparten la misma. Con cada mapa se repetiria igual.
-        if (tileSet.HasSuperTiles)
-        {
-            yield return new Piece("_supertiles", path => binary
-                ? File.WriteAllBytesAsync(path, SuperTileExporter.ToBinary(tileSet))
-                : File.WriteAllTextAsync(path, SuperTileExporter.ToAssembler(tileSet, style)));
-        }
-
-        // Y la de atributos sólo si se han definido: quien no los usa no tiene por qué
-        // encontrarse un fichero de 256 ceros que no sabe para qué es.
-        if (tileSet.AttributeNames.Any)
-        {
-            yield return new Piece("_attributes", path => binary
-                ? File.WriteAllBytesAsync(path, TileSetExporter.AttributesToBinary(tileSet))
-                : File.WriteAllTextAsync(path, TileSetExporter.AttributesToAssembler(tileSet, style)));
-        }
-
-        // Last of all because it is the one that ties the rest together: it loads them and
-        // puts them on screen, and it is named after them.
-        if (WantsExampleRom)
-        {
-            yield return new Piece(
-                ExampleRom.Suffix,
-                path => File.WriteAllTextAsync(
-                    path, ExampleRom.ForTileSet(tileSet, _tiles.ColorPalette, Assembler, Stem, binary)),
-                ExampleRom.Extension);
-        }
-    }
-
-    /// <summary>
-    /// What has to be known after writing it, which is not in the files themselves.
-    /// </summary>
-    /// <remarks>
-    /// The three copies in VRAM and the ceiling of super tiles a map can name: two things that
-    /// are nowhere in what was exported, and without which nobody knows what to do with it.
-    /// </remarks>
-    private async Task Told()
-    {
-        if (Format.Format == ExportFormat.Png)
-            return;
-
-        TileSet tileSet = _tiles.TileSet;
-
-        string done = Text.Format(
-            "ExportedTileSetBody",
-            $"{Stem}_patterns{Format.Extension}",
-            $"{Stem}_colors{Format.Extension}",
-            TileSetExporter.ScreenThirds);
-
-        if (tileSet.HasSuperTiles)
-        {
-            done += " " + Text.Format(
-                "ExportedSuperTiles",
-                $"{Stem}_supertiles{Format.Extension}",
-                SuperTileExporter.CountOf(tileSet));
-
-            // Una celda del mapa es un byte, asi que de 256 para arriba hay supertiles que
-            // ningun mapa puede nombrar. Mejor decirlo que dejar una tabla que no cuadra.
-            if (tileSet.Blocks.Count > SuperTileExporter.MaxSuperTiles)
-            {
-                done += " " + Text.Format(
-                    "ExportedSuperTilesTooMany", tileSet.Blocks.Count, SuperTileExporter.MaxSuperTiles);
-            }
-        }
-
-        await _mainWindowVm.Dialogs.ShowMessageAsync(Text["ExportedTileSetTitle"], done);
-    }
 
     private static PickerFileKind KindOf(ExportFormat format) => format switch
     {
@@ -358,7 +260,4 @@ public partial class ExportViewModel : PanelBaseViewModel
         ExportFormat.Png => PickerFileKind.Image,
         _ => PickerFileKind.Assembler,
     };
-
-    /// <summary>One of the files going out: how its name ends, who writes it, and what it is.</summary>
-    private sealed record Piece(string Suffix, Func<string, Task> Write, string? Extension = null);
 }

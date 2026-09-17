@@ -27,17 +27,18 @@ public class ExportPickerTests
         var main = new MainWindowViewModel(dialogs);
         var wrong = new List<string>();
 
+        // Los documentos que preguntan desde su panel abren el selector con el botón de
+        // elegir destino, no con una entrada del menú.
         main.OpenSpriteBank(new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"));
-        await Check(main.ExportSpriteBankBinaryCommand);
-        await Check(main.ExportSpriteBankAssemblerCommand);
+
+        await CheckPanel(main.ExportSpriteBankCommand, ExportFormat.Binary);
+        await CheckPanel(main.ExportSpriteBankCommand, ExportFormat.Assembler);
 
         TileSetEditorViewModel tiles = main.OpenTileSet(new TileSet("Bosque"));
 
-        // El juego de tiles pregunta desde su panel, así que el selector lo abre el botón de
-        // elegir destino y no una entrada del menú.
-        await CheckPanel(ExportFormat.Binary);
-        await CheckPanel(ExportFormat.Assembler);
-        await CheckPanel(ExportFormat.Png);
+        await CheckPanel(main.ExportTileSetCommand, ExportFormat.Binary);
+        await CheckPanel(main.ExportTileSetCommand, ExportFormat.Assembler);
+        await CheckPanel(main.ExportTileSetCommand, ExportFormat.Png);
 
         main.OpenMap(new TileMap("Nivel 1", 8, 8), tiles);
         await Check(main.ExportMapBinaryCommand);
@@ -51,9 +52,9 @@ public class ExportPickerTests
 
         Assert.Empty(wrong);
 
-        async Task CheckPanel(ExportFormat format)
+        async Task CheckPanel(IRelayCommand open, ExportFormat format)
         {
-            main.ExportTileSetCommand.Execute(null);
+            open.Execute(null);
 
             var form = (ExportViewModel)main.RightPanViewModel!;
 
