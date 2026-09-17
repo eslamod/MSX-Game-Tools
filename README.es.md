@@ -231,7 +231,8 @@ un MSX de verdad o en openMSX:
 La del juego de tiles no está ahí porque **la escribe el editor**: al exportar un juego se
 puede pedir la ROM de ejemplo, y sale rellenada para el ensamblador que se elija —sasSX,
 sjasmplus, pasmo o asMSX—, para el modo del juego y nombrando los ficheros recién
-exportados.
+exportados. La del banco de sprites también se genera, con el reproductor de animaciones
+al lado, para bancos de MSX2.
 
 Todas detectan en ejecución si están en un MSX1 o en un MSX2 para cargar la paleta sólo
 donde se puede. El README de esa carpeta explica los mapas de VRAM y cómo cambiar entre

@@ -226,7 +226,8 @@ real MSX or on openMSX:
 The one for a tile set is not in there because **the editor writes it**: exporting a tile
 set can bring an example ROM with it, filled in for the assembler you pick —sasSX,
 sjasmplus, pasmo or asMSX—, for the screen mode of the set, and naming the files you have
-just exported.
+just exported. The one for a sprite bank is generated too, with the animation player
+beside it, for MSX2 banks.
 
 All of them detect at runtime whether they are on an MSX1 or an MSX2, so the palette is
 only loaded where it can be. That folder's README explains the VRAM maps and how to switch

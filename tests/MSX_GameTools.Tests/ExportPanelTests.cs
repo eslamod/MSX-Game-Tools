@@ -175,6 +175,34 @@ public class ExportPanelTests : IDisposable
         Assert.NotNull(main.RightPanViewModel);
     }
 
+    /// <summary>
+    /// Un banco de MSX1 no ofrece ROM de ejemplo.
+    /// </summary>
+    /// <remarks>
+    /// La ROM pone GRAPHIC 3 con sprites de modo 2, que es para lo que están los 16 bytes de
+    /// color por sprite de un banco de MSX2. Uno de MSX1 sería otro programa, así que antes
+    /// que darle una ROM que lo enseña mal, la casilla no sale.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Un_banco_de_msx1_no_ofrece_rom_de_ejemplo()
+    {
+        Assert.False(BankPanel(new SpriteBank(SpriteBank.SpriteType.MSX, "Bicho")).ShowsExampleRom);
+        Assert.True(BankPanel(new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho")).ShowsExampleRom);
+    }
+
+    /// <summary>Con la casilla marcada salen también la ROM y el reproductor.</summary>
+    [AvaloniaFact]
+    public void La_rom_del_banco_se_trae_el_reproductor()
+    {
+        ExportViewModel form = BankPanel(new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"));
+
+        form.WantsExampleRom = true;
+
+        Assert.Equal(
+            (string[])["bicho_patterns.asm", "bicho_groups.asm", "bicho_rom.asm", "bicho_player.asm"],
+            form.Files.Select(file => file.Name));
+    }
+
     // ------------------------------------------------------------------ los andamios
 
     /// <summary>Un juego con todo lo que puede salir: supertiles y atributos.</summary>

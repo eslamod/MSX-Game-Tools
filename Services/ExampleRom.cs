@@ -35,7 +35,8 @@ public static class ExampleRom
     private const int BytesPerLine = 8;
 
     /// <summary>The directives the templates ask for by name.</summary>
-    private static readonly string[] Directives = ["org", "db", "dw", "equ", "ds"];
+    private static readonly string[] Directives =
+        ["org", "db", "dw", "equ", "ds", "incbin", "include", "if", "else", "endif"];
 
     /// <summary>What is left to fill in: <c>{NAME}</c>, <c>{PALETTE}</c>…</summary>
     private const string TokenPattern = @"\{([A-Z0-9_]+)\}";
@@ -49,8 +50,20 @@ public static class ExampleRom
     /// </remarks>
     private const string Entry = "Begin";
 
+    /// <summary>
+    /// What the routine that plays the animations is called.
+    /// </summary>
+    /// <remarks>
+    /// A file of its own and not a chunk inside the ROM because it is the piece that gets
+    /// copied into a real game: it travels whole, and not spread through an example.
+    /// </remarks>
+    public const string PlayerSuffix = "_player";
+
     /// <summary>What the ROM of that export is called.</summary>
     public static string NameOf(string stem) => $"{stem}{Suffix}{Extension}";
+
+    /// <inheritdoc cref="PlayerSuffix"/>
+    public static string PlayerNameOf(string stem) => $"{stem}{PlayerSuffix}{Extension}";
 
     /// <summary>
     /// The ROM that shows a tile set: the two tables in VRAM and the whole set on screen.
@@ -101,6 +114,70 @@ public static class ExampleRom
             ["COLORS_ALT"] = Loads(dialect, colors, !binary, commented: true),
         });
     }
+
+    /// <summary>
+    /// The ROM that shows a sprite bank: its patterns in the sprite generator and its groups
+    /// laid out in a grid, playing the animations if it has any.
+    /// </summary>
+    /// <remarks>
+    /// Only for an MSX2 bank, which is the one that exports the sixteen colour bytes per sprite
+    /// that mode 2 asks for. An MSX1 one is another program -mode 1, four sprites per line, the
+    /// colour inside the attribute- and not a couple of tokens.
+    /// </remarks>
+    /// <param name="stem">The name the exported files share, which is what it has to load.</param>
+    /// <param name="binary">
+    /// Whether those files are the binary ones, which is what tells an <c>incbin</c> from an
+    /// <c>include</c>.
+    /// </param>
+    public static string ForSpriteBank(
+        SpriteBank bank, ColorPalette palette, AsmDialect dialect, string stem, bool binary)
+    {
+        string patterns = $"{stem}_patterns";
+        string groups = $"{stem}_groups";
+        string animations = $"{stem}_animations";
+        string extension = binary ? ".bin" : Extension;
+        bool animated = bank.Animations.Count > 0;
+
+        string files = $";     {patterns}{extension}\n;     {groups}{extension}";
+
+        if (animated)
+            files += $"\n;     {animations}{extension}";
+
+        return Fill("SpriteBankRom.asm", dialect, new Dictionary<string, string>
+        {
+            ["NAME"] = bank.Name,
+            ["STEM"] = stem,
+            ["START"] = Entry,
+            ["ASSEMBLER"] = dialect.Name,
+            ["COMMAND"] = dialect.CommandFor(NameOf(stem), $"{stem}.rom"),
+            ["FILES"] = files,
+            ["PALETTE"] = PaletteLines(palette, dialect),
+            ["PATTERNS"] = Loads(dialect, patterns, binary),
+            ["PATTERNS_ALT"] = Loads(dialect, patterns, !binary, commented: true),
+            ["GROUPS"] = Loads(dialect, groups, binary),
+            ["GROUPS_ALT"] = Loads(dialect, groups, !binary, commented: true),
+
+            // Without animations the block stays empty on purpose: the player compares the two
+            // labels and never starts, and the ROM behaves like it did before there were any.
+            ["ANIMATIONS"] = animated
+                ? Loads(dialect, animations, binary)
+                : "              ; this bank has no animations",
+            ["ANIMATIONS_ALT"] = animated
+                ? Loads(dialect, animations, !binary, commented: true)
+                : string.Empty,
+
+            ["PLAYER"] = $"                {dialect.Directive("include")} \"{PlayerNameOf(stem)}\"",
+        });
+    }
+
+    /// <inheritdoc cref="PlayerSuffix"/>
+    public static string AnimationPlayer(AsmDialect dialect, SpriteBank bank) =>
+        Fill("AnimationPlayer.asm", dialect, new Dictionary<string, string>
+        {
+            // In mode 2 the colour of a sprite is sixteen bytes in a table of its own; in mode 1
+            // it travels in the fourth byte of the attribute, and the player takes both.
+            ["ANIM_COLOR_TABLE"] = bank.Type == SpriteBank.SpriteType.MSX2 ? "1" : "0",
+        });
 
     // ------------------------------------------------------------------ the filling in
 

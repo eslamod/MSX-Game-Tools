@@ -77,6 +77,111 @@ public class ExampleRomTests : IDisposable
         Assert.Equal("AB", System.Text.Encoding.ASCII.GetString(bytes, 0, 2));
     }
 
+    /// <summary>La del banco de sprites igual, y además se trae el reproductor.</summary>
+    [AvaloniaTheory]
+    [MemberData(nameof(Bundles))]
+    public async Task La_rom_del_banco_ensambla_y_da_un_cartucho(
+        string name, ExportFormat format, int size)
+    {
+        string? tool = Assembler.Find(name);
+
+        Assert.SkipUnless(tool is not null, $"{name} no está aquí: {Assembler.HowToGetIt(name)}");
+
+        await ExportBankAsync(Animated(), format, name);
+
+        string rom = Path.Combine(_folder, "bosque.rom");
+        string said = Assembler.Run(
+            tool!, name, Path.Combine(_folder, "bosque_rom.asm"), rom);
+
+        Assert.True(File.Exists(rom), $"{name} no sacó ROM: {said}");
+
+        byte[] bytes = File.ReadAllBytes(rom);
+
+        Assert.Equal(size, bytes.Length);
+        Assert.Equal("AB", System.Text.Encoding.ASCII.GetString(bytes, 0, 2));
+    }
+
+    /// <summary>
+    /// Y de todos los ensambladores que haya sale el mismo programa.
+    /// </summary>
+    /// <remarks>
+    /// Comparando bytes y no sólo el tamaño, por el mismo motivo que en
+    /// <see cref="AssemblersTests"/>: un ensamblador puede tragarse una línea y entender otra
+    /// cosa —un número en otra base, una directiva que hace algo parecido— y eso no se ve en
+    /// lo que diga por pantalla, se ve en el binario. Lo que sí caza el tamaño es el relleno
+    /// del final, y lo que no caza ninguno de los dos, que arranque.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Todos_los_ensambladores_sacan_el_mismo_programa()
+    {
+        var made = new Dictionary<string, byte[]>();
+
+        foreach (string name in (string[])["sasSX", "sjasmplus", "pasmo", "asMSX"])
+        {
+            if (Assembler.Find(name) is not { } tool)
+                continue;
+
+            string folder = Path.Combine(_folder, name);
+
+            Directory.CreateDirectory(folder);
+
+            await ExportBankAsync(Animated(), ExportFormat.Binary, name, folder);
+
+            string rom = Path.Combine(folder, "bosque.rom");
+
+            Assembler.Run(tool, name, Path.Combine(folder, "bosque_rom.asm"), rom);
+
+            if (File.Exists(rom))
+                made[name] = Code(File.ReadAllBytes(rom));
+        }
+
+        Assert.SkipWhen(made.Count < 2, "aquí no hay dos ensambladores con los que comparar");
+
+        foreach ((string name, byte[] bytes) in made)
+        {
+            Assert.Equal(made.First().Value, bytes);
+
+            // Y que quede programa después de quitar el relleno, no sea que se compare vacío
+            // con vacío.
+            Assert.True(bytes.Length > 1000, $"{name} se quedó en {bytes.Length} bytes");
+        }
+    }
+
+    /// <summary>Un banco sin animaciones deja el bloque vacío y el reproductor no arranca.</summary>
+    [AvaloniaFact]
+    public void Un_banco_sin_animaciones_deja_el_bloque_vacio()
+    {
+        string rom = ExampleRom.ForSpriteBank(
+            new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"),
+            ColorPalette.CreateMsxStandard(),
+            AsmDialect.SasSx,
+            "bicho",
+            binary: true);
+
+        Assert.DoesNotContain("bicho_animations", rom);
+
+        // Las etiquetas siguen ahí: el reproductor las compara para saber que no hay nada.
+        Assert.Contains("AnimationsData:", rom);
+        Assert.Contains("AnimationsEnd:", rom);
+    }
+
+    /// <summary>
+    /// El reproductor sabe donde va el color de un sprite en el modo del banco.
+    /// </summary>
+    /// <remarks>
+    /// En modo 2 son los 16 bytes de la tabla de color del plano y en modo 1 el cuarto byte
+    /// del atributo. Se elige al ensamblar, y si se eligiera mal la ROM ensamblaria igual y
+    /// pintaria los colores donde no son.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_reproductor_sabe_donde_va_el_color_en_modo_2()
+    {
+        string player = ExampleRom.AnimationPlayer(
+            AsmDialect.SasSx, new SpriteBank(SpriteBank.SpriteType.MSX2, "Bicho"));
+
+        Assert.Contains("ANIM_COLOR_TABLE .equ 1", player);
+    }
+
     /// <summary>La ROM sale en ensamblador aunque los datos salgan en binario.</summary>
     [AvaloniaFact]
     public async Task La_rom_sale_en_asm_aunque_los_datos_sean_binarios()
@@ -243,6 +348,50 @@ public class ExampleRomTests : IDisposable
     }
 
     // ------------------------------------------------------------------ los andamios
+
+    /// <summary>Lo que queda de una ROM al quitarle el relleno del final.</summary>
+    /// <remarks>
+    /// Los tres primeros rellenan con 0xFF hasta los 16K y asMSX con 0x00 hasta el cartucho
+    /// más pequeño donde quepa, así que lo que se compara es el programa y no lo que sobra.
+    /// El último byte de verdad es un <c>ret</c>, así que no se lleva nada por delante.
+    /// </remarks>
+    private static byte[] Code(byte[] rom) =>
+        [.. rom.Reverse().SkipWhile(one => one is 0x00 or 0xFF).Reverse()];
+
+    /// <summary>Un banco con un grupo y una animación que lo usa.</summary>
+    private static SpriteBank Animated()
+    {
+        var bank = new SpriteBank(SpriteBank.SpriteType.MSX2, "Bosque");
+        SpriteGroup group = bank.NewGroup(0)!;
+
+        group.Add(new SpriteGroupMember(0, bank.SpritesList[1]));
+
+        var animation = new SpriteAnimation("Andar", AnimationKind.Groups);
+
+        animation.Steps.Add(new AnimationFrame { Target = group.Id, Wait = 5 });
+        bank.Animations.Add(animation);
+
+        return bank;
+    }
+
+    /// <summary>Exportar un banco con la casilla marcada, por donde lo hace el usuario.</summary>
+    private async Task ExportBankAsync(
+        SpriteBank bank, ExportFormat format, string assembler, string? folder = null)
+    {
+        var main = new MainWindowViewModel(new TestDialogService());
+
+        main.OpenSpriteBank(bank);
+
+        await TestExport.SpriteBankAsync(
+            main,
+            format,
+            Path.Combine(folder ?? _folder, "bosque.bin"),
+            form =>
+            {
+                form.WantsExampleRom = true;
+                form.Assembler = form.Assemblers.Single(one => one.Name == assembler);
+            });
+    }
 
     /// <summary>Un juego con dibujo, para que las tablas no sean 4096 ceros.</summary>
     private static TileSet Painted()

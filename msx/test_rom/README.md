@@ -12,8 +12,16 @@ supertiles.
 juego se puede pedir la ROM de ejemplo, y sale de `Templates/TileSetRom.asm`
 rellenada para el ensamblador que se elija —sasSX, sjasmplus, pasmo o asMSX—,
 para el modo del juego y con los nombres de los ficheros que se acaban de
-escribir. Cuando las otras tres tengan su plantilla, aquí no debería quedar
-ninguna.
+escribir.
+
+**Y la del banco de sprites también se genera ya**, de `Templates/SpriteBankRom.asm`
+y `Templates/AnimationPlayer.asm`, que salen juntas: la ROM se trae el
+reproductor con un `include`. Es la misma que hay aquí escrita a mano, sólo que
+para los cuatro ensambladores; `sprites_test.asm` se queda hasta que la generada
+se haya visto corriendo en una máquina, como se hizo con la de tiles. Sólo para
+bancos de MSX2: la ROM pone sprites de modo 2, y uno de MSX1 sería otro programa.
+
+Cuando las dos de mapas tengan su plantilla, aquí no debería quedar ninguna.
 
 ## La paleta
 

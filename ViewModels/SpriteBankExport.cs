@@ -27,8 +27,15 @@ public sealed class SpriteBankExport(SpritesEditorViewModel sprites, IDialogServ
         new(ExportFormat.Binary, Text["ExportFormatBin"], ".bin"),
     ];
 
-    /// <summary>Not yet: its template is the next one to be written.</summary>
-    public bool HasExampleRom => false;
+    /// <summary>
+    /// Only for an MSX2 bank.
+    /// </summary>
+    /// <remarks>
+    /// The ROM puts GRAPHIC 3 with mode 2 sprites, which is what the sixteen colour bytes per
+    /// sprite of this bank are for. An MSX1 one would need another program, so rather than
+    /// hand out a ROM that shows it wrong, the box does not come out.
+    /// </remarks>
+    public bool HasExampleRom => sprites.SpritesBank.Type == SpriteBank.SpriteType.MSX2;
 
     public IEnumerable<ExportPiece> Pieces(ExportRequest request)
     {
@@ -51,6 +58,24 @@ public sealed class SpriteBankExport(SpritesEditorViewModel sprites, IDialogServ
             yield return new ExportPiece("_animations", path => binary
                 ? File.WriteAllBytesAsync(path, SpriteAnimationExporter.ToBinary(bank))
                 : File.WriteAllTextAsync(path, SpriteAnimationExporter.ToAssembler(bank, style)));
+        }
+
+        // The ROM and the routine it brings in with an include. Last of all because they are
+        // what ties the rest together: they load the files above and put them on screen.
+        if (request.Rom is { } dialect)
+        {
+            yield return new ExportPiece(
+                ExampleRom.Suffix,
+                path => File.WriteAllTextAsync(
+                    path,
+                    ExampleRom.ForSpriteBank(
+                        bank, sprites.ColorPalette, dialect, request.Stem, binary)),
+                ExampleRom.Extension);
+
+            yield return new ExportPiece(
+                ExampleRom.PlayerSuffix,
+                path => File.WriteAllTextAsync(path, ExampleRom.AnimationPlayer(dialect, bank)),
+                ExampleRom.Extension);
         }
     }
 
