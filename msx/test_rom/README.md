@@ -4,9 +4,8 @@ Comprueban en una máquina real (o en un emulador) que lo que exporta el editor 
 lo que espera el VDP. No son parte de la herramienta: son el banco de pruebas de
 los exportadores.
 
-Quedan tres escritas a mano: `sprites_test.asm` para los grupos de sprites,
-`map_test.asm` para los mapas y `supertile_test.asm` para los mapas hechos con
-supertiles.
+Quedan dos escritas a mano: `map_test.asm` para los mapas y
+`supertile_test.asm` para los mapas hechos con supertiles.
 
 **La de los juegos de tiles ya no está aquí: la genera el editor.** Al exportar un
 juego se puede pedir la ROM de ejemplo, y sale de `Templates/TileSetRom.asm`
@@ -14,12 +13,10 @@ rellenada para el ensamblador que se elija —sasSX, sjasmplus, pasmo o asMSX—
 para el modo del juego y con los nombres de los ficheros que se acaban de
 escribir.
 
-**Y la del banco de sprites también se genera ya**, de `Templates/SpriteBankRom.asm`
-y `Templates/AnimationPlayer.asm`, que salen juntas: la ROM se trae el
-reproductor con un `include`. Es la misma que hay aquí escrita a mano, sólo que
-para los cuatro ensambladores; `sprites_test.asm` se queda hasta que la generada
-se haya visto corriendo en una máquina, como se hizo con la de tiles. Sólo para
-bancos de MSX2: la ROM pone sprites de modo 2, y uno de MSX1 sería otro programa.
+**Y la del banco de sprites tampoco está ya**: sale de
+`Templates/SpriteBankRom.asm` y `Templates/AnimationPlayer.asm`, que viajan
+juntas porque la ROM se trae el reproductor con un `include`. Sólo para bancos de
+MSX2: la ROM pone sprites de modo 2, y uno de MSX1 sería otro programa.
 
 Cuando las dos de mapas tengan su plantilla, aquí no debería quedar ninguna.
 
@@ -60,15 +57,11 @@ dotnet build tools/sass-MSX -c Release
 Sale `tools/sass-MSX/sass/bin/Release/sasSX` (`sasSX.exe` en Windows). En los
 ejemplos de abajo `sasSX.exe` es ese fichero; lo cómodo es ponerlo en el `PATH` o
 hacerse un alias. También vale
-`dotnet run --project tools/sass-MSX/sass -- sprites_test.asm ...`.
+`dotnet run --project tools/sass-MSX/sass -- map_test.asm ...`.
 
 La suite de pruebas lo busca ahí sola —ese `bin`, `Release` antes que `Debug`, y
 luego el `PATH`—, así que compilándolo una vez ya lo encuentra. Si lo tienes en
 otro sitio, díselo con la variable de entorno `SASSX`.
-
-```bash
-sasSX.exe sprites_test.asm --output sprites_test.rom
-```
 
 ```bash
 sasSX.exe map_test.asm --output map_test.rom
@@ -78,10 +71,9 @@ sasSX.exe map_test.asm --output map_test.rom
 sasSX.exe supertile_test.asm --output supertile_test.rom
 ```
 
-La de sprites sale de 16384 bytes exactos, que es lo que espera un cartucho en
-la página 1 —y la generada de tiles también, salvo con asMSX, que redondea al
-cartucho más pequeño donde quepa—. Las dos de mapas salen de 32768 y ocupan las
-páginas 1 y 2,
+Las generadas salen de 16384 bytes exactos, que es lo que espera un cartucho en
+la página 1 —salvo con asMSX, que redondea al cartucho más pequeño donde quepa—.
+Las dos de mapas salen de 32768 y ocupan las páginas 1 y 2,
 porque el mapa viaja dentro de la ROM y con 16K se quedaban cortas enseguida.
 
 Un cartucho de 32K no es sólo cuestión de tamaño: **la BIOS busca la `AB` en la
@@ -97,30 +89,26 @@ número primario no basta para nombrarlo.
 
 # La ROM de los sprites
 
-## Con tus propios datos
+**No está en esta carpeta: la escribe el editor.** En el panel de exportar un
+banco, marca la casilla de la ROM de ejemplo y elige el ensamblador; salen un
+`..._rom.asm` y un `..._player.asm` al lado de los ficheros de datos, con la
+orden para ensamblarlo en la cabecera del primero.
 
-Los ficheros de ejemplo que hay aquí (cuatro patrones y tres grupos, en las dos
-salidas) son para que la ROM ensamble nada más clonar. Para probar un banco tuyo:
-
-1. En el editor, **Exportar banco**, en binario o en ensamblador, con el banco en
-   modo **MSX2** (el MSX1 no saca los 16 bytes de color por sprite que lee esta
-   ROM).
-2. Copia los dos ficheros aquí como `bank_patterns` y `bank_groups`, con la
-   extensión que toque.
-3. Vuelve a ensamblar.
+Sólo se ofrece con el banco en modo **MSX2**: el de MSX1 no saca los 16 bytes de
+color por sprite que lee esta ROM, y la casilla ni sale.
 
 El límite es 64 patrones (2048 bytes) y 32 planos de sprite entre todos los
 grupos; a partir de ahí la ROM deja de colocar sprites, sin más.
 
 ## Binario o ensamblador
 
-La ROM trae el `.incbin` activo y el `.include` comentado al lado. Cambiar de uno
-a otro da la misma ROM byte a byte; está comprobado con el banco de ejemplo.
+La ROM trae activa la salida que se haya exportado y la otra comentada al lado.
+Cambiar de una a otra da la misma ROM byte a byte.
 
 ```asm
 PatternsData:
-                .incbin "bank_patterns.bin"
-              ; .include "bank_patterns.asm"
+                .incbin "bicho_patterns.bin"
+              ; .include "bicho_patterns.asm"
 PatternsEnd:
 ```
 
@@ -204,8 +192,8 @@ quitarlo de en medio.
 
 ## Las animaciones
 
-El bloque `AnimationsData` de `sprites_test.asm` **puede quedarse vacío**, y ese
-es el estado en el que viene. Sin datos, la ROM hace exactamente lo de siempre:
+El bloque `AnimationsData` **puede quedarse vacío**, y así sale cuando el banco no
+trae animaciones. Sin datos, la ROM hace exactamente lo de siempre:
 la rejilla de grupos desde el plano 0 y ni un plano gastado en otra cosa. No hay
 que tocar ninguna directiva ni definir nada al ensamblar; se mira en ejecución
 comparando `AnimationsEnd` con `AnimationsData`.
@@ -227,8 +215,8 @@ Una animación de patrones se pinta de un color fijo, `ANIM_PATTERN_COLOR`. Los
 colores del banco viajan dentro de los grupos, así que un patrón suelto no trae
 ninguno: en un juego de verdad lo pone quien la reproduce.
 
-El reproductor vive aparte, en `animation_player.asm`, porque es la rutina que
-se acaba copiando a un juego de verdad. Al arrancar recorre la tira una vez y
+El reproductor viaja aparte, en su propio `..._player.asm`, porque es la rutina
+que se acaba copiando a un juego de verdad. Al arrancar recorre la tira una vez y
 deja los fotogramas en una lista plana en RAM, cinco bytes cada uno. Un juego se
 ahorraría esa RAM interpretando la tira sobre la marcha —para los bucles vale
 igual—, pero el **ping-pong** pide recorrerla hacia atrás, y una tira de pasos de

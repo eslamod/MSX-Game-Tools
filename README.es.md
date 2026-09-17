@@ -213,11 +213,9 @@ Dos costumbres que han salvado bastantes fallos:
 
 ## ROMs de prueba
 
-En `msx/test_rom` hay tres ROMs en ensamblador Z80 que cargan lo exportado y lo enseñan en
+En `msx/test_rom` hay dos ROMs en ensamblador Z80 que cargan lo exportado y lo enseñan en
 un MSX de verdad o en openMSX:
 
-- `sprites_test.asm` — GRAPHIC 3 y sprites de modo 2, con los grupos colocados. Las
-  teclas 0-F cambian el color del borde y F1 conmuta la magnificación.
 - `map_test.asm` — un mapa pintado sobre su juego de tiles, con los cursores para moverse si
   es más grande que la pantalla. Lo que comprueba de verdad son los cuatro bytes de cabecera
   que escribe el exportador de mapas: los lee como los leería un juego y saca de ahí todo lo
@@ -228,11 +226,13 @@ un MSX de verdad o en openMSX:
   tabla de supertiles, y con supertiles rectangulares a propósito: uno cuadrado disimularía
   un ancho y un alto intercambiados.
 
-La del juego de tiles no está ahí porque **la escribe el editor**: al exportar un juego se
-puede pedir la ROM de ejemplo, y sale rellenada para el ensamblador que se elija —sasSX,
-sjasmplus, pasmo o asMSX—, para el modo del juego y nombrando los ficheros recién
-exportados. La del banco de sprites también se genera, con el reproductor de animaciones
-al lado, para bancos de MSX2.
+Las del juego de tiles y el banco de sprites no están ahí porque **las escribe el
+editor**: al exportar se puede pedir la ROM de ejemplo, y sale rellenada para el
+ensamblador que se elija —sasSX, sjasmplus, pasmo o asMSX—, para el modo del documento y
+nombrando los ficheros recién exportados. La del banco se trae además el reproductor de
+animaciones al lado, y sólo se ofrece para bancos de MSX2 —GRAPHIC 3 con sprites de modo
+2, con los grupos colocados; las teclas 0-F cambian el fondo y F1 conmuta la
+magnificación—.
 
 Todas detectan en ejecución si están en un MSX1 o en un MSX2 para cargar la paleta sólo
 donde se puede. El README de esa carpeta explica los mapas de VRAM y cómo cambiar entre

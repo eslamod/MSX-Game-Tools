@@ -208,11 +208,9 @@ Two habits that have caught a fair number of bugs:
 
 ## Test ROMs
 
-`msx/test_rom` holds three Z80 assembly ROMs that load the exported data and show it on a
+`msx/test_rom` holds two Z80 assembly ROMs that load the exported data and show it on a
 real MSX or on openMSX:
 
-- `sprites_test.asm` — GRAPHIC 3 and sprite mode 2, with the groups laid out. Keys 0-F
-  change the border colour and F1 toggles magnification.
 - `map_test.asm` — a map painted over its tile set, with the cursor keys to move around
   one that is bigger than the screen. What it really checks is the four header bytes the
   map exporter writes: it reads them the way a game would and works everything out from
@@ -223,11 +221,12 @@ real MSX or on openMSX:
   supertile table, with rectangular supertiles on purpose: a square one hides a swapped
   width and height.
 
-The one for a tile set is not in there because **the editor writes it**: exporting a tile
-set can bring an example ROM with it, filled in for the assembler you pick —sasSX,
-sjasmplus, pasmo or asMSX—, for the screen mode of the set, and naming the files you have
-just exported. The one for a sprite bank is generated too, with the animation player
-beside it, for MSX2 banks.
+The ones for a tile set and a sprite bank are not in there because **the editor writes
+them**: exporting can bring an example ROM with it, filled in for the assembler you pick
+—sasSX, sjasmplus, pasmo or asMSX—, for the screen mode of the document, and naming the
+files you have just exported. The one for a bank brings the animation player beside it,
+and is only offered for MSX2 banks —GRAPHIC 3 and sprite mode 2, with the groups laid
+out; keys 0-F change the backdrop and F1 toggles magnification—.
 
 All of them detect at runtime whether they are on an MSX1 or an MSX2, so the palette is
 only loaded where it can be. That folder's README explains the VRAM maps and how to switch
