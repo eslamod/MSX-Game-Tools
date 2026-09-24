@@ -25,3 +25,9 @@ packages/
 
 # Informes de la extension VSCodeCounter, que no son del proyecto
 .VSCodeCounter/
+
+# Banco de trabajo de las ROMs de ejemplo: lo exportado, lo ensamblado y la copia
+# del ensamblador que se tenga al lado. Aqui ya no hay nada del proyecto -las ROMs
+# las escribe el editor desde Templates/- pero la carpeta sigue siendo comoda para
+# probarlas, asi que se ignora entera en vez de irla persiguiendo por extension.
+msx/test_rom/

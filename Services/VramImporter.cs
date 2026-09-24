@@ -42,7 +42,7 @@ public static class VramImporter
     /// <summary>Dónde está cada tabla dentro del volcado.</summary>
     /// <remarks>
     /// Los valores de partida son los de siempre en SCREEN 2, que son los que documentan las
-    /// ROMs de prueba de <c>msx/test_rom</c>. En GRAPHIC 2 y 3 la base de patrones y la de
+    /// ROMs de ejemplo en <c>Templates/README.md</c>. En GRAPHIC 2 y 3 la base de patrones y la de
     /// colores no se eligen libremente: son <c>0000H</c> o <c>2000H</c>, porque los bits bajos
     /// de R#4 y R#3 son una máscara sobre los tercios y no parte de la dirección.
     /// </remarks>

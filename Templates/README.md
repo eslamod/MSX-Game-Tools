@@ -1,28 +1,28 @@
-# ROM de prueba de los exportadores
+# Las ROMs de ejemplo
 
-Comprueban en una máquina real (o en un emulador) que lo que exporta el editor es
-lo que espera el VDP. No son parte de la herramienta: son el banco de pruebas de
-los exportadores.
+Los `.asm` de esta carpeta son plantillas: al exportar un documento se puede
+pedir la ROM de ejemplo y sale una de ellas rellenada —para el ensamblador que se
+elija (sasSX, sjasmplus, pasmo o asMSX), para el modo del documento y nombrando
+los ficheros que se acaban de escribir—.
 
-**Ya no queda ninguna escrita a mano: las escribe el editor.** Al exportar un
-juego de tiles, un banco de sprites o un mapa se puede pedir la ROM de ejemplo, y
-sale rellenada para el ensamblador que se elija —sasSX, sjasmplus, pasmo o
-asMSX—, para el modo del documento y nombrando los ficheros que se acaban de
-escribir.
+Lo que hacen es comprobar en una máquina de verdad (o en un emulador) que lo que
+exporta el editor es lo que espera el VDP. No son parte de la herramienta: son el
+banco de pruebas de los exportadores, y de paso el punto de partida para quien no
+sepa todavía qué hacer con los bytes.
 
-Lo que queda aquí es esto: qué hace cada una, qué comprueba de verdad y qué hay
-que mirar cuando corre. De las plantillas salen cuatro programas distintos.
+Este documento es lo que no está en el código generado: qué hace cada una, **qué
+comprueba de verdad** —que no es lo mismo— y qué hay que mirar cuando corre. Son
+cuatro programas distintos:
 
-- **El juego de tiles**, de `Templates/TileSetRom.asm`, para GRAPHIC 2 o
-  GRAPHIC 1 según el juego.
-- **El banco de sprites**, de `Templates/SpriteBankRom.asm` y
-  `Templates/AnimationPlayer.asm`, que viajan juntas porque la ROM se trae el
-  reproductor con un `include`. Sólo para bancos de MSX2: pone sprites de modo
-  2, y uno de MSX1 sería otro programa.
-- **El mapa**, de `Templates/MapRom.asm`.
-- **El mapa de supertiles**, de `Templates/SuperTileMapRom.asm`. Cuál de las dos
-  de mapas sale no se pregunta: se mira si el juego de tiles con el que está
-  dibujado tiene supertiles.
+- **El juego de tiles**, de `TileSetRom.asm`, para GRAPHIC 2 o GRAPHIC 1 según el
+  juego.
+- **El banco de sprites**, de `SpriteBankRom.asm` y `AnimationPlayer.asm`, que
+  viajan juntas porque la ROM se trae el reproductor con un `include`. Sólo para
+  bancos de MSX2: pone sprites de modo 2, y uno de MSX1 sería otro programa.
+- **El mapa**, de `MapRom.asm`.
+- **El mapa de supertiles**, de `SuperTileMapRom.asm`. Cuál de las dos de mapas
+  sale no se pregunta: se mira si el juego de tiles con el que está dibujado
+  tiene supertiles.
 
 Las de mapas cargan las tablas del juego recorriendo una lista en vez de copiar
 la misma tres veces, que es lo que deja que cada tercio lleve un juego distinto
@@ -100,8 +100,8 @@ número primario no basta para nombrarlo.
 
 # La ROM de los sprites
 
-**No está en esta carpeta: la escribe el editor.** En el panel de exportar un
-banco, marca la casilla de la ROM de ejemplo y elige el ensamblador; salen un
+De `SpriteBankRom.asm` y `AnimationPlayer.asm`. En el panel de exportar un banco,
+marca la casilla de la ROM de ejemplo y elige el ensamblador; salen un
 `..._rom.asm` y un `..._player.asm` al lado de los ficheros de datos, con la
 orden para ensamblarlo en la cabecera del primero.
 
@@ -270,11 +270,11 @@ atributos: no se direcciona aparte.
 
 # La ROM del tileset
 
-Pone el modo del juego —GRAPHIC 2 o GRAPHIC 1—, carga las dos tablas y enseña el
-juego entero. **No está en esta carpeta: la escribe el editor.** En el panel de
-exportar un juego de tiles, marca la casilla de la ROM de ejemplo y elige el
-ensamblador; sale un `..._rom.asm` al lado de los ficheros de datos, con la
-orden para ensamblarlo en su cabecera.
+De `TileSetRom.asm`. Pone el modo del juego —GRAPHIC 2 o GRAPHIC 1—, carga las
+dos tablas y enseña el juego entero. En el panel de exportar un juego de tiles,
+marca la casilla de la ROM de ejemplo y elige el ensamblador; sale un
+`..._rom.asm` al lado de los ficheros de datos, con la orden para ensamblarlo en
+su cabecera.
 
 ## Lo que de verdad comprueba
 
@@ -327,9 +327,8 @@ Los 6144 de patrones y de colores son los 2048 de una tabla por los tres tercios
 
 # La ROM del mapa
 
-**No está en esta carpeta: la escribe el editor.** Carga un juego de tiles y
-pinta un mapa encima, con los cursores para moverse si el mapa es más grande que
-la pantalla.
+De `MapRom.asm`. Carga un juego de tiles y pinta un mapa encima, con los cursores
+para moverse si el mapa es más grande que la pantalla.
 
 ## Lo que de verdad comprueba
 

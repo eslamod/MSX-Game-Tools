@@ -213,7 +213,8 @@ Dos costumbres que han salvado bastantes fallos:
 
 ## ROMs de prueba
 
-Ninguna está escrita a mano: **las escribe el editor**. al exportar se puede pedir la ROM de ejemplo, y sale rellenada para el
+Ninguna está escrita a mano: **las escribe el editor**. Al exportar se puede pedir la ROM
+de ejemplo, y sale rellenada para el
 ensamblador que se elija —sasSX, sjasmplus, pasmo o asMSX—, para el modo del documento y
 nombrando los ficheros recién exportados. La del banco se trae además el reproductor de
 animaciones al lado, y sólo se ofrece para bancos de MSX2 —GRAPHIC 3 con sprites de modo

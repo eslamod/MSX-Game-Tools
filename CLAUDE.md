@@ -35,8 +35,8 @@ animaciones, con exportación a los formatos que espera el VDP. C# sobre Avaloni
   el DLL. Hay que pedirle al usuario que la cierre.
 - **Las ROMs de ejemplo se generan**, no se escriben: salen de `Templates/*.asm` al
   marcar la casilla en el panel de exportar, rellenadas para el ensamblador que se elija.
-  Lo que hace cada una y qué mirar cuando corre está en `msx/test_rom/README.md`, que es
-  lo único que queda en esa carpeta.
+  Lo que hace cada una, qué comprueba de verdad y qué mirar cuando corre está en
+  `Templates/README.md`, al lado de las plantillas.
 - **Los cuatro ensambladores** con los que se prueban son sasSX, sjasmplus, pasmo y
   asMSX. sasSX es el submódulo `tools/sass-MSX` (proyecto SDK-style: `dotnet build
   tools/sass-MSX`, sin Mono): clonar con `--recurse-submodules` o `git submodule update
