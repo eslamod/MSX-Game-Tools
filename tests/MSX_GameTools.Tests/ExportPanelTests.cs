@@ -229,9 +229,9 @@ public class ExportPanelTests : IDisposable
 
         Use(form, ExportFormat.Csv);
 
-        Assert.Equal((string[])["Nivel 1.csv"], form.Files.Select(file => file.Name));
+        Assert.Equal((string[])["nivel_1.csv"], form.Files.Select(file => file.Name));
 
-        form.Destination = Path.Combine(_folder, "Nivel 1.csv");
+        form.Destination = Path.Combine(_folder, "nivel_1.csv");
 
         await form.AcceptExportCommand.ExecuteAsync(null);
 
@@ -287,14 +287,14 @@ public class ExportPanelTests : IDisposable
         Use(form, ExportFormat.Csv);
 
         Assert.False(form.ShowsExampleRom);
-        Assert.Equal((string[])["Nivel 1.csv"], form.Files.Select(file => file.Name));
+        Assert.Equal((string[])["nivel_1.csv"], form.Files.Select(file => file.Name));
 
-        form.Destination = Path.Combine(_folder, "Nivel 1.csv");
+        form.Destination = Path.Combine(_folder, "nivel_1.csv");
 
         await form.AcceptExportCommand.ExecuteAsync(null);
 
         Assert.Equal(
-            (string[])["Nivel 1.csv"],
+            (string[])["nivel_1.csv"],
             Directory.GetFiles(_folder).Select(Path.GetFileName));
     }
 
@@ -323,6 +323,36 @@ public class ExportPanelTests : IDisposable
         form.Destination = Path.Combine(_folder, "mipaleta.bin");
 
         Assert.Equal((string[])["mipaleta.asm"], form.Files.Select(file => file.Name));
+    }
+
+    /// <summary>
+    /// El nombre que propone el mapa es el de su etiqueta, como en los otros tres.
+    /// </summary>
+    /// <remarks>
+    /// Proponía «Nivel 1.bin», con el espacio y la mayúscula, mientras el fichero llevaba
+    /// dentro <c>nivel_1_map:</c>. Ahora el fichero y su etiqueta se llaman igual.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task El_mapa_propone_el_nombre_de_su_etiqueta()
+    {
+        var main = new MainWindowViewModel(new TestDialogService());
+
+        TileSetEditorViewModel tiles = main.OpenTileSet(new TileSet("Bosque"));
+
+        main.OpenMap(new TileMap("Nivel 1", 4, 4), tiles);
+        main.ExportMapCommand.Execute(null);
+
+        var form = (ExportViewModel)main.RightPanViewModel!;
+
+        Assert.Equal("nivel_1.asm", form.Files[0].Name);
+
+        form.Destination = Path.Combine(_folder, form.Files[0].Name);
+
+        await form.AcceptExportCommand.ExecuteAsync(null);
+
+        Assert.Contains(
+            "nivel_1_map:",
+            await File.ReadAllTextAsync(Path.Combine(_folder, "nivel_1.asm")));
     }
 
     // ------------------------------------------------------------------ los andamios
