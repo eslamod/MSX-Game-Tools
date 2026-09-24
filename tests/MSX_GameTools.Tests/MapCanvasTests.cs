@@ -261,6 +261,27 @@ public class MapCanvasTests : IDisposable
     }
 
     /// <summary>
+    /// La pantalla señalada se pinta, con un baño que deja ver lo de debajo.
+    /// </summary>
+    /// <remarks>
+    /// Que llegue al lienzo se comprueba aparte; lo que sólo se ve en la captura es que de
+    /// verdad se dibuje, que es para lo que está.
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_pantalla_senalada_se_pinta_encima_del_mapa()
+    {
+        Assert.Equal(Colors.Magenta, PixelAt((int)CellSize + 8, (int)CellSize + 8));
+
+        _canvas.Highlight = new MapRegion(1, 1, 2, 2);
+        Redraw();
+
+        Assert.NotEqual(Colors.Magenta, PixelAt((int)CellSize + 8, (int)CellSize + 8));
+
+        // Y sólo ahí: fuera del recuadro se sigue viendo el fondo.
+        Assert.Equal(Colors.Magenta, PixelAt(4, 4));
+    }
+
+    /// <summary>
     /// Cuántos de ocho pixeles seguidos están pintados encima del fondo.
     /// </summary>
     /// <remarks>

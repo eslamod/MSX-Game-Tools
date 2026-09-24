@@ -83,6 +83,17 @@ public class MapCanvas : Control
     public static readonly StyledProperty<int> ScreenRowsProperty =
         AvaloniaProperty.Register<MapCanvas, int>(nameof(ScreenRows));
 
+    /// <summary>
+    /// Una pantalla señalada encima del mapa, o nada.
+    /// </summary>
+    /// <remarks>
+    /// Aparte de la selección a propósito: marcar es una herramienta —rellenar, copiar,
+    /// borrar trabajan sobre lo marcado— y esto es sólo para señalar. Se dibuja entera aunque
+    /// se salga del mapa, que es lo que hace ver que a esa pantalla le sobra sitio.
+    /// </remarks>
+    public static readonly StyledProperty<MapRegion?> HighlightProperty =
+        AvaloniaProperty.Register<MapCanvas, MapRegion?>(nameof(Highlight));
+
     private static readonly IPen GridPen = new Pen(new SolidColorBrush(Color.FromArgb(60, 0, 0, 0)));
     private static readonly IPen SelectionPen = new Pen(Brushes.Red, 2);
     private static readonly IPen EdgePen = new Pen(Brushes.DimGray);
@@ -96,6 +107,21 @@ public class MapCanvas : Control
     /// </remarks>
     private static readonly IPen ScreenPen =
         new Pen(new SolidColorBrush(Color.FromArgb(200, 255, 193, 7)), 2, DashStyle.Dash);
+
+    /// <summary>
+    /// La pantalla señalada: del mismo ámbar que la rejilla, entera y con un baño encima.
+    /// </summary>
+    /// <remarks>
+    /// Con el borde solo no se distinguiría de la rejilla, que pasa justo por ahí. El baño es
+    /// muy claro a propósito: lo que hay que ver es el dibujo de debajo, que es de lo que se
+    /// está hablando.
+    /// </remarks>
+    private static readonly IBrush HighlightBrush =
+        new SolidColorBrush(Color.FromArgb(48, 255, 193, 7));
+
+    /// <inheritdoc cref="HighlightBrush"/>
+    private static readonly IPen HighlightPen =
+        new Pen(new SolidColorBrush(Color.FromArgb(255, 255, 193, 7)), 3);
 
     private Point _offset;
 
@@ -241,6 +267,13 @@ public class MapCanvas : Control
     {
         get => GetValue(ScreenRowsProperty);
         set => SetValue(ScreenRowsProperty, value);
+    }
+
+    /// <inheritdoc cref="HighlightProperty"/>
+    public MapRegion? Highlight
+    {
+        get => GetValue(HighlightProperty);
+        set => SetValue(HighlightProperty, value);
     }
 
     /// <inheritdoc cref="CellTilesWidth"/>
@@ -412,6 +445,7 @@ public class MapCanvas : Control
         if (Map is { } map && TilesByThird is { Count: > 0 } thirds)
             DrawGhost(context, map, thirds, cellWidth, cellHeight);
 
+        DrawHighlight(context, cellWidth, cellHeight);
         DrawSelection(context, cellWidth, cellHeight);
     }
 
@@ -502,6 +536,25 @@ public class MapCanvas : Control
     {
         context.DrawRectangle(null, EdgePen, new Rect(
             -_offset.X, -_offset.Y, map.Width * cellWidth, map.Height * cellHeight));
+    }
+
+    /// <summary>
+    /// La pantalla señalada, debajo de la selección.
+    /// </summary>
+    /// <remarks>
+    /// Debajo porque lo marcado es del usuario y esto es un aviso de otro panel: si las dos
+    /// caen en el mismo sitio, la que tiene que verse es la suya.
+    /// </remarks>
+    private void DrawHighlight(DrawingContext context, double cellWidth, double cellHeight)
+    {
+        if (Highlight is not { } screen)
+            return;
+
+        context.DrawRectangle(HighlightBrush, HighlightPen, new Rect(
+            (screen.Left * cellWidth) - _offset.X,
+            (screen.Top * cellHeight) - _offset.Y,
+            screen.Width * cellWidth,
+            screen.Height * cellHeight));
     }
 
     private void DrawSelection(DrawingContext context, double cellWidth, double cellHeight)
@@ -685,6 +738,7 @@ public class MapCanvas : Control
         // Selection y Brush sólo tocan la capa de encima; las de geometría la tocan también,
         // porque mueven las celdas de sitio y el fantasma se quedaría descolocado.
         if (change.Property == SelectionProperty
+            || change.Property == HighlightProperty
             || change.Property == BrushProperty
             || change.Property == ZoomProperty
             || change.Property == MapProperty

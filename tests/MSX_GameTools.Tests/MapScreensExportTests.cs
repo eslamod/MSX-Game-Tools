@@ -505,6 +505,78 @@ public class MapScreensExportTests : IDisposable
         Assert.True(opened.Form.AllScreens);
     }
 
+    // ------------------------------------------------------------------ señalada en el mapa
+
+    /// <summary>
+    /// La pantalla que se va a escribir se señala en el mapa.
+    /// </summary>
+    /// <remarks>
+    /// Un número de pantalla no dice qué hay dentro. Señalarla en el mapa contesta las dos
+    /// cosas a la vez —dónde cae y qué lleva— sin sacar a nadie del panel.
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_pantalla_pedida_se_senala_en_el_mapa()
+    {
+        Opened opened = Open(64, 48, painted: [(0, 0)]);
+
+        ByScreens(opened.Form, ExportFormat.Binary);
+
+        Assert.Null(opened.Editor.ScreenPreview);
+
+        Pick(opened.Form, 2, 1);
+
+        Assert.Equal(new MapRegion(32, 0, 32, 24), opened.Editor.ScreenPreview);
+
+        // Y sin tocar lo que hubiera marcado a mano, que es una herramienta y no un adorno.
+        Assert.Null(opened.Editor.Selection);
+    }
+
+    /// <summary>Volver a todas la quita: ya no hay una pantalla de la que hablar.</summary>
+    [AvaloniaFact]
+    public void Volver_a_todas_quita_la_senal()
+    {
+        Opened opened = Open(64, 48, painted: [(0, 0)]);
+
+        ByScreens(opened.Form, ExportFormat.Binary);
+        Pick(opened.Form, 2, 1);
+
+        opened.Form.AllScreens = true;
+
+        Assert.Null(opened.Editor.ScreenPreview);
+    }
+
+    /// <summary>Y una que no existe no se señala, que no hay dónde.</summary>
+    [AvaloniaFact]
+    public void Una_pantalla_que_no_existe_no_se_senala()
+    {
+        Opened opened = Open(64, 48, painted: [(0, 0)]);
+
+        ByScreens(opened.Form, ExportFormat.Binary);
+        Pick(opened.Form, 5, 1);
+
+        Assert.Null(opened.Editor.ScreenPreview);
+    }
+
+    /// <summary>
+    /// Cerrar el panel quita la señal.
+    /// </summary>
+    /// <remarks>
+    /// Por cualquiera de las salidas, no sólo por Cancelar: el panel también se va cuando se
+    /// abre otro encima, y la señal se quedaría puesta sin nadie que la fuera a escribir.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Cerrar_el_panel_quita_la_senal()
+    {
+        Opened opened = Open(64, 48, painted: [(0, 0)]);
+
+        ByScreens(opened.Form, ExportFormat.Binary);
+        Pick(opened.Form, 2, 1);
+
+        opened.Form.CancelExportCommand.Execute(null);
+
+        Assert.Null(opened.Editor.ScreenPreview);
+    }
+
     // ------------------------------------------------------------------ los andamios
 
     /// <summary>Un mapa abierto con su panel de exportar, que es por donde se pasa.</summary>

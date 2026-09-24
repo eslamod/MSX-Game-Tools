@@ -365,6 +365,15 @@ public partial class ExportViewModel : PanelBaseViewModel
     [RelayCommand]
     private void CancelExport() => _mainWindowVm.RightPanViewModel = null;
 
+    /// <summary>
+    /// El panel se cierra: lo que estuviera señalado deja de estar a punto de escribirse.
+    /// </summary>
+    /// <remarks>
+    /// Aquí y no en Aceptar y Cancelar: el panel también se va cuando se abre otro encima, y
+    /// entonces la marca se quedaría puesta sin nadie que la fuera a escribir.
+    /// </remarks>
+    public override void OnClosed() => _document.Preview(null);
+
     /// <summary>The destination follows the format, so that a path does not keep the old one.</summary>
     partial void OnFormatChanged(ExportChoice value)
     {
@@ -377,6 +386,7 @@ public partial class ExportViewModel : PanelBaseViewModel
             Destination = Path.ChangeExtension(Destination, value.Extension);
 
         Refresh();
+        ShowWhatGoesOut();
     }
 
     /// <summary>
@@ -397,19 +407,37 @@ public partial class ExportViewModel : PanelBaseViewModel
         }
 
         Refresh();
+        ShowWhatGoesOut();
     }
 
     /// <summary>La cabecera cambia lo que se escribe, no cómo se llama.</summary>
     partial void OnScreenHeaderChanged(bool value) => Refresh();
 
-    /// <summary>Y cuáles van cambia la lista entera.</summary>
-    partial void OnOneScreenChanged(bool value) => Refresh();
+    /// <summary>Y cuáles van cambia la lista entera, y lo que se señala en el mapa.</summary>
+    partial void OnOneScreenChanged(bool value) => Answered();
 
     /// <inheritdoc cref="OnOneScreenChanged"/>
-    partial void OnScreenColumnChanged(int value) => Refresh();
+    partial void OnScreenColumnChanged(int value) => Answered();
 
     /// <inheritdoc cref="OnOneScreenChanged"/>
-    partial void OnScreenRowChanged(int value) => Refresh();
+    partial void OnScreenRowChanged(int value) => Answered();
+
+    /// <summary>La lista de lo que va a salir y, donde se vea, lo que va a salir.</summary>
+    private void Answered()
+    {
+        Refresh();
+        ShowWhatGoesOut();
+    }
+
+    /// <summary>
+    /// Que el documento enseñe lo que va a salir donde se vea.
+    /// </summary>
+    /// <remarks>
+    /// Aparte de <see cref="Refresh"/> a propósito, que se llama con cada letra del destino:
+    /// señalar arrastra la vista del mapa hasta la pantalla, y eso con cada letra sería una
+    /// ventana dándose saltos mientras se escribe.
+    /// </remarks>
+    private void ShowWhatGoesOut() => _document.Preview(Request);
 
     partial void OnDestinationChanged(string value) => Refresh();
 

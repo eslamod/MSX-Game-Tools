@@ -101,19 +101,52 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
 
         if (request.Screens is { Only: { } one })
         {
-            int columns = MapScreens.Count(map.Map.Width, map.ScreenCellsWide);
-            int rows = MapScreens.Count(map.Map.Height, map.ScreenCellsHigh);
-
             // Pedida por su número, una vacía sí sale: es ésa la que se ha pedido. Lo único que
-            // no puede es no existir.
-            return one.Column < 1 || one.Row < 1 || one.Column > columns || one.Row > rows
-                ? Text.Format("ExportScreenMissing", one, columns, rows)
+            // no puede es no existir, y de eso entiende el rectángulo.
+            return Rectangle(one) is null
+                ? Text.Format(
+                    "ExportScreenMissing",
+                    one,
+                    MapScreens.Count(map.Map.Width, map.ScreenCellsWide),
+                    MapScreens.Count(map.Map.Height, map.ScreenCellsHigh))
                 : null;
         }
 
         // Sin recortar nada: si no hay un tile puesto en ninguna capa no hay pantalla que
         // salvar, y esa cuenta es mucho más barata que partir el mapa entero.
         return map.Map.Layers.All(layer => layer.Grid.IsEmpty) ? Text["ExportScreensEmpty"] : null;
+    }
+
+    /// <summary>
+    /// Señala en el mapa la pantalla que se va a escribir.
+    /// </summary>
+    /// <remarks>
+    /// Sólo la de una sola: de la tanda entera lo que se escribe es casi todo el mapa, y
+    /// señalarlo entero no diría nada.
+    /// </remarks>
+    public void Preview(ExportRequest? request) =>
+        map.ShowScreen(request?.Screens?.Only is { } one ? Rectangle(one) : null);
+
+    /// <summary>
+    /// Las celdas que ocupa esa pantalla, o nada si ahí no hay pantalla.
+    /// </summary>
+    /// <remarks>
+    /// Un solo sitio decide qué pantalla existe, y de él salen las dos cosas que dependen de
+    /// eso: lo que se señala en el mapa y lo que se dice cuando no se puede exportar.
+    /// </remarks>
+    private MapRegion? Rectangle(ScreenNumber one)
+    {
+        int wide = map.ScreenCellsWide;
+        int high = map.ScreenCellsHigh;
+
+        bool exists = wide > 0 && high > 0
+                      && one.Column >= 1 && one.Row >= 1
+                      && one.Column <= MapScreens.Count(map.Map.Width, wide)
+                      && one.Row <= MapScreens.Count(map.Map.Height, high);
+
+        return exists
+            ? new MapRegion((one.Column - 1) * wide, (one.Row - 1) * high, wide, high)
+            : null;
     }
 
     public IEnumerable<ExportPiece> Pieces(ExportRequest request)

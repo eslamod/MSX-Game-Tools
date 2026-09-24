@@ -132,6 +132,17 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
     [NotifyPropertyChangedFor(nameof(HoverLabel))]
     private (int Column, int Row)? _hover;
 
+    /// <summary>
+    /// La pantalla que el panel de exportar va a escribir, señalada encima del mapa.
+    /// </summary>
+    /// <remarks>
+    /// Aparte de lo marcado a propósito: marcar es una herramienta —rellenar, copiar y borrar
+    /// trabajan sobre ello— y pisarlo por cambiar un número en otro panel sería quitarle al
+    /// usuario algo que había hecho a mano.
+    /// </remarks>
+    [ObservableProperty]
+    private MapRegion? _screenPreview;
+
     /// <param name="thirds">
     /// The tile set of each screen third, when the map splits. Whoever opens the map is the one
     /// that knows which panels are open; what does not come falls back to <paramref name="tiles"/>.
@@ -180,6 +191,25 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
         Select(column, row, column, row);
 
         ShowCellRequested?.Invoke(column, row);
+    }
+
+    /// <summary>
+    /// Señala una pantalla y lleva la vista hasta ella. Con nada, la quita.
+    /// </summary>
+    /// <remarks>
+    /// También lleva la vista: con un mapa de veinte pantallas, señalar la 7-5 mientras se mira
+    /// la 1-1 es señalar algo que no se ve. Por el centro, que es lo que deja la pantalla
+    /// entera a la vista si cabe.
+    /// </remarks>
+    public void ShowScreen(MapRegion? screen)
+    {
+        ScreenPreview = screen;
+
+        if (screen is { } region)
+        {
+            ShowCellRequested?.Invoke(
+                region.Left + (region.Width / 2), region.Top + (region.Height / 2));
+        }
     }
 
     public override bool IsDocument => true;

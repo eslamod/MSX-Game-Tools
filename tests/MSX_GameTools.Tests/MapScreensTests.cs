@@ -183,6 +183,57 @@ public class MapScreensTests
         Assert.Equal("17, 13", editor.Label);
     }
 
+    // ------------------------------------------------------------------ la pantalla señalada
+
+    /// <summary>La pantalla señalada tiene que llegar al lienzo, que es quien la pinta.</summary>
+    [AvaloniaFact]
+    public void La_pantalla_senalada_llega_al_lienzo()
+    {
+        MapEditorViewModel map = NewMap(64, 48);
+
+        using var editor = new MapWindow(map);
+
+        Assert.Null(editor.Canvas.Highlight);
+
+        map.ShowScreen(new MapRegion(32, 0, 32, 24));
+
+        Assert.Equal(new MapRegion(32, 0, 32, 24), editor.Canvas.Highlight);
+
+        map.ShowScreen(null);
+
+        Assert.Null(editor.Canvas.Highlight);
+    }
+
+    /// <summary>
+    /// Señalar una pantalla lleva la vista hasta ella.
+    /// </summary>
+    /// <remarks>
+    /// Con un mapa de veinte pantallas, señalar la 7-5 mientras se mira la 1-1 es señalar algo
+    /// que no se ve.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Senalar_una_pantalla_lleva_la_vista_hasta_ella()
+    {
+        MapEditorViewModel map = NewMap(200, 200);
+
+        using var editor = new MapWindow(map);
+
+        Assert.DoesNotContain(176, Columns(editor.Canvas.VisibleRange()));
+
+        map.ShowScreen(new MapRegion(160, 120, 32, 24));
+
+        MapRegion seen = editor.Canvas.VisibleRange();
+
+        Assert.Contains(176, Columns(seen));
+        Assert.Contains(132, Rows(seen));
+    }
+
+    private static IEnumerable<int> Columns(MapRegion region) =>
+        Enumerable.Range(region.Left, region.Width);
+
+    private static IEnumerable<int> Rows(MapRegion region) =>
+        Enumerable.Range(region.Top, region.Height);
+
     // ------------------------------------------------------------------ desde la configuración
 
     /// <summary>

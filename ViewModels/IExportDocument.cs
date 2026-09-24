@@ -128,6 +128,18 @@ public interface IExportDocument
     string? Problem(ExportRequest request);
 
     /// <summary>
+    /// What is about to be written, for the document to show where it can be seen. Nothing when
+    /// the panel is gone.
+    /// </summary>
+    /// <remarks>
+    /// The panel has nowhere to show it: a map marks the screen on the map, which is where it
+    /// can be told which piece is being talked about. It is called whenever the answers change
+    /// what comes out, and once more when the panel closes; whoever has nothing to show does
+    /// nothing.
+    /// </remarks>
+    void Preview(ExportRequest? request);
+
+    /// <summary>
     /// What is going to be written.
     /// </summary>
     /// <remarks>

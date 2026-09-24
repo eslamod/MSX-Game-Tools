@@ -43,6 +43,11 @@ public sealed class SpriteBankExport(SpritesEditorViewModel sprites, IDialogServ
     /// <summary>Nothing gets in the way.</summary>
     public string? Problem(ExportRequest request) => null;
 
+    /// <summary>Nada que señalar: lo que sale es una tabla, no un trozo de otra cosa.</summary>
+    public void Preview(ExportRequest? request)
+    {
+    }
+
     public IEnumerable<ExportPiece> Pieces(ExportRequest request)
     {
         SpriteBank bank = sprites.SpritesBank;
