@@ -17,8 +17,9 @@ whole bank across the top.
 ![Sprite pattern editor](Screenshots/en_SpriteBankPatterns.png)
 
 And the **groups**, which place several patterns with offsets to build a figure bigger
-than one plane allows. The `OR` column marks the lines that mix planes through the V9938
-CC bit, and the composed group is shown on the right.
+than one plane allows. Under the name are the patterns it is made of with their offsets,
+the `OR` column marks the lines that mix planes through the V9938 CC bit, and every group
+of the bank is shown composed on the right.
 
 ![Sprite groups](Screenshots/en_SpriteBankGroups.png)
 

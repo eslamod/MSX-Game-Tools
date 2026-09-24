@@ -17,8 +17,9 @@ banco entero arriba.
 ![Editor de patrones de sprites](Screenshots/SpriteBankPatterns.png)
 
 Y los **grupos**, que colocan varios patrones con desplazamiento para formar una figura
-mayor de lo que da un plano. La columna `OR` marca las líneas que mezclan planos con el
-bit CC del V9938, y a la derecha se ve el grupo compuesto.
+mayor de lo que da un plano. Debajo del nombre están los patrones que lo forman con su
+desplazamiento, la columna `OR` marca las líneas que mezclan planos con el bit CC del
+V9938, y a la derecha se ven todos los grupos del banco ya compuestos.
 
 ![Grupos de sprites](Screenshots/SpriteBankGroups.png)
 
