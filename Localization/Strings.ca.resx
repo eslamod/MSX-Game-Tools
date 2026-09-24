@@ -95,9 +95,6 @@
   <data name="MenuImportFromPng" xml:space="preserve">
     <value>Importa des d'un png...</value>
   </data>
-  <data name="MenuExportToPng" xml:space="preserve">
-    <value>Exporta a png...</value>
-  </data>
 
   <data name="MenuMaps" xml:space="preserve">
     <value>Mapes</value>
@@ -110,9 +107,6 @@
   </data>
   <data name="MenuImportFromBinary" xml:space="preserve">
     <value>Importa des d'un binari...</value>
-  </data>
-  <data name="MenuExportToCsv" xml:space="preserve">
-    <value>Exporta a csv...</value>
   </data>
   <data name="MenuResizeMap" xml:space="preserve">
     <value>Redimensiona...</value>
@@ -140,12 +134,6 @@
     <value>Anomena i desa la paleta...</value>
   </data>
 
-  <data name="MenuExportToBinary" xml:space="preserve">
-    <value>Exporta a binari...</value>
-  </data>
-  <data name="MenuExportToAssembler" xml:space="preserve">
-    <value>Exporta a assemblador...</value>
-  </data>
   <data name="MenuExport" xml:space="preserve"><value>Exporta...</value></data>
   <data name="ExportTitle" xml:space="preserve"><value>Exporta</value></data>
   <data name="ExportFormatLabel" xml:space="preserve"><value>Format</value></data>
@@ -530,14 +518,6 @@ Es veuran igual que abans, però amb els colors als seus índexs nous. Quedaran 
   <data name="PickOpenProject" xml:space="preserve"><value>Obre un projecte</value></data>
   <data name="PickOpen" xml:space="preserve"><value>Obre</value></data>
   <data name="PickLoadReference" xml:space="preserve"><value>Carrega una imatge de referència</value></data>
-  <data name="PickExportBinary" xml:space="preserve"><value>Exporta a binari</value></data>
-  <data name="PickExportAssembler" xml:space="preserve"><value>Exporta a assemblador</value></data>
-  <data name="PickExportMapCsv" xml:space="preserve"><value>Exporta el mapa a csv</value></data>
-  <data name="PickExportMapBinary" xml:space="preserve"><value>Exporta el mapa a binari</value></data>
-  <data name="PickExportMapAssembler" xml:space="preserve"><value>Exporta el mapa a assemblador</value></data>
-  <data name="PickExportPaletteBinary" xml:space="preserve"><value>Exporta la paleta a binari</value></data>
-  <data name="PickExportPaletteAssembler" xml:space="preserve"><value>Exporta la paleta a assemblador</value></data>
-  <data name="PickExportTileSetPng" xml:space="preserve"><value>Exporta el joc de tiles a png</value></data>
   <data name="PickImportTileSetPng" xml:space="preserve"><value>Importa un png com a joc de tiles</value></data>
   <data name="PickImportMapCsv" xml:space="preserve"><value>Importa un csv com a mapa</value></data>
   <data name="PickImportMapBinary" xml:space="preserve"><value>Importa un binari com a mapa</value></data>
@@ -557,10 +537,6 @@ Es veuran igual que abans, però amb els colors als seus índexs nous. Quedaran 
   <data name="ErrorOpenImage" xml:space="preserve"><value>No s'ha pogut obrir la imatge</value></data>
   <data name="ErrorLoadImage" xml:space="preserve"><value>No s'ha pogut carregar la imatge</value></data>
   <data name="ErrorExportSpriteBank" xml:space="preserve"><value>No s'ha pogut exportar el banc</value></data>
-  <data name="ErrorExportTileSet" xml:space="preserve"><value>No s'ha pogut exportar el joc de tiles</value></data>
-  <data name="ErrorExportMap" xml:space="preserve"><value>No s'ha pogut exportar el mapa</value></data>
-  <data name="ErrorExportPalette" xml:space="preserve"><value>No s'ha pogut exportar la paleta</value></data>
-  <data name="ErrorExportPng" xml:space="preserve"><value>No s'ha pogut exportar el png</value></data>
   <data name="ErrorProjectInvalid" xml:space="preserve"><value>El projecte no és vàlid</value></data>
   <data name="ErrorFileInvalid" xml:space="preserve"><value>El fitxer no és vàlid</value></data>
   <data name="ErrorCsvImport" xml:space="preserve"><value>El csv no es pot importar</value></data>

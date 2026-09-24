@@ -94,9 +94,6 @@
   <data name="MenuImportFromPng" xml:space="preserve">
     <value>Import from png...</value>
   </data>
-  <data name="MenuExportToPng" xml:space="preserve">
-    <value>Export to png...</value>
-  </data>
 
   <data name="MenuMaps" xml:space="preserve">
     <value>Maps</value>
@@ -109,9 +106,6 @@
   </data>
   <data name="MenuImportFromBinary" xml:space="preserve">
     <value>Import from binary...</value>
-  </data>
-  <data name="MenuExportToCsv" xml:space="preserve">
-    <value>Export to csv...</value>
   </data>
   <data name="MenuResizeMap" xml:space="preserve">
     <value>Resize...</value>
@@ -139,12 +133,6 @@
     <value>Save palette as...</value>
   </data>
 
-  <data name="MenuExportToBinary" xml:space="preserve">
-    <value>Export to binary...</value>
-  </data>
-  <data name="MenuExportToAssembler" xml:space="preserve">
-    <value>Export to assembler...</value>
-  </data>
   <data name="MenuExport" xml:space="preserve"><value>Export...</value></data>
   <data name="ExportTitle" xml:space="preserve"><value>Export</value></data>
   <data name="ExportFormatLabel" xml:space="preserve"><value>Format</value></data>
@@ -529,14 +517,6 @@ They will look just like before, but with the colours at their new indices. They
   <data name="PickOpenProject" xml:space="preserve"><value>Open a project</value></data>
   <data name="PickOpen" xml:space="preserve"><value>Open</value></data>
   <data name="PickLoadReference" xml:space="preserve"><value>Load a reference image</value></data>
-  <data name="PickExportBinary" xml:space="preserve"><value>Export to binary</value></data>
-  <data name="PickExportAssembler" xml:space="preserve"><value>Export to assembler</value></data>
-  <data name="PickExportMapCsv" xml:space="preserve"><value>Export the map to csv</value></data>
-  <data name="PickExportMapBinary" xml:space="preserve"><value>Export the map to binary</value></data>
-  <data name="PickExportMapAssembler" xml:space="preserve"><value>Export the map to assembler</value></data>
-  <data name="PickExportPaletteBinary" xml:space="preserve"><value>Export the palette to binary</value></data>
-  <data name="PickExportPaletteAssembler" xml:space="preserve"><value>Export the palette to assembler</value></data>
-  <data name="PickExportTileSetPng" xml:space="preserve"><value>Export the tile set to png</value></data>
   <data name="PickImportTileSetPng" xml:space="preserve"><value>Import a png as a tile set</value></data>
   <data name="PickImportMapCsv" xml:space="preserve"><value>Import a csv as a map</value></data>
   <data name="PickImportMapBinary" xml:space="preserve"><value>Import a binary as a map</value></data>
@@ -556,10 +536,6 @@ They will look just like before, but with the colours at their new indices. They
   <data name="ErrorOpenImage" xml:space="preserve"><value>The image could not be opened</value></data>
   <data name="ErrorLoadImage" xml:space="preserve"><value>The image could not be loaded</value></data>
   <data name="ErrorExportSpriteBank" xml:space="preserve"><value>The bank could not be exported</value></data>
-  <data name="ErrorExportTileSet" xml:space="preserve"><value>The tile set could not be exported</value></data>
-  <data name="ErrorExportMap" xml:space="preserve"><value>The map could not be exported</value></data>
-  <data name="ErrorExportPalette" xml:space="preserve"><value>The palette could not be exported</value></data>
-  <data name="ErrorExportPng" xml:space="preserve"><value>The png could not be exported</value></data>
   <data name="ErrorProjectInvalid" xml:space="preserve"><value>The project is not valid</value></data>
   <data name="ErrorFileInvalid" xml:space="preserve"><value>The file is not valid</value></data>
   <data name="ErrorCsvImport" xml:space="preserve"><value>The csv cannot be imported</value></data>

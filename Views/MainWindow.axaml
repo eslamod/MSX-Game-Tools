@@ -145,8 +145,7 @@
         <Separator />
         <MenuItem Header="{l:Localize MenuSavePaletteAs}" Command="{Binding SavePaletteCommand}" />
         <Separator />
-        <MenuItem Header="{l:Localize MenuExportToBinary}" Command="{Binding ExportPaletteBinaryCommand}" />
-        <MenuItem Header="{l:Localize MenuExportToAssembler}" Command="{Binding ExportPaletteAssemblerCommand}" />
+        <MenuItem Header="{l:Localize MenuExport}" Command="{Binding ExportPaletteCommand}" />
       </MenuItem>
     </Menu>
 

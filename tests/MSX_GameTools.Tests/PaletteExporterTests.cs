@@ -90,13 +90,23 @@ public class PaletteExporterTests : IDisposable
         Assert.Contains("msx_palette_end:", asm);
     }
 
+    /// <summary>
+    /// Del panel de la paleta sale un solo fichero, con el nombre que se elija.
+    /// </summary>
+    /// <remarks>
+    /// Y sin nada abierto: la paleta es la de la barra, no la del documento de delante.
+    /// </remarks>
     [AvaloniaFact]
-    public async Task Exportar_desde_el_menu_escribe_un_solo_fichero()
+    public async Task Exportar_desde_el_panel_escribe_un_solo_fichero()
     {
         string path = Path.Combine(_folder, "msx_palette.bin");
-        var main = new MainWindowViewModel(new TestDialogService { SavePath = path });
+        var main = new MainWindowViewModel(new TestDialogService());
 
-        await main.ExportPaletteBinaryCommand.ExecuteAsync(null);
+        await TestExport.PaletteAsync(main, ExportFormat.Binary, path);
+
+        Assert.Equal(
+            (string[])["msx_palette.bin"],
+            Directory.GetFiles(_folder).Select(Path.GetFileName));
 
         Assert.Equal(32, new FileInfo(path).Length);
     }

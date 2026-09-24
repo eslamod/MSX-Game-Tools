@@ -1762,44 +1762,13 @@ public partial class MainWindowViewModel : ObservableObject
         RightPanViewModel = new ExportViewModel(this, document);
     }
 
-    [RelayCommand]
-    private Task ExportPaletteBinaryAsync() => ExportPaletteAsync(binary: true);
-
-    [RelayCommand]
-    private Task ExportPaletteAssemblerAsync() => ExportPaletteAsync(binary: false);
-
-    /// <summary>
-    /// Escribe la paleta que enseña la barra en el formato del registro del V9938.
-    /// </summary>
+    /// <inheritdoc cref="OpenExport"/>
     /// <remarks>
-    /// Un solo fichero, a diferencia de los bancos y los tilesets: son 32 bytes y no hay
-    /// dos tablas que separar.
+    /// Sin condición para poder usarse: la paleta es la de la barra, no la del documento de
+    /// delante, así que se exporta con cualquier pestaña abierta o con ninguna.
     /// </remarks>
-    private async Task ExportPaletteAsync(bool binary)
-    {
-        ColorPalette palette = Palettes.ActivePalette;
-        string extension = binary ? ".bin" : ".asm";
-
-        string? path = await Dialogs.PickFileToSaveAsync(
-            Text[binary ? "PickExportPaletteBinary" : "PickExportPaletteAssembler"],
-            $"{SpriteBankExporter.LabelOf(palette.Name)}_palette{extension}",
-            FormatOf(binary));
-
-        if (path is null)
-            return;
-
-        try
-        {
-            if (binary)
-                await File.WriteAllBytesAsync(path, PaletteExporter.ToBinary(palette));
-            else
-                await File.WriteAllTextAsync(path, PaletteExporter.ToAssembler(palette, Preferences.AsmStyle));
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            await Dialogs.ShowMessageAsync(Text["ErrorExportPalette"], exception.Message);
-        }
-    }
+    [RelayCommand]
+    private void ExportPalette() => OpenExport(new PaletteExport(Palettes.ActivePalette));
 
     /// <summary>
     /// Trae un png como juego de tiles, comprobando antes que se puede.

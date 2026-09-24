@@ -298,6 +298,33 @@ public class ExportPanelTests : IDisposable
             Directory.GetFiles(_folder).Select(Path.GetFileName));
     }
 
+    /// <summary>
+    /// La paleta propone su nombre y no ofrece ROM.
+    /// </summary>
+    /// <remarks>
+    /// Sale un solo fichero, así que el nombre que se elija es el que se escribe: el
+    /// <c>_palette</c> va en el que se propone, no pegado detrás del que se teclee.
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_paleta_propone_su_nombre_y_no_ofrece_rom()
+    {
+        var main = new MainWindowViewModel(new TestDialogService());
+
+        main.ExportPaletteCommand.Execute(null);
+
+        var form = (ExportViewModel)main.RightPanViewModel!;
+
+        Assert.Equal(
+            (string[])[$"{Services.SpriteBankExporter.LabelOf(main.Palettes.ActivePalette.Name)}_palette.asm"],
+            form.Files.Select(file => file.Name));
+
+        Assert.False(form.ShowsExampleRom);
+
+        form.Destination = Path.Combine(_folder, "mipaleta.bin");
+
+        Assert.Equal((string[])["mipaleta.asm"], form.Files.Select(file => file.Name));
+    }
+
     // ------------------------------------------------------------------ los andamios
 
     /// <summary>Un juego con todo lo que puede salir: supertiles y atributos.</summary>

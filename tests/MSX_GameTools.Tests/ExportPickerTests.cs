@@ -48,8 +48,8 @@ public class ExportPickerTests
 
         // La paleta es la de la barra, no la del documento de delante: se exporta con
         // cualquier pestaña abierta.
-        await Check(main.ExportPaletteBinaryCommand);
-        await Check(main.ExportPaletteAssemblerCommand);
+        await CheckPanel(main.ExportPaletteCommand, ExportFormat.Binary);
+        await CheckPanel(main.ExportPaletteCommand, ExportFormat.Assembler);
 
         Assert.Empty(wrong);
 
