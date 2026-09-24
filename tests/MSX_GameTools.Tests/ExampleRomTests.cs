@@ -165,6 +165,75 @@ public class ExampleRomTests : IDisposable
         Assert.Contains("AnimationsEnd:", rom);
     }
 
+    /// <summary>
+    /// Los cuatro con la de supertiles, que también es de 32K.
+    /// </summary>
+    /// <remarks>
+    /// Con supertiles rectangulares a propósito: uno cuadrado disimularía un ancho y un alto
+    /// intercambiados, que es justo lo que esta ROM existe para delatar.
+    /// </remarks>
+    public static TheoryData<string, ExportFormat, int> SuperBundles => new()
+    {
+        { "sasSX", ExportFormat.Binary, 32768 },
+        { "sasSX", ExportFormat.Assembler, 32768 },
+        { "sjasmplus", ExportFormat.Binary, 32768 },
+        { "sjasmplus", ExportFormat.Assembler, 32768 },
+        { "pasmo", ExportFormat.Binary, 32768 },
+        { "pasmo", ExportFormat.Assembler, 32768 },
+        { "asMSX", ExportFormat.Binary, 8192 },
+        { "asMSX", ExportFormat.Assembler, 8192 },
+    };
+
+    /// <summary>La de un mapa de supertiles ensambla con la tabla al lado.</summary>
+    [AvaloniaTheory]
+    [MemberData(nameof(SuperBundles))]
+    public async Task La_rom_de_supertiles_ensambla_y_da_un_cartucho(
+        string name, ExportFormat format, int size)
+    {
+        string? tool = Assembler.Find(name);
+
+        Assert.SkipUnless(tool is not null, $"{name} no está aquí: {Assembler.HowToGetIt(name)}");
+
+        await ExportSuperMapAsync(format, name);
+
+        string rom = Path.Combine(_folder, "nivel.rom");
+        string said = Assembler.Run(
+            tool!, name, Path.Combine(_folder, "nivel_rom.asm"), rom);
+
+        Assert.True(File.Exists(rom), $"{name} no sacó ROM: {said}");
+
+        byte[] bytes = File.ReadAllBytes(rom);
+
+        Assert.Equal(size, bytes.Length);
+        Assert.Equal("AB", System.Text.Encoding.ASCII.GetString(bytes, 0, 2));
+    }
+
+    /// <summary>
+    /// Un mapa de supertiles saca otra ROM, y se trae la tabla del juego de tiles.
+    /// </summary>
+    /// <remarks>
+    /// Sus celdas son sitios de la tabla y no números de tile, así que el programa resuelve
+    /// cada celda al dibujar. La tabla sale del juego de tiles, que es de donde es.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Un_mapa_de_supertiles_saca_la_rom_que_resuelve_la_tabla()
+    {
+        string rom = ExampleRom.ForMap(
+            new TileMap("Nivel", 20, 15),
+            [WithSuperTiles()],
+            ColorPalette.CreateMsxStandard(),
+            AsmDialect.SasSx,
+            "nivel",
+            binary: true);
+
+        Assert.Contains("ReadSuperHeader", rom);
+        Assert.Contains("\"bosque_supertiles.bin\"", rom);
+        Assert.Contains(";     bosque_supertiles.bin", rom);
+
+        // Y la de tiles no habla de tablas de supertiles.
+        Assert.DoesNotContain("ReadSuperHeader", MapRom(Bands(1)));
+    }
+
     /// <summary>Y la del mapa sale igual de todos, que es donde más piezas hay que juntar.</summary>
     /// <inheritdoc cref="Todos_los_ensambladores_sacan_el_mismo_programa" path="/remarks"/>
     [AvaloniaFact]
@@ -544,6 +613,56 @@ public class ExampleRomTests : IDisposable
             AsmDialect.SasSx,
             "nivel",
             binary: true);
+
+    /// <summary>Un juego con supertiles rectangulares y cuatro puestos.</summary>
+    private static TileSet WithSuperTiles()
+    {
+        var tileSet = new TileSet("Bosque") { SuperTileWidth = 2, SuperTileHeight = 3 };
+
+        for (int index = 0; index < 4; index++)
+        {
+            tileSet.Blocks.Add(new TileBlock($"S{index}")
+            {
+                Width = 2,
+                Height = 3,
+                [0, 0] = index,
+            });
+        }
+
+        return tileSet;
+    }
+
+    /// <summary>Exportar el juego con supertiles y su mapa, con la ROM marcada en los dos.</summary>
+    private async Task ExportSuperMapAsync(ExportFormat format, string assembler, string? folder = null)
+    {
+        folder ??= _folder;
+
+        var main = new MainWindowViewModel(new TestDialogService());
+
+        TileSetEditorViewModel tiles = main.OpenTileSet(WithSuperTiles());
+
+        await TestExport.TileSetAsync(
+            main,
+            format,
+            Path.Combine(folder, "bosque.bin"),
+            form =>
+            {
+                form.WantsExampleRom = true;
+                form.Assembler = form.Assemblers.Single(one => one.Name == assembler);
+            });
+
+        main.OpenMap(new TileMap("Nivel", 20, 15), tiles);
+
+        await TestExport.MapAsync(
+            main,
+            format,
+            Path.Combine(folder, "nivel.bin"),
+            form =>
+            {
+                form.WantsExampleRom = true;
+                form.Assembler = form.Assemblers.Single(one => one.Name == assembler);
+            });
+    }
 
     /// <summary>Uno, dos o tres juegos de tiles distintos.</summary>
     private static IReadOnlyList<TileSet> Bands(int many) =>

@@ -240,14 +240,14 @@ public class ExportPanelTests : IDisposable
     }
 
     /// <summary>
-    /// Un mapa de supertiles no ofrece ROM de ejemplo.
+    /// Un mapa de supertiles ofrece ROM igual, aunque sea otro programa.
     /// </summary>
     /// <remarks>
-    /// Sus celdas son sitios de la tabla de supertiles y no números de tile, así que esta ROM
-    /// dibujaría otra cosa. Esa sigue escrita a mano en msx/test_rom.
+    /// Desde el panel es la misma pregunta —la ROM de este mapa—; qué plantilla sale se
+    /// decide más adentro, mirando si el juego de tiles tiene supertiles.
     /// </remarks>
     [AvaloniaFact]
-    public void Un_mapa_de_supertiles_no_ofrece_rom_de_ejemplo()
+    public void Un_mapa_de_supertiles_ofrece_rom_de_ejemplo()
     {
         var main = new MainWindowViewModel(new TestDialogService());
 
@@ -258,7 +258,7 @@ public class ExportPanelTests : IDisposable
         main.OpenMap(new TileMap("Nivel 1", 8, 8), tiles);
         main.ExportMapCommand.Execute(null);
 
-        Assert.False(((ExportViewModel)main.RightPanViewModel!).ShowsExampleRom);
+        Assert.True(((ExportViewModel)main.RightPanViewModel!).ShowsExampleRom);
     }
 
     /// <summary>

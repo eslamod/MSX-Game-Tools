@@ -209,6 +209,14 @@ public static class ExampleRom
     /// to it.
     /// </para>
     /// </remarks>
+    /// <remarks>
+    /// <para>
+    /// A map of super tiles is another program and another template: its cells are places in
+    /// the super tile table and not tile numbers, so it resolves each one through the table
+    /// as it draws. Which one it is gets decided here and not in the panel, because from the
+    /// outside it is the same question: the ROM of this map.
+    /// </para>
+    /// </remarks>
     /// <param name="bands">
     /// The tile set of each band, one to three of them. More than one means a different set
     /// in each screen third, and that is what the list of blocks is for.
@@ -222,6 +230,7 @@ public static class ExampleRom
         bool binary)
     {
         bool graphic1 = bands[0].IsGraphic1;
+        bool superTiles = bands[0].HasSuperTiles;
         string extension = binary ? ".bin" : Extension;
 
         // In GRAPHIC 1 there is one table of each for the whole screen; in GRAPHIC 2, one per
@@ -251,7 +260,7 @@ public static class ExampleRom
                 $"colours, third {third + 1}"));
         }
 
-        return Fill("MapRom.asm", dialect, new Dictionary<string, string>
+        var values = new Dictionary<string, string>
         {
             ["NAME"] = map.Name,
             ["STEM"] = stem,
@@ -259,7 +268,7 @@ public static class ExampleRom
             ["ROM_END"] = PageThree,
             ["ASSEMBLER"] = dialect.Name,
             ["COMMAND"] = dialect.CommandFor(NameOf(stem), $"{stem}.rom"),
-            ["FILES"] = FilesOf(bands, stem, extension),
+            ["FILES"] = FilesOf(bands, stem, extension, superTiles),
             ["MODE"] = graphic1 ? "GRAPHIC 1" : "GRAPHIC 2",
             ["SCREEN"] = graphic1 ? "SCREEN 1" : "SCREEN 2",
             ["R0"] = graphic1 ? "0x00" : "0x02",
@@ -271,7 +280,19 @@ public static class ExampleRom
             ["TILESETS"] = TileSetsOf(bands, dialect, binary),
             ["MAP"] = Loads(dialect, stem, binary),
             ["MAP_ALT"] = Loads(dialect, stem, !binary, commented: true),
-        });
+        };
+
+        if (superTiles)
+        {
+            // The table is the tile set's and not the map's: every map drawn with that set
+            // shares the same one, so it comes out of exporting the set.
+            string table = $"{SpriteBankExporter.LabelOf(bands[0].Name)}_supertiles";
+
+            values["SUPERTILES"] = Loads(dialect, table, binary);
+            values["SUPERTILES_ALT"] = Loads(dialect, table, !binary, commented: true);
+        }
+
+        return Fill(superTiles ? "SuperTileMapRom.asm" : "MapRom.asm", dialect, values);
     }
 
     /// <summary>Which band a screen third takes its tile set from.</summary>
@@ -317,7 +338,8 @@ public static class ExampleRom
     }
 
     /// <summary>What has to be next to it, the tile set files included.</summary>
-    private static string FilesOf(IReadOnlyList<TileSet> bands, string stem, string extension)
+    private static string FilesOf(
+        IReadOnlyList<TileSet> bands, string stem, string extension, bool superTiles)
     {
         var names = new List<string>();
 
@@ -330,6 +352,9 @@ public static class ExampleRom
                 if (!names.Contains(one))
                     names.Add(one);
             }
+
+            if (superTiles)
+                names.Add($"{label}_supertiles");
         }
 
         names.Add(stem);

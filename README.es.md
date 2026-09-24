@@ -232,9 +232,10 @@ ensamblador que se elija —sasSX, sjasmplus, pasmo o asMSX—, para el modo del
 nombrando los ficheros recién exportados. La del banco se trae además el reproductor de
 animaciones al lado, y sólo se ofrece para bancos de MSX2 —GRAPHIC 3 con sprites de modo
 2, con los grupos colocados; las teclas 0-F cambian el fondo y F1 conmuta la
-magnificación—. La del mapa es de 32K y carga un juego de tiles por tercio si el mapa
-lleva bandas, así que hay que exportar también el juego o los juegos con los que está
-dibujado.
+magnificación—. Las de mapas son de 32K y cargan un juego de tiles por tercio si el
+mapa lleva bandas, así que hay que exportar también el juego o los juegos con los que
+está dibujado; si sus celdas son supertiles sale otra ROM, la que resuelve cada celda a
+través de la tabla, y eso no se pregunta: se mira el juego de tiles.
 
 Todas detectan en ejecución si están en un MSX1 o en un MSX2 para cargar la paleta sólo
 donde se puede. El README de esa carpeta explica los mapas de VRAM y cómo cambiar entre

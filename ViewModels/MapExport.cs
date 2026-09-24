@@ -28,14 +28,14 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
     ];
 
     /// <summary>
-    /// Any map except one made of super tiles.
+    /// Any map, super tiles or not.
     /// </summary>
     /// <remarks>
-    /// The cells of that one are places in the super tile table and not tile numbers, so this
-    /// ROM would draw something else entirely. That one is still written by hand in
-    /// <c>msx/test_rom</c>.
+    /// Which program comes out is decided further in: a map of super tiles resolves every cell
+    /// through the table as it draws, and that is another template. From here it is the same
+    /// question.
     /// </remarks>
-    public bool HasExampleRom => !map.UsesSuperTiles;
+    public bool HasExampleRom => true;
 
     public IEnumerable<ExportPiece> Pieces(ExportRequest request)
     {

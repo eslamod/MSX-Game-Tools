@@ -226,9 +226,10 @@ writes them**: exporting can bring an example ROM with it, filled in for the ass
 —sasSX, sjasmplus, pasmo or asMSX—, for the screen mode of the document, and naming the
 files you have just exported. The one for a bank brings the animation player beside it,
 and is only offered for MSX2 banks —GRAPHIC 3 and sprite mode 2, with the groups laid
-out; keys 0-F change the backdrop and F1 toggles magnification—. The one for a map is a
-32K cartridge and loads a tile set per screen third when the map is banded, so the tile
-set or sets it is drawn with have to be exported as well.
+out; keys 0-F change the backdrop and F1 toggles magnification—. The ones for maps are 32K cartridges and load a tile set per screen
+third when the map is banded, so the tile set or sets it is drawn with have to be exported
+as well; if its cells are super tiles another ROM comes out, the one that resolves every
+cell through the table, and that is not asked: the tile set says so.
 
 All of them detect at runtime whether they are on an MSX1 or an MSX2, so the palette is
 only loaded where it can be. That folder's README explains the VRAM maps and how to switch
