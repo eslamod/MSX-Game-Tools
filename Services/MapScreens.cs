@@ -50,6 +50,19 @@ public static class MapScreens
     public const string DataSuffix = "_screens_data";
 
     /// <summary>
+    /// And in the name of each page of screens, when they go out shared into the pages of a
+    /// mapper: the number follows.
+    /// </summary>
+    public const string PageSuffix = "_screens_page_";
+
+    /// <summary>What the page table says of a screen that was not written.</summary>
+    /// <remarks>
+    /// In the page and not in the offset: an offset of 0 is the first screen of any page. And no
+    /// game has 255 pages of screens, which would be two megabytes of them.
+    /// </remarks>
+    public const byte NoPage = 0xFF;
+
+    /// <summary>
     /// The two of them are assembler even when the screens go out in bytes.
     /// </summary>
     /// <remarks>
@@ -162,6 +175,52 @@ public static class MapScreens
             column, row, cut, left + wide > map.Width || top + high > map.Height);
     }
 
+    /// <summary>The bytes a screen takes in its file: its cells, and the size in front if it goes.</summary>
+    public static int Bytes(int wide, int high, bool header) =>
+        (wide * high) + (header ? MapExporter.HeaderBytes : 0);
+
+    /// <summary>
+    /// The screens shared out into pages of that size, in order, none of them cut in two.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// In a megaROM a screen has to be whole inside the segment that gets mapped: half of it in
+    /// the next one would need both mapped at once. So a page is closed when the next screen
+    /// does not fit, even with room left over.
+    /// </para>
+    /// <para>
+    /// In order, so that the pages keep the order of the files and of the table. And adding up
+    /// sizes rather than dividing, although today every screen measures the same: compressed,
+    /// each one will measure something else, and this is the one place that would have to know.
+    /// </para>
+    /// </remarks>
+    /// <param name="bytes">What each screen takes, which has to fit in a page: see <see cref="Bytes"/>.</param>
+    public static IReadOnlyList<IReadOnlyList<MapScreen>> Pages(
+        IReadOnlyList<MapScreen> screens, int bytes, int pageSize)
+    {
+        var pages = new List<IReadOnlyList<MapScreen>>();
+        var page = new List<MapScreen>();
+        int used = 0;
+
+        foreach (MapScreen screen in screens)
+        {
+            if (used + bytes > pageSize && page.Count > 0)
+            {
+                pages.Add(page);
+                page = [];
+                used = 0;
+            }
+
+            page.Add(screen);
+            used += bytes;
+        }
+
+        if (page.Count > 0)
+            pages.Add(page);
+
+        return pages;
+    }
+
     /// <summary>
     /// The label a screen goes by, which is the one its own file defines.
     /// </summary>
@@ -229,24 +288,169 @@ public static class MapScreens
         text.AppendLine();
         text.AppendLine($"{name}{IndexSuffix}:");
 
+        AppendRows(
+            text,
+            style.Directive("dw"),
+            columns,
+            rows,
+            (column, row) => labels.GetValueOrDefault((column, row), "0"));
+
+        return text.ToString();
+    }
+
+    /// <summary>
+    /// The table when the screens go out shared into the pages of a mapper: a page and an offset
+    /// for each one.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// In a megaROM two screens of different pages have the same address, because the mapper
+    /// shows each page in the same window. So the address alone does not say where a screen is:
+    /// it takes the page, and then how far into it.
+    /// </para>
+    /// <para>
+    /// Both counted from the start, and not as addresses: the page from the first one of the
+    /// screens and the offset from the start of its page. That way they are good in whatever
+    /// segment the pages end up and whatever window the mapper shows them in; the game maps the
+    /// page and adds the offset to where it sees it.
+    /// </para>
+    /// <para>
+    /// Numbers the tool works out and not labels for the assembler, because in a megaROM each
+    /// segment is often assembled on its own, and then a table cannot name what is in another
+    /// one. The tool can: it is the one that shared the screens out, and each page file comes
+    /// out exactly as it counted it.
+    /// </para>
+    /// </remarks>
+    public static string PagedIndex(
+        TileMap map,
+        IReadOnlyList<IReadOnlyList<MapScreen>> pages,
+        int wide,
+        int high,
+        string stem,
+        AsmStyle style,
+        bool header,
+        int pageSize)
+    {
+        int columns = Count(map.Width, wide);
+        int rows = Count(map.Height, high);
+        int bytes = Bytes(wide, high, header);
+
+        string name = AsmLabel.Of(stem);
+        string constant = name.ToUpperInvariant();
+
+        var places = new Dictionary<(int Column, int Row), (int Page, int Offset)>();
+
+        for (int page = 0; page < pages.Count; page++)
+        {
+            int offset = 0;
+
+            foreach (MapScreen screen in pages[page])
+            {
+                places[(screen.Column, screen.Row)] = (page, offset);
+                offset += bytes;
+            }
+        }
+
+        var text = new StringBuilder();
+
+        text.AppendLine($"; Screen index - {map.Name}, in pages of {pageSize / 1024}K");
+        text.AppendLine(
+            $"; {columns}x{rows} screens of {wide}x{high} cells, {bytes} bytes each"
+            + (header ? ", the size in front included" : string.Empty)
+            + $", in {pages.Count} page{(pages.Count == 1 ? string.Empty : "s")}.");
+        text.AppendLine(
+            $"; Row by row: screen C-R is entry (R-1)*{columns} + (C-1), counting from 1 like the files.");
+        text.AppendLine(
+            $"; Each screen is a page and an offset into it. Pages count from 0 in the order of the");
+        text.AppendLine(
+            $"; files {name}{PageSuffix}N{IndexExtension}: map the one it says, and add the offset");
+        text.AppendLine("; to wherever that page shows up in memory.");
+        text.AppendLine($"; Empty screens were not written: their page is {AsmHex.Of(NoPage)}.");
+        text.AppendLine();
+        text.AppendLine($"{constant}_SCREENS_WIDE {style.Directive("equ")} {columns}");
+        text.AppendLine($"{constant}_SCREENS_HIGH {style.Directive("equ")} {rows}");
+        // PAGE_COUNT and not PAGES: sasSX reads names without telling capitals apart, and
+        // NIVEL_1_SCREENS_PAGES is the table nivel_1_screens_pages to it, defined twice.
+        text.AppendLine($"{constant}_SCREENS_PAGE_COUNT {style.Directive("equ")} {pages.Count}");
+        text.AppendLine();
+        text.AppendLine($"{name}{IndexSuffix}_pages:");
+
+        AppendRows(
+            text,
+            style.Directive("db"),
+            columns,
+            rows,
+            (column, row) => places.TryGetValue((column, row), out var place)
+                ? AsmHex.Of((byte)place.Page)
+                : AsmHex.Of(NoPage));
+
+        text.AppendLine();
+        text.AppendLine($"{name}{IndexSuffix}_offsets:");
+
+        AppendRows(
+            text,
+            style.Directive("dw"),
+            columns,
+            rows,
+            (column, row) => places.TryGetValue((column, row), out var place)
+                ? $"{AsmHex.Prefix}{place.Offset:X4}"
+                : $"{AsmHex.Prefix}{0:X4}");
+
+        return text.ToString();
+    }
+
+    /// <summary>
+    /// One page of screens, starting under its own label.
+    /// </summary>
+    /// <remarks>
+    /// The offsets of the table count from the first byte of this, so nothing can go between the
+    /// label and the screens; and whatever goes before it in the segment has to be added.
+    /// </remarks>
+    public static string Page(
+        TileMap map,
+        IReadOnlyList<MapScreen> screens,
+        int page,
+        string stem,
+        AsmStyle style,
+        bool binary,
+        int bytes,
+        int pageSize)
+    {
+        string name = AsmLabel.Of(stem);
+        var text = new StringBuilder();
+
+        text.AppendLine(
+            $"; Page {page} of the screens of {map.Name}: {screens.Count * bytes} bytes"
+            + $" of the {pageSize} a page holds.");
+        text.AppendLine(
+            $"; The offsets in {name}{IndexSuffix}{IndexExtension} count from the start of this: put it at");
+        text.AppendLine("; the start of its segment, or add where it starts.");
+        text.AppendLine();
+        text.AppendLine($"{name}{PageSuffix}{page}:");
+
+        AppendScreens(text, screens, stem, style, binary);
+
+        return text.ToString();
+    }
+
+    /// <summary>
+    /// A table with an entry per screen, row by row, a line per row at most as long as it can be.
+    /// </summary>
+    private static void AppendRows(
+        StringBuilder text, string directive, int columns, int rows, Func<int, int, string> entry)
+    {
         for (int row = 0; row < rows; row++)
         {
-            string[] entries =
-            [
-                .. Enumerable.Range(0, columns)
-                    .Select(column => labels.GetValueOrDefault((column, row), "0")),
-            ];
+            string[] entries = [.. Enumerable.Range(0, columns).Select(column => entry(column, row))];
 
             for (int start = 0; start < entries.Length; start += EntriesPerLine)
             {
-                string line = $"    {style.Directive("dw")} "
+                string line = $"    {directive} "
                               + string.Join(", ", entries.Skip(start).Take(EntriesPerLine));
 
                 text.AppendLine(start == 0 ? $"{line}    ; row {row + 1}" : line);
             }
         }
-
-        return text.ToString();
     }
 
     /// <summary>
@@ -270,6 +474,18 @@ public static class MapScreens
         text.AppendLine("; In a megaROM, move each one to the page where it has to go.");
         text.AppendLine();
 
+        AppendScreens(text, screens, stem, style, binary);
+
+        return text.ToString();
+    }
+
+    /// <summary>
+    /// The lines that bring the screens in: the ones in bytes with their label, the ones in
+    /// assembler with an include, since they carry the label inside.
+    /// </summary>
+    private static void AppendScreens(
+        StringBuilder text, IReadOnlyList<MapScreen> screens, string stem, AsmStyle style, bool binary)
+    {
         foreach (MapScreen screen in screens)
         {
             string file = $"{stem}_{screen.Column + 1}_{screen.Row + 1}";
@@ -284,8 +500,6 @@ public static class MapScreens
                 text.AppendLine($"    {style.Directive("include")} \"{file}.asm\"");
             }
         }
-
-        return text.ToString();
     }
 
     /// <summary>

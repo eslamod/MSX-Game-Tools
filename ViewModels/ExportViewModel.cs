@@ -16,6 +16,10 @@ namespace MSX_GameTools.ViewModels;
 /// </param>
 public sealed record ExportFileRow(string Name, bool Exists);
 
+/// <summary>One of the page sizes a mapper can have, with what it is read as.</summary>
+/// <param name="Bytes">How much a page holds, or 0 for a cartridge without a mapper.</param>
+public sealed record PageChoice(string Label, int Bytes);
+
 /// <summary>
 /// Exporting a document: as what, where to, and which files are going to come out.
 /// </summary>
@@ -55,6 +59,7 @@ public partial class ExportViewModel : PanelBaseViewModel
     [NotifyPropertyChangedFor(nameof(ShowsScreenOptions))]
     [NotifyPropertyChangedFor(nameof(ShowsScreenPick))]
     [NotifyPropertyChangedFor(nameof(ShowsScreenIndex))]
+    [NotifyPropertyChangedFor(nameof(ShowsScreenPages))]
     private ExportChoice _format;
 
     /// <summary>Where the first of the files goes; the others take their name from it.</summary>
@@ -92,6 +97,7 @@ public partial class ExportViewModel : PanelBaseViewModel
     [NotifyPropertyChangedFor(nameof(ShowsScreenOptions))]
     [NotifyPropertyChangedFor(nameof(ShowsScreenPick))]
     [NotifyPropertyChangedFor(nameof(ShowsScreenIndex))]
+    [NotifyPropertyChangedFor(nameof(ShowsScreenPages))]
     private bool _byScreens;
 
     /// <summary>
@@ -116,6 +122,7 @@ public partial class ExportViewModel : PanelBaseViewModel
     [NotifyPropertyChangedFor(nameof(AllScreens))]
     [NotifyPropertyChangedFor(nameof(ShowsScreenPick))]
     [NotifyPropertyChangedFor(nameof(ShowsScreenIndex))]
+    [NotifyPropertyChangedFor(nameof(ShowsScreenPages))]
     private bool _oneScreen;
 
     /// <summary>
@@ -126,7 +133,19 @@ public partial class ExportViewModel : PanelBaseViewModel
     /// game, and writing that table by hand is a line per screen to keep in step with the map.
     /// </remarks>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsScreenPages))]
     private bool _screenIndex = true;
+
+    /// <summary>
+    /// The pages of the mapper the screens are shared into, or none.
+    /// </summary>
+    /// <remarks>
+    /// None by default: it is only for a megaROM, and whoever has one knows the size of their
+    /// pages. With 8K or 16K the index says of each screen its page and its offset, which is
+    /// what is needed when every page is seen through the same window.
+    /// </remarks>
+    [ObservableProperty]
+    private PageChoice _screenPages;
 
     /// <summary>Which one, column and row, counting from one as the editor reads it.</summary>
     [ObservableProperty]
@@ -142,6 +161,7 @@ public partial class ExportViewModel : PanelBaseViewModel
         _document = document;
 
         _format = document.Formats[0];
+        _screenPages = PageSizes[0];
 
         // Por la pantalla de lo que estuviera seleccionado: con un mapa de veinte pantallas,
         // arrancar siempre por la 1-1 es ponerse a contar.
@@ -212,6 +232,17 @@ public partial class ExportViewModel : PanelBaseViewModel
     /// are not there, and they are: they went out before.
     /// </remarks>
     public bool ShowsScreenIndex => ShowsScreenOptions && !OneScreen;
+
+    /// <summary>The pages only matter to the index, so they are asked with it.</summary>
+    public bool ShowsScreenPages => ShowsScreenIndex && ScreenIndex;
+
+    /// <summary>The sizes a page of the mapper can have, and none for a cartridge without one.</summary>
+    public IReadOnlyList<PageChoice> PageSizes { get; } =
+    [
+        new(Text["ExportPagesNone"], 0),
+        new("8K", 8 * 1024),
+        new("16K", 16 * 1024),
+    ];
 
     /// <summary>
     /// Lo contrario de <see cref="OneScreen"/>, para el otro botón del par.
@@ -322,7 +353,9 @@ public partial class ExportViewModel : PanelBaseViewModel
         Stem,
         WithRom ? Assembler.Style : _mainWindowVm.Preferences.AsmStyle,
         WithRom ? Assembler : null,
-        WithScreens ? new ScreenSplit(ScreenHeader, Picked, ScreenIndex && !OneScreen) : null,
+        WithScreens
+            ? new ScreenSplit(ScreenHeader, Picked, ScreenIndex && !OneScreen, ScreenPages.Bytes)
+            : null,
         Folder);
 
     /// <summary>La pantalla pedida, o nada cuando van todas.</summary>
@@ -438,6 +471,9 @@ public partial class ExportViewModel : PanelBaseViewModel
 
     /// <summary>The index puts two files in the list, or takes them out.</summary>
     partial void OnScreenIndexChanged(bool value) => Refresh();
+
+    /// <summary>And the pages change which files go with it: a table and one per page.</summary>
+    partial void OnScreenPagesChanged(PageChoice value) => Refresh();
 
     /// <summary>Y cuáles van cambia la lista entera, y lo que se señala en el mapa.</summary>
     partial void OnOneScreenChanged(bool value) => Answered();

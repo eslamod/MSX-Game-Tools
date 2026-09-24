@@ -777,6 +777,8 @@ public class MapScreensExportTests : IDisposable
         string rom = Path.Combine(_folder, "nivel_1.rom");
         string said = Assembler.Run(tool!, name, host, rom);
 
+        SkipIfAsMsxFellOver(name, rom, said);
+
         Assert.True(File.Exists(rom), $"{name} no sacó ROM: {said}");
 
         byte[] bytes = await File.ReadAllBytesAsync(rom);
@@ -857,6 +859,278 @@ public class MapScreensExportTests : IDisposable
 
         Assert.DoesNotContain(Text["ExportedScreenNotInIndex"], opened.Dialogs.Messages[^1]);
     }
+
+    // ------------------------------------------------------------------ the pages of a mapper
+
+    /// <summary>
+    /// With pages, the screens are shared into them without cutting any, a file per page.
+    /// </summary>
+    /// <remarks>
+    /// Ten screens of 768 bytes take 7680 of the 8192 of a page; the eleventh would not fit
+    /// whole, so it starts the next one. Half a screen in each page would need the two mapped
+    /// at once.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Con_paginas_las_pantallas_se_reparten_sin_partir_ninguna()
+    {
+        Opened opened = Open(12 * 32, 24, painted: FirstCells(12));
+
+        ByScreens(opened.Form, ExportFormat.Binary, index: true);
+        Paged(opened.Form, 8);
+
+        string[] names = [.. opened.Form.Files.Select(file => file.Name)];
+
+        Assert.Equal(
+            (string[])["nivel_1_screens.asm", "nivel_1_screens_page_0.asm", "nivel_1_screens_page_1.asm"],
+            names[..3]);
+
+        Assert.DoesNotContain("nivel_1_screens_data.asm", names);
+    }
+
+    /// <summary>
+    /// The paged table says of each screen its page and its offset, both from the start.
+    /// </summary>
+    /// <remarks>
+    /// From the start and not as addresses, so that they hold in whatever segment the pages end
+    /// up and whatever window the mapper shows them in: the game maps the page and adds.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task La_tabla_paginada_dice_pagina_y_desplazamiento()
+    {
+        Opened opened = Open(12 * 32, 24, painted: FirstCells(12, skip: 3));
+
+        ByScreens(opened.Form, ExportFormat.Binary, index: true);
+        Paged(opened.Form, 8);
+        await AcceptAsync(opened.Form);
+
+        string table = await File.ReadAllTextAsync(Path.Combine(_folder, "nivel_1_screens.asm"));
+
+        Assert.Contains("NIVEL_1_SCREENS_PAGE_COUNT .equ 2", table);
+
+        // The third screen is empty: its page says so, and the ones after it move up a place.
+        Assert.Contains("    .db 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00    ; row 1", table);
+        Assert.Contains("    .db 0x00, 0x00, 0x00, 0x01", table);
+        Assert.Contains(
+            "    .dw 0x0000, 0x0300, 0x0000, 0x0600, 0x0900, 0x0C00, 0x0F00, 0x1200    ; row 1",
+            table);
+        Assert.Contains("    .dw 0x1500, 0x1800, 0x1B00, 0x0000", table);
+
+        // And the second page starts under its own label with the one screen that did not fit.
+        string[] second = await File.ReadAllLinesAsync(
+            Path.Combine(_folder, "nivel_1_screens_page_1.asm"));
+
+        int start = Array.IndexOf(second, "nivel_1_screens_page_1:");
+
+        Assert.True(start >= 0, "the second page has no label of its own");
+        Assert.Equal("nivel_1_12_1_map:", second[start + 1]);
+        Assert.Equal("    .incbin \"nivel_1_12_1.bin\"", second[start + 2]);
+    }
+
+    /// <summary>With the size in front, the offsets count it: each screen takes four bytes more.</summary>
+    [AvaloniaFact]
+    public async Task Con_cabecera_los_desplazamientos_la_cuentan()
+    {
+        Opened opened = Open(3 * 32, 24, painted: FirstCells(3));
+
+        ByScreens(opened.Form, ExportFormat.Binary, header: true, index: true);
+        Paged(opened.Form, 8);
+        await AcceptAsync(opened.Form);
+
+        string table = await File.ReadAllTextAsync(Path.Combine(_folder, "nivel_1_screens.asm"));
+
+        Assert.Contains("    .dw 0x0000, 0x0304, 0x0608    ; row 1", table);
+    }
+
+    /// <summary>A screen that does not fit in a page is said, and nothing is written.</summary>
+    [AvaloniaFact]
+    public async Task Una_pantalla_que_no_cabe_en_la_pagina_no_deja_exportar()
+    {
+        Opened opened = Open(128, 96, painted: [(0, 0)]);
+
+        opened.Main.Preferences.ScreenWidth = 128;
+        opened.Main.Preferences.ScreenHeight = 96;
+
+        ByScreens(opened.Form, ExportFormat.Binary, index: true);
+        Paged(opened.Form, 8);
+
+        Assert.Equal(Text.Format("ExportScreenTooBig", 128 * 96, 8), opened.Form.ErrorMessage);
+
+        await AcceptAsync(opened.Form);
+
+        Assert.Empty(Directory.GetFiles(_folder));
+
+        // In a page of 16K it does fit.
+        Paged(opened.Form, 16);
+
+        Assert.False(opened.Form.HasError);
+    }
+
+    /// <summary>The pages are only asked with the index: they change what it says and nothing else.</summary>
+    [AvaloniaFact]
+    public void Sin_indice_no_se_preguntan_las_paginas()
+    {
+        Opened opened = Open(64, 48, painted: [(0, 0)]);
+
+        ByScreens(opened.Form, ExportFormat.Binary, index: true);
+
+        Assert.True(opened.Form.ShowsScreenPages);
+        Assert.Equal(0, opened.Form.ScreenPages.Bytes);
+
+        opened.Form.ScreenIndex = false;
+
+        Assert.False(opened.Form.ShowsScreenPages);
+    }
+
+    /// <summary>
+    /// The paged index assembles, and every page and offset lands where its screen starts.
+    /// </summary>
+    /// <remarks>
+    /// The host brings the table in and then each page behind a marker of its own, so that the
+    /// start of each page can be found in the ROM. Following page and offset from there has to
+    /// land on the screen that carries that number, for the four assemblers, with the screens in
+    /// bytes and in assembler. Thirteen screens with the fourth empty: twelve written, ten in the
+    /// first page and two in the second.
+    /// </remarks>
+    [AvaloniaTheory]
+    [MemberData(nameof(IndexBundles))]
+    public async Task El_indice_paginado_ensambla_y_cada_desplazamiento_cae_en_su_pantalla(
+        string name, ExportFormat format)
+    {
+        string? tool = Assembler.Find(name);
+
+        Assert.SkipUnless(tool is not null, $"{name} no está aquí: {Assembler.HowToGetIt(name)}");
+
+        AsmDialect dialect = AsmDialect.Of(name);
+
+        (int Column, int Row)[] painted = FirstCells(13, skip: 4);
+
+        Opened opened = Open(13 * 32, 24, painted: painted);
+
+        foreach ((int column, int row) in painted)
+            opened.Map.Layers[0].Grid[column, row] = (column / 32) + 1;
+
+        opened.Main.Preferences.AsmData = dialect.Style.Data;
+
+        ByScreens(opened.Form, format, index: true);
+        Paged(opened.Form, 8);
+        await AcceptAsync(opened.Form);
+
+        string host = Path.Combine(_folder, "host.asm");
+
+        await File.WriteAllTextAsync(host, PagedHost(dialect, pages: 2));
+
+        string rom = Path.Combine(_folder, "nivel_1.rom");
+        string said = Assembler.Run(tool!, name, host, rom);
+
+        SkipIfAsMsxFellOver(name, rom, said);
+
+        Assert.True(File.Exists(rom), $"{name} no sacó ROM: {said}");
+
+        byte[] bytes = await File.ReadAllBytesAsync(rom);
+
+        int marker = bytes.AsSpan().IndexOf("IDX!"u8);
+
+        Assert.True(marker >= 0, "the marker the host writes is not in the ROM");
+
+        int pages = Word(bytes, marker + 4) - 0x4000;
+        int offsets = Word(bytes, marker + 6) - 0x4000;
+
+        Assert.Equal(13, bytes[marker + 8]);
+        Assert.Equal(1, bytes[marker + 9]);
+        Assert.Equal(2, bytes[marker + 10]);
+
+        int[] starts =
+        [
+            bytes.AsSpan().IndexOf("PG0!"u8) + 4,
+            bytes.AsSpan().IndexOf("PG1!"u8) + 4,
+        ];
+
+        for (int column = 1; column <= 13; column++)
+        {
+            int page = bytes[pages + column - 1];
+
+            if (column == 4)
+            {
+                Assert.Equal(0xFF, page);
+
+                continue;
+            }
+
+            int start = starts[page] + Word(bytes, offsets + (2 * (column - 1)));
+
+            Assert.Equal(column, bytes[start]);
+            Assert.All(bytes[(start + 1)..(start + 768)], one => Assert.Equal(0, one));
+        }
+    }
+
+    /// <summary>
+    /// The first cell of each of that many screens of 32x24 in a row, but for the one to skip.
+    /// </summary>
+    /// <param name="skip">The screen left empty, counting from one, or 0 for none.</param>
+    private static (int Column, int Row)[] FirstCells(int screens, int skip = 0) =>
+        [.. Enumerable.Range(1, screens).Where(screen => screen != skip).Select(screen => ((screen - 1) * 32, 0))];
+
+    /// <summary>Pages of the mapper of that many K.</summary>
+    private static void Paged(ExportViewModel form, int kilobytes) =>
+        form.ScreenPages = form.PageSizes.Single(choice => choice.Bytes == kilobytes * 1024);
+
+    /// <summary>
+    /// A cartridge that brings in the paged table and each page behind a marker.
+    /// </summary>
+    /// <remarks>
+    /// The pages one after the other, which is not how a megaROM lays them out, and it does not
+    /// need to be: the offsets count from the start of each page, and the marker says where
+    /// that is.
+    /// </remarks>
+    private static string PagedHost(AsmDialect dialect, int pages) =>
+        string.Join(
+                "\n",
+                [
+                    dialect.Header,
+                    "Begin:",
+                    "                ret",
+                    $"                {dialect.Directive("include")} \"nivel_1_screens.asm\"",
+                    .. Enumerable.Range(0, pages).SelectMany(page => (string[])
+                    [
+                        $"                {dialect.Directive("db")} \"PG{page}!\"",
+                        $"                {dialect.Directive("include")} \"nivel_1_screens_page_{page}.asm\"",
+                    ]),
+                    $"                {dialect.Directive("db")} \"IDX!\"",
+                    $"                {dialect.Directive("dw")} nivel_1_screens_pages",
+                    $"                {dialect.Directive("dw")} nivel_1_screens_offsets",
+                    $"                {dialect.Directive("db")} NIVEL_1_SCREENS_WIDE, NIVEL_1_SCREENS_HIGH, NIVEL_1_SCREENS_PAGE_COUNT",
+                    dialect.Tail,
+                ])
+            .Replace("{ORG}", dialect.Directive("org"))
+            .Replace("{DB}", dialect.Directive("db"))
+            .Replace("{DW}", dialect.Directive("dw"))
+            .Replace("{DS}", dialect.Directive("ds"))
+            .Replace("{START}", "Begin")
+            .Replace("{STEM}", "nivel_1")
+            .Replace("{ROM_END}", "0x8000")
+            .Replace("\n", Environment.NewLine);
+
+    /// <summary>
+    /// asMSX 0.16 falls over now and then, depending on the byte each line lands on.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Measured by hand: the very same files crash it or not by adding a letter to a comment of
+    /// the host —with seven letters more it dies, with six or eight it does not—. It has done it
+    /// with the screens in bytes and in assembler. What was not found is why.
+    /// </para>
+    /// <para>
+    /// It dies with a segmentation fault, without a word and without a ROM, which is not what an
+    /// assembler does with a line it rejects: that one prints its banner and the error. So it is
+    /// a bug of its own and not something of ours it refuses, and it comes out as not checked
+    /// here, which is the truth, instead of as a failure of the index.
+    /// </para>
+    /// </remarks>
+    private static void SkipIfAsMsxFellOver(string name, string rom, string said) =>
+        Assert.SkipWhen(
+            name == "asMSX" && !File.Exists(rom) && string.IsNullOrWhiteSpace(said),
+            "asMSX 0.16 se ha caído sin decir nada. Le pasa con algunos ficheros según en qué byte "
+            + "caiga cada línea, y no es algo de lo exportado que rechace. Aquí no se ha comprobado con él.");
 
     /// <summary>The screens of the index tests: nine across and two down, minus these.</summary>
     private static readonly (int Column, int Row)[] Empty = [(3, 1), (9, 1), (5, 2)];

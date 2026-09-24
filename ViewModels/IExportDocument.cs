@@ -65,7 +65,12 @@ public sealed record ExportRequest(
 /// the screens in. Only with all of them: the index speaks of the whole batch, and a single
 /// screen leaves the one there was as it was.
 /// </param>
-public sealed record ScreenSplit(bool Header, ScreenNumber? Only = null, bool Index = false);
+/// <param name="PageSize">
+/// The size of a page of the mapper the screens are shared into, or 0 for a cartridge without
+/// one. With pages, the index says of each screen its page and its offset into it.
+/// </param>
+public sealed record ScreenSplit(
+    bool Header, ScreenNumber? Only = null, bool Index = false, int PageSize = 0);
 
 /// <summary>
 /// One screen of the map, said the way the editor reads it: column and row, counting from one.

@@ -99,6 +99,15 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
                 map.CellTilesHeight);
         }
 
+        // A screen bigger than a page cannot go whole into any segment. It takes an absurd
+        // screen —128x96 cells in pages of 8K— but then the index would be wrong, not short.
+        if (request.Screens is { Only: null, Index: true, PageSize: > 0 } paged
+            && MapScreens.Bytes(map.ScreenCellsWide, map.ScreenCellsHigh, paged.Header) is var bytes
+            && bytes > paged.PageSize)
+        {
+            return Text.Format("ExportScreenTooBig", bytes, paged.PageSize / 1024);
+        }
+
         if (request.Screens is { Only: { } one })
         {
             // Pedida por su número, una vacía sí sale: es ésa la que se ha pedido. Lo único que
@@ -261,6 +270,14 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
     {
         TileMap tileMap = map.Map;
 
+        if (split.PageSize > 0)
+        {
+            foreach (ExportPiece piece in PagedPieces(screens, request, split))
+                yield return piece;
+
+            yield break;
+        }
+
         yield return new ExportPiece(
             MapScreens.IndexSuffix,
             path => File.WriteAllTextAsync(
@@ -282,6 +299,53 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
                 MapScreens.Data(
                     tileMap, screens, request.Stem, request.Style, request.Format == ExportFormat.Binary)),
             MapScreens.IndexExtension);
+    }
+
+    /// <summary>
+    /// The table with a page and an offset per screen, and a file per page.
+    /// </summary>
+    /// <remarks>
+    /// A file per page and not one with them all: each one goes to its segment, and that is the
+    /// piece that gets moved.
+    /// </remarks>
+    private IEnumerable<ExportPiece> PagedPieces(
+        IReadOnlyList<MapScreen> screens, ExportRequest request, ScreenSplit split)
+    {
+        TileMap tileMap = map.Map;
+        int wide = map.ScreenCellsWide;
+        int high = map.ScreenCellsHigh;
+        int bytes = MapScreens.Bytes(wide, high, split.Header);
+        bool binary = request.Format == ExportFormat.Binary;
+
+        IReadOnlyList<IReadOnlyList<MapScreen>> pages = MapScreens.Pages(screens, bytes, split.PageSize);
+
+        yield return new ExportPiece(
+            MapScreens.IndexSuffix,
+            path => File.WriteAllTextAsync(
+                path,
+                MapScreens.PagedIndex(
+                    tileMap, pages, wide, high, request.Stem, request.Style, split.Header, split.PageSize)),
+            MapScreens.IndexExtension);
+
+        for (int page = 0; page < pages.Count; page++)
+        {
+            int number = page;
+
+            yield return new ExportPiece(
+                $"{MapScreens.PageSuffix}{number}",
+                path => File.WriteAllTextAsync(
+                    path,
+                    MapScreens.Page(
+                        tileMap,
+                        pages[number],
+                        number,
+                        request.Stem,
+                        request.Style,
+                        binary,
+                        bytes,
+                        split.PageSize)),
+                MapScreens.IndexExtension);
+        }
     }
 
     /// <summary>The tile set of each band, which is one when the map is not banded.</summary>

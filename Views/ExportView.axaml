@@ -74,6 +74,25 @@
         <TextBlock Text="{l:Localize ExportScreenIndexTip}" IsVisible="{Binding ShowsScreenIndex}"
                    Opacity="0.7" TextWrapping="Wrap" Margin="12,0,0,0" />
 
+        <!-- The pages of the mapper, only with the index: they change what the index says, and
+             nothing else. -->
+        <Grid ColumnDefinitions="Auto,*" Margin="24,6,0,0" IsVisible="{Binding ShowsScreenPages}">
+          <TextBlock Grid.Column="0" Text="{l:Localize ExportScreenPages}"
+                     VerticalAlignment="Center" Margin="0,0,8,0" />
+          <ComboBox Grid.Column="1" HorizontalAlignment="Left" MinWidth="110"
+                    ItemsSource="{Binding PageSizes}"
+                    SelectedItem="{Binding ScreenPages}">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:PageChoice">
+                <TextBlock Text="{Binding Label}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+        </Grid>
+
+        <TextBlock Text="{l:Localize ExportScreenPagesTip}" IsVisible="{Binding ShowsScreenPages}"
+                   Opacity="0.7" TextWrapping="Wrap" Margin="24,0,0,0" />
+
         <CheckBox Content="{l:Localize ExportScreenHeader}"
                   IsChecked="{Binding ScreenHeader}"
                   IsVisible="{Binding ShowsScreenOptions}" Margin="12,6,0,0" />

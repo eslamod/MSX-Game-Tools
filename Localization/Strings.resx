@@ -172,6 +172,10 @@
   <data name="ExportScreenMissing" xml:space="preserve"><value>El mapa tiene {1}x{2} pantallas: la {0} no existe.</value></data>
   <data name="ExportScreenIndex" xml:space="preserve"><value>Añadir un índice de pantallas</value></data>
   <data name="ExportScreenIndexTip" xml:space="preserve"><value>Una tabla con dónde empieza cada pantalla, y aparte el fichero que las trae. Con un cartucho de 32K se incluyen los dos; en una megaROM, la tabla va con el código y cada pantalla a su página.</value></data>
+  <data name="ExportScreenPages" xml:space="preserve"><value>Páginas del mapper</value></data>
+  <data name="ExportPagesNone" xml:space="preserve"><value>Ninguna</value></data>
+  <data name="ExportScreenPagesTip" xml:space="preserve"><value>Para una megaROM: las pantallas se reparten en bloques del tamaño de la página, sin partir ninguna, un fichero por página. El índice dice de cada pantalla su página y dónde empieza dentro de ella, así que vale en cualquier página y en cualquier ventana: el juego mapea la página y suma.</value></data>
+  <data name="ExportScreenTooBig" xml:space="preserve"><value>Una pantalla ocupa {0} bytes y no cabe en una página de {1}K.</value></data>
   <data name="ExportMoreFiles" xml:space="preserve"><value>y {0} más.</value></data>
   <data name="ExportScreensNotSuper" xml:space="preserve"><value>La pantalla mide {0}x{1} tiles y el supertile es de {2}x{3}: la pantalla partiría un supertile por la mitad. Cambia el tamaño de la pantalla en la configuración.</value></data>
   <data name="ExportScreensEmpty" xml:space="preserve"><value>El mapa está vacío: no hay ninguna pantalla que escribir.</value></data>
