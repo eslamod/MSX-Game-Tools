@@ -4,45 +4,43 @@ Comprueban en una máquina real (o en un emulador) que lo que exporta el editor 
 lo que espera el VDP. No son parte de la herramienta: son el banco de pruebas de
 los exportadores.
 
-Queda una escrita a mano: `supertile_test.asm`, para los mapas hechos con
-supertiles.
-
-**La de los juegos de tiles ya no está aquí: la genera el editor.** Al exportar un
-juego se puede pedir la ROM de ejemplo, y sale de `Templates/TileSetRom.asm`
-rellenada para el ensamblador que se elija —sasSX, sjasmplus, pasmo o asMSX—,
-para el modo del juego y con los nombres de los ficheros que se acaban de
+**Ya no queda ninguna escrita a mano: las escribe el editor.** Al exportar un
+juego de tiles, un banco de sprites o un mapa se puede pedir la ROM de ejemplo, y
+sale rellenada para el ensamblador que se elija —sasSX, sjasmplus, pasmo o
+asMSX—, para el modo del documento y nombrando los ficheros que se acaban de
 escribir.
 
-**Y la del banco de sprites tampoco está ya**: sale de
-`Templates/SpriteBankRom.asm` y `Templates/AnimationPlayer.asm`, que viajan
-juntas porque la ROM se trae el reproductor con un `include`. Sólo para bancos de
-MSX2: la ROM pone sprites de modo 2, y uno de MSX1 sería otro programa.
+Lo que queda aquí es esto: qué hace cada una, qué comprueba de verdad y qué hay
+que mirar cuando corre. De las plantillas salen cuatro programas distintos.
 
-**Y las dos de mapas salen ya del editor**, de `Templates/MapRom.asm` y
-`Templates/SuperTileMapRom.asm`. Cuál de las dos no se pregunta: se mira si el
-juego de tiles con el que está dibujado el mapa tiene supertiles. Traen una
-diferencia sobre las escritas a mano: cargan las tablas del juego recorriendo
-una lista en vez de copiar la misma tres veces, que es lo que deja que cada
-tercio lleve un juego distinto —y que GRAPHIC 1 salga sin un caso aparte—.
+- **El juego de tiles**, de `Templates/TileSetRom.asm`, para GRAPHIC 2 o
+  GRAPHIC 1 según el juego.
+- **El banco de sprites**, de `Templates/SpriteBankRom.asm` y
+  `Templates/AnimationPlayer.asm`, que viajan juntas porque la ROM se trae el
+  reproductor con un `include`. Sólo para bancos de MSX2: pone sprites de modo
+  2, y uno de MSX1 sería otro programa.
+- **El mapa**, de `Templates/MapRom.asm`.
+- **El mapa de supertiles**, de `Templates/SuperTileMapRom.asm`. Cuál de las dos
+  de mapas sale no se pregunta: se mira si el juego de tiles con el que está
+  dibujado tiene supertiles.
 
-`supertile_test.asm` se queda hasta que la generada se haya visto corriendo en
-una máquina con supertiles rectangulares, que es el caso que delata un ancho y
-un alto intercambiados. La del mapa ya se ha visto y se ha ido.
+Las de mapas cargan las tablas del juego recorriendo una lista en vez de copiar
+la misma tres veces, que es lo que deja que cada tercio lleve un juego distinto
+—y que GRAPHIC 1 salga sin un caso aparte—.
 
-Las ROMs de mapas necesitan además los ficheros del **juego de tiles**, que no
-salen del mapa: hay que exportarlo también —y la tabla de supertiles sale de
-ahí, que es de donde es—. Con la salida en ensamblador, para el mismo
-ensamblador: un `include` de un fichero escrito para otro para en su primera
-línea. Con la salida binaria da igual, que son bytes.
+Y necesitan los ficheros del **juego de tiles**, que no salen del mapa: hay que
+exportarlo también —y la tabla de supertiles sale de ahí, que es de donde es—.
+Con la salida en ensamblador, para el mismo ensamblador: un `include` de un
+fichero escrito para otro para en su primera línea. Con la salida binaria da
+igual, que son bytes.
 
 ## La paleta
 
-Todas cargan también la paleta exportada (`msx_palette.bin`) y todas hacen lo
-mismo con ella: **miran en ejecución si la máquina la tiene**. La generada de
-tiles igual, sólo que la lleva dentro del propio fichero en vez de al lado, para
-que el lote sea lo exportado y nada más. El byte `002DH` de la
-BIOS dice la versión —0 es MSX1, 1 es MSX2— y en un MSX1 los 16 colores son fijos,
-así que no hay nada que cargar y se salta.
+Todas llevan la paleta **dentro del propio fichero**, en 32 bytes, para que el
+lote sea lo exportado y nada más. Y todas hacen lo mismo con ella: **miran en
+ejecución si la máquina la tiene**. El byte `002DH` de la BIOS dice la versión
+—0 es MSX1, 1 es MSX2— y en un MSX1 los 16 colores son fijos, así que no hay
+nada que cargar y se salta.
 
 Se comprueba al arrancar en vez de con ensamblado condicional a propósito: así hay
 una sola ROM que funciona en las dos máquinas, en lugar de dos que generar y
@@ -72,14 +70,16 @@ dotnet build tools/sass-MSX -c Release
 Sale `tools/sass-MSX/sass/bin/Release/sasSX` (`sasSX.exe` en Windows). En los
 ejemplos de abajo `sasSX.exe` es ese fichero; lo cómodo es ponerlo en el `PATH` o
 hacerse un alias. También vale
-`dotnet run --project tools/sass-MSX/sass -- supertile_test.asm ...`.
+`dotnet run --project tools/sass-MSX/sass -- nivel_rom.asm ...`.
 
 La suite de pruebas lo busca ahí sola —ese `bin`, `Release` antes que `Debug`, y
 luego el `PATH`—, así que compilándolo una vez ya lo encuentra. Si lo tienes en
 otro sitio, díselo con la variable de entorno `SASSX`.
 
+La orden exacta la lleva cada ROM en su cabecera, con los nombres ya puestos:
+
 ```bash
-sasSX.exe supertile_test.asm --output supertile_test.rom
+sasSX.exe nivel_rom.asm nivel.rom
 ```
 
 Las de juegos de tiles y bancos salen de 16384 bytes exactos, que es lo que
@@ -304,8 +304,6 @@ se acaban de exportar. Igual que en la de sprites, el `.incbin` está activo y e
 `.include` comentado al lado, así que para probar la otra salida basta con
 cambiar el comentario de sitio.
 
-Los tiles de ejemplo de esta carpeta —`tiles_patterns` y `tiles_colors`— se
-quedan: los nombran las ROMs de mapas.
 
 ## En marcha
 
@@ -374,11 +372,10 @@ qué parte del bloque estás.
 
 ## Con tus propios datos
 
-1. En el editor, **Tiles → Exportar**, y **Mapas → Exportar**, los dos en el
-   mismo formato.
-2. Copia los tres ficheros aquí como `tiles_patterns`, `tiles_colors` y `map`,
-   con la extensión que toque.
-3. Vuelve a ensamblar.
+Exporta el **juego de tiles** y el **mapa** a la misma carpeta, los dos en el
+mismo formato, y marca la casilla de la ROM de ejemplo al exportar el mapa. No
+hay nada que copiar ni que renombrar: la ROM nombra los ficheros que se acaban
+de escribir.
 
 El mapa tiene que caber en lo que sobra del cartucho: 32K menos el código, menos
 los 4096 de las dos tablas y los 32 de la paleta dejan sitio para unas 28000
@@ -444,35 +441,21 @@ delatan al instante; un dibujo con detalle, no.
 Una cuenta de 0 en la cabecera significa 256, que es el tope que un mapa puede
 nombrar porque cada celda es un byte.
 
-## Los datos de ejemplo
-
-`tiles_supertiles.bin` trae **ocho supertiles de 2x3**, y cada uno son seis tiles
-consecutivos: el 0 lleva los tiles 0 a 5, el 1 los tiles 6 a 11, y así. Como los
-tiles de ejemplo llevan su número escrito en binario, cada supertile se lee de
-un vistazo y se ve si el orden es el que dice el exportador.
-
-`super_map.bin` es de **20x12 supertiles** —o sea 40x36 tiles, más que la
-pantalla por los dos lados— y cada celda lleva el supertile `(x + y) mod 8`, que
-sale en bandas diagonales. Una banda torcida o cortada delata que la cámara o la
-tabla no cuadran.
-
-Los dos están generados con los exportadores de verdad, no escritos a mano.
-
 ## Con tus propios datos
 
-1. En el editor, **Tiles → Exportar**: salen tres ficheros, y el tercero es
-   `..._supertiles`. Y **Mapas → Exportar** el mapa de supertiles.
-2. Copia aquí los cuatro como `tiles_patterns`, `tiles_colors`,
-   `tiles_supertiles` y `super_map`, con la extensión que toque.
-3. Vuelve a ensamblar:
+Exporta el **juego de tiles** —que saca un tercer fichero, el `..._supertiles`—
+y el **mapa de supertiles** a la misma carpeta, y marca la casilla al exportar el
+mapa. Sale la ROM que resuelve cada celda a través de la tabla, sin preguntar
+nada: la elige el juego de tiles.
 
-```bash
-sasSX.exe supertile_test.asm --output supertile_test.rom
-```
+**Pruébala con supertiles rectangulares**, 2x3 o 3x2, y con algo asimétrico
+dentro —una flecha, una letra—. Uno cuadrado con dibujo simétrico disimula un
+ancho y un alto intercambiados, que es justo lo que esta ROM existe para
+delatar.
 
 Sale de 32768 bytes, como la del mapa y por lo mismo: ocupa las páginas 1 y 2 y
-se engancha ella misma a la 2 con `ENASLT`. Si no son 32768 exactos, no la
-cargues.
+se engancha ella misma a la 2 con `ENASLT`. Si no son 32768 exactos —salvo con
+asMSX, que redondea—, no la cargues.
 
 ## En marcha
 

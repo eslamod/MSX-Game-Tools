@@ -213,15 +213,7 @@ Dos costumbres que han salvado bastantes fallos:
 
 ## ROMs de prueba
 
-En `msx/test_rom` queda una ROM en ensamblador Z80 que carga lo exportado y lo enseña en
-un MSX de verdad o en openMSX:
-
-- `supertile_test.asm` — lo mismo, sobre un mapa cuyas celdas son supertiles. Comprueba la
-  tabla de supertiles, y con supertiles rectangulares a propósito: uno cuadrado disimularía
-  un ancho y un alto intercambiados.
-
-Las del juego de tiles, el banco de sprites y el mapa no están ahí porque **las escribe
-el editor**: al exportar se puede pedir la ROM de ejemplo, y sale rellenada para el
+Ninguna está escrita a mano: **las escribe el editor**. al exportar se puede pedir la ROM de ejemplo, y sale rellenada para el
 ensamblador que se elija —sasSX, sjasmplus, pasmo o asMSX—, para el modo del documento y
 nombrando los ficheros recién exportados. La del banco se trae además el reproductor de
 animaciones al lado, y sólo se ofrece para bancos de MSX2 —GRAPHIC 3 con sprites de modo

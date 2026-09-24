@@ -208,15 +208,7 @@ Two habits that have caught a fair number of bugs:
 
 ## Test ROMs
 
-`msx/test_rom` holds one Z80 assembly ROM left that loads the exported data and shows it
-on a real MSX or on openMSX:
-
-- `supertile_test.asm` — the same, over a map whose cells are supertiles. It checks the
-  supertile table, with rectangular supertiles on purpose: a square one hides a swapped
-  width and height.
-
-The ones for a tile set, a sprite bank and a map are not in there because **the editor
-writes them**: exporting can bring an example ROM with it, filled in for the assembler you pick
+None of them is written by hand: **the editor writes them**. exporting can bring an example ROM with it, filled in for the assembler you pick
 —sasSX, sjasmplus, pasmo or asMSX—, for the screen mode of the document, and naming the
 files you have just exported. The one for a bank brings the animation player beside it,
 and is only offered for MSX2 banks —GRAPHIC 3 and sprite mode 2, with the groups laid
