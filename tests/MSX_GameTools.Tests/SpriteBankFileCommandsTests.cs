@@ -190,7 +190,7 @@ public class SpriteBankFileCommandsTests : IDisposable
 
         Assert.Contains("bicho_patterns:", patterns);
         Assert.Contains(
-            $"{Services.SpriteBankExporter.DataDirective}  {Services.SpriteBankExporter.HexPrefix}00",
+            $"{AsmStyle.Default.Data}  {Services.AsmHex.Prefix}00",
             patterns);
     }
 

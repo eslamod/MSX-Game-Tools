@@ -182,10 +182,10 @@ public class SuperTileExportTests
     [
         .. asm.Split('\n')
             .Select(line => line.Trim())
-            .Where(line => line.StartsWith(SpriteBankExporter.DataDirective, StringComparison.Ordinal))
-            .SelectMany(line => line[SpriteBankExporter.DataDirective.Length..]
+            .Where(line => line.StartsWith(AsmStyle.Default.Data, StringComparison.Ordinal))
+            .SelectMany(line => line[AsmStyle.Default.Data.Length..]
                 .Split(';')[0]
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(value => Convert.ToByte(value.Replace(SpriteBankExporter.HexPrefix, string.Empty), 16))),
+                .Select(value => Convert.ToByte(value.Replace(AsmHex.Prefix, string.Empty), 16))),
     ];
 }

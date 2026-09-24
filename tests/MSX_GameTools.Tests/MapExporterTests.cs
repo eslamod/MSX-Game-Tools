@@ -200,13 +200,13 @@ public class MapExporterTests
         {
             string trimmed = line.Trim();
 
-            if (!trimmed.StartsWith(SpriteBankExporter.DataDirective, StringComparison.Ordinal))
+            if (!trimmed.StartsWith(AsmStyle.Default.Data, StringComparison.Ordinal))
                 continue;
 
-            string data = trimmed[SpriteBankExporter.DataDirective.Length..].Split(';')[0];
+            string data = trimmed[AsmStyle.Default.Data.Length..].Split(';')[0];
 
             foreach (string value in data.Split(',', StringSplitOptions.RemoveEmptyEntries))
-                bytes.Add(Convert.ToByte(value.Trim()[SpriteBankExporter.HexPrefix.Length..], 16));
+                bytes.Add(Convert.ToByte(value.Trim()[AsmHex.Prefix.Length..], 16));
         }
 
         return [.. bytes];

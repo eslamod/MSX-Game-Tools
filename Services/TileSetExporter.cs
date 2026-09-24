@@ -87,7 +87,7 @@ public static class TileSetExporter
         foreach (TileColorGroup group in tileSet.ColorGroups)
         {
             text.AppendLine(
-                $"    {data}  {SpriteBankExporter.HexOf(group.ColorByte)}".PadRight(32)
+                $"    {data}  {AsmHex.Of(group.ColorByte)}".PadRight(32)
                 + $"; tiles {group.Range}");
         }
 
@@ -204,7 +204,7 @@ public static class TileSetExporter
             IEnumerable<string> line = all
                 .Skip(start)
                 .Take(BytesPerLine)
-                .Select(value => $"{SpriteBankExporter.HexPrefix}{value:X2}");
+                .Select(value => $"{AsmHex.Prefix}{value:X2}");
 
             text.AppendLine($"    {data}  {string.Join(",", line)}");
         }

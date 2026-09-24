@@ -224,17 +224,17 @@ public class SpriteBankExporterTests
         foreach (string line in assembler.Split(Environment.NewLine))
         {
             string trimmed = line.Trim();
-            if (!trimmed.StartsWith(SpriteBankExporter.DataDirective, StringComparison.Ordinal))
+            if (!trimmed.StartsWith(AsmStyle.Default.Data, StringComparison.Ordinal))
                 continue;
 
-            string values = trimmed[SpriteBankExporter.DataDirective.Length..].Split(';')[0];
+            string values = trimmed[AsmStyle.Default.Data.Length..].Split(';')[0];
 
             foreach (string value in values.Split(',', StringSplitOptions.RemoveEmptyEntries))
             {
                 string hex = value.Trim();
 
-                Assert.StartsWith(SpriteBankExporter.HexPrefix, hex, StringComparison.Ordinal);
-                fromText.Add(Convert.ToByte(hex[SpriteBankExporter.HexPrefix.Length..], 16));
+                Assert.StartsWith(AsmHex.Prefix, hex, StringComparison.Ordinal);
+                fromText.Add(Convert.ToByte(hex[AsmHex.Prefix.Length..], 16));
             }
         }
 

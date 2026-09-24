@@ -176,7 +176,7 @@ public static class SpriteAnimationExporter
 
 
 
-    private static string Hex(byte value) => SpriteBankExporter.HexOf(value);
+    private static string Hex(byte value) => AsmHex.Of(value);
 
     /// <summary>
     /// De qué están hechos los destinos.

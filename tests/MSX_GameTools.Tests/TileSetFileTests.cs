@@ -324,13 +324,13 @@ public class TileSetFileTests : IDisposable
         foreach (string line in assembler.Split(Environment.NewLine))
         {
             string trimmed = line.Trim();
-            if (!trimmed.StartsWith(SpriteBankExporter.DataDirective, StringComparison.Ordinal))
+            if (!trimmed.StartsWith(AsmStyle.Default.Data, StringComparison.Ordinal))
                 continue;
 
-            foreach (string value in trimmed[SpriteBankExporter.DataDirective.Length..]
+            foreach (string value in trimmed[AsmStyle.Default.Data.Length..]
                          .Split(',', StringSplitOptions.RemoveEmptyEntries))
             {
-                fromText.Add(Convert.ToByte(value.Trim()[SpriteBankExporter.HexPrefix.Length..], 16));
+                fromText.Add(Convert.ToByte(value.Trim()[AsmHex.Prefix.Length..], 16));
             }
         }
 

@@ -57,7 +57,7 @@ public static class PaletteExporter
         text.AppendLine($"; Palette - {palette.Name}");
         text.AppendLine($"; {ColorPalette.Size} colours, 2 bytes each: 0RRR0BBB then 00000GGG");
         text.AppendLine($"; Load with R#{VdpPaletteRegister} = 0 and then the {Bytes} bytes to port "
-                        + $"{SpriteBankExporter.HexPrefix}{VdpPalettePort:X2}; the index auto-increments.");
+                        + $"{AsmHex.Prefix}{VdpPalettePort:X2}; the index auto-increments.");
         text.AppendLine("; MSX1 has no palette: check the machine version before loading it.");
         text.AppendLine($"; Size: {label}_palette_end - {label}_palette");
         text.AppendLine();
@@ -68,7 +68,7 @@ public static class PaletteExporter
             IEnumerable<string> line = bytes
                 .Skip(start)
                 .Take(BytesPerLine)
-                .Select(value => $"{SpriteBankExporter.HexPrefix}{value:X2}");
+                .Select(value => $"{AsmHex.Prefix}{value:X2}");
 
             text.AppendLine($"    {data}  {string.Join(",", line)}");
         }

@@ -40,20 +40,6 @@ public static class SpriteBankExporter
     /// <summary>Un miembro MSX1: Y, X, patrón y color, como la tabla de atributos.</summary>
     public const int Msx1MemberBytes = 4;
 
-    /// <summary>
-    /// Prefijo hexadecimal de la salida en ensamblador. <c>0x</c> porque es el que
-    /// documenta sass y el único sin ambigüedad: <c>$</c> también vale, pero ahí mismo
-    /// significa la dirección actual, y <c>#</c> es prefijo de directiva, no de número.
-    /// </summary>
-    public const string HexPrefix = "0x";
-
-    /// <summary>
-    /// Directiva de datos. Con el punto delante porque funciona siempre; el <c>db</c>
-    /// pelado sólo lo acepta sass con el modo asMSX activado.
-    /// </summary>
-    /// <summary>Con la que se exporta si nadie ha elegido otra en las preferencias.</summary>
-    public const string DataDirective = AsmStyle.Dotted;
-
     private const int BytesPerLine = 8;
 
     /// <summary>
@@ -195,7 +181,7 @@ public static class SpriteBankExporter
             SpriteGroup group = bank.Groups[index];
 
             text.AppendLine($"{label}_group_{index}:               ; {group.Name}");
-            text.AppendLine($"    {data}  {Hex((byte)group.Members.Count)}                 ; sprites");
+            text.AppendLine($"    {data}  {AsmHex.Of((byte)group.Members.Count)}                 ; sprites");
 
             for (int member = 0; member < group.Members.Count; member++)
             {
@@ -293,14 +279,9 @@ public static class SpriteBankExporter
             IEnumerable<string> line = all
                 .Skip(start)
                 .Take(BytesPerLine)
-                .Select(Hex);
+                .Select(AsmHex.Of);
 
             text.AppendLine($"    {data}  {string.Join(",", line)}");
         }
     }
-
-    private static string Hex(byte value) => $"{HexPrefix}{value:X2}";
-
-    /// <summary>Un byte con el prefijo hexadecimal del ensamblador, para quien lo necesite fuera.</summary>
-    public static string HexOf(byte value) => Hex(value);
 }

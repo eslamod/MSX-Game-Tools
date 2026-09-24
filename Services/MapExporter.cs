@@ -177,7 +177,7 @@ public static class MapExporter
     private static void AppendBytes(StringBuilder text, byte[] bytes, string what, string data)
     {
         IEnumerable<string> values = bytes.Select(
-            value => $"{SpriteBankExporter.HexPrefix}{value:X2}");
+            value => $"{AsmHex.Prefix}{value:X2}");
 
         text.AppendLine($"    {data}  {string.Join(",", values)}    ; {what}");
     }

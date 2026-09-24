@@ -140,7 +140,7 @@ public static class SuperTileExporter
             IEnumerable<string> line = bytes
                 .Skip(start)
                 .Take(BytesPerLine)
-                .Select(value => $"{SpriteBankExporter.HexPrefix}{value:X2}");
+                .Select(value => $"{AsmHex.Prefix}{value:X2}");
 
             text.AppendLine($"    {data}  {string.Join(",", line)}{comment}");
         }

@@ -233,7 +233,7 @@ public class ShiftReportTests
 
         Assert.Contains("_shift:", text);
         Assert.Contains("_shift_ones:", text);
-        Assert.Contains($"{SpriteBankExporter.DataDirective}  0,0,0,0,0,2,0,0", text);
+        Assert.Contains($"{AsmStyle.Default.Data}  0,0,0,0,0,2,0,0", text);
     }
 
     // ------------------------------------------------------------------ los andamios

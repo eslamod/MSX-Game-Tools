@@ -430,7 +430,7 @@ public static class ExampleRom
             IEnumerable<string> line = bytes
                 .Skip(start)
                 .Take(BytesPerLine)
-                .Select(SpriteBankExporter.HexOf);
+                .Select(AsmHex.Of);
 
             lines.Add($"                {dialect.Directive("db")}  {string.Join(",", line)}");
         }
