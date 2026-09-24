@@ -6,12 +6,25 @@ namespace MSX_GameTools.Services;
 /// Una pantalla ya recortada del mapa.
 /// </summary>
 /// <param name="Column">En qué columna y fila de pantallas cae, contando desde cero.</param>
-/// <param name="Left">Por qué celda del mapa empieza, que es lo que dice de dónde salió.</param>
 /// <param name="Map">
 /// El trozo, siempre de una pantalla entera: la del borde se queda corta en el mapa y las
 /// celdas que faltan vienen vacías, que es lo que el exportador escribe como relleno.
 /// </param>
-public sealed record MapScreen(int Column, int Row, int Left, int Top, TileMap Map);
+/// <param name="Padded">Si es una de las del borde, a la que el mapa no llega entero.</param>
+public sealed record MapScreen(int Column, int Row, TileMap Map, bool Padded)
+{
+    /// <summary>
+    /// Por qué celda del mapa empieza, que es lo que dice de dónde salió.
+    /// </summary>
+    /// <remarks>
+    /// Sale del número de pantalla y de lo que mide el recorte, que es siempre una pantalla
+    /// entera: así no hay dos sitios donde apuntar lo mismo.
+    /// </remarks>
+    public int Left => Column * Map.Width;
+
+    /// <inheritdoc cref="Left"/>
+    public int Top => Row * Map.Height;
+}
 
 /// <summary>
 /// Parte un mapa en las pantallas de las que está hecho.
@@ -49,6 +62,26 @@ public static class MapScreens
     /// hueco del dibujo no es un mapa, es sitio gastado. Las que sí salen conservan su número,
     /// así que saltarse una no corre a las demás.
     /// </remarks>
+    /// <summary>
+    /// La pantalla que cae en esa columna y esa fila, esté vacía o no, o nada si ahí no hay
+    /// pantalla.
+    /// </summary>
+    /// <remarks>
+    /// Aquí no se salta ninguna: pedir una pantalla por su número es pedir ésa, y una vacía a
+    /// propósito —un sótano que el juego rellena al entrar— está tan pedida como las demás.
+    /// </remarks>
+    /// <param name="column">Columna y fila de pantallas, contando desde cero.</param>
+    public static MapScreen? At(TileMap map, int wide, int high, string stem, int column, int row)
+    {
+        bool inside = column >= 0 && row >= 0
+                      && column < Count(map.Width, wide)
+                      && row < Count(map.Height, high);
+
+        return wide > 0 && high > 0 && inside
+            ? Cut(map.Flatten(), map, wide, high, stem, column, row)
+            : null;
+    }
+
     /// <param name="stem">De dónde sale el nombre de cada trozo, que es el del fichero.</param>
     public static IReadOnlyList<MapScreen> Of(TileMap map, int wide, int high, string stem)
     {
@@ -68,30 +101,40 @@ public static class MapScreens
         {
             for (int column = 0; column < columns; column++)
             {
-                int left = column * wide;
-                int top = row * high;
+                MapScreen screen = Cut(flat, map, wide, high, stem, column, row);
 
-                var cut = new TileMap($"{stem}_{column + 1}_{row + 1}", wide, high)
-                {
-                    EmptyTile = map.EmptyTile,
-                };
-
-                TileGrid grid = cut.Layers[0].Grid;
-
-                for (int y = 0; y < high; y++)
-                {
-                    // Fuera del mapa la rejilla devuelve vacío, así que la pantalla del borde
-                    // se rellena sola sin tener que mirar dónde acaba.
-                    for (int x = 0; x < wide; x++)
-                        grid[x, y] = flat[left + x, top + y];
-                }
-
-                if (!grid.IsEmpty)
-                    screens.Add(new MapScreen(column, row, left, top, cut));
+                if (!screen.Map.Layers[0].Grid.IsEmpty)
+                    screens.Add(screen);
             }
         }
 
         return screens;
+    }
+
+    /// <summary>Una pantalla recortada del mapa ya aplastado.</summary>
+    private static MapScreen Cut(
+        TileGrid flat, TileMap map, int wide, int high, string stem, int column, int row)
+    {
+        int left = column * wide;
+        int top = row * high;
+
+        var cut = new TileMap($"{stem}_{column + 1}_{row + 1}", wide, high)
+        {
+            EmptyTile = map.EmptyTile,
+        };
+
+        TileGrid grid = cut.Layers[0].Grid;
+
+        for (int y = 0; y < high; y++)
+        {
+            // Fuera del mapa la rejilla devuelve vacío, así que la pantalla del borde se
+            // rellena sola sin tener que mirar dónde acaba.
+            for (int x = 0; x < wide; x++)
+                grid[x, y] = flat[left + x, top + y];
+        }
+
+        return new MapScreen(
+            column, row, cut, left + wide > map.Width || top + high > map.Height);
     }
 
     /// <summary>
@@ -112,7 +155,7 @@ public static class MapScreens
             + $" - map columns {screen.Left}-{right}, rows {screen.Top}-{bottom}",
         };
 
-        if (right >= map.Width || bottom >= map.Height)
+        if (screen.Padded)
         {
             notes.Add(
                 $"; The map ends at column {map.Width - 1}, row {map.Height - 1}:"

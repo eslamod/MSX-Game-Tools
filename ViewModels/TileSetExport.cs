@@ -29,7 +29,7 @@ public sealed class TileSetExport(TileSetEditorViewModel tiles) : IExportDocumen
     public bool HasExampleRom => true;
 
     /// <summary>No screens: what goes out is a table and there is no rectangle to cut.</summary>
-    public bool HasScreens => false;
+    public ScreenNumber? FirstScreen => null;
 
     /// <summary>Nothing gets in the way.</summary>
     public string? Problem(ExportRequest request) => null;

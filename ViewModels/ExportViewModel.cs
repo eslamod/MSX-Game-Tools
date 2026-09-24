@@ -52,7 +52,8 @@ public partial class ExportViewModel : PanelBaseViewModel
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsExampleRom))]
     [NotifyPropertyChangedFor(nameof(ShowsScreens))]
-    [NotifyPropertyChangedFor(nameof(ShowsScreenHeader))]
+    [NotifyPropertyChangedFor(nameof(ShowsScreenOptions))]
+    [NotifyPropertyChangedFor(nameof(ShowsScreenPick))]
     private ExportChoice _format;
 
     /// <summary>Where the first of the files goes; the others take their name from it.</summary>
@@ -87,7 +88,8 @@ public partial class ExportViewModel : PanelBaseViewModel
     /// </remarks>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsExampleRom))]
-    [NotifyPropertyChangedFor(nameof(ShowsScreenHeader))]
+    [NotifyPropertyChangedFor(nameof(ShowsScreenOptions))]
+    [NotifyPropertyChangedFor(nameof(ShowsScreenPick))]
     private bool _byScreens;
 
     /// <summary>
@@ -100,12 +102,41 @@ public partial class ExportViewModel : PanelBaseViewModel
     [ObservableProperty]
     private bool _screenHeader;
 
+    /// <summary>
+    /// Whether only one screen goes out instead of every screen with something on it.
+    /// </summary>
+    /// <remarks>
+    /// What it is for is touching one screen and writing that one again: the other twenty are
+    /// already out there, and rewriting them all turns a change of one room into twenty files
+    /// with a new date on them.
+    /// </remarks>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(AllScreens))]
+    [NotifyPropertyChangedFor(nameof(ShowsScreenPick))]
+    private bool _oneScreen;
+
+    /// <summary>Which one, column and row, counting from one as the editor reads it.</summary>
+    [ObservableProperty]
+    private int _screenColumn = 1;
+
+    /// <inheritdoc cref="ScreenColumn"/>
+    [ObservableProperty]
+    private int _screenRow = 1;
+
     public ExportViewModel(MainWindowViewModel mainWindowVm, IExportDocument document)
     {
         _mainWindowVm = mainWindowVm;
         _document = document;
 
         _format = document.Formats[0];
+
+        // Por la pantalla de lo que estuviera seleccionado: con un mapa de veinte pantallas,
+        // arrancar siempre por la 1-1 es ponerse a contar.
+        if (document.FirstScreen is { } screen)
+        {
+            _screenColumn = screen.Column;
+            _screenRow = screen.Row;
+        }
 
         Header = $"{Text["ExportTitle"]}: {document.DocumentName}";
         TagId = "export";
@@ -151,11 +182,32 @@ public partial class ExportViewModel : PanelBaseViewModel
     /// Not for the csv: it is for opening in a spreadsheet, and twenty spreadsheets of a map
     /// are not easier to read than one.
     /// </remarks>
-    public bool ShowsScreens => _document.HasScreens
+    public bool ShowsScreens => _document.FirstScreen is not null
         && Format.Format is ExportFormat.Assembler or ExportFormat.Binary;
 
-    /// <summary>The header is only asked about where there is more than one file to put it in.</summary>
-    public bool ShowsScreenHeader => ByScreens && ShowsScreens;
+    /// <summary>Lo que sólo se pregunta con las pantallas puestas: cuáles y con qué cabecera.</summary>
+    public bool ShowsScreenOptions => ByScreens && ShowsScreens;
+
+    /// <summary>Y el número, sólo cuando se ha dicho que va una sola.</summary>
+    public bool ShowsScreenPick => ShowsScreenOptions && OneScreen;
+
+    /// <summary>
+    /// Lo contrario de <see cref="OneScreen"/>, para el otro botón del par.
+    /// </summary>
+    /// <remarks>
+    /// Sólo hace caso cuando lo marcan: al marcar el otro, el grupo desmarca éste y escribe un
+    /// <c>false</c> de vuelta, que aquí no significa nada.
+    /// </remarks>
+    public bool AllScreens
+    {
+        get => !OneScreen;
+
+        set
+        {
+            if (value)
+                OneScreen = false;
+        }
+    }
 
     /// <summary>The files that are going to be written, with their names already worked out.</summary>
     public ObservableCollection<ExportFileRow> Files { get; } = [];
@@ -248,7 +300,10 @@ public partial class ExportViewModel : PanelBaseViewModel
         Stem,
         WithRom ? Assembler.Style : _mainWindowVm.Preferences.AsmStyle,
         WithRom ? Assembler : null,
-        WithScreens ? new ScreenSplit(ScreenHeader) : null);
+        WithScreens ? new ScreenSplit(ScreenHeader, Picked) : null);
+
+    /// <summary>La pantalla pedida, o nada cuando van todas.</summary>
+    private ScreenNumber? Picked => OneScreen ? new ScreenNumber(ScreenColumn, ScreenRow) : null;
 
     [RelayCommand]
     private async Task BrowseAsync()
@@ -346,6 +401,15 @@ public partial class ExportViewModel : PanelBaseViewModel
 
     /// <summary>La cabecera cambia lo que se escribe, no cómo se llama.</summary>
     partial void OnScreenHeaderChanged(bool value) => Refresh();
+
+    /// <summary>Y cuáles van cambia la lista entera.</summary>
+    partial void OnOneScreenChanged(bool value) => Refresh();
+
+    /// <inheritdoc cref="OnOneScreenChanged"/>
+    partial void OnScreenColumnChanged(int value) => Refresh();
+
+    /// <inheritdoc cref="OnOneScreenChanged"/>
+    partial void OnScreenRowChanged(int value) => Refresh();
 
     partial void OnDestinationChanged(string value) => Refresh();
 

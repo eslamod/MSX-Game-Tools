@@ -1,8 +1,15 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
 using MSX_GameTools.Entities;
 using MSX_GameTools.Localization;
 using MSX_GameTools.Services;
 using MSX_GameTools.ViewModels;
+using MSX_GameTools.Views;
 using Xunit;
 
 namespace MSX_GameTools.Tests;
@@ -294,15 +301,229 @@ public class MapScreensExportTests : IDisposable
         Assert.Equal(_folder, opened.Form.Destination);
     }
 
+    // ------------------------------------------------------------------ una sola pantalla
+
+    /// <summary>
+    /// Se puede pedir una pantalla por su número y sale sólo ésa.
+    /// </summary>
+    /// <remarks>
+    /// Es para cuando se toca una habitación y hay que volver a escribirla: las otras veinte ya
+    /// están, y reescribirlas todas convierte el cambio de una en veinte ficheros con fecha
+    /// nueva.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Se_puede_pedir_una_sola_pantalla_por_su_numero()
+    {
+        Opened opened = Open(64, 48, painted: [(0, 0), (32, 0), (0, 24), (32, 24)]);
+
+        ByScreens(opened.Form, ExportFormat.Binary);
+        Pick(opened.Form, 2, 1);
+
+        Assert.Equal((string[])["nivel_1_2_1.bin"], opened.Form.Files.Select(file => file.Name));
+
+        await AcceptAsync(opened.Form);
+
+        Assert.Equal(
+            (string[])["nivel_1_2_1.bin"],
+            Directory.GetFiles(_folder).Select(Path.GetFileName));
+    }
+
+    /// <summary>
+    /// Y una vacía pedida por su número sí se escribe.
+    /// </summary>
+    /// <remarks>
+    /// Saltarse las vacías vale para la tanda entera, donde son los huecos del dibujo. Pedir una
+    /// por su número es pedir ésa, y una vacía a propósito —un sótano que el juego rellena al
+    /// entrar— está tan pedida como las demás.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Una_pantalla_vacia_pedida_por_su_numero_si_se_escribe()
+    {
+        Opened opened = Open(64, 48, painted: [(0, 0)]);
+
+        opened.Map.EmptyTile = 3;
+
+        ByScreens(opened.Form, ExportFormat.Binary);
+        Pick(opened.Form, 2, 2);
+
+        await AcceptAsync(opened.Form);
+
+        byte[] screen = await File.ReadAllBytesAsync(Path.Combine(_folder, "nivel_1_2_2.bin"));
+
+        Assert.Equal(32 * 24, screen.Length);
+        Assert.All(screen, one => Assert.Equal(3, one));
+    }
+
+    /// <summary>Una pantalla que no existe se dice, en vez de no escribir nada sin explicar.</summary>
+    [AvaloniaFact]
+    public async Task Una_pantalla_que_no_existe_no_deja_exportar()
+    {
+        Opened opened = Open(64, 48, painted: [(0, 0)]);
+
+        ByScreens(opened.Form, ExportFormat.Binary);
+        Pick(opened.Form, 5, 1);
+
+        Assert.Equal(Text.Format("ExportScreenMissing", new ScreenNumber(5, 1), 2, 2),
+            opened.Form.ErrorMessage);
+
+        Assert.Empty(opened.Form.Files);
+
+        await AcceptAsync(opened.Form);
+
+        Assert.Empty(Directory.GetFiles(_folder));
+    }
+
+    /// <summary>
+    /// El panel arranca por la pantalla de lo que estuviera marcado.
+    /// </summary>
+    /// <remarks>
+    /// Lo marcado es lo último que se dijo a propósito sobre dónde se estaba trabajando y sigue
+    /// ahí al abrir el panel; el ratón no, que se queda por donde saliera del lienzo camino del
+    /// menú.
+    /// </remarks>
+    [AvaloniaFact]
+    public void El_panel_arranca_por_la_pantalla_de_lo_marcado()
+    {
+        Opened opened = Open(96, 48, selected: (70, 30), painted: [(0, 0)]);
+
+        Assert.Equal(3, opened.Form.ScreenColumn);
+        Assert.Equal(2, opened.Form.ScreenRow);
+    }
+
+    /// <summary>Y sin nada marcado, por la primera.</summary>
+    [AvaloniaFact]
+    public void Sin_nada_marcado_el_panel_arranca_por_la_primera()
+    {
+        Opened opened = Open(96, 48, painted: [(0, 0)]);
+
+        Assert.Equal(1, opened.Form.ScreenColumn);
+        Assert.Equal(1, opened.Form.ScreenRow);
+    }
+
+    /// <summary>
+    /// De una sola se dice cuál ha salido, y si llevaba relleno.
+    /// </summary>
+    /// <remarks>
+    /// Cuántas han salido no hace falta decirlo —una, la pedida— ni que falten las vacías, que
+    /// aquí no se ha saltado ninguna.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task De_una_sola_pantalla_se_dice_cual_ha_salido_y_si_lleva_relleno()
+    {
+        Opened opened = Open(40, 24, painted: [(0, 0), (32, 0)]);
+
+        ByScreens(opened.Form, ExportFormat.Binary);
+        Pick(opened.Form, 2, 1);
+
+        await AcceptAsync(opened.Form);
+
+        string said = Assert.Single(opened.Dialogs.Messages);
+
+        Assert.Contains(Text.Format("ExportedOneScreenBody", new ScreenNumber(2, 1)), said);
+        Assert.Contains(Text.Format("ExportedScreensPadded", 0), said);
+        Assert.DoesNotContain(Text["ExportedScreensSkipped"], said);
+    }
+
+    /// <summary>La del borde pedida suelta también sale entera.</summary>
+    [AvaloniaFact]
+    public async Task La_pantalla_del_borde_pedida_suelta_tambien_se_rellena()
+    {
+        Opened opened = Open(40, 24, painted: [(32, 0)]);
+
+        opened.Map.EmptyTile = 3;
+
+        ByScreens(opened.Form, ExportFormat.Binary);
+        Pick(opened.Form, 2, 1);
+
+        await AcceptAsync(opened.Form);
+
+        byte[] edge = await File.ReadAllBytesAsync(Path.Combine(_folder, "nivel_1_2_1.bin"));
+
+        Assert.Equal(32 * 24, edge.Length);
+        Assert.Equal(7, edge[0]);
+        Assert.Equal(3, edge[8]);
+    }
+
+    /// <summary>
+    /// Los dos botones del par, pulsados de verdad.
+    /// </summary>
+    /// <remarks>
+    /// Un grupo de radios escribe un <c>false</c> de vuelta en el que desmarca, así que con el
+    /// modelo de vista suelto los dos se ven bien y montados se pisan el uno al otro.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Los_dos_botones_del_par_eligen_todas_o_una()
+    {
+        Opened opened = Open(64, 48, painted: [(0, 0)]);
+
+        ByScreens(opened.Form, ExportFormat.Binary);
+
+        var view = new ExportView { DataContext = opened.Form };
+        var window = new Window { Content = view, Width = 420, Height = 700 };
+
+        window.Show();
+        Pump();
+
+        RadioButton all = Radio(view, Text["ExportAllScreens"]);
+        RadioButton one = Radio(view, Text["ExportOneScreen"]);
+
+        Assert.True(all.IsChecked);
+
+        Click(window, one);
+
+        Assert.True(opened.Form.OneScreen);
+        Assert.True(opened.Form.ShowsScreenPick);
+        Assert.False(all.IsChecked);
+
+        Click(window, all);
+
+        Assert.False(opened.Form.OneScreen);
+        Assert.False(opened.Form.ShowsScreenPick);
+        Assert.False(one.IsChecked);
+
+        window.Close();
+        Pump();
+    }
+
+    /// <summary>
+    /// Y decir que van todas, sin la vista delante, quita la de una sola.
+    /// </summary>
+    /// <remarks>
+    /// Montado no hace falta: el grupo desmarca el otro botón y es su enlace el que escribe el
+    /// <c>false</c>. Pero la propiedad tiene que valerse sola, que quien la ponga desde fuera
+    /// está diciendo «todas» y eso es lo que tiene que quedar.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Decir_que_van_todas_quita_la_de_una_sola()
+    {
+        Opened opened = Open(64, 48, painted: [(0, 0)]);
+
+        opened.Form.OneScreen = true;
+        opened.Form.AllScreens = true;
+
+        Assert.False(opened.Form.OneScreen);
+        Assert.True(opened.Form.AllScreens);
+    }
+
     // ------------------------------------------------------------------ los andamios
 
     /// <summary>Un mapa abierto con su panel de exportar, que es por donde se pasa.</summary>
     private sealed record Opened(
-        MainWindowViewModel Main, TestDialogService Dialogs, TileMap Map, ExportViewModel Form);
+        MainWindowViewModel Main,
+        TestDialogService Dialogs,
+        TileMap Map,
+        MapEditorViewModel Editor,
+        ExportViewModel Form);
 
     /// <param name="superTile">El lado del supertile, o 0 para un mapa de tiles sueltos.</param>
+    /// <param name="selected">La celda que queda marcada antes de abrir el panel, si alguna.</param>
     /// <param name="painted">Las celdas que llevan tile, que son las que hacen que una pantalla salga.</param>
-    private Opened Open(int width, int height, int superTile = 0, params (int Column, int Row)[] painted)
+    private Opened Open(
+        int width,
+        int height,
+        int superTile = 0,
+        (int Column, int Row)? selected = null,
+        params (int Column, int Row)[] painted)
     {
         var dialogs = new TestDialogService();
         var main = new MainWindowViewModel(dialogs);
@@ -318,11 +539,33 @@ public class MapScreensExportTests : IDisposable
         foreach ((int column, int row) in painted)
             map.Layers[0].Grid[column, row] = 7;
 
-        main.OpenMap(map, tiles);
+        MapEditorViewModel editor = main.OpenMap(map, tiles);
+
+        if (selected is { } cell)
+            editor.Select(cell.Column, cell.Row, cell.Column, cell.Row);
+
         main.ExportMapCommand.Execute(null);
 
-        return new Opened(main, dialogs, map, (ExportViewModel)main.RightPanViewModel!);
+        return new Opened(main, dialogs, map, editor, (ExportViewModel)main.RightPanViewModel!);
     }
+
+    private static RadioButton Radio(Visual root, string content) =>
+        root.GetVisualDescendants()
+            .OfType<RadioButton>()
+            .Single(button => (string?)button.Content == content);
+
+    private static void Click(Window window, Visual target)
+    {
+        Point centre = target.TranslatePoint(
+            new Point(target.Bounds.Width / 2, target.Bounds.Height / 2), window)!.Value;
+
+        window.MouseDown(centre, MouseButton.Left);
+        Pump();
+        window.MouseUp(centre, MouseButton.Left);
+        Pump();
+    }
+
+    private static void Pump() => Dispatcher.UIThread.RunJobs();
 
     private static ExportChoice Choice(ExportViewModel form, ExportFormat format) =>
         form.Formats.Single(choice => choice.Format == format);
@@ -333,6 +576,14 @@ public class MapScreensExportTests : IDisposable
         form.Format = Choice(form, format);
         form.ByScreens = true;
         form.ScreenHeader = header;
+    }
+
+    /// <summary>Que va una sola, y cuál: columna y fila, contando desde uno.</summary>
+    private static void Pick(ExportViewModel form, int column, int row)
+    {
+        form.OneScreen = true;
+        form.ScreenColumn = column;
+        form.ScreenRow = row;
     }
 
     /// <summary>La carpeta se elige después de la casilla, que es lo que la hace carpeta.</summary>

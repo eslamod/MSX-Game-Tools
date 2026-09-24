@@ -51,7 +51,23 @@ public sealed record ExportRequest(
 /// every one of them —every screen measures the same— but whoever loads them with the code
 /// that reads a whole map needs them, so it is asked rather than decided here.
 /// </param>
-public sealed record ScreenSplit(bool Header);
+/// <param name="Only">
+/// The one screen that goes out, or nothing for every screen with something on it. Asking for
+/// one by its number writes it even if it is empty: that one was asked for.
+/// </param>
+public sealed record ScreenSplit(bool Header, ScreenNumber? Only = null);
+
+/// <summary>
+/// One screen of the map, said the way the editor reads it: column and row, counting from one.
+/// </summary>
+/// <remarks>
+/// From one and column first, like the label at the bottom of the editor. The screen read there
+/// as «3-1» is the one asked for here, and the file that comes out ends in <c>_3_1</c>.
+/// </remarks>
+public sealed record ScreenNumber(int Column, int Row)
+{
+    public override string ToString() => $"{Column}-{Row}";
+}
 
 /// <summary>
 /// A document that can be exported: what it writes, in what formats, and what has to be said
@@ -91,12 +107,15 @@ public interface IExportDocument
     bool HasExampleRom { get; }
 
     /// <summary>
-    /// Whether it can go out screen by screen, which is what puts that box on show.
+    /// The screen the panel starts on, or nothing when this document has no screens.
     /// </summary>
     /// <remarks>
-    /// Only a map has screens: the others are tables, and a table has no rectangle to cut.
+    /// Nothing doubles as «this one cannot be cut», which is what keeps that box from coming
+    /// out: only a map has screens, and a table has no rectangle to cut. A map always gives
+    /// one, even when the size does not work out; what is wrong with the size is said by
+    /// <see cref="Problem"/>, where there is room to explain it.
     /// </remarks>
-    bool HasScreens { get; }
+    ScreenNumber? FirstScreen { get; }
 
     /// <summary>
     /// What stops this export, or nothing when there is nothing in the way.

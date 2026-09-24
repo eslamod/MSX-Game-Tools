@@ -46,14 +46,36 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
     public bool HasExampleRom => true;
 
     /// <summary>
-    /// Un mapa sí se puede partir en pantallas.
+    /// Un mapa sí se puede partir en pantallas, y arranca por la de lo seleccionado.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// Para los juegos de pantallas fijas, que dibujan el mapa entero de una vez y luego cargan
     /// una pantalla cada vez que se cruza una puerta. Lo que mide una pantalla está en la
     /// configuración, que es la misma por la que el editor pinta la rejilla.
+    /// </para>
+    /// <para>
+    /// Lo seleccionado y no por donde esté el ratón: la selección es lo último que se dijo a
+    /// propósito sobre dónde se está trabajando y sigue ahí al abrir el panel, mientras que el
+    /// ratón se queda por donde saliera del lienzo camino del menú.
+    /// </para>
     /// </remarks>
-    public bool HasScreens => true;
+    public ScreenNumber? FirstScreen
+    {
+        get
+        {
+            if (map.Selection is not { } region
+                || map.ScreenCellsWide == 0
+                || map.ScreenCellsHigh == 0)
+            {
+                return new ScreenNumber(1, 1);
+            }
+
+            return new ScreenNumber(
+                (region.Left / map.ScreenCellsWide) + 1,
+                (region.Top / map.ScreenCellsHigh) + 1);
+        }
+    }
 
     /// <summary>
     /// Lo que impide partirlo, dicho antes de escribir nada.
@@ -77,6 +99,18 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
                 map.CellTilesHeight);
         }
 
+        if (request.Screens is { Only: { } one })
+        {
+            int columns = MapScreens.Count(map.Map.Width, map.ScreenCellsWide);
+            int rows = MapScreens.Count(map.Map.Height, map.ScreenCellsHigh);
+
+            // Pedida por su número, una vacía sí sale: es ésa la que se ha pedido. Lo único que
+            // no puede es no existir.
+            return one.Column < 1 || one.Row < 1 || one.Column > columns || one.Row > rows
+                ? Text.Format("ExportScreenMissing", one, columns, rows)
+                : null;
+        }
+
         // Sin recortar nada: si no hay un tile puesto en ninguna capa no hay pantalla que
         // salvar, y esa cuenta es mucho más barata que partir el mapa entero.
         return map.Map.Layers.All(layer => layer.Grid.IsEmpty) ? Text["ExportScreensEmpty"] : null;
@@ -88,6 +122,14 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
 
         if (request.Screens is { } split)
         {
+            if (split.Only is not null)
+            {
+                if (Picked(request, split) is { } one)
+                    yield return ScreenPiece(one, tileMap, request, split);
+
+                yield break;
+            }
+
             foreach (MapScreen screen in Screens(request))
                 yield return ScreenPiece(screen, tileMap, request, split);
 
@@ -130,6 +172,18 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
     /// </remarks>
     private IReadOnlyList<MapScreen> Screens(ExportRequest request) =>
         MapScreens.Of(map.Map, map.ScreenCellsWide, map.ScreenCellsHigh, request.Stem);
+
+    /// <summary>La pantalla pedida por su número, o nada si ahí no hay pantalla.</summary>
+    private MapScreen? Picked(ExportRequest request, ScreenSplit split) =>
+        split.Only is { } one
+            ? MapScreens.At(
+                map.Map,
+                map.ScreenCellsWide,
+                map.ScreenCellsHigh,
+                request.Stem,
+                one.Column - 1,
+                one.Row - 1)
+            : null;
 
     /// <summary>
     /// Una pantalla, con su columna y su fila en el nombre.
@@ -187,6 +241,9 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
     {
         TileMap tileMap = map.Map;
 
+        if (request.Screens is { Only: not null } asked)
+            return OneScreenNote(tileMap, request, asked);
+
         int written = Screens(request).Count;
         int all = MapScreens.Count(tileMap.Width, map.ScreenCellsWide)
                   * MapScreens.Count(tileMap.Height, map.ScreenCellsHigh);
@@ -201,6 +258,29 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
 
         if (HasEmptyCells(tileMap))
             lines.Add(Text.Format("ExportedMapEmptyBody", tileMap.EmptyTile));
+
+        return (Text["ExportedScreensTitle"], string.Join("\n\n", lines));
+    }
+
+    /// <summary>
+    /// De una sola pantalla lo que hace falta decir es de qué lleva relleno, si lleva.
+    /// </summary>
+    /// <remarks>
+    /// Cuántas han salido no hace falta decirlo —una, la que se ha pedido— y lo de las vacías
+    /// tampoco: aquí no se ha saltado ninguna.
+    /// </remarks>
+    private (string Title, string Body) OneScreenNote(
+        TileMap map, ExportRequest request, ScreenSplit split)
+    {
+        MapScreen? one = Picked(request, split);
+
+        var lines = new List<string> { Text.Format("ExportedOneScreenBody", split.Only!) };
+
+        if (one is { Padded: true })
+            lines.Add(Text.Format("ExportedScreensPadded", map.EmptyTile));
+
+        if (one is not null && HasEmptyCells(one.Map))
+            lines.Add(Text.Format("ExportedMapEmptyBody", map.EmptyTile));
 
         return (Text["ExportedScreensTitle"], string.Join("\n\n", lines));
     }
