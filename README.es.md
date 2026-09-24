@@ -213,15 +213,9 @@ Dos costumbres que han salvado bastantes fallos:
 
 ## ROMs de prueba
 
-En `msx/test_rom` hay dos ROMs en ensamblador Z80 que cargan lo exportado y lo enseñan en
+En `msx/test_rom` queda una ROM en ensamblador Z80 que carga lo exportado y lo enseña en
 un MSX de verdad o en openMSX:
 
-- `map_test.asm` — un mapa pintado sobre su juego de tiles, con los cursores para moverse si
-  es más grande que la pantalla. Lo que comprueba de verdad son los cuatro bytes de cabecera
-  que escribe el exportador de mapas: los lee como los leería un juego y saca de ahí todo lo
-  demás. El mapa de ejemplo es de 96x160 a propósito, para que su tabla cruce `8000H` y se
-  ejercite la conmutación de página; y lleva un marco de tile 255, porque un borde torcido
-  delata al instante que el ancho no es el que dice la cabecera.
 - `supertile_test.asm` — lo mismo, sobre un mapa cuyas celdas son supertiles. Comprueba la
   tabla de supertiles, y con supertiles rectangulares a propósito: uno cuadrado disimularía
   un ancho y un alto intercambiados.

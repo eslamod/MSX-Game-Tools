@@ -14,7 +14,8 @@
 ; Valen tambien los .asm: ver el bloque de datos del final y el README.
 ;
 ; Que hace:
-;   - Lo mismo que map_test hasta cargar el juego de tiles en los tres tercios.
+;   - Lo mismo que la ROM del mapa hasta cargar el juego de tiles en los tres
+;     tercios.
 ;   - Lee la cabecera de la tabla de supertiles: ancho, alto y cuantos, un byte
 ;     cada cosa, con el convenio de que una cuenta de 0 son 256.
 ;   - Dibuja el mapa resolviendo cada celda de pantalla a traves de la tabla:
@@ -29,8 +30,8 @@
 ; no canta a simple vista, asi que conviene probar con uno rectangular, 2x3 o
 ; 3x2, donde un orden equivocado descuadra el dibujo entero.
 ;
-; El cartucho es de 32K y ocupa las paginas 1 y 2, con el mismo ENASLT que
-; map_test: la tabla de supertiles puede ser grande y con 16K no cabria.
+; El cartucho es de 32K y ocupa las paginas 1 y 2, con el mismo ENASLT que la
+; ROM del mapa: la tabla de supertiles puede ser grande y con 16K no cabria.
 ;-----------------------------------------------------------------------------
 
 ; --- Puertos del VDP ---------------------------------------------------------
@@ -130,8 +131,8 @@ MainLoop:
 ; La segunda mitad del cartucho
 ;-----------------------------------------------------------------------------
 ; La BIOS busca la "AB" en la pagina 1 y conmuta esa, pero deja la 2 como
-; estaba, que es RAM. Es la rutina del Technical Handbook, la misma que en
-; map_test.
+; estaba, que es RAM. Es la rutina del Technical Handbook, la misma que en la
+; ROM del mapa.
 EnablePage2:
                 call RSLREG             ; slots primarios de las cuatro paginas
                 rrca                    ; bits 2 y 3: el de la pagina 1
@@ -756,9 +757,9 @@ SuperData:
                 .include "tileset_super_supertiles.asm"
 SuperEnd:
 
-; El mapa, con sus celdas en numeros de supertile. Con otro nombre que el de
-; map_test a proposito: son mapas distintos y no se pueden intercambiar, porque
-; alli una celda es un tile y aqui un supertile.
+; El mapa, con sus celdas en numeros de supertile. Con otro nombre que el de un
+; mapa normal a proposito: son mapas distintos y no se pueden intercambiar,
+; porque alli una celda es un tile y aqui un supertile.
 MapData:
               ;  .incbin "super_map.bin"
                 .include "Mapa_superTiles.asm"

@@ -208,15 +208,9 @@ Two habits that have caught a fair number of bugs:
 
 ## Test ROMs
 
-`msx/test_rom` holds two Z80 assembly ROMs that load the exported data and show it on a
-real MSX or on openMSX:
+`msx/test_rom` holds one Z80 assembly ROM left that loads the exported data and shows it
+on a real MSX or on openMSX:
 
-- `map_test.asm` — a map painted over its tile set, with the cursor keys to move around
-  one that is bigger than the screen. What it really checks is the four header bytes the
-  map exporter writes: it reads them the way a game would and works everything out from
-  them. The sample map is 96x160 on purpose, so its table crosses `8000H` and the page
-  switching gets exercised; and it carries a frame of tile 255, because a border that comes
-  out crooked says the width is wrong at a glance.
 - `supertile_test.asm` — the same, over a map whose cells are supertiles. It checks the
   supertile table, with rectangular supertiles on purpose: a square one hides a swapped
   width and height.

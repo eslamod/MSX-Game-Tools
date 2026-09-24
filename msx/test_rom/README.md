@@ -4,8 +4,8 @@ Comprueban en una máquina real (o en un emulador) que lo que exporta el editor 
 lo que espera el VDP. No son parte de la herramienta: son el banco de pruebas de
 los exportadores.
 
-Quedan dos escritas a mano: `map_test.asm` para los mapas y
-`supertile_test.asm` para los mapas hechos con supertiles.
+Queda una escrita a mano: `supertile_test.asm`, para los mapas hechos con
+supertiles.
 
 **La de los juegos de tiles ya no está aquí: la genera el editor.** Al exportar un
 juego se puede pedir la ROM de ejemplo, y sale de `Templates/TileSetRom.asm`
@@ -25,9 +25,9 @@ diferencia sobre las escritas a mano: cargan las tablas del juego recorriendo
 una lista en vez de copiar la misma tres veces, que es lo que deja que cada
 tercio lleve un juego distinto —y que GRAPHIC 1 salga sin un caso aparte—.
 
-Las dos escritas a mano se quedan hasta que las generadas se hayan visto
-corriendo en una máquina. La del mapa ya se ha visto; la de supertiles, todavía
-no.
+`supertile_test.asm` se queda hasta que la generada se haya visto corriendo en
+una máquina con supertiles rectangulares, que es el caso que delata un ancho y
+un alto intercambiados. La del mapa ya se ha visto y se ha ido.
 
 Las ROMs de mapas necesitan además los ficheros del **juego de tiles**, que no
 salen del mapa: hay que exportarlo también —y la tabla de supertiles sale de
@@ -72,29 +72,25 @@ dotnet build tools/sass-MSX -c Release
 Sale `tools/sass-MSX/sass/bin/Release/sasSX` (`sasSX.exe` en Windows). En los
 ejemplos de abajo `sasSX.exe` es ese fichero; lo cómodo es ponerlo en el `PATH` o
 hacerse un alias. También vale
-`dotnet run --project tools/sass-MSX/sass -- map_test.asm ...`.
+`dotnet run --project tools/sass-MSX/sass -- supertile_test.asm ...`.
 
 La suite de pruebas lo busca ahí sola —ese `bin`, `Release` antes que `Debug`, y
 luego el `PATH`—, así que compilándolo una vez ya lo encuentra. Si lo tienes en
 otro sitio, díselo con la variable de entorno `SASSX`.
 
 ```bash
-sasSX.exe map_test.asm --output map_test.rom
-```
-
-```bash
 sasSX.exe supertile_test.asm --output supertile_test.rom
 ```
 
-Las generadas salen de 16384 bytes exactos, que es lo que espera un cartucho en
-la página 1 —salvo con asMSX, que redondea al cartucho más pequeño donde quepa—.
-Las dos de mapas salen de 32768 y ocupan las páginas 1 y 2,
+Las de juegos de tiles y bancos salen de 16384 bytes exactos, que es lo que
+espera un cartucho en la página 1 —salvo con asMSX, que redondea al cartucho más
+pequeño donde quepa—. Las de mapas salen de 32768 y ocupan las páginas 1 y 2,
 porque el mapa viaja dentro de la ROM y con 16K se quedaban cortas enseguida.
 
 Un cartucho de 32K no es sólo cuestión de tamaño: **la BIOS busca la `AB` en la
 página 1 y conmuta esa, pero deja la 2 como estaba, que es RAM**. Sin hacer nada
-más, la ROM no vería su propia mitad de arriba. Por eso lo primero que hace
-`map_test.asm` al arrancar es averiguar en qué slot está —mirando cuál hay
+más, la ROM no vería su propia mitad de arriba. Por eso lo primero que hacen las
+ROMs de mapas al arrancar es averiguar en qué slot están —mirando cuál hay
 puesto en la página 1, que es donde se está ejecutando— y ponerse ahí también
 con `ENASLT`. Es la rutina del Technical Handbook, y el rodeo por `EXPTBL` y
 `SLTTBL` es porque el slot puede estar expandido en subslots y entonces el
@@ -333,8 +329,9 @@ Los 6144 de patrones y de colores son los 2048 de una tabla por los tres tercios
 
 # La ROM del mapa
 
-Carga un juego de tiles y pinta un mapa encima, con los cursores para moverse si
-el mapa es más grande que la pantalla.
+**No está en esta carpeta: la escribe el editor.** Carga un juego de tiles y
+pinta un mapa encima, con los cursores para moverse si el mapa es más grande que
+la pantalla.
 
 ## Lo que de verdad comprueba
 
