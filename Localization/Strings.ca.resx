@@ -159,6 +159,8 @@
   <data name="ExportOneScreen" xml:space="preserve"><value>Només una</value></data>
   <data name="ExportScreenWhich" xml:space="preserve"><value>Pantalla</value></data>
   <data name="ExportScreenMissing" xml:space="preserve"><value>El mapa té {1}x{2} pantalles: la {0} no existeix.</value></data>
+  <data name="ExportScreenIndex" xml:space="preserve"><value>Afegeix un índex de pantalles</value></data>
+  <data name="ExportScreenIndexTip" xml:space="preserve"><value>Una taula amb on comença cada pantalla, i a banda el fitxer que les porta. Amb un cartutx de 32K s’inclouen tots dos; en una megaROM, la taula va amb el codi i cada pantalla a la seva pàgina.</value></data>
   <data name="ExportMoreFiles" xml:space="preserve"><value>i {0} més.</value></data>
   <data name="ExportScreensNotSuper" xml:space="preserve"><value>La pantalla mesura {0}x{1} tiles i el supertile és de {2}x{3}: una pantalla partiria un supertile per la meitat. Canvia la mida de la pantalla a la configuració.</value></data>
   <data name="ExportScreensEmpty" xml:space="preserve"><value>El mapa és buit: no hi ha cap pantalla per escriure.</value></data>
@@ -628,6 +630,7 @@ Recorda copiar cada taula {2} vegades a la VRAM, una per terç de pantalla.</val
   <data name="ExportedScreensTitle" xml:space="preserve"><value>Mapa exportat per pantalles</value></data>
   <data name="ExportedScreensBody" xml:space="preserve"><value>Pantalles escrites: {0} de les {1} que cobreixen el mapa.</value></data>
   <data name="ExportedOneScreenBody" xml:space="preserve"><value>S’ha escrit la pantalla {0}.</value></data>
+  <data name="ExportedScreenNotInIndex" xml:space="preserve"><value>L’índex d’aquesta carpeta no té aquesta pantalla: era buida quan es van treure totes. Torna-les a treure totes perquè el joc la trobi.</value></data>
   <data name="ExportedScreensSkipped" xml:space="preserve"><value>Les altres eren buides i no s’han escrit: els forats del dibuix no arriben a fitxer.</value></data>
   <data name="ExportedScreensPadded" xml:space="preserve"><value>Les pantalles de la vora no hi cabien senceres i s’han completat amb el tile {0}.</value></data>
 

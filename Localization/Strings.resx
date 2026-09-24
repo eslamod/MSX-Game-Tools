@@ -170,6 +170,8 @@
   <data name="ExportOneScreen" xml:space="preserve"><value>Sólo una</value></data>
   <data name="ExportScreenWhich" xml:space="preserve"><value>Pantalla</value></data>
   <data name="ExportScreenMissing" xml:space="preserve"><value>El mapa tiene {1}x{2} pantallas: la {0} no existe.</value></data>
+  <data name="ExportScreenIndex" xml:space="preserve"><value>Añadir un índice de pantallas</value></data>
+  <data name="ExportScreenIndexTip" xml:space="preserve"><value>Una tabla con dónde empieza cada pantalla, y aparte el fichero que las trae. Con un cartucho de 32K se incluyen los dos; en una megaROM, la tabla va con el código y cada pantalla a su página.</value></data>
   <data name="ExportMoreFiles" xml:space="preserve"><value>y {0} más.</value></data>
   <data name="ExportScreensNotSuper" xml:space="preserve"><value>La pantalla mide {0}x{1} tiles y el supertile es de {2}x{3}: la pantalla partiría un supertile por la mitad. Cambia el tamaño de la pantalla en la configuración.</value></data>
   <data name="ExportScreensEmpty" xml:space="preserve"><value>El mapa está vacío: no hay ninguna pantalla que escribir.</value></data>
@@ -669,6 +671,7 @@ Recuerda copiar cada tabla {2} veces en VRAM, una por tercio de pantalla.</value
   <data name="ExportedScreensTitle" xml:space="preserve"><value>Mapa exportado por pantallas</value></data>
   <data name="ExportedScreensBody" xml:space="preserve"><value>Pantallas escritas: {0} de las {1} que cubren el mapa.</value></data>
   <data name="ExportedOneScreenBody" xml:space="preserve"><value>Se ha escrito la pantalla {0}.</value></data>
+  <data name="ExportedScreenNotInIndex" xml:space="preserve"><value>El índice de esta carpeta no tiene esta pantalla: estaba vacía cuando se sacaron todas. Vuelve a sacarlas todas para que el juego la encuentre.</value></data>
   <data name="ExportedScreensSkipped" xml:space="preserve"><value>Las otras estaban vacías y no se han escrito: los huecos del dibujo no llegan a fichero.</value></data>
   <data name="ExportedScreensPadded" xml:space="preserve"><value>Las pantallas del borde no cabían enteras en el mapa y se han completado con el tile {0}.</value></data>
 

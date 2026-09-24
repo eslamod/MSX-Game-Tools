@@ -36,4 +36,15 @@ public sealed record AsmStyle(string Data)
     /// </remarks>
     public static AsmStyle Of(string? data) =>
         string.IsNullOrWhiteSpace(data) ? Default : new AsmStyle(data.Trim());
+
+    /// <summary>
+    /// Any other directive, spelled the way the data one is: with the leading dot or without.
+    /// </summary>
+    /// <remarks>
+    /// For <c>dw</c>, <c>equ</c>, <c>include</c> and <c>incbin</c> the four assemblers measured
+    /// differ in the dot and in nothing else, so the data directive already says how to write
+    /// the rest. One typed by hand that is not <c>db</c> still says whether it carries a dot,
+    /// which is all that is asked of it here.
+    /// </remarks>
+    public string Directive(string name) => Data.StartsWith('.') ? "." + name : name;
 }

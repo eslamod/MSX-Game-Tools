@@ -36,12 +36,17 @@ public sealed record ExportPiece(string Suffix, Func<string, Task> Write, string
 /// How the map is cut when it goes out screen by screen, or nothing when the whole thing goes
 /// out in one file, which is what every other document does.
 /// </param>
+/// <param name="Folder">
+/// Where the files are going. For what has to be said afterwards about what was already there:
+/// a screen written on its own can be missing from an index that was written before it.
+/// </param>
 public sealed record ExportRequest(
     ExportFormat Format,
     string Stem,
     AsmStyle Style,
     AsmDialect? Rom,
-    ScreenSplit? Screens = null);
+    ScreenSplit? Screens = null,
+    string Folder = "");
 
 /// <summary>
 /// Cutting what is exported into the screens of the game.
@@ -55,7 +60,12 @@ public sealed record ExportRequest(
 /// The one screen that goes out, or nothing for every screen with something on it. Asking for
 /// one by its number writes it even if it is empty: that one was asked for.
 /// </param>
-public sealed record ScreenSplit(bool Header, ScreenNumber? Only = null);
+/// <param name="Index">
+/// Whether the table of where each screen starts goes out as well, with the file that brings
+/// the screens in. Only with all of them: the index speaks of the whole batch, and a single
+/// screen leaves the one there was as it was.
+/// </param>
+public sealed record ScreenSplit(bool Header, ScreenNumber? Only = null, bool Index = false);
 
 /// <summary>
 /// One screen of the map, said the way the editor reads it: column and row, counting from one.

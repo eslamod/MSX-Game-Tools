@@ -161,7 +161,9 @@ public class MapScreensExportTests : IDisposable
 
         opened.Main.Preferences.ScreenHeight = 21;
 
-        ByScreens(opened.Form, ExportFormat.Binary);
+        // With the index on, as it comes by default: with no screens to point at, not even the
+        // index goes in the list.
+        ByScreens(opened.Form, ExportFormat.Binary, index: true);
 
         Assert.True(opened.Form.HasError);
         Assert.Empty(opened.Form.Files);
@@ -213,7 +215,7 @@ public class MapScreensExportTests : IDisposable
         opened.Form.ByScreens = true;
 
         Assert.Equal(_folder, opened.Form.Destination);
-        Assert.Equal("nivel_1_1_1.bin", opened.Form.Files[0].Name);
+        Assert.Contains("nivel_1_1_1.bin", opened.Form.Files.Select(file => file.Name));
 
         opened.Form.ByScreens = false;
 
@@ -577,6 +579,337 @@ public class MapScreensExportTests : IDisposable
         Assert.Null(opened.Editor.ScreenPreview);
     }
 
+    // ------------------------------------------------------------------ the index
+
+    /// <summary>
+    /// With all of them the index comes out by default, heading the list.
+    /// </summary>
+    /// <remarks>
+    /// Heading it because the list is cut after a dozen: with a hundred screens, the two files
+    /// that are not screens would end up in the count of the ones that do not fit.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Con_todas_el_indice_sale_de_partida_y_encabeza_la_lista()
+    {
+        Opened opened = Open(64, 48, painted: [(0, 0)]);
+
+        opened.Form.Format = Choice(opened.Form, ExportFormat.Binary);
+        opened.Form.ByScreens = true;
+
+        Assert.True(opened.Form.ScreenIndex);
+        Assert.True(opened.Form.ShowsScreenIndex);
+
+        Assert.Equal(
+            (string[])["nivel_1_screens.asm", "nivel_1_screens_data.asm", "nivel_1_1_1.bin"],
+            opened.Form.Files.Select(file => file.Name));
+    }
+
+    /// <summary>
+    /// With only one there is no index.
+    /// </summary>
+    /// <remarks>
+    /// The index speaks of the whole batch. Written with a single screen, it would say the others
+    /// are not there, and they are: they went out before.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Con_una_sola_no_se_ofrece_el_indice()
+    {
+        Opened opened = Open(64, 48, painted: [(0, 0)]);
+
+        ByScreens(opened.Form, ExportFormat.Binary, index: true);
+        Pick(opened.Form, 1, 1);
+
+        Assert.False(opened.Form.ShowsScreenIndex);
+        Assert.Equal((string[])["nivel_1_1_1.bin"], opened.Form.Files.Select(file => file.Name));
+    }
+
+    /// <summary>
+    /// The table goes row by row, with 0 where a screen was not written.
+    /// </summary>
+    /// <remarks>
+    /// Zero because no screen can start at 0x0000: the game tells there is no room there by
+    /// testing the pointer, which is the whole point of skipping the empty ones.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task La_tabla_va_fila_a_fila_con_cero_en_las_vacias()
+    {
+        Opened opened = Open(12, 6, painted: [(0, 0), (8, 0), (0, 3), (4, 3)]);
+
+        SmallScreens(opened);
+        ByScreens(opened.Form, ExportFormat.Binary, index: true);
+        await AcceptAsync(opened.Form);
+
+        string table = await File.ReadAllTextAsync(Path.Combine(_folder, "nivel_1_screens.asm"));
+
+        Assert.Contains("NIVEL_1_SCREENS_WIDE .equ 3", table);
+        Assert.Contains("NIVEL_1_SCREENS_HIGH .equ 2", table);
+        Assert.Contains("nivel_1_screens:", table);
+        Assert.Contains("    .dw nivel_1_1_1_map, 0, nivel_1_3_1_map    ; row 1", table);
+        Assert.Contains("    .dw nivel_1_1_2_map, nivel_1_2_2_map, 0    ; row 2", table);
+    }
+
+    /// <summary>A long row of screens goes on in the next line instead of in one endless line.</summary>
+    [AvaloniaFact]
+    public async Task Una_fila_larga_sigue_en_la_linea_de_abajo()
+    {
+        (int Column, int Row)[] all = [.. Enumerable.Range(0, 10).Select(screen => (screen * 4, 0))];
+
+        Opened opened = Open(40, 3, painted: all);
+
+        SmallScreens(opened);
+        ByScreens(opened.Form, ExportFormat.Binary, index: true);
+        await AcceptAsync(opened.Form);
+
+        string[] lines = await File.ReadAllLinesAsync(Path.Combine(_folder, "nivel_1_screens.asm"));
+
+        int first = Array.FindIndex(lines, line => line.EndsWith("; row 1"));
+
+        Assert.StartsWith("    .dw nivel_1_1_1_map, nivel_1_2_1_map,", lines[first]);
+        Assert.Equal("    .dw nivel_1_9_1_map, nivel_1_10_1_map", lines[first + 1]);
+    }
+
+    /// <summary>
+    /// The screens in bytes come in under the label the table points at.
+    /// </summary>
+    /// <remarks>
+    /// A binary file has no label of its own, so it has to be written next to it; and the name
+    /// has to be the very one the table uses, or the table points at nothing.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Las_pantallas_en_bytes_entran_con_la_etiqueta_de_la_tabla()
+    {
+        Opened opened = Open(8, 3, painted: [(0, 0), (4, 0)]);
+
+        SmallScreens(opened);
+        ByScreens(opened.Form, ExportFormat.Binary, index: true);
+        await AcceptAsync(opened.Form);
+
+        string[] data = await File.ReadAllLinesAsync(
+            Path.Combine(_folder, "nivel_1_screens_data.asm"));
+
+        int label = Array.IndexOf(data, "nivel_1_2_1_map:");
+
+        Assert.True(label >= 0, "the label of 2-1 is not there");
+        Assert.Equal("    .incbin \"nivel_1_2_1.bin\"", data[label + 1]);
+    }
+
+    /// <summary>And the ones in assembler with an include, since they already carry their label.</summary>
+    [AvaloniaFact]
+    public async Task Las_pantallas_en_ensamblador_entran_con_un_include()
+    {
+        Opened opened = Open(8, 3, painted: [(0, 0), (4, 0)]);
+
+        SmallScreens(opened);
+        ByScreens(opened.Form, ExportFormat.Assembler, index: true);
+        await AcceptAsync(opened.Form);
+
+        string[] data = await File.ReadAllLinesAsync(
+            Path.Combine(_folder, "nivel_1_screens_data.asm"));
+
+        Assert.Contains("    .include \"nivel_1_2_1.asm\"", data);
+        Assert.DoesNotContain("nivel_1_2_1_map:", data);
+    }
+
+    /// <summary>
+    /// The four assemblers, with the screens in bytes and in assembler.
+    /// </summary>
+    public static TheoryData<string, ExportFormat> IndexBundles => new()
+    {
+        { "sasSX", ExportFormat.Binary },
+        { "sasSX", ExportFormat.Assembler },
+        { "sjasmplus", ExportFormat.Binary },
+        { "sjasmplus", ExportFormat.Assembler },
+        { "pasmo", ExportFormat.Binary },
+        { "pasmo", ExportFormat.Assembler },
+        { "asMSX", ExportFormat.Binary },
+        { "asMSX", ExportFormat.Assembler },
+    };
+
+    /// <summary>
+    /// The index assembles, and every pointer in the table lands where its screen starts.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Assembled and read back, like the example ROMs: a table that assembles can still point
+    /// one screen off, and that only shows by following each pointer. Every painted screen
+    /// carries its own number in its first cell, so a pointer that lands anywhere else finds
+    /// another number or a zero.
+    /// </para>
+    /// <para>
+    /// Nine screens in a row so that the row goes on in a second line, and three empty ones so
+    /// that the zeros are there too.
+    /// </para>
+    /// </remarks>
+    [AvaloniaTheory]
+    [MemberData(nameof(IndexBundles))]
+    public async Task El_indice_ensambla_y_cada_puntero_cae_en_su_pantalla(
+        string name, ExportFormat format)
+    {
+        string? tool = Assembler.Find(name);
+
+        Assert.SkipUnless(tool is not null, $"{name} no está aquí: {Assembler.HowToGetIt(name)}");
+
+        AsmDialect dialect = AsmDialect.Of(name);
+
+        (int Column, int Row)[] painted =
+        [
+            .. from row in Enumerable.Range(1, 2)
+               from column in Enumerable.Range(1, 9)
+               where !Empty.Contains((column, row))
+               select ((column - 1) * 4, (row - 1) * 3),
+        ];
+
+        Opened opened = Open(36, 6, painted: painted);
+
+        foreach ((int column, int row) in painted)
+            opened.Map.Layers[0].Grid[column, row] = Id((column / 4) + 1, (row / 3) + 1);
+
+        SmallScreens(opened);
+        opened.Main.Preferences.AsmData = dialect.Style.Data;
+
+        ByScreens(opened.Form, format, index: true);
+        await AcceptAsync(opened.Form);
+
+        string host = Path.Combine(_folder, "host.asm");
+
+        await File.WriteAllTextAsync(host, Host(dialect));
+
+        string rom = Path.Combine(_folder, "nivel_1.rom");
+        string said = Assembler.Run(tool!, name, host, rom);
+
+        Assert.True(File.Exists(rom), $"{name} no sacó ROM: {said}");
+
+        byte[] bytes = await File.ReadAllBytesAsync(rom);
+
+        int marker = bytes.AsSpan().IndexOf("IDX!"u8);
+
+        Assert.True(marker >= 0, "the marker the host writes is not in the ROM");
+
+        int table = Word(bytes, marker + 4) - 0x4000;
+
+        // The two constants, which have to assemble and hold what the map measures.
+        Assert.Equal(9, bytes[marker + 6]);
+        Assert.Equal(2, bytes[marker + 7]);
+
+        for (int row = 1; row <= 2; row++)
+        {
+            for (int column = 1; column <= 9; column++)
+            {
+                int pointer = Word(bytes, table + (2 * (((row - 1) * 9) + (column - 1))));
+
+                if (Empty.Contains((column, row)))
+                {
+                    Assert.Equal(0, pointer);
+
+                    continue;
+                }
+
+                int start = pointer - 0x4000;
+
+                Assert.Equal(Id(column, row), bytes[start]);
+                Assert.All(bytes[(start + 1)..(start + 12)], one => Assert.Equal(0, one));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Written alone, a screen that the index in the folder does not have is said.
+    /// </summary>
+    /// <remarks>
+    /// It happens with one that was empty when all of them went out: the index has a 0 where it
+    /// goes, and now that it exists the game would still not find it.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Una_pantalla_suelta_que_el_indice_no_tiene_se_avisa()
+    {
+        Opened opened = Open(8, 3, painted: [(0, 0)]);
+
+        SmallScreens(opened);
+        ByScreens(opened.Form, ExportFormat.Binary, index: true);
+        await AcceptAsync(opened.Form);
+
+        opened.Map.Layers[0].Grid[4, 0] = 5;
+
+        ExportViewModel again = Reopen(opened);
+
+        ByScreens(again, ExportFormat.Binary);
+        Pick(again, 2, 1);
+        await AcceptAsync(again);
+
+        Assert.Contains(Text["ExportedScreenNotInIndex"], opened.Dialogs.Messages[^1]);
+    }
+
+    /// <summary>And one that the index does have is not, which would be crying wolf.</summary>
+    [AvaloniaFact]
+    public async Task Una_pantalla_suelta_que_el_indice_tiene_no_se_avisa()
+    {
+        Opened opened = Open(8, 3, painted: [(0, 0), (4, 0)]);
+
+        SmallScreens(opened);
+        ByScreens(opened.Form, ExportFormat.Binary, index: true);
+        await AcceptAsync(opened.Form);
+
+        ExportViewModel again = Reopen(opened);
+
+        ByScreens(again, ExportFormat.Binary);
+        Pick(again, 2, 1);
+        await AcceptAsync(again);
+
+        Assert.DoesNotContain(Text["ExportedScreenNotInIndex"], opened.Dialogs.Messages[^1]);
+    }
+
+    /// <summary>The screens of the index tests: nine across and two down, minus these.</summary>
+    private static readonly (int Column, int Row)[] Empty = [(3, 1), (9, 1), (5, 2)];
+
+    /// <summary>What a screen carries in its first cell, which is what says the pointer found it.</summary>
+    private static int Id(int column, int row) => ((row - 1) * 9) + column;
+
+    /// <summary>Screens of 4x3, so that the ROM of the test stays small and quick.</summary>
+    private static void SmallScreens(Opened opened)
+    {
+        opened.Main.Preferences.ScreenWidth = 4;
+        opened.Main.Preferences.ScreenHeight = 3;
+    }
+
+    /// <summary>The panel again, as it opens from the menu, over the same map.</summary>
+    private static ExportViewModel Reopen(Opened opened)
+    {
+        opened.Main.ExportMapCommand.Execute(null);
+
+        return (ExportViewModel)opened.Main.RightPanViewModel!;
+    }
+
+    private static int Word(byte[] bytes, int at) => bytes[at] | (bytes[at + 1] << 8);
+
+    /// <summary>
+    /// A cartridge that brings the index in and leaves where the table is behind a marker.
+    /// </summary>
+    /// <remarks>
+    /// The header and the tail are the dialect's, the same ones the example ROMs are built
+    /// with, so each assembler gets the cartridge it knows how to make. The marker is what finds
+    /// the table afterwards without having to know where each assembler put it.
+    /// </remarks>
+    private static string Host(AsmDialect dialect) =>
+        string.Join(
+                "\n",
+                dialect.Header,
+                "Begin:",
+                "                ret",
+                $"                {dialect.Directive("include")} \"nivel_1_screens.asm\"",
+                $"                {dialect.Directive("include")} \"nivel_1_screens_data.asm\"",
+                $"                {dialect.Directive("db")} \"IDX!\"",
+                $"                {dialect.Directive("dw")} nivel_1_screens",
+                $"                {dialect.Directive("db")} NIVEL_1_SCREENS_WIDE, NIVEL_1_SCREENS_HIGH",
+                dialect.Tail)
+            .Replace("{ORG}", dialect.Directive("org"))
+            .Replace("{DB}", dialect.Directive("db"))
+            .Replace("{DW}", dialect.Directive("dw"))
+            .Replace("{DS}", dialect.Directive("ds"))
+            .Replace("{START}", "Begin")
+            .Replace("{STEM}", "nivel_1")
+            .Replace("{ROM_END}", "0x8000")
+            .Replace("\n", Environment.NewLine);
+
     // ------------------------------------------------------------------ los andamios
 
     /// <summary>Un mapa abierto con su panel de exportar, que es por donde se pasa.</summary>
@@ -643,11 +976,17 @@ public class MapScreensExportTests : IDisposable
         form.Formats.Single(choice => choice.Format == format);
 
     /// <summary>El formato y la casilla, en ese orden: el formato decide si la casilla sale.</summary>
-    private static void ByScreens(ExportViewModel form, ExportFormat format, bool header = false)
+    /// <remarks>
+    /// Without the index unless it is asked for: it is on by default, and the tests that are
+    /// about the screens themselves would be counting two files that are not screens.
+    /// </remarks>
+    private static void ByScreens(
+        ExportViewModel form, ExportFormat format, bool header = false, bool index = false)
     {
         form.Format = Choice(form, format);
         form.ByScreens = true;
         form.ScreenHeader = header;
+        form.ScreenIndex = index;
     }
 
     /// <summary>Que va una sola, y cuál: columna y fila, contando desde uno.</summary>

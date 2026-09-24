@@ -54,6 +54,7 @@ public partial class ExportViewModel : PanelBaseViewModel
     [NotifyPropertyChangedFor(nameof(ShowsScreens))]
     [NotifyPropertyChangedFor(nameof(ShowsScreenOptions))]
     [NotifyPropertyChangedFor(nameof(ShowsScreenPick))]
+    [NotifyPropertyChangedFor(nameof(ShowsScreenIndex))]
     private ExportChoice _format;
 
     /// <summary>Where the first of the files goes; the others take their name from it.</summary>
@@ -90,6 +91,7 @@ public partial class ExportViewModel : PanelBaseViewModel
     [NotifyPropertyChangedFor(nameof(ShowsExampleRom))]
     [NotifyPropertyChangedFor(nameof(ShowsScreenOptions))]
     [NotifyPropertyChangedFor(nameof(ShowsScreenPick))]
+    [NotifyPropertyChangedFor(nameof(ShowsScreenIndex))]
     private bool _byScreens;
 
     /// <summary>
@@ -113,7 +115,18 @@ public partial class ExportViewModel : PanelBaseViewModel
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AllScreens))]
     [NotifyPropertyChangedFor(nameof(ShowsScreenPick))]
+    [NotifyPropertyChangedFor(nameof(ShowsScreenIndex))]
     private bool _oneScreen;
+
+    /// <summary>
+    /// Whether the table of where each screen starts goes out with them.
+    /// </summary>
+    /// <remarks>
+    /// On by default: whoever cuts a map into screens is going to need to find them from the
+    /// game, and writing that table by hand is a line per screen to keep in step with the map.
+    /// </remarks>
+    [ObservableProperty]
+    private bool _screenIndex = true;
 
     /// <summary>Which one, column and row, counting from one as the editor reads it.</summary>
     [ObservableProperty]
@@ -190,6 +203,15 @@ public partial class ExportViewModel : PanelBaseViewModel
 
     /// <summary>Y el número, sólo cuando se ha dicho que va una sola.</summary>
     public bool ShowsScreenPick => ShowsScreenOptions && OneScreen;
+
+    /// <summary>
+    /// The index is only offered with all of them.
+    /// </summary>
+    /// <remarks>
+    /// It speaks of the whole batch. Written with a single screen it would say that the others
+    /// are not there, and they are: they went out before.
+    /// </remarks>
+    public bool ShowsScreenIndex => ShowsScreenOptions && !OneScreen;
 
     /// <summary>
     /// Lo contrario de <see cref="OneScreen"/>, para el otro botón del par.
@@ -300,7 +322,8 @@ public partial class ExportViewModel : PanelBaseViewModel
         Stem,
         WithRom ? Assembler.Style : _mainWindowVm.Preferences.AsmStyle,
         WithRom ? Assembler : null,
-        WithScreens ? new ScreenSplit(ScreenHeader, Picked) : null);
+        WithScreens ? new ScreenSplit(ScreenHeader, Picked, ScreenIndex && !OneScreen) : null,
+        Folder);
 
     /// <summary>La pantalla pedida, o nada cuando van todas.</summary>
     private ScreenNumber? Picked => OneScreen ? new ScreenNumber(ScreenColumn, ScreenRow) : null;
@@ -412,6 +435,9 @@ public partial class ExportViewModel : PanelBaseViewModel
 
     /// <summary>La cabecera cambia lo que se escribe, no cómo se llama.</summary>
     partial void OnScreenHeaderChanged(bool value) => Refresh();
+
+    /// <summary>The index puts two files in the list, or takes them out.</summary>
+    partial void OnScreenIndexChanged(bool value) => Refresh();
 
     /// <summary>Y cuáles van cambia la lista entera, y lo que se señala en el mapa.</summary>
     partial void OnOneScreenChanged(bool value) => Answered();

@@ -158,6 +158,8 @@
   <data name="ExportOneScreen" xml:space="preserve"><value>Only one</value></data>
   <data name="ExportScreenWhich" xml:space="preserve"><value>Screen</value></data>
   <data name="ExportScreenMissing" xml:space="preserve"><value>The map has {1}x{2} screens: there is no {0}.</value></data>
+  <data name="ExportScreenIndex" xml:space="preserve"><value>Add an index of the screens</value></data>
+  <data name="ExportScreenIndexTip" xml:space="preserve"><value>A table of where each screen starts, and apart from it the file that brings them in. In a 32K cartridge both go in; in a megaROM the table goes with the code and each screen to its page.</value></data>
   <data name="ExportMoreFiles" xml:space="preserve"><value>and {0} more.</value></data>
   <data name="ExportScreensNotSuper" xml:space="preserve"><value>The screen measures {0}x{1} tiles and the super tile is {2}x{3}: a screen would cut a super tile in half. Change the screen size in the preferences.</value></data>
   <data name="ExportScreensEmpty" xml:space="preserve"><value>The map is empty: there is no screen to write.</value></data>
@@ -627,6 +629,7 @@ Remember to copy each table {2} times into VRAM, one per third of the screen.</v
   <data name="ExportedScreensTitle" xml:space="preserve"><value>Map exported screen by screen</value></data>
   <data name="ExportedScreensBody" xml:space="preserve"><value>Screens written: {0} of the {1} that cover the map.</value></data>
   <data name="ExportedOneScreenBody" xml:space="preserve"><value>Screen {0} written.</value></data>
+  <data name="ExportedScreenNotInIndex" xml:space="preserve"><value>The index in this folder does not have this screen: it was empty when all of them went out. Export all of them again so that the game finds it.</value></data>
   <data name="ExportedScreensSkipped" xml:space="preserve"><value>The others were empty and have not been written: the holes in the drawing do not make it to a file.</value></data>
   <data name="ExportedScreensPadded" xml:space="preserve"><value>The screens at the edge did not fit whole in the map and have been completed with tile {0}.</value></data>
 

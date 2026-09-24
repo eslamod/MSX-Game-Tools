@@ -163,7 +163,20 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
                 yield break;
             }
 
-            foreach (MapScreen screen in Screens(request))
+            IReadOnlyList<MapScreen> screens = Screens(request);
+
+            // The index first, so that it heads the list: with a hundred screens the list is cut
+            // after the first dozen, and the two files that are not screens would end up in the
+            // count of the ones that do not fit.
+            // And only with screens to point at: with none —a size that does not fit the super
+            // tile, an empty map— there is nothing to index and the problem is said apart.
+            if (split.Index && screens.Count > 0)
+            {
+                foreach (ExportPiece piece in IndexPieces(screens, request, split))
+                    yield return piece;
+            }
+
+            foreach (MapScreen screen in screens)
                 yield return ScreenPiece(screen, tileMap, request, split);
 
             // Y nada más: la ROM de ejemplo carga un mapa, no una carpeta de pantallas.
@@ -235,6 +248,41 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
                     path,
                     MapExporter.ToAssembler(
                         screen.Map, request.Style, split.Header, MapScreens.Notes(screen, map))));
+
+    /// <summary>
+    /// The table of where each screen starts, and the file that brings them in.
+    /// </summary>
+    /// <remarks>
+    /// Two files and not one: in a megaROM the screens are spread over pages, and a table with
+    /// the includes underneath would put them all in one place.
+    /// </remarks>
+    private IEnumerable<ExportPiece> IndexPieces(
+        IReadOnlyList<MapScreen> screens, ExportRequest request, ScreenSplit split)
+    {
+        TileMap tileMap = map.Map;
+
+        yield return new ExportPiece(
+            MapScreens.IndexSuffix,
+            path => File.WriteAllTextAsync(
+                path,
+                MapScreens.Index(
+                    tileMap,
+                    screens,
+                    map.ScreenCellsWide,
+                    map.ScreenCellsHigh,
+                    request.Stem,
+                    request.Style,
+                    split.Header)),
+            MapScreens.IndexExtension);
+
+        yield return new ExportPiece(
+            MapScreens.DataSuffix,
+            path => File.WriteAllTextAsync(
+                path,
+                MapScreens.Data(
+                    tileMap, screens, request.Stem, request.Style, request.Format == ExportFormat.Binary)),
+            MapScreens.IndexExtension);
+    }
 
     /// <summary>The tile set of each band, which is one when the map is not banded.</summary>
     private IReadOnlyList<TileSet> Bands() =>
@@ -315,7 +363,38 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
         if (one is not null && HasEmptyCells(one.Map))
             lines.Add(Text.Format("ExportedMapEmptyBody", map.EmptyTile));
 
+        if (one is not null && IndexMisses(request, one))
+            lines.Add(Text["ExportedScreenNotInIndex"]);
+
         return (Text["ExportedScreensTitle"], string.Join("\n\n", lines));
+    }
+
+    /// <summary>
+    /// Whether the folder holds an index of these screens that does not have the one just written.
+    /// </summary>
+    /// <remarks>
+    /// It happens with a screen that was empty when all of them went out: it was not written, so
+    /// the index has a 0 where it goes, and now that it exists the game would still not find it.
+    /// Written alone, the index is not touched —it speaks of the whole batch— so it is said.
+    /// </remarks>
+    private static bool IndexMisses(ExportRequest request, MapScreen screen)
+    {
+        string index = Path.Combine(
+            request.Folder, $"{request.Stem}{MapScreens.IndexSuffix}{MapScreens.IndexExtension}");
+
+        try
+        {
+            // By the whole label: the one of 1-1 is inside the one of 11-1 as a piece of text.
+            return File.Exists(index)
+                   && !System.Text.RegularExpressions.Regex.IsMatch(
+                       File.ReadAllText(index),
+                       $@"\b{System.Text.RegularExpressions.Regex.Escape(MapScreens.Label(screen))}\b");
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // An index that cannot be read is not a reason to say anything about it.
+            return false;
+        }
     }
 
     private static bool HasEmptyCells(TileMap map)

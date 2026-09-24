@@ -65,6 +65,15 @@
                          Value="{Binding ScreenRow}" />
         </StackPanel>
 
+        <!-- The index only with all of them: it speaks of the whole batch, and one screen on
+             its own leaves the index there was as it was. -->
+        <CheckBox Content="{l:Localize ExportScreenIndex}"
+                  IsChecked="{Binding ScreenIndex}"
+                  IsVisible="{Binding ShowsScreenIndex}" Margin="12,6,0,0" />
+
+        <TextBlock Text="{l:Localize ExportScreenIndexTip}" IsVisible="{Binding ShowsScreenIndex}"
+                   Opacity="0.7" TextWrapping="Wrap" Margin="12,0,0,0" />
+
         <CheckBox Content="{l:Localize ExportScreenHeader}"
                   IsChecked="{Binding ScreenHeader}"
                   IsVisible="{Binding ShowsScreenOptions}" Margin="12,6,0,0" />
