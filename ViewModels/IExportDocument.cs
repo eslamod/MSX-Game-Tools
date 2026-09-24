@@ -32,7 +32,26 @@ public sealed record ExportPiece(string Suffix, Func<string, Task> Write, string
 /// assembler and not a flag because with the box ticked it rules over the whole batch, the data
 /// files included.
 /// </param>
-public sealed record ExportRequest(ExportFormat Format, string Stem, AsmStyle Style, AsmDialect? Rom);
+/// <param name="Screens">
+/// How the map is cut when it goes out screen by screen, or nothing when the whole thing goes
+/// out in one file, which is what every other document does.
+/// </param>
+public sealed record ExportRequest(
+    ExportFormat Format,
+    string Stem,
+    AsmStyle Style,
+    AsmDialect? Rom,
+    ScreenSplit? Screens = null);
+
+/// <summary>
+/// Cutting what is exported into the screens of the game.
+/// </summary>
+/// <param name="Header">
+/// Whether each file carries the four bytes of the size in front. They are the same four in
+/// every one of them —every screen measures the same— but whoever loads them with the code
+/// that reads a whole map needs them, so it is asked rather than decided here.
+/// </param>
+public sealed record ScreenSplit(bool Header);
 
 /// <summary>
 /// A document that can be exported: what it writes, in what formats, and what has to be said
@@ -70,6 +89,24 @@ public interface IExportDocument
     /// nobody writes would be a tick box that does nothing.
     /// </remarks>
     bool HasExampleRom { get; }
+
+    /// <summary>
+    /// Whether it can go out screen by screen, which is what puts that box on show.
+    /// </summary>
+    /// <remarks>
+    /// Only a map has screens: the others are tables, and a table has no rectangle to cut.
+    /// </remarks>
+    bool HasScreens { get; }
+
+    /// <summary>
+    /// What stops this export, or nothing when there is nothing in the way.
+    /// </summary>
+    /// <remarks>
+    /// In the panel and before a single file is written, next to the list of what is coming: an
+    /// empty list says that nothing is going out but not why, and the answer —the screen does
+    /// not go a whole number of times into the super tile— is not in this panel.
+    /// </remarks>
+    string? Problem(ExportRequest request);
 
     /// <summary>
     /// What is going to be written.

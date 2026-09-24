@@ -112,6 +112,18 @@ public sealed class DialogService(Window owner) : IDialogService
         return file?.TryGetLocalPath();
     }
 
+    public async Task<string?> PickFolderAsync(string title)
+    {
+        IReadOnlyList<IStorageFolder> folders = await owner.StorageProvider.OpenFolderPickerAsync(
+            new FolderPickerOpenOptions
+            {
+                Title = title,
+                AllowMultiple = false,
+            });
+
+        return folders.Count > 0 ? folders[0].TryGetLocalPath() : null;
+    }
+
     public async Task<bool?> ChooseAsync(string title, string message, string firstLabel, string secondLabel)
     {
         var dialog = new ConfirmationWindow(title, message, firstLabel, secondLabel, threeWay: true);

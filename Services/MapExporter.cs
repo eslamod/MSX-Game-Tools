@@ -29,15 +29,24 @@ public static class MapExporter
     /// <summary>Bytes de cabecera: dos por el ancho y dos por el alto.</summary>
     public const int HeaderBytes = 4;
 
-    public static byte[] ToBinary(TileMap map)
+    /// <param name="header">
+    /// Whether the four bytes of the size go in front. Off for the screens of a map split
+    /// screen by screen: they all measure the same, so the size would be the same four bytes
+    /// repeated in every file.
+    /// </param>
+    public static byte[] ToBinary(TileMap map, bool header = true)
     {
         TileGrid flat = map.Flatten();
-        byte[] bytes = new byte[HeaderBytes + (flat.Width * flat.Height)];
+        int front = header ? HeaderBytes : 0;
+        byte[] bytes = new byte[front + (flat.Width * flat.Height)];
 
-        WriteWord(bytes, 0, flat.Width);
-        WriteWord(bytes, 2, flat.Height);
+        if (header)
+        {
+            WriteWord(bytes, 0, flat.Width);
+            WriteWord(bytes, 2, flat.Height);
+        }
 
-        int position = HeaderBytes;
+        int position = front;
 
         for (int row = 0; row < flat.Height; row++)
         {
@@ -48,7 +57,16 @@ public static class MapExporter
         return bytes;
     }
 
-    public static string ToAssembler(TileMap map, AsmStyle? style = null)
+    /// <param name="header"><inheritdoc cref="ToBinary" path="/param[@name='header']"/></param>
+    /// <param name="notes">
+    /// Lines of their own above everything else, for whoever writes a map that is a piece of
+    /// another one and has to say which piece it is. Already comments, semicolon included.
+    /// </param>
+    public static string ToAssembler(
+        TileMap map,
+        AsmStyle? style = null,
+        bool header = true,
+        IReadOnlyList<string>? notes = null)
     {
         string data = AsmStyle.Of(style?.Data).Data;
 
@@ -57,9 +75,18 @@ public static class MapExporter
 
         var text = new StringBuilder();
 
+        foreach (string line in notes ?? [])
+            text.AppendLine(line);
+
         text.AppendLine($"; Map name table - {map.Name}");
-        text.AppendLine($"; {flat.Width}x{flat.Height} tiles, {flat.Width * flat.Height} bytes after the header");
-        text.AppendLine("; Header: width and height, 2 bytes each, low byte first.");
+
+        text.AppendLine(header
+            ? $"; {flat.Width}x{flat.Height} tiles, {flat.Width * flat.Height} bytes after the header"
+            : $"; {flat.Width}x{flat.Height} tiles, {flat.Width * flat.Height} bytes");
+
+        if (header)
+            text.AppendLine("; Header: width and height, 2 bytes each, low byte first.");
+
         text.AppendLine($"; Empty cells are written as tile {map.EmptyTile}: the name table always draws something.");
 
         AppendBands(text, map);
@@ -68,10 +95,13 @@ public static class MapExporter
         text.AppendLine();
         text.AppendLine($"{label}_map:");
 
-        // La cabecera tambien en .db y no en .dw: asi el fichero no depende de que el
-        // ensamblador tenga la directiva, y todos los bytes se leen igual.
-        AppendBytes(text, [.. Word(flat.Width), .. Word(flat.Height)], "size", data);
-        text.AppendLine();
+        if (header)
+        {
+            // La cabecera tambien en .db y no en .dw: asi el fichero no depende de que el
+            // ensamblador tenga la directiva, y todos los bytes se leen igual.
+            AppendBytes(text, [.. Word(flat.Width), .. Word(flat.Height)], "size", data);
+            text.AppendLine();
+        }
 
         for (int row = 0; row < flat.Height; row++)
         {

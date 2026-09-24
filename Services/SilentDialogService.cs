@@ -25,6 +25,8 @@ public sealed class SilentDialogService : IDialogService
         string title, string suggestedFileName, PickerFileKind kind = PickerFileKind.Json) =>
         Task.FromResult<string?>(null);
 
+    public Task<string?> PickFolderAsync(string title) => Task.FromResult<string?>(null);
+
     /// <summary>
     /// La segunda opción, no cancelar.
     /// </summary>

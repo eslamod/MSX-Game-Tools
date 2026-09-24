@@ -150,7 +150,15 @@
   <data name="ExportExampleRom" xml:space="preserve"><value>Add an example ROM</value></data>
   <data name="ExportExampleRomTip" xml:space="preserve"><value>An .asm that loads what is exported and shows it on screen, ready to assemble.</value></data>
   <data name="ExportAssembler" xml:space="preserve"><value>Assembler</value></data>
+  <data name="ExportByScreens" xml:space="preserve"><value>Export screen by screen</value></data>
+  <data name="ExportByScreensTip" xml:space="preserve"><value>One file per screen, with its column and row in the name. Empty ones are not written. How much a screen measures is in the preferences.</value></data>
+  <data name="ExportScreenHeader" xml:space="preserve"><value>Put the size in front of every screen</value></data>
+  <data name="ExportScreenHeaderTip" xml:space="preserve"><value>The four bytes of the width and the height, as in the whole map. Every screen measures the same, so they usually go spare: they are for whoever loads them with the code that reads a map.</value></data>
+  <data name="ExportMoreFiles" xml:space="preserve"><value>and {0} more.</value></data>
+  <data name="ExportScreensNotSuper" xml:space="preserve"><value>The screen measures {0}x{1} tiles and the super tile is {2}x{3}: a screen would cut a super tile in half. Change the screen size in the preferences.</value></data>
+  <data name="ExportScreensEmpty" xml:space="preserve"><value>The map is empty: there is no screen to write.</value></data>
   <data name="PickExportTo" xml:space="preserve"><value>Export to</value></data>
+  <data name="PickExportFolder" xml:space="preserve"><value>Choose the folder for the screens</value></data>
 
   <data name="MenuPreferences" xml:space="preserve">
     <value>Preferences...</value>
@@ -612,6 +620,10 @@ Remember to copy each table {2} times into VRAM, one per third of the screen.</v
   <data name="ExportedSuperTilesTooMany" xml:space="preserve"><value>Careful: the set has {0} supertiles and a map can only name {1}, because each cell is one byte. The extra ones were not written.</value></data>
   <data name="ExportedMapTitle" xml:space="preserve"><value>Map exported</value></data>
   <data name="ExportedMapEmptyBody" xml:space="preserve"><value>Empty cells came out as tile {0}: the VDP name table always draws something and a byte has no room for the hole. It can be changed in «Empty», next to the size of the map.</value></data>
+  <data name="ExportedScreensTitle" xml:space="preserve"><value>Map exported screen by screen</value></data>
+  <data name="ExportedScreensBody" xml:space="preserve"><value>Screens written: {0} of the {1} that cover the map.</value></data>
+  <data name="ExportedScreensSkipped" xml:space="preserve"><value>The others were empty and have not been written: the holes in the drawing do not make it to a file.</value></data>
+  <data name="ExportedScreensPadded" xml:space="preserve"><value>The screens at the edge did not fit whole in the map and have been completed with tile {0}.</value></data>
 
   <data name="NoTileSetTitle" xml:space="preserve"><value>There is no telling which tiles to draw it with</value></data>
   <data name="NoTileSetCsvBody" xml:space="preserve"><value>A csv does not say which tile set its numbers belong to. Go to the tab of the set it belongs to, or to that of a map already using it, and import again.</value></data>

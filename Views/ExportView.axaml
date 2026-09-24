@@ -33,6 +33,22 @@
           </ComboBox>
         </Grid>
 
+        <!-- La pregunta de las pantallas va antes del destino porque cambia lo que el
+             destino es: con ella puesta se elige la carpeta, y sin ella un fichero. -->
+        <CheckBox Content="{l:Localize ExportByScreens}"
+                  IsChecked="{Binding ByScreens}"
+                  IsVisible="{Binding ShowsScreens}" Margin="0,2,0,0" />
+
+        <TextBlock Text="{l:Localize ExportByScreensTip}" IsVisible="{Binding ShowsScreens}"
+                   Opacity="0.7" TextWrapping="Wrap" Margin="0,0,0,6" />
+
+        <CheckBox Content="{l:Localize ExportScreenHeader}"
+                  IsChecked="{Binding ScreenHeader}"
+                  IsVisible="{Binding ShowsScreenHeader}" Margin="12,0,0,0" />
+
+        <TextBlock Text="{l:Localize ExportScreenHeaderTip}" IsVisible="{Binding ShowsScreenHeader}"
+                   Opacity="0.7" TextWrapping="Wrap" Margin="12,0,0,6" />
+
         <!-- The other files take their name from whatever is chosen here, which is what the
              export already did: one name is asked for and the rest are called after it. -->
         <Grid ColumnDefinitions="80,*,Auto" Margin="0,0,0,6">
@@ -86,6 +102,11 @@
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
+
+        <!-- Y los que no caben, contados: cien nombres no se leen, pero saber que hay cien
+             sí hace falta. -->
+        <TextBlock Text="{Binding More}" IsVisible="{Binding HasMore}"
+                   Opacity="0.7" TextWrapping="Wrap" Margin="0,2,0,0" />
 
         <TextBlock Text="{Binding Overwrites}" IsVisible="{Binding HasOverwrites}"
                    Foreground="{DynamicResource AppTextWarning}" TextWrapping="Wrap"

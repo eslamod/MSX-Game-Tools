@@ -37,6 +37,12 @@ public sealed class SpriteBankExport(SpritesEditorViewModel sprites, IDialogServ
     /// </remarks>
     public bool HasExampleRom => sprites.SpritesBank.Type == SpriteBank.SpriteType.MSX2;
 
+    /// <summary>No screens: what goes out is a table and there is no rectangle to cut.</summary>
+    public bool HasScreens => false;
+
+    /// <summary>Nothing gets in the way.</summary>
+    public string? Problem(ExportRequest request) => null;
+
     public IEnumerable<ExportPiece> Pieces(ExportRequest request)
     {
         SpriteBank bank = sprites.SpritesBank;

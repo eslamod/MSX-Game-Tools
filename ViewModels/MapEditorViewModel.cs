@@ -339,17 +339,33 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
     }
 
     /// <summary>
-    /// Cada cuántas celdas va una línea de la rejilla de pantallas, o 0 si no se pinta.
+    /// Lo que mide una pantalla en celdas del mapa, o 0 si no cuadra con el supertile.
     /// </summary>
     /// <remarks>
-    /// Cero también cuando la pantalla no es múltiplo del supertile: con supertiles de 2x2 y
-    /// una pantalla de 21 filas —tres de marcador— la línea caería a media celda, y una rejilla
-    /// que miente es peor que ninguna.
+    /// <para>
+    /// La pantalla se mide en tiles, que es lo que ve quien juega, pero el mapa cuenta celdas y
+    /// en uno de supertiles una celda son varios tiles.
+    /// </para>
+    /// <para>
+    /// Cero cuando no es múltiplo: con supertiles de 2x2 y una pantalla de 21 filas —tres de
+    /// marcador— la pantalla partiría un supertile por la mitad, y ni la rejilla ni la
+    /// exportación tienen dónde poner esa raya.
+    /// </para>
+    /// <para>
+    /// Aparte del interruptor de la rejilla a propósito: exportar por pantallas necesita esta
+    /// cuenta con la rejilla apagada, que es como se trabaja casi siempre.
+    /// </para>
     /// </remarks>
-    public int ScreenGridColumns => ScreenCells(Preferences.ScreenWidth, CellTilesWidth);
+    public int ScreenCellsWide => ScreenCells(Preferences.ScreenWidth, CellTilesWidth);
+
+    /// <inheritdoc cref="ScreenCellsWide"/>
+    public int ScreenCellsHigh => ScreenCells(Preferences.ScreenHeight, CellTilesHeight);
+
+    /// <summary>Cada cuántas celdas va una línea de la rejilla de pantallas, o 0 si no se pinta.</summary>
+    public int ScreenGridColumns => ShowScreenGrid ? ScreenCellsWide : 0;
 
     /// <inheritdoc cref="ScreenGridColumns"/>
-    public int ScreenGridRows => ScreenCells(Preferences.ScreenHeight, CellTilesHeight);
+    public int ScreenGridRows => ShowScreenGrid ? ScreenCellsHigh : 0;
 
     /// <summary>
     /// En qué pantalla cae una celda, contando desde uno: «3-1» es la tercera columna de
@@ -374,14 +390,16 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
     public void ScreenGridChanged()
     {
         OnPropertyChanged(nameof(ShowScreenGrid));
+        OnPropertyChanged(nameof(ScreenCellsWide));
+        OnPropertyChanged(nameof(ScreenCellsHigh));
         OnPropertyChanged(nameof(ScreenGridColumns));
         OnPropertyChanged(nameof(ScreenGridRows));
         OnPropertyChanged(nameof(HoverLabel));
     }
 
-    /// <inheritdoc cref="ScreenGridColumns"/>
-    private int ScreenCells(int tiles, int cellTiles) =>
-        ShowScreenGrid && cellTiles > 0 && tiles % cellTiles == 0 ? tiles / cellTiles : 0;
+    /// <inheritdoc cref="ScreenCellsWide"/>
+    private static int ScreenCells(int tiles, int cellTiles) =>
+        cellTiles > 0 && tiles % cellTiles == 0 ? tiles / cellTiles : 0;
 
     /// <summary>Tiles que ocupa una celda del mapa, de ancho y de alto.</summary>
     public int CellTilesWidth => UsesSuperTiles ? _tiles.TileSet.SuperTileWidth : 1;

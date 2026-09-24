@@ -47,6 +47,12 @@ public sealed class PaletteExport(ColorPalette palette) : IExportDocument
     /// </remarks>
     public bool HasExampleRom => false;
 
+    /// <summary>No screens: what goes out is a table and there is no rectangle to cut.</summary>
+    public bool HasScreens => false;
+
+    /// <summary>Nothing gets in the way.</summary>
+    public string? Problem(ExportRequest request) => null;
+
     public IEnumerable<ExportPiece> Pieces(ExportRequest request)
     {
         yield return new ExportPiece(string.Empty, path =>

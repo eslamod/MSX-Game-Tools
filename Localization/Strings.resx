@@ -162,7 +162,15 @@
   <data name="ExportExampleRom" xml:space="preserve"><value>Añadir una ROM de ejemplo</value></data>
   <data name="ExportExampleRomTip" xml:space="preserve"><value>Un .asm que carga lo exportado y lo enseña en pantalla, listo para ensamblar.</value></data>
   <data name="ExportAssembler" xml:space="preserve"><value>Ensamblador</value></data>
+  <data name="ExportByScreens" xml:space="preserve"><value>Exportar por pantallas</value></data>
+  <data name="ExportByScreensTip" xml:space="preserve"><value>Un fichero por pantalla, con su columna y su fila en el nombre. Las vacías no se escriben. Lo que mide una pantalla está en la configuración.</value></data>
+  <data name="ExportScreenHeader" xml:space="preserve"><value>Poner el tamaño delante de cada pantalla</value></data>
+  <data name="ExportScreenHeaderTip" xml:space="preserve"><value>Los cuatro bytes del ancho y el alto, como en el mapa entero. Todas las pantallas miden lo mismo, así que suelen sobrar: es para quien las cargue con el mismo código que lee un mapa.</value></data>
+  <data name="ExportMoreFiles" xml:space="preserve"><value>y {0} más.</value></data>
+  <data name="ExportScreensNotSuper" xml:space="preserve"><value>La pantalla mide {0}x{1} tiles y el supertile es de {2}x{3}: la pantalla partiría un supertile por la mitad. Cambia el tamaño de la pantalla en la configuración.</value></data>
+  <data name="ExportScreensEmpty" xml:space="preserve"><value>El mapa está vacío: no hay ninguna pantalla que escribir.</value></data>
   <data name="PickExportTo" xml:space="preserve"><value>Exportar a</value></data>
+  <data name="PickExportFolder" xml:space="preserve"><value>Elige la carpeta para las pantallas</value></data>
 
   <data name="MenuPreferences" xml:space="preserve">
     <value>Preferencias...</value>
@@ -654,6 +662,10 @@ Recuerda copiar cada tabla {2} veces en VRAM, una por tercio de pantalla.</value
   <data name="ExportedSuperTilesTooMany" xml:space="preserve"><value>Ojo: el juego tiene {0} supertiles y un mapa sólo puede nombrar {1}, porque cada celda es un byte. Los que sobran no han salido.</value></data>
   <data name="ExportedMapTitle" xml:space="preserve"><value>Mapa exportado</value></data>
   <data name="ExportedMapEmptyBody" xml:space="preserve"><value>Las celdas vacías han salido con el tile {0}: la tabla de nombres del VDP siempre dibuja algo y en un byte no cabe el hueco. Se puede cambiar en «Vacío» junto al tamaño del mapa.</value></data>
+  <data name="ExportedScreensTitle" xml:space="preserve"><value>Mapa exportado por pantallas</value></data>
+  <data name="ExportedScreensBody" xml:space="preserve"><value>Pantallas escritas: {0} de las {1} que cubren el mapa.</value></data>
+  <data name="ExportedScreensSkipped" xml:space="preserve"><value>Las otras estaban vacías y no se han escrito: los huecos del dibujo no llegan a fichero.</value></data>
+  <data name="ExportedScreensPadded" xml:space="preserve"><value>Las pantallas del borde no cabían enteras en el mapa y se han completado con el tile {0}.</value></data>
 
   <!-- Importar un mapa sin saber de qué juego es -->
   <data name="NoTileSetTitle" xml:space="preserve"><value>No se sabe con qué tiles dibujarlo</value></data>

@@ -45,9 +45,55 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
     /// </remarks>
     public bool HasExampleRom => true;
 
+    /// <summary>
+    /// Un mapa sí se puede partir en pantallas.
+    /// </summary>
+    /// <remarks>
+    /// Para los juegos de pantallas fijas, que dibujan el mapa entero de una vez y luego cargan
+    /// una pantalla cada vez que se cruza una puerta. Lo que mide una pantalla está en la
+    /// configuración, que es la misma por la que el editor pinta la rejilla.
+    /// </remarks>
+    public bool HasScreens => true;
+
+    /// <summary>
+    /// Lo que impide partirlo, dicho antes de escribir nada.
+    /// </summary>
+    /// <remarks>
+    /// Sin esto, una pantalla que no cuadra con el supertile deja la lista de ficheros vacía y
+    /// sin explicación: se vería que no va a salir nada, pero no por qué.
+    /// </remarks>
+    public string? Problem(ExportRequest request)
+    {
+        if (request.Screens is null)
+            return null;
+
+        if (map.ScreenCellsWide == 0 || map.ScreenCellsHigh == 0)
+        {
+            return Text.Format(
+                "ExportScreensNotSuper",
+                map.Preferences.ScreenWidth,
+                map.Preferences.ScreenHeight,
+                map.CellTilesWidth,
+                map.CellTilesHeight);
+        }
+
+        // Sin recortar nada: si no hay un tile puesto en ninguna capa no hay pantalla que
+        // salvar, y esa cuenta es mucho más barata que partir el mapa entero.
+        return map.Map.Layers.All(layer => layer.Grid.IsEmpty) ? Text["ExportScreensEmpty"] : null;
+    }
+
     public IEnumerable<ExportPiece> Pieces(ExportRequest request)
     {
         TileMap tileMap = map.Map;
+
+        if (request.Screens is { } split)
+        {
+            foreach (MapScreen screen in Screens(request))
+                yield return ScreenPiece(screen, tileMap, request, split);
+
+            // Y nada más: la ROM de ejemplo carga un mapa, no una carpeta de pantallas.
+            yield break;
+        }
 
         yield return new ExportPiece(string.Empty, path => request.Format switch
         {
@@ -75,6 +121,34 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
         }
     }
 
+    /// <summary>
+    /// Las pantallas que llevan algo dibujado, que son las que salen.
+    /// </summary>
+    /// <remarks>
+    /// Se recorta cada vez que se pregunta y no se guarda: el panel sigue abierto mientras se
+    /// dibuja, y una lista guardada diría los ficheros de hace un rato.
+    /// </remarks>
+    private IReadOnlyList<MapScreen> Screens(ExportRequest request) =>
+        MapScreens.Of(map.Map, map.ScreenCellsWide, map.ScreenCellsHigh, request.Stem);
+
+    /// <summary>
+    /// Una pantalla, con su columna y su fila en el nombre.
+    /// </summary>
+    /// <remarks>
+    /// Columna primero, como la etiqueta del editor: la pantalla que ahí se lee «3-1» es el
+    /// fichero que acaba en <c>_3_1</c>.
+    /// </remarks>
+    private static ExportPiece ScreenPiece(
+        MapScreen screen, TileMap map, ExportRequest request, ScreenSplit split) =>
+        new(
+            $"_{screen.Column + 1}_{screen.Row + 1}",
+            path => request.Format == ExportFormat.Binary
+                ? File.WriteAllBytesAsync(path, MapExporter.ToBinary(screen.Map, split.Header))
+                : File.WriteAllTextAsync(
+                    path,
+                    MapExporter.ToAssembler(
+                        screen.Map, request.Style, split.Header, MapScreens.Notes(screen, map))));
+
     /// <summary>The tile set of each band, which is one when the map is not banded.</summary>
     private IReadOnlyList<TileSet> Bands() =>
         [.. Enumerable.Range(0, map.BandCount).Select(map.TileSetOfBand)];
@@ -92,10 +166,43 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
     /// </remarks>
     public (string Title, string Body)? Note(ExportRequest request)
     {
+        if (request.Screens is not null)
+            return ScreensNote(request);
+
         if (request.Format == ExportFormat.Csv || !HasEmptyCells(map.Map))
             return null;
 
         return (Text["ExportedMapTitle"], Text.Format("ExportedMapEmptyBody", map.Map.EmptyTile));
+    }
+
+    /// <summary>
+    /// Cuántas pantallas han salido, cuántas no, y con qué se ha rellenado lo que faltaba.
+    /// </summary>
+    /// <remarks>
+    /// Las dos cosas que no se ven mirando la carpeta: que faltan ficheros a propósito —los
+    /// huecos del dibujo no se escriben— y que las pantallas del borde llevan relleno que no
+    /// estaba en el mapa.
+    /// </remarks>
+    private (string Title, string Body) ScreensNote(ExportRequest request)
+    {
+        TileMap tileMap = map.Map;
+
+        int written = Screens(request).Count;
+        int all = MapScreens.Count(tileMap.Width, map.ScreenCellsWide)
+                  * MapScreens.Count(tileMap.Height, map.ScreenCellsHigh);
+
+        var lines = new List<string> { Text.Format("ExportedScreensBody", written, all) };
+
+        if (all > written)
+            lines.Add(Text["ExportedScreensSkipped"]);
+
+        if (MapScreens.Pads(tileMap, map.ScreenCellsWide, map.ScreenCellsHigh))
+            lines.Add(Text.Format("ExportedScreensPadded", tileMap.EmptyTile));
+
+        if (HasEmptyCells(tileMap))
+            lines.Add(Text.Format("ExportedMapEmptyBody", tileMap.EmptyTile));
+
+        return (Text["ExportedScreensTitle"], string.Join("\n\n", lines));
     }
 
     private static bool HasEmptyCells(TileMap map)

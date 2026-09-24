@@ -1,0 +1,345 @@
+using Avalonia.Headless.XUnit;
+using MSX_GameTools.Entities;
+using MSX_GameTools.Localization;
+using MSX_GameTools.Services;
+using MSX_GameTools.ViewModels;
+using Xunit;
+
+namespace MSX_GameTools.Tests;
+
+/// <summary>
+/// Exportar el mapa partido en las pantallas del juego.
+/// </summary>
+/// <remarks>
+/// Un juego de pantallas fijas dibuja el mapa entero y luego carga una pantalla cada vez que se
+/// cruza una puerta. Lo que se comprueba aquí es lo que no se ve leyendo: por dónde corta, qué
+/// pantallas no escribe, con qué rellena la del borde y qué se dice al acabar.
+/// </remarks>
+public class MapScreensExportTests : IDisposable
+{
+    private readonly string _folder =
+        Path.Combine(Path.GetTempPath(), $"msxscreens-{Guid.NewGuid():N}");
+
+    public MapScreensExportTests() => Directory.CreateDirectory(_folder);
+
+    public void Dispose() => Directory.Delete(_folder, recursive: true);
+
+    private static Localizer Text => Localizer.Instance;
+
+    [AvaloniaFact]
+    public async Task Sale_un_fichero_por_pantalla_con_su_columna_y_su_fila()
+    {
+        Opened opened = Open(64, 48, painted: [(0, 0), (32, 0), (0, 24), (32, 24)]);
+
+        ByScreens(opened.Form, ExportFormat.Binary);
+
+        // Por orden de lectura, y columna antes que fila: la que el editor llama «2-1» es la
+        // que acaba en _2_1.
+        Assert.Equal(
+            (string[])["nivel_1_1_1.bin", "nivel_1_2_1.bin", "nivel_1_1_2.bin", "nivel_1_2_2.bin"],
+            opened.Form.Files.Select(file => file.Name));
+
+        await AcceptAsync(opened.Form);
+
+        Assert.Equal(
+            (string[])["nivel_1_1_1.bin", "nivel_1_1_2.bin", "nivel_1_2_1.bin", "nivel_1_2_2.bin"],
+            Directory.GetFiles(_folder).Select(Path.GetFileName).Order());
+    }
+
+    /// <summary>
+    /// Las pantallas sin nada dibujado no llegan a fichero.
+    /// </summary>
+    /// <remarks>
+    /// En un mapa de pantallas fijas lo normal es que el rectángulo no esté entero —una L, una
+    /// cruz, un castillo con sus alas—, y un fichero de 768 ceros por cada hueco del dibujo no
+    /// es un mapa, es sitio gastado. Las que sí salen conservan su número.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Las_pantallas_sin_nada_dibujado_no_se_escriben()
+    {
+        Opened opened = Open(64, 48, painted: [(32, 24)]);
+
+        ByScreens(opened.Form, ExportFormat.Binary);
+        await AcceptAsync(opened.Form);
+
+        Assert.Equal(
+            (string[])["nivel_1_2_2.bin"],
+            Directory.GetFiles(_folder).Select(Path.GetFileName));
+    }
+
+    /// <summary>
+    /// La pantalla del borde sale entera, con el tile de relleno donde el mapa ya no llega.
+    /// </summary>
+    /// <remarks>
+    /// Todas las pantallas del juego miden lo mismo, así que el cargador lee siempre el mismo
+    /// número de bytes: una pantalla corta le dejaría el resto de la pantalla con lo que
+    /// hubiera antes.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task La_pantalla_del_borde_se_completa_con_el_tile_de_relleno()
+    {
+        Opened opened = Open(40, 24, painted: [(0, 0), (32, 0)]);
+
+        opened.Map.EmptyTile = 3;
+
+        ByScreens(opened.Form, ExportFormat.Binary);
+        await AcceptAsync(opened.Form);
+
+        byte[] edge = await File.ReadAllBytesAsync(Path.Combine(_folder, "nivel_1_2_1.bin"));
+
+        Assert.Equal(32 * 24, edge.Length);
+
+        // Ocho columnas de mapa y las otras veinticuatro de relleno.
+        Assert.Equal(7, edge[0]);
+        Assert.Equal(3, edge[8]);
+        Assert.Equal(3, edge[^1]);
+    }
+
+    /// <summary>La cabecera es opcional: todas las pantallas miden lo mismo.</summary>
+    [AvaloniaTheory]
+    [InlineData(false, 32 * 24)]
+    [InlineData(true, (32 * 24) + 4)]
+    public async Task La_cabecera_de_cada_pantalla_se_pone_o_no_se_pone(bool header, int bytes)
+    {
+        Opened opened = Open(32, 24, painted: [(0, 0)]);
+
+        ByScreens(opened.Form, ExportFormat.Binary, header);
+        await AcceptAsync(opened.Form);
+
+        byte[] screen = await File.ReadAllBytesAsync(Path.Combine(_folder, "nivel_1_1_1.bin"));
+
+        Assert.Equal(bytes, screen.Length);
+
+        if (header)
+            Assert.Equal((byte[])[32, 0, 24, 0], screen[..4]);
+    }
+
+    /// <summary>
+    /// Cada pantalla lleva escrito de qué mapa y de qué trozo salió.
+    /// </summary>
+    /// <remarks>
+    /// Con veinte ficheros en la misma carpeta, el nombre es lo único que queda para saber cuál
+    /// es cuál. Y la etiqueta lleva el número dentro, así que dos pantallas se pueden ensamblar
+    /// juntas sin chocar.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Cada_pantalla_dice_de_que_mapa_y_de_que_trozo_salio()
+    {
+        Opened opened = Open(64, 48, painted: [(32, 0)]);
+
+        ByScreens(opened.Form, ExportFormat.Assembler);
+        await AcceptAsync(opened.Form);
+
+        string screen = await File.ReadAllTextAsync(Path.Combine(_folder, "nivel_1_2_1.asm"));
+
+        Assert.Contains("; Screen 2-1 of Nivel 1 - map columns 32-63, rows 0-23", screen);
+        Assert.Contains("nivel_1_2_1_map:", screen);
+
+        // Y sin cabecera, que no se ha pedido.
+        Assert.DoesNotContain("; Header:", screen);
+    }
+
+    /// <summary>
+    /// Una pantalla que parte un supertile por la mitad no deja exportar.
+    /// </summary>
+    /// <remarks>
+    /// Sin decirlo, la lista de ficheros se quedaría vacía y sin explicación: se vería que no va
+    /// a salir nada, pero no por qué. Y la respuesta —cambiar el tamaño de la pantalla— está en
+    /// la configuración, que es otro panel.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Una_pantalla_que_parte_un_supertile_no_deja_exportar()
+    {
+        Opened opened = Open(32, 24, superTile: 2, painted: [(0, 0)]);
+
+        opened.Main.Preferences.ScreenHeight = 21;
+
+        ByScreens(opened.Form, ExportFormat.Binary);
+
+        Assert.True(opened.Form.HasError);
+        Assert.Empty(opened.Form.Files);
+
+        await AcceptAsync(opened.Form);
+
+        Assert.Empty(Directory.GetFiles(_folder));
+
+        // Y el panel sigue abierto, que es lo que hace falta para arreglarlo.
+        Assert.NotNull(opened.Main.RightPanViewModel);
+    }
+
+    /// <summary>
+    /// Por pantallas no se ofrece la ROM de ejemplo.
+    /// </summary>
+    /// <remarks>
+    /// La ROM carga un mapa y lo enseña; una carpeta de pantallas es otro programa —el que va
+    /// cambiando de pantalla— y ése no está escrito. Ofrecerla sería una casilla que miente.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Por_pantallas_no_se_ofrece_la_rom_de_ejemplo()
+    {
+        Opened opened = Open(32, 24, painted: [(0, 0)]);
+
+        opened.Form.Format = Choice(opened.Form, ExportFormat.Binary);
+
+        Assert.True(opened.Form.ShowsExampleRom);
+
+        opened.Form.ByScreens = true;
+
+        Assert.False(opened.Form.ShowsExampleRom);
+    }
+
+    /// <summary>
+    /// Marcar la casilla convierte el destino en la carpeta que lo contiene, y al revés.
+    /// </summary>
+    /// <remarks>
+    /// Sin convertirlo, una carpeta elegida antes se leería como un fichero —la carpeta sería
+    /// la de encima— y las pantallas acabarían un nivel más arriba de donde se dijo.
+    /// </remarks>
+    [AvaloniaFact]
+    public void Marcar_la_casilla_convierte_el_destino_en_carpeta()
+    {
+        Opened opened = Open(32, 24, painted: [(0, 0)]);
+
+        opened.Form.Format = Choice(opened.Form, ExportFormat.Binary);
+        opened.Form.Destination = Path.Combine(_folder, "nivel_1.bin");
+
+        opened.Form.ByScreens = true;
+
+        Assert.Equal(_folder, opened.Form.Destination);
+        Assert.Equal("nivel_1_1_1.bin", opened.Form.Files[0].Name);
+
+        opened.Form.ByScreens = false;
+
+        Assert.Equal(Path.Combine(_folder, "nivel_1.bin"), opened.Form.Destination);
+        Assert.Equal("nivel_1.bin", opened.Form.Files[0].Name);
+    }
+
+    /// <summary>Con csv no hay pantallas que ofrecer, y la casilla puesta se cae.</summary>
+    [AvaloniaFact]
+    public void Cambiar_a_csv_quita_la_casilla_de_las_pantallas()
+    {
+        Opened opened = Open(32, 24, painted: [(0, 0)]);
+
+        opened.Form.ByScreens = true;
+
+        Assert.True(opened.Form.ShowsScreens);
+
+        opened.Form.Format = Choice(opened.Form, ExportFormat.Csv);
+
+        Assert.False(opened.Form.ShowsScreens);
+        Assert.False(opened.Form.ByScreens);
+        Assert.Equal("nivel_1.csv", opened.Form.Files[0].Name);
+    }
+
+    /// <summary>
+    /// Con muchas pantallas la lista se resume.
+    /// </summary>
+    /// <remarks>
+    /// Trece nombres ya no se leen de un vistazo y cien menos. Lo que hace falta saber —cómo se
+    /// llaman y cuántos hay— sigue estando.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Con_muchas_pantallas_la_lista_se_resume()
+    {
+        (int Column, int Row)[] one = [.. Enumerable.Range(0, 13).Select(screen => (screen * 32, 0))];
+
+        Opened opened = Open(13 * 32, 24, painted: one);
+
+        ByScreens(opened.Form, ExportFormat.Binary);
+
+        Assert.Equal(12, opened.Form.Files.Count);
+        Assert.Equal(Text.Format("ExportMoreFiles", 1), opened.Form.More);
+
+        await AcceptAsync(opened.Form);
+
+        Assert.Equal(13, Directory.GetFiles(_folder).Length);
+    }
+
+    /// <summary>
+    /// Al acabar se dice cuántas han salido, cuántas no y con qué se ha rellenado.
+    /// </summary>
+    /// <remarks>
+    /// Las dos cosas que no se ven mirando la carpeta: que faltan ficheros a propósito y que las
+    /// pantallas del borde llevan relleno que no estaba en el mapa.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Al_acabar_dice_cuantas_han_salido_y_que_las_demas_estaban_vacias()
+    {
+        Opened opened = Open(40, 48, painted: [(0, 0)]);
+
+        ByScreens(opened.Form, ExportFormat.Binary);
+        await AcceptAsync(opened.Form);
+
+        string said = Assert.Single(opened.Dialogs.Messages);
+
+        Assert.Contains(Text.Format("ExportedScreensBody", 1, 4), said);
+        Assert.Contains(Text["ExportedScreensSkipped"], said);
+        Assert.Contains(Text.Format("ExportedScreensPadded", 0), said);
+    }
+
+    /// <summary>El botón de al lado pide una carpeta, que es lo que hace falta aquí.</summary>
+    [AvaloniaFact]
+    public async Task El_boton_de_al_lado_pide_una_carpeta_y_no_un_fichero()
+    {
+        Opened opened = Open(32, 24, painted: [(0, 0)]);
+
+        opened.Dialogs.FolderPath = _folder;
+
+        ByScreens(opened.Form, ExportFormat.Binary);
+
+        await opened.Form.BrowseCommand.ExecuteAsync(null);
+
+        Assert.Equal(1, opened.Dialogs.FolderCalls);
+        Assert.Equal(0, opened.Dialogs.SaveCalls);
+        Assert.Equal(_folder, opened.Form.Destination);
+    }
+
+    // ------------------------------------------------------------------ los andamios
+
+    /// <summary>Un mapa abierto con su panel de exportar, que es por donde se pasa.</summary>
+    private sealed record Opened(
+        MainWindowViewModel Main, TestDialogService Dialogs, TileMap Map, ExportViewModel Form);
+
+    /// <param name="superTile">El lado del supertile, o 0 para un mapa de tiles sueltos.</param>
+    /// <param name="painted">Las celdas que llevan tile, que son las que hacen que una pantalla salga.</param>
+    private Opened Open(int width, int height, int superTile = 0, params (int Column, int Row)[] painted)
+    {
+        var dialogs = new TestDialogService();
+        var main = new MainWindowViewModel(dialogs);
+        var tileSet = new TileSet("Bosque");
+
+        if (superTile > 0)
+            tileSet.UseSuperTiles(superTile, superTile);
+
+        TileSetEditorViewModel tiles = main.OpenTileSet(tileSet);
+
+        var map = new TileMap("Nivel 1", width, height);
+
+        foreach ((int column, int row) in painted)
+            map.Layers[0].Grid[column, row] = 7;
+
+        main.OpenMap(map, tiles);
+        main.ExportMapCommand.Execute(null);
+
+        return new Opened(main, dialogs, map, (ExportViewModel)main.RightPanViewModel!);
+    }
+
+    private static ExportChoice Choice(ExportViewModel form, ExportFormat format) =>
+        form.Formats.Single(choice => choice.Format == format);
+
+    /// <summary>El formato y la casilla, en ese orden: el formato decide si la casilla sale.</summary>
+    private static void ByScreens(ExportViewModel form, ExportFormat format, bool header = false)
+    {
+        form.Format = Choice(form, format);
+        form.ByScreens = true;
+        form.ScreenHeader = header;
+    }
+
+    /// <summary>La carpeta se elige después de la casilla, que es lo que la hace carpeta.</summary>
+    private async Task AcceptAsync(ExportViewModel form)
+    {
+        form.Destination = _folder;
+
+        await form.AcceptExportCommand.ExecuteAsync(null);
+    }
+}

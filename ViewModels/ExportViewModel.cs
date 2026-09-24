@@ -39,11 +39,20 @@ public sealed record ExportFileRow(string Name, bool Exists);
 /// </remarks>
 public partial class ExportViewModel : PanelBaseViewModel
 {
+    /// <summary>Cuántos ficheros se enseñan por su nombre antes de resumir el resto.</summary>
+    private const int MaxListed = 12;
+
     private readonly MainWindowViewModel _mainWindowVm;
     private readonly IExportDocument _document;
 
+    private int _total;
+
+    private int _existing;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsExampleRom))]
+    [NotifyPropertyChangedFor(nameof(ShowsScreens))]
+    [NotifyPropertyChangedFor(nameof(ShowsScreenHeader))]
     private ExportChoice _format;
 
     /// <summary>Where the first of the files goes; the others take their name from it.</summary>
@@ -68,6 +77,28 @@ public partial class ExportViewModel : PanelBaseViewModel
     /// <summary>The one that example ROM is written for.</summary>
     [ObservableProperty]
     private AsmDialect _assembler = AsmDialect.Default;
+
+    /// <summary>
+    /// Whether the map goes out cut into the screens of the game, one file each.
+    /// </summary>
+    /// <remarks>
+    /// Off by default: a map is one file, and whoever is not making a game of fixed screens
+    /// would find a folder full of pieces of the thing they asked for.
+    /// </remarks>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsExampleRom))]
+    [NotifyPropertyChangedFor(nameof(ShowsScreenHeader))]
+    private bool _byScreens;
+
+    /// <summary>
+    /// Whether every screen carries the four bytes of its size in front.
+    /// </summary>
+    /// <remarks>
+    /// Off by default: the screens of a game all measure the same, so it is the same four bytes
+    /// in every file. Ticked for whoever loads them with the code that reads a whole map.
+    /// </remarks>
+    [ObservableProperty]
+    private bool _screenHeader;
 
     public ExportViewModel(MainWindowViewModel mainWindowVm, IExportDocument document)
     {
@@ -109,12 +140,40 @@ public partial class ExportViewModel : PanelBaseViewModel
     /// template is not written yet would be offering a tick that does nothing.
     /// </remarks>
     public bool ShowsExampleRom => _document.HasExampleRom
+        && !ByScreens
         && Format.Format is ExportFormat.Assembler or ExportFormat.Binary;
+
+    /// <summary>
+    /// Cutting into screens is only offered for what has screens and in the two formats a
+    /// machine reads.
+    /// </summary>
+    /// <remarks>
+    /// Not for the csv: it is for opening in a spreadsheet, and twenty spreadsheets of a map
+    /// are not easier to read than one.
+    /// </remarks>
+    public bool ShowsScreens => _document.HasScreens
+        && Format.Format is ExportFormat.Assembler or ExportFormat.Binary;
+
+    /// <summary>The header is only asked about where there is more than one file to put it in.</summary>
+    public bool ShowsScreenHeader => ByScreens && ShowsScreens;
 
     /// <summary>The files that are going to be written, with their names already worked out.</summary>
     public ObservableCollection<ExportFileRow> Files { get; } = [];
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+
+    /// <summary>
+    /// Los que no caben en la lista, cuando son muchos.
+    /// </summary>
+    /// <remarks>
+    /// Un mapa de diez por diez pantallas son cien nombres, y cien nombres no se leen: lo que
+    /// hace falta saber —cómo se llaman y cuántos pisan algo— se ve en los primeros y en la
+    /// línea de los que ya existen, que cuenta todos.
+    /// </remarks>
+    public string? More =>
+        _total > Files.Count ? Text.Format("ExportMoreFiles", _total - Files.Count) : null;
+
+    public bool HasMore => More is not null;
 
     /// <summary>
     /// How many of the files going out land on one that is already there.
@@ -123,22 +182,28 @@ public partial class ExportViewModel : PanelBaseViewModel
     /// This is what the file picker of the system cannot say: it only asks about the file that
     /// gets named, and a tile set writes up to four.
     /// </remarks>
-    public string? Overwrites
-    {
-        get
-        {
-            int existing = Files.Count(file => file.Exists);
-
-            return existing == 0 ? null : Text.Format("ExportOverwrites", existing, Files.Count);
-        }
-    }
+    public string? Overwrites =>
+        _existing == 0 ? null : Text.Format("ExportOverwrites", _existing, _total);
 
     public bool HasOverwrites => Overwrites is not null;
 
-    /// <summary>The chosen folder, or nothing while there is none.</summary>
-    private string Folder => string.IsNullOrWhiteSpace(Destination)
-        ? string.Empty
-        : Path.GetDirectoryName(Destination) ?? string.Empty;
+    /// <summary>
+    /// The chosen folder, or nothing while there is none.
+    /// </summary>
+    /// <remarks>
+    /// By screens the destination is the folder itself: the names are the screens' own and not
+    /// one of them is the one that would have been written there.
+    /// </remarks>
+    private string Folder
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(Destination))
+                return string.Empty;
+
+            return ByScreens ? Destination : Path.GetDirectoryName(Destination) ?? string.Empty;
+        }
+    }
 
     /// <summary>
     /// The base name the others come from.
@@ -148,7 +213,7 @@ public partial class ExportViewModel : PanelBaseViewModel
     /// from the moment the panel opens; and the chosen one as soon as there is one, which is
     /// what the export already did.
     /// </remarks>
-    private string Stem => string.IsNullOrWhiteSpace(Destination)
+    private string Stem => ByScreens || string.IsNullOrWhiteSpace(Destination)
         ? _document.Stem
         : Path.GetFileNameWithoutExtension(Destination);
 
@@ -162,6 +227,15 @@ public partial class ExportViewModel : PanelBaseViewModel
     private bool WithRom => WantsExampleRom && ShowsExampleRom;
 
     /// <summary>
+    /// Whether it goes out by screens: the box ticked, and a format it makes sense for.
+    /// </summary>
+    /// <remarks>
+    /// Same as the ROM: ticked and then the format changed, the box stays as it was and this
+    /// does not.
+    /// </remarks>
+    private bool WithScreens => ByScreens && ShowsScreens;
+
+    /// <summary>
     /// Everything that has been answered, which is what the document writes from.
     /// </summary>
     /// <remarks>
@@ -173,13 +247,16 @@ public partial class ExportViewModel : PanelBaseViewModel
         Format.Format,
         Stem,
         WithRom ? Assembler.Style : _mainWindowVm.Preferences.AsmStyle,
-        WithRom ? Assembler : null);
+        WithRom ? Assembler : null,
+        WithScreens ? new ScreenSplit(ScreenHeader) : null);
 
     [RelayCommand]
     private async Task BrowseAsync()
     {
-        string? picked = await _mainWindowVm.Dialogs.PickFileToSaveAsync(
-            Text["PickExportTo"], $"{Stem}{Format.Extension}", KindOf(Format.Format));
+        string? picked = ByScreens
+            ? await _mainWindowVm.Dialogs.PickFolderAsync(Text["PickExportFolder"])
+            : await _mainWindowVm.Dialogs.PickFileToSaveAsync(
+                Text["PickExportTo"], $"{Stem}{Format.Extension}", KindOf(Format.Format));
 
         if (picked is not null)
             Destination = picked;
@@ -191,6 +268,15 @@ public partial class ExportViewModel : PanelBaseViewModel
         if (string.IsNullOrWhiteSpace(Destination))
         {
             ErrorMessage = Text["ExportNoDestination"];
+
+            return;
+        }
+
+        // Lo que impide exportar ya está escrito en el panel desde que se contestó; aquí sólo
+        // hay que no seguir.
+        if (_document.Problem(Request) is { } problem)
+        {
+            ErrorMessage = problem;
 
             return;
         }
@@ -227,11 +313,39 @@ public partial class ExportViewModel : PanelBaseViewModel
     /// <summary>The destination follows the format, so that a path does not keep the old one.</summary>
     partial void OnFormatChanged(ExportChoice value)
     {
-        if (!string.IsNullOrWhiteSpace(Destination))
+        // Y si el formato nuevo no sale por pantallas, la casilla se cae: el destino pasa de
+        // ser una carpeta a ser un fichero, y dejarla puesta lo dejaría a medias.
+        if (!ShowsScreens)
+            ByScreens = false;
+
+        if (!ByScreens && !string.IsNullOrWhiteSpace(Destination))
             Destination = Path.ChangeExtension(Destination, value.Extension);
 
         Refresh();
     }
+
+    /// <summary>
+    /// El destino cambia de significado con la casilla, así que se convierte.
+    /// </summary>
+    /// <remarks>
+    /// Por pantallas es la carpeta y sin ella el fichero. Sin convertirlo, una carpeta elegida
+    /// antes se leería como un fichero —la carpeta sería la de encima— y el mapa acabaría un
+    /// nivel más arriba de donde se dijo.
+    /// </remarks>
+    partial void OnByScreensChanged(bool value)
+    {
+        if (!string.IsNullOrWhiteSpace(Destination))
+        {
+            Destination = value
+                ? Path.GetDirectoryName(Destination) ?? Destination
+                : Path.Combine(Destination, $"{_document.Stem}{Format.Extension}");
+        }
+
+        Refresh();
+    }
+
+    /// <summary>La cabecera cambia lo que se escribe, no cómo se llama.</summary>
+    partial void OnScreenHeaderChanged(bool value) => Refresh();
 
     partial void OnDestinationChanged(string value) => Refresh();
 
@@ -243,16 +357,31 @@ public partial class ExportViewModel : PanelBaseViewModel
     {
         Files.Clear();
 
+        _total = 0;
+        _existing = 0;
+
         foreach (ExportPiece piece in _document.Pieces(Request))
         {
             string name = NameOf(piece);
+            bool exists = Folder.Length > 0 && File.Exists(Path.Combine(Folder, name));
 
-            Files.Add(new ExportFileRow(
-                name, Folder.Length > 0 && File.Exists(Path.Combine(Folder, name))));
+            _total++;
+
+            if (exists)
+                _existing++;
+
+            if (Files.Count < MaxListed)
+                Files.Add(new ExportFileRow(name, exists));
         }
+
+        // Lo que impide exportar se dice aquí y no al aceptar: enterarse de que la pantalla no
+        // cuadra con el supertile después de elegir carpeta es tarde.
+        ErrorMessage = _document.Problem(Request);
 
         OnPropertyChanged(nameof(Overwrites));
         OnPropertyChanged(nameof(HasOverwrites));
+        OnPropertyChanged(nameof(More));
+        OnPropertyChanged(nameof(HasMore));
     }
 
     /// <summary>

@@ -18,6 +18,9 @@ internal sealed class TestDialogService : IDialogService
     /// <inheritdoc cref="OpenPath"/>
     public string? SavePath { get; set; }
 
+    /// <inheritdoc cref="OpenPath"/>
+    public string? FolderPath { get; set; }
+
     /// <summary>Lo que contesta al preguntar el tamano de celda; <c>null</c> es cancelar.</summary>
     public int? CellSize { get; init; }
 
@@ -69,6 +72,9 @@ internal sealed class TestDialogService : IDialogService
 
     /// <summary>Veces que se ha abierto el selector de guardar, para ver si vuelve a preguntar.</summary>
     public int SaveCalls { get; private set; }
+
+    /// <summary>Veces que se ha pedido una carpeta, que es otro selector distinto.</summary>
+    public int FolderCalls { get; private set; }
 
     /// <summary>Los avisos mostrados, en orden.</summary>
     public List<string> Messages { get; } = [];
@@ -122,6 +128,13 @@ internal sealed class TestDialogService : IDialogService
         LastSavePickerKind = kind;
 
         return Task.FromResult(SavePath);
+    }
+
+    public Task<string?> PickFolderAsync(string title)
+    {
+        FolderCalls++;
+
+        return Task.FromResult(FolderPath);
     }
 
     public Task<bool?> ChooseAsync(string title, string message, string firstLabel, string secondLabel)

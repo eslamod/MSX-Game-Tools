@@ -58,6 +58,15 @@ public interface IDialogService
         string title, string suggestedFileName, PickerFileKind kind = PickerFileKind.Json);
 
     /// <summary>
+    /// Carpeta elegida, o <c>null</c> si se cancela.
+    /// </summary>
+    /// <remarks>
+    /// Para lo que escribe muchos ficheros y no deja elegir el nombre de ninguno: un mapa
+    /// partido en pantallas se llama como el mapa y cada trozo lleva su número.
+    /// </remarks>
+    Task<string?> PickFolderAsync(string title);
+
+    /// <summary>
     /// Pregunta entre dos opciones que hacen algo distinto. <c>true</c> la primera,
     /// <c>false</c> la segunda y <c>null</c> si se cancela.
     /// </summary>
