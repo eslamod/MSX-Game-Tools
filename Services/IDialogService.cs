@@ -58,11 +58,11 @@ public interface IDialogService
         string title, string suggestedFileName, PickerFileKind kind = PickerFileKind.Json);
 
     /// <summary>
-    /// Carpeta elegida, o <c>null</c> si se cancela.
+    /// The folder chosen, or <c>null</c> if cancelled.
     /// </summary>
     /// <remarks>
-    /// Para lo que escribe muchos ficheros y no deja elegir el nombre de ninguno: un mapa
-    /// partido en pantallas se llama como el mapa y cada trozo lleva su número.
+    /// For what writes many files and lets none of them be named: a map cut into screens is
+    /// named after the map, and each piece carries its number.
     /// </remarks>
     Task<string?> PickFolderAsync(string title);
 

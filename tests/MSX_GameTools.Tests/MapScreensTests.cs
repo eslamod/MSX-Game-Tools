@@ -15,12 +15,12 @@ using Xunit;
 namespace MSX_GameTools.Tests;
 
 /// <summary>
-/// Las pantallas del juego encima del mapa.
+/// The screens of the game over the map.
 /// </summary>
 /// <remarks>
-/// Un juego de pantallas fijas se dibuja como un mapa entero y luego se carga de pantalla en
-/// pantalla. El mapa no sabe nada de eso: lo que mide una pantalla está en la configuración, y
-/// con ello el editor enseña por dónde parte cada una y dice en cuál se está.
+/// A game of fixed screens is drawn as a whole map and then loaded screen by screen. The map
+/// knows nothing about that: what a screen measures is in the preferences, and with it the
+/// editor shows where each one starts and says which one the mouse is in.
 /// </remarks>
 public class MapScreensTests
 {
@@ -38,11 +38,12 @@ public class MapScreensTests
     }
 
     /// <summary>
-    /// Sin la rejilla no se pintan líneas ni se dice la pantalla.
+    /// Without the grid no lines are drawn and no screen is said.
     /// </summary>
     /// <remarks>
-    /// El número por su cuenta no significa nada: sin las líneas no se ve dónde parte cada
-    /// pantalla, así que un «3-1» al lado de las coordenadas sería un número sin referencia.
+    /// The number on its own means nothing: without the lines it cannot be seen where each
+    /// screen starts, so a «3-1» next to the coordinates would be a number with nothing to go
+    /// by.
     /// </remarks>
     [AvaloniaFact]
     public void Sin_rejilla_no_hay_ni_lineas_ni_numero_de_pantalla()
@@ -56,7 +57,7 @@ public class MapScreensTests
         Assert.Equal(string.Empty, map.ScreenAt(40, 30));
     }
 
-    /// <summary>Columna primero y contando desde uno, como se nombran al pedirlas.</summary>
+    /// <summary>Column first and counting from one, the way they are named when asked for.</summary>
     [AvaloniaTheory]
     [InlineData(0, 0, "1-1")]
     [InlineData(31, 23, "1-1")]
@@ -73,11 +74,11 @@ public class MapScreensTests
     }
 
     /// <summary>
-    /// En un mapa de supertiles la rejilla va en celdas, que es lo que el mapa cuenta.
+    /// In a map of super tiles the grid goes in cells, which is what the map counts.
     /// </summary>
     /// <remarks>
-    /// La pantalla se mide en tiles, que es lo que ve quien juega, pero una celda de un mapa de
-    /// supertiles son varios tiles. Pedirla en tiles pintaría una línea cada dos celdas.
+    /// The screen is measured in tiles, which is what the player sees, but a cell of a map of
+    /// super tiles is several tiles. Taking it in tiles would draw a line every two cells.
     /// </remarks>
     [AvaloniaFact]
     public void Con_supertiles_la_rejilla_va_en_celdas_y_no_en_tiles()
@@ -92,12 +93,12 @@ public class MapScreensTests
     }
 
     /// <summary>
-    /// Una pantalla que corta un supertile por la mitad no se enseña.
+    /// A screen that cuts a super tile in half is not shown.
     /// </summary>
     /// <remarks>
-    /// Con supertiles de 2x2 y una pantalla de 21 filas —tres de marcador— la línea caería a
-    /// media celda, y no hay dónde ponerla: una rejilla que miente por medio supertile es peor
-    /// que ninguna. Una de 22 sí cuadra, y ésa se pinta.
+    /// With super tiles of 2x2 and a screen of 21 rows —three of scoreboard— the line would fall
+    /// half-way through a cell, and there is nowhere to put it: a grid that lies by half a super
+    /// tile is worse than none. One of 22 does fit, and that one is drawn.
     /// </remarks>
     [AvaloniaFact]
     public void Una_pantalla_que_parte_un_supertile_no_se_ensena()
@@ -110,11 +111,12 @@ public class MapScreensTests
         Assert.Equal(16, map.ScreenGridColumns);
         Assert.Equal(0, map.ScreenGridRows);
 
-        // Y sin las dos, tampoco se dice la pantalla: la fila no tendría de dónde salir.
+        // And without both, the screen is not said either: the row would have nothing to come
+        // from.
         Assert.Equal(string.Empty, map.ScreenAt(0, 0));
     }
 
-    /// <summary>Un tamaño imposible se recorta en vez de dejar el editor dividiendo por cero.</summary>
+    /// <summary>An impossible size is cut down instead of leaving the editor dividing by zero.</summary>
     [AvaloniaTheory]
     [InlineData(0, 1)]
     [InlineData(-8, 1)]
@@ -127,9 +129,9 @@ public class MapScreensTests
         Assert.Equal(kept, preferences.ScreenHeight);
     }
 
-    // ------------------------------------------------------------------ con la ventana montada
+    // ------------------------------------------------------------------ with the window mounted
 
-    /// <summary>El botón de la barra tiene que llegar al lienzo, que es quien pinta.</summary>
+    /// <summary>The button of the bar has to reach the canvas, which is the one that draws.</summary>
     [AvaloniaFact]
     public void El_boton_de_la_barra_pone_la_rejilla_en_el_lienzo()
     {
@@ -150,11 +152,11 @@ public class MapScreensTests
     }
 
     /// <summary>
-    /// Y la etiqueta de abajo dice en qué pantalla está el ratón.
+    /// And the label at the bottom says which screen the mouse is in.
     /// </summary>
     /// <remarks>
-    /// Sobre una celda vacía a propósito: es justo donde uno se pregunta qué pantalla es la
-    /// que se ha dejado sin dibujar.
+    /// Over an empty cell on purpose: that is just where one wonders which screen is the one left
+    /// without drawing.
     /// </remarks>
     [AvaloniaFact]
     public void La_etiqueta_dice_en_que_pantalla_esta_el_raton()
@@ -172,7 +174,7 @@ public class MapScreensTests
         Assert.Equal("17, 13 \u00b7 2-2", editor.Label);
     }
 
-    /// <summary>Sin rejilla, la etiqueta se queda como estaba.</summary>
+    /// <summary>Without the grid, the label stays as it was.</summary>
     [AvaloniaFact]
     public void Sin_rejilla_la_etiqueta_no_dice_ninguna_pantalla()
     {
@@ -183,9 +185,9 @@ public class MapScreensTests
         Assert.Equal("17, 13", editor.Label);
     }
 
-    // ------------------------------------------------------------------ la pantalla señalada
+    // ------------------------------------------------------------------ the screen marked
 
-    /// <summary>La pantalla señalada tiene que llegar al lienzo, que es quien la pinta.</summary>
+    /// <summary>The screen marked has to reach the canvas, which is the one that draws it.</summary>
     [AvaloniaFact]
     public void La_pantalla_senalada_llega_al_lienzo()
     {
@@ -205,11 +207,11 @@ public class MapScreensTests
     }
 
     /// <summary>
-    /// Señalar una pantalla lleva la vista hasta ella.
+    /// Marking a screen takes the view to it.
     /// </summary>
     /// <remarks>
-    /// Con un mapa de veinte pantallas, señalar la 7-5 mientras se mira la 1-1 es señalar algo
-    /// que no se ve.
+    /// With a map of twenty screens, marking 7-5 while looking at 1-1 is marking something that
+    /// cannot be seen.
     /// </remarks>
     [AvaloniaFact]
     public void Senalar_una_pantalla_lleva_la_vista_hasta_ella()
@@ -234,15 +236,15 @@ public class MapScreensTests
     private static IEnumerable<int> Rows(MapRegion region) =>
         Enumerable.Range(region.Top, region.Height);
 
-    // ------------------------------------------------------------------ desde la configuración
+    // ------------------------------------------------------------------ from the preferences
 
     /// <summary>
-    /// Cambiar el tamaño en la configuración mueve la rejilla de los mapas ya abiertos.
+    /// Changing the size in the preferences moves the grid of the maps already open.
     /// </summary>
     /// <remarks>
-    /// La configuración vive todo el programa, así que los mapas no se suscriben a ella: un mapa
-    /// cerrado se quedaría enganchado sin que nadie lo suelte. Avisa la ventana principal, y esto
-    /// comprueba que de verdad avisa.
+    /// The preferences live as long as the program, so the maps do not subscribe to them: a
+    /// closed map would stay hooked with nobody to let it go. The main window tells them, and
+    /// this checks that it really does.
     /// </remarks>
     [AvaloniaFact]
     public void Cambiar_el_tamano_en_la_configuracion_llega_a_los_mapas_abiertos()
@@ -264,7 +266,7 @@ public class MapScreensTests
         Assert.Contains(nameof(MapEditorViewModel.ScreenGridColumns), changed);
     }
 
-    /// <summary>Y encender la rejilla en un mapa la enciende en los demás, que es la misma.</summary>
+    /// <summary>And turning the grid on in one map turns it on in the others, since it is the same one.</summary>
     [AvaloniaFact]
     public void La_rejilla_se_enciende_para_todos_los_mapas_abiertos()
     {
@@ -298,7 +300,7 @@ public class MapScreensTests
             new TileSetEditorViewModel(tileSet, ColorPalette.CreateMsxStandard()));
     }
 
-    /// <summary>El panel del mapa montado de verdad, que es donde se ve si el cableado llega.</summary>
+    /// <summary>The panel of the map really mounted, which is where it shows whether the wiring gets through.</summary>
     private sealed class MapWindow : IDisposable
     {
         private readonly Window _window;
@@ -315,14 +317,14 @@ public class MapScreensTests
 
         public MapCanvas Canvas => _view.GetVisualDescendants().OfType<MapCanvas>().Single();
 
-        /// <summary>Lo que se lee abajo a la derecha, que es lo que el usuario ve.</summary>
+        /// <summary>What reads at the bottom right, which is what the user sees.</summary>
         public string Label => Named<TextBlock>("HoverText").Text ?? string.Empty;
 
         public void Dispose() => _window.Close();
 
         public void ToggleScreenGrid() => Click(Named<ToggleButton>("ScreenGridButton"));
 
-        /// <summary>Pasa el ratón por una celda del mapa.</summary>
+        /// <summary>Moves the mouse over a cell of the map.</summary>
         public void Hover(int column, int row)
         {
             MapCanvas canvas = Canvas;

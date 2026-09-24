@@ -69,7 +69,7 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
     [ObservableProperty]
     private string _asmData = Entities.AsmStyle.Dotted;
 
-    /// <summary>Lo que mide una pantalla del juego, en tiles.</summary>
+    /// <summary>What a screen of the game measures, in tiles.</summary>
     [ObservableProperty]
     private int _screenWidth = Entities.EditorPreferences.DefaultScreenWidth;
 

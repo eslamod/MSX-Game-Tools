@@ -73,7 +73,7 @@ internal sealed class TestDialogService : IDialogService
     /// <summary>Veces que se ha abierto el selector de guardar, para ver si vuelve a preguntar.</summary>
     public int SaveCalls { get; private set; }
 
-    /// <summary>Veces que se ha pedido una carpeta, que es otro selector distinto.</summary>
+    /// <summary>Times a folder was asked for, which is another picker.</summary>
     public int FolderCalls { get; private set; }
 
     /// <summary>Los avisos mostrados, en orden.</summary>

@@ -236,11 +236,11 @@ public class MapCanvasTests : IDisposable
     }
 
     /// <summary>
-    /// La rejilla de pantallas se pinta por donde parte cada una.
+    /// The grid of screens is drawn where each one starts.
     /// </summary>
     /// <remarks>
-    /// Cada cuántas celdas va la línea se comprueba aparte; lo que sólo se ve en la captura es
-    /// que de verdad se dibuje, que es la funcionalidad entera.
+    /// Every how many cells the line goes is checked apart; what only shows in the capture is
+    /// that it really gets drawn, which is the whole feature.
     /// </remarks>
     [AvaloniaFact]
     public void La_rejilla_de_pantallas_se_pinta_por_donde_parte_cada_una()
@@ -255,17 +255,17 @@ public class MapCanvasTests : IDisposable
         Assert.True(PaintedDown((int)CellSize * 4) > 0, "no hay línea por donde parte la pantalla");
         Assert.True(PaintedAcross((int)CellSize * 3) > 0, "no hay línea por donde parte la fila");
 
-        // Y sólo por ahí: por dentro de la pantalla no hay ninguna.
+        // And only there: inside the screen there is none.
         Assert.Equal(0, PaintedDown((int)CellSize * 2));
         Assert.Equal(0, PaintedAcross((int)CellSize * 2));
     }
 
     /// <summary>
-    /// La pantalla señalada se pinta, con un baño que deja ver lo de debajo.
+    /// The screen marked gets drawn, with a wash that lets what is underneath show.
     /// </summary>
     /// <remarks>
-    /// Que llegue al lienzo se comprueba aparte; lo que sólo se ve en la captura es que de
-    /// verdad se dibuje, que es para lo que está.
+    /// That it reaches the canvas is checked apart; what only shows in the capture is that it
+    /// really gets drawn, which is what it is for.
     /// </remarks>
     [AvaloniaFact]
     public void La_pantalla_senalada_se_pinta_encima_del_mapa()
@@ -277,20 +277,23 @@ public class MapCanvasTests : IDisposable
 
         Assert.NotEqual(Colors.Magenta, PixelAt((int)CellSize + 8, (int)CellSize + 8));
 
-        // Y sólo ahí: fuera del recuadro se sigue viendo el fondo.
+        // And only there: outside the box the background still shows.
         Assert.Equal(Colors.Magenta, PixelAt(4, 4));
     }
 
     /// <summary>
-    /// Cuántos de ocho pixeles seguidos están pintados encima del fondo.
+    /// How many of eight pixels in a row are painted over the background.
     /// </summary>
     /// <remarks>
-    /// Un tramo y no un punto porque la línea va a trazos: un pixel suelto puede caer en el
-    /// hueco entre dos y decir que no hay línea donde sí la hay. Ocho es un trazo y su hueco.
-    /// </remarks>
-    /// <remarks>
-    /// El tramo va de 32 a 39 a propósito: es el único que no roza ninguna de las líneas de la
-    /// otra dirección, que son de dos pixeles y pisan el de al lado.
+    /// <para>
+    /// A stretch and not a point because the line is dashed: a single pixel can fall in the gap
+    /// between two dashes and say there is no line where there is one. Eight is a dash and its
+    /// gap.
+    /// </para>
+    /// <para>
+    /// The stretch goes from 32 to 39 on purpose: it is the only one that touches none of the
+    /// lines of the other direction, which are two pixels wide and spill onto the next one.
+    /// </para>
     /// </remarks>
     private int PaintedDown(int x) =>
         Enumerable.Range(32, 8).Count(y => PixelAt(x, y) != Colors.Magenta);

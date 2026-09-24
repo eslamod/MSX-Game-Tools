@@ -55,9 +55,9 @@ public partial class MainWindowViewModel : ObservableObject
             if (e.PropertyName == nameof(EditorPreferences.ThemeVariant))
                 AppTheme.Apply(Preferences.ThemeVariant);
 
-            // Y lo de las pantallas a los mapas que estén abiertos. Desde aquí y no
-            // suscribiéndose cada mapa: las preferencias viven todo el programa y un mapa
-            // cerrado se quedaría enganchado a ellas sin que nadie lo suelte.
+            // And the screens to the maps that are open. From here and not with every map
+            // subscribing: the preferences live as long as the program, and a closed map would
+            // stay hooked to them with nobody to let it go.
             if (e.PropertyName is nameof(EditorPreferences.ScreenWidth)
                 or nameof(EditorPreferences.ScreenHeight)
                 or nameof(EditorPreferences.ShowScreenGrid))

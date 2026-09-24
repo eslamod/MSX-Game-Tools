@@ -15,12 +15,12 @@ using Xunit;
 namespace MSX_GameTools.Tests;
 
 /// <summary>
-/// Exportar el mapa partido en las pantallas del juego.
+/// Exporting the map cut into the screens of the game.
 /// </summary>
 /// <remarks>
-/// Un juego de pantallas fijas dibuja el mapa entero y luego carga una pantalla cada vez que se
-/// cruza una puerta. Lo que se comprueba aquí es lo que no se ve leyendo: por dónde corta, qué
-/// pantallas no escribe, con qué rellena la del borde y qué se dice al acabar.
+/// A game of fixed screens draws the whole map and then loads a screen every time a door is
+/// crossed. What is checked here is what does not show by reading: where it cuts, which screens
+/// it does not write, what it fills the one at the edge with, and what is said at the end.
 /// </remarks>
 public class MapScreensExportTests : IDisposable
 {
@@ -40,8 +40,8 @@ public class MapScreensExportTests : IDisposable
 
         ByScreens(opened.Form, ExportFormat.Binary);
 
-        // Por orden de lectura, y columna antes que fila: la que el editor llama «2-1» es la
-        // que acaba en _2_1.
+        // In reading order, and column before row: the one the editor calls «2-1» is the one
+        // ending in _2_1.
         Assert.Equal(
             (string[])["nivel_1_1_1.bin", "nivel_1_2_1.bin", "nivel_1_1_2.bin", "nivel_1_2_2.bin"],
             opened.Form.Files.Select(file => file.Name));
@@ -54,12 +54,12 @@ public class MapScreensExportTests : IDisposable
     }
 
     /// <summary>
-    /// Las pantallas sin nada dibujado no llegan a fichero.
+    /// The screens with nothing drawn do not make it to a file.
     /// </summary>
     /// <remarks>
-    /// En un mapa de pantallas fijas lo normal es que el rectángulo no esté entero —una L, una
-    /// cruz, un castillo con sus alas—, y un fichero de 768 ceros por cada hueco del dibujo no
-    /// es un mapa, es sitio gastado. Las que sí salen conservan su número.
+    /// In a map of fixed screens the rectangle is usually not whole —an L, a cross, a castle
+    /// with its wings—, and a file of 768 zeros for every hole in the drawing is not a map, it
+    /// is wasted room. The ones that do go out keep their number.
     /// </remarks>
     [AvaloniaFact]
     public async Task Las_pantallas_sin_nada_dibujado_no_se_escriben()
@@ -75,12 +75,11 @@ public class MapScreensExportTests : IDisposable
     }
 
     /// <summary>
-    /// La pantalla del borde sale entera, con el tile de relleno donde el mapa ya no llega.
+    /// The screen at the edge goes out whole, with the filler tile where the map does not reach.
     /// </summary>
     /// <remarks>
-    /// Todas las pantallas del juego miden lo mismo, así que el cargador lee siempre el mismo
-    /// número de bytes: una pantalla corta le dejaría el resto de la pantalla con lo que
-    /// hubiera antes.
+    /// Every screen of the game measures the same, so the loader always reads the same number of
+    /// bytes: a short screen would leave the rest of it with whatever was there before.
     /// </remarks>
     [AvaloniaFact]
     public async Task La_pantalla_del_borde_se_completa_con_el_tile_de_relleno()
@@ -96,13 +95,13 @@ public class MapScreensExportTests : IDisposable
 
         Assert.Equal(32 * 24, edge.Length);
 
-        // Ocho columnas de mapa y las otras veinticuatro de relleno.
+        // Eight columns of map and the other twenty-four of filler.
         Assert.Equal(7, edge[0]);
         Assert.Equal(3, edge[8]);
         Assert.Equal(3, edge[^1]);
     }
 
-    /// <summary>La cabecera es opcional: todas las pantallas miden lo mismo.</summary>
+    /// <summary>The header is optional: every screen measures the same.</summary>
     [AvaloniaTheory]
     [InlineData(false, 32 * 24)]
     [InlineData(true, (32 * 24) + 4)]
@@ -122,12 +121,12 @@ public class MapScreensExportTests : IDisposable
     }
 
     /// <summary>
-    /// Cada pantalla lleva escrito de qué mapa y de qué trozo salió.
+    /// Every screen carries written which map and which piece it came from.
     /// </summary>
     /// <remarks>
-    /// Con veinte ficheros en la misma carpeta, el nombre es lo único que queda para saber cuál
-    /// es cuál. Y la etiqueta lleva el número dentro, así que dos pantallas se pueden ensamblar
-    /// juntas sin chocar.
+    /// With twenty files in the same folder, the name is all that is left to tell which is which.
+    /// And the label carries the number inside, so two screens can be assembled together without
+    /// clashing.
     /// </remarks>
     [AvaloniaFact]
     public async Task Cada_pantalla_dice_de_que_mapa_y_de_que_trozo_salio()
@@ -142,17 +141,17 @@ public class MapScreensExportTests : IDisposable
         Assert.Contains("; Screen 2-1 of Nivel 1 - map columns 32-63, rows 0-23", screen);
         Assert.Contains("nivel_1_2_1_map:", screen);
 
-        // Y sin cabecera, que no se ha pedido.
+        // And without a header, which was not asked for.
         Assert.DoesNotContain("; Header:", screen);
     }
 
     /// <summary>
-    /// Una pantalla que parte un supertile por la mitad no deja exportar.
+    /// A screen that cuts a super tile in half does not let the export go on.
     /// </summary>
     /// <remarks>
-    /// Sin decirlo, la lista de ficheros se quedaría vacía y sin explicación: se vería que no va
-    /// a salir nada, pero no por qué. Y la respuesta —cambiar el tamaño de la pantalla— está en
-    /// la configuración, que es otro panel.
+    /// Without saying so, the list of files would be left empty and unexplained: it would show
+    /// that nothing is going out, but not why. And the answer —changing the size of the
+    /// screen— is in the preferences, which is another panel.
     /// </remarks>
     [AvaloniaFact]
     public async Task Una_pantalla_que_parte_un_supertile_no_deja_exportar()
@@ -172,16 +171,17 @@ public class MapScreensExportTests : IDisposable
 
         Assert.Empty(Directory.GetFiles(_folder));
 
-        // Y el panel sigue abierto, que es lo que hace falta para arreglarlo.
+        // And the panel stays open, which is what it takes to fix it.
         Assert.NotNull(opened.Main.RightPanViewModel);
     }
 
     /// <summary>
-    /// Por pantallas no se ofrece la ROM de ejemplo.
+    /// By screens the example ROM is not offered.
     /// </summary>
     /// <remarks>
-    /// La ROM carga un mapa y lo enseña; una carpeta de pantallas es otro programa —el que va
-    /// cambiando de pantalla— y ése no está escrito. Ofrecerla sería una casilla que miente.
+    /// The ROM loads a map and shows it; a folder of screens is another program —the one that
+    /// goes from screen to screen— and that one is not written. Offering it would be a box that
+    /// lies.
     /// </remarks>
     [AvaloniaFact]
     public void Por_pantallas_no_se_ofrece_la_rom_de_ejemplo()
@@ -198,11 +198,11 @@ public class MapScreensExportTests : IDisposable
     }
 
     /// <summary>
-    /// Marcar la casilla convierte el destino en la carpeta que lo contiene, y al revés.
+    /// Ticking the box turns the destination into the folder that holds it, and back.
     /// </summary>
     /// <remarks>
-    /// Sin convertirlo, una carpeta elegida antes se leería como un fichero —la carpeta sería
-    /// la de encima— y las pantallas acabarían un nivel más arriba de donde se dijo.
+    /// Left as it was, a folder chosen before would be read as a file —the folder would be the
+    /// one above— and the screens would end up one level higher than where it was said.
     /// </remarks>
     [AvaloniaFact]
     public void Marcar_la_casilla_convierte_el_destino_en_carpeta()
@@ -223,7 +223,7 @@ public class MapScreensExportTests : IDisposable
         Assert.Equal("nivel_1.bin", opened.Form.Files[0].Name);
     }
 
-    /// <summary>Con csv no hay pantallas que ofrecer, y la casilla puesta se cae.</summary>
+    /// <summary>With csv there are no screens to offer, and the box ticked drops.</summary>
     [AvaloniaFact]
     public void Cambiar_a_csv_quita_la_casilla_de_las_pantallas()
     {
@@ -241,11 +241,11 @@ public class MapScreensExportTests : IDisposable
     }
 
     /// <summary>
-    /// Con muchas pantallas la lista se resume.
+    /// With many screens the list is summed up.
     /// </summary>
     /// <remarks>
-    /// Trece nombres ya no se leen de un vistazo y cien menos. Lo que hace falta saber —cómo se
-    /// llaman y cuántos hay— sigue estando.
+    /// Thirteen names are no longer read at a glance, and a hundred even less. What needs
+    /// knowing —what they are called and how many there are— is still there.
     /// </remarks>
     [AvaloniaFact]
     public async Task Con_muchas_pantallas_la_lista_se_resume()
@@ -265,11 +265,11 @@ public class MapScreensExportTests : IDisposable
     }
 
     /// <summary>
-    /// Al acabar se dice cuántas han salido, cuántas no y con qué se ha rellenado.
+    /// At the end it is said how many went out, how many did not, and what the filler is.
     /// </summary>
     /// <remarks>
-    /// Las dos cosas que no se ven mirando la carpeta: que faltan ficheros a propósito y que las
-    /// pantallas del borde llevan relleno que no estaba en el mapa.
+    /// The two things that do not show by looking at the folder: that files are missing on
+    /// purpose, and that the screens at the edge carry filler that was not in the map.
     /// </remarks>
     [AvaloniaFact]
     public async Task Al_acabar_dice_cuantas_han_salido_y_que_las_demas_estaban_vacias()
@@ -286,7 +286,7 @@ public class MapScreensExportTests : IDisposable
         Assert.Contains(Text.Format("ExportedScreensPadded", 0), said);
     }
 
-    /// <summary>El botón de al lado pide una carpeta, que es lo que hace falta aquí.</summary>
+    /// <summary>The button next to it asks for a folder, which is what is needed here.</summary>
     [AvaloniaFact]
     public async Task El_boton_de_al_lado_pide_una_carpeta_y_no_un_fichero()
     {
@@ -303,15 +303,15 @@ public class MapScreensExportTests : IDisposable
         Assert.Equal(_folder, opened.Form.Destination);
     }
 
-    // ------------------------------------------------------------------ una sola pantalla
+    // ------------------------------------------------------------------ one screen on its own
 
     /// <summary>
-    /// Se puede pedir una pantalla por su número y sale sólo ésa.
+    /// A screen can be asked for by its number, and only that one goes out.
     /// </summary>
     /// <remarks>
-    /// Es para cuando se toca una habitación y hay que volver a escribirla: las otras veinte ya
-    /// están, y reescribirlas todas convierte el cambio de una en veinte ficheros con fecha
-    /// nueva.
+    /// It is for when a room is touched and has to be written again: the other twenty are
+    /// already there, and rewriting all of them turns the change of one into twenty files with
+    /// a new date.
     /// </remarks>
     [AvaloniaFact]
     public async Task Se_puede_pedir_una_sola_pantalla_por_su_numero()
@@ -331,12 +331,12 @@ public class MapScreensExportTests : IDisposable
     }
 
     /// <summary>
-    /// Y una vacía pedida por su número sí se escribe.
+    /// And an empty one asked for by its number does get written.
     /// </summary>
     /// <remarks>
-    /// Saltarse las vacías vale para la tanda entera, donde son los huecos del dibujo. Pedir una
-    /// por su número es pedir ésa, y una vacía a propósito —un sótano que el juego rellena al
-    /// entrar— está tan pedida como las demás.
+    /// Skipping the empty ones is for the whole batch, where they are the holes of the drawing.
+    /// Asking for one by its number is asking for that one, and one left empty on purpose —a
+    /// cellar the game fills in on entering— is as asked for as the others.
     /// </remarks>
     [AvaloniaFact]
     public async Task Una_pantalla_vacia_pedida_por_su_numero_si_se_escribe()
@@ -356,7 +356,7 @@ public class MapScreensExportTests : IDisposable
         Assert.All(screen, one => Assert.Equal(3, one));
     }
 
-    /// <summary>Una pantalla que no existe se dice, en vez de no escribir nada sin explicar.</summary>
+    /// <summary>A screen that does not exist is said, instead of writing nothing unexplained.</summary>
     [AvaloniaFact]
     public async Task Una_pantalla_que_no_existe_no_deja_exportar()
     {
@@ -376,12 +376,12 @@ public class MapScreensExportTests : IDisposable
     }
 
     /// <summary>
-    /// El panel arranca por la pantalla de lo que estuviera marcado.
+    /// The panel starts on the screen of whatever was selected.
     /// </summary>
     /// <remarks>
-    /// Lo marcado es lo último que se dijo a propósito sobre dónde se estaba trabajando y sigue
-    /// ahí al abrir el panel; el ratón no, que se queda por donde saliera del lienzo camino del
-    /// menú.
+    /// The selection is the last thing said on purpose about where one was working, and it is
+    /// still there when the panel opens; the mouse is not, it stays wherever it left the canvas
+    /// on the way to the menu.
     /// </remarks>
     [AvaloniaFact]
     public void El_panel_arranca_por_la_pantalla_de_lo_marcado()
@@ -392,7 +392,7 @@ public class MapScreensExportTests : IDisposable
         Assert.Equal(2, opened.Form.ScreenRow);
     }
 
-    /// <summary>Y sin nada marcado, por la primera.</summary>
+    /// <summary>And with nothing selected, on the first one.</summary>
     [AvaloniaFact]
     public void Sin_nada_marcado_el_panel_arranca_por_la_primera()
     {
@@ -403,11 +403,11 @@ public class MapScreensExportTests : IDisposable
     }
 
     /// <summary>
-    /// De una sola se dice cuál ha salido, y si llevaba relleno.
+    /// Of a single one it is said which went out, and whether it carried filler.
     /// </summary>
     /// <remarks>
-    /// Cuántas han salido no hace falta decirlo —una, la pedida— ni que falten las vacías, que
-    /// aquí no se ha saltado ninguna.
+    /// How many went out does not need saying —one, the one asked for— nor that the empty ones
+    /// are missing, since none was skipped here.
     /// </remarks>
     [AvaloniaFact]
     public async Task De_una_sola_pantalla_se_dice_cual_ha_salido_y_si_lleva_relleno()
@@ -426,7 +426,7 @@ public class MapScreensExportTests : IDisposable
         Assert.DoesNotContain(Text["ExportedScreensSkipped"], said);
     }
 
-    /// <summary>La del borde pedida suelta también sale entera.</summary>
+    /// <summary>The one at the edge asked for on its own goes out whole too.</summary>
     [AvaloniaFact]
     public async Task La_pantalla_del_borde_pedida_suelta_tambien_se_rellena()
     {
@@ -447,11 +447,11 @@ public class MapScreensExportTests : IDisposable
     }
 
     /// <summary>
-    /// Los dos botones del par, pulsados de verdad.
+    /// The two buttons of the pair, really pressed.
     /// </summary>
     /// <remarks>
-    /// Un grupo de radios escribe un <c>false</c> de vuelta en el que desmarca, así que con el
-    /// modelo de vista suelto los dos se ven bien y montados se pisan el uno al otro.
+    /// A group of radio buttons writes a <c>false</c> back into the one it unticks, so with the
+    /// view model on its own both look fine, and mounted they step on each other.
     /// </remarks>
     [AvaloniaFact]
     public void Los_dos_botones_del_par_eligen_todas_o_una()
@@ -488,12 +488,12 @@ public class MapScreensExportTests : IDisposable
     }
 
     /// <summary>
-    /// Y decir que van todas, sin la vista delante, quita la de una sola.
+    /// And saying that all of them go, with no view in front, takes away the single one.
     /// </summary>
     /// <remarks>
-    /// Montado no hace falta: el grupo desmarca el otro botón y es su enlace el que escribe el
-    /// <c>false</c>. Pero la propiedad tiene que valerse sola, que quien la ponga desde fuera
-    /// está diciendo «todas» y eso es lo que tiene que quedar.
+    /// Mounted it is not needed: the group unticks the other button and its binding is the one
+    /// writing the <c>false</c>. But the property has to hold up on its own, since whoever sets
+    /// it from outside is saying «all» and that is what has to stay.
     /// </remarks>
     [AvaloniaFact]
     public void Decir_que_van_todas_quita_la_de_una_sola()
@@ -507,14 +507,15 @@ public class MapScreensExportTests : IDisposable
         Assert.True(opened.Form.AllScreens);
     }
 
-    // ------------------------------------------------------------------ señalada en el mapa
+    // ------------------------------------------------------------------ marked on the map
 
     /// <summary>
-    /// La pantalla que se va a escribir se señala en el mapa.
+    /// The screen that is about to be written gets marked on the map.
     /// </summary>
     /// <remarks>
-    /// Un número de pantalla no dice qué hay dentro. Señalarla en el mapa contesta las dos
-    /// cosas a la vez —dónde cae y qué lleva— sin sacar a nadie del panel.
+    /// The number of a screen does not say what is inside. Marking it on the map answers both
+    /// things at once —where it falls and what it carries— without taking anyone out of the
+    /// panel.
     /// </remarks>
     [AvaloniaFact]
     public void La_pantalla_pedida_se_senala_en_el_mapa()
@@ -529,11 +530,12 @@ public class MapScreensExportTests : IDisposable
 
         Assert.Equal(new MapRegion(32, 0, 32, 24), opened.Editor.ScreenPreview);
 
-        // Y sin tocar lo que hubiera marcado a mano, que es una herramienta y no un adorno.
+        // And without touching what had been selected by hand, which is a tool and not an
+        // ornament.
         Assert.Null(opened.Editor.Selection);
     }
 
-    /// <summary>Volver a todas la quita: ya no hay una pantalla de la que hablar.</summary>
+    /// <summary>Going back to all of them takes it away: there is no one screen to talk about.</summary>
     [AvaloniaFact]
     public void Volver_a_todas_quita_la_senal()
     {
@@ -547,7 +549,7 @@ public class MapScreensExportTests : IDisposable
         Assert.Null(opened.Editor.ScreenPreview);
     }
 
-    /// <summary>Y una que no existe no se señala, que no hay dónde.</summary>
+    /// <summary>And one that does not exist is not marked, there being nowhere to.</summary>
     [AvaloniaFact]
     public void Una_pantalla_que_no_existe_no_se_senala()
     {
@@ -560,11 +562,11 @@ public class MapScreensExportTests : IDisposable
     }
 
     /// <summary>
-    /// Cerrar el panel quita la señal.
+    /// Closing the panel takes the mark away.
     /// </summary>
     /// <remarks>
-    /// Por cualquiera de las salidas, no sólo por Cancelar: el panel también se va cuando se
-    /// abre otro encima, y la señal se quedaría puesta sin nadie que la fuera a escribir.
+    /// By any of the ways out, not only by Cancel: the panel also goes when another one opens on
+    /// top of it, and the mark would stay on with nobody left to write it.
     /// </remarks>
     [AvaloniaFact]
     public void Cerrar_el_panel_quita_la_senal()
@@ -1189,9 +1191,9 @@ public class MapScreensExportTests : IDisposable
             .Replace("{ROM_END}", "0x8000")
             .Replace("\n", Environment.NewLine);
 
-    // ------------------------------------------------------------------ los andamios
+    // ------------------------------------------------------------------ the scaffolding
 
-    /// <summary>Un mapa abierto con su panel de exportar, que es por donde se pasa.</summary>
+    /// <summary>A map opened with its export panel, which is the way through.</summary>
     private sealed record Opened(
         MainWindowViewModel Main,
         TestDialogService Dialogs,
@@ -1199,9 +1201,9 @@ public class MapScreensExportTests : IDisposable
         MapEditorViewModel Editor,
         ExportViewModel Form);
 
-    /// <param name="superTile">El lado del supertile, o 0 para un mapa de tiles sueltos.</param>
-    /// <param name="selected">La celda que queda marcada antes de abrir el panel, si alguna.</param>
-    /// <param name="painted">Las celdas que llevan tile, que son las que hacen que una pantalla salga.</param>
+    /// <param name="superTile">The side of the super tile, or 0 for a map of loose tiles.</param>
+    /// <param name="selected">The cell left selected before opening the panel, if any.</param>
+    /// <param name="painted">The cells that carry a tile, which are what makes a screen go out.</param>
     private Opened Open(
         int width,
         int height,
@@ -1268,7 +1270,7 @@ public class MapScreensExportTests : IDisposable
         form.ScreenIndex = index;
     }
 
-    /// <summary>Que va una sola, y cuál: columna y fila, contando desde uno.</summary>
+    /// <summary>That only one goes, and which: column and row, counting from one.</summary>
     private static void Pick(ExportViewModel form, int column, int row)
     {
         form.OneScreen = true;
@@ -1276,7 +1278,7 @@ public class MapScreensExportTests : IDisposable
         form.ScreenRow = row;
     }
 
-    /// <summary>La carpeta se elige después de la casilla, que es lo que la hace carpeta.</summary>
+    /// <summary>The folder is chosen after the box, which is what makes it a folder.</summary>
     private async Task AcceptAsync(ExportViewModel form)
     {
         form.Destination = _folder;

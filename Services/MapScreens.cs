@@ -4,22 +4,22 @@ using MSX_GameTools.Entities;
 namespace MSX_GameTools.Services;
 
 /// <summary>
-/// Una pantalla ya recortada del mapa.
+/// A screen already cut out of the map.
 /// </summary>
-/// <param name="Column">En qué columna y fila de pantallas cae, contando desde cero.</param>
+/// <param name="Column">Which column and row of screens it falls in, counting from zero.</param>
 /// <param name="Map">
-/// El trozo, siempre de una pantalla entera: la del borde se queda corta en el mapa y las
-/// celdas que faltan vienen vacías, que es lo que el exportador escribe como relleno.
+/// The piece, always a whole screen: the one at the edge falls short of the map, and the cells
+/// that are missing come empty, which is what the exporter writes as filler.
 /// </param>
-/// <param name="Padded">Si es una de las del borde, a la que el mapa no llega entero.</param>
+/// <param name="Padded">Whether it is one of the edge, which the map does not fill whole.</param>
 public sealed record MapScreen(int Column, int Row, TileMap Map, bool Padded)
 {
     /// <summary>
-    /// Por qué celda del mapa empieza, que es lo que dice de dónde salió.
+    /// Which cell of the map it starts at, which is what says where it came from.
     /// </summary>
     /// <remarks>
-    /// Sale del número de pantalla y de lo que mide el recorte, que es siempre una pantalla
-    /// entera: así no hay dos sitios donde apuntar lo mismo.
+    /// Worked out from the number of the screen and the size of the piece, which is always a
+    /// whole screen: that way there are not two places keeping the same thing.
     /// </remarks>
     public int Left => Column * Map.Width;
 
@@ -28,17 +28,17 @@ public sealed record MapScreen(int Column, int Row, TileMap Map, bool Padded)
 }
 
 /// <summary>
-/// Parte un mapa en las pantallas de las que está hecho.
+/// Cuts a map into the screens it is made of.
 /// </summary>
 /// <remarks>
 /// <para>
-/// Para los juegos de pantallas fijas, que se dibujan de una sola vez —un mapa entero, con sus
-/// pantallas pegadas— y luego se cargan de una en una. Aquí se corta por donde el editor pinta
-/// la rejilla, y cada trozo sale como un mapa suyo para que lo escriba el mismo exportador.
+/// For the games of fixed screens, which are drawn in one go —a whole map, with its screens
+/// side by side— and then loaded one at a time. The map is cut where the editor draws the
+/// grid, and each piece comes out as a map of its own so that the same exporter writes it.
 /// </para>
 /// <para>
-/// En celdas y no en tiles: en un mapa de supertiles una celda son varios tiles, y lo que el
-/// fichero lleva son los números de las celdas. Quien llame aquí ya ha hecho esa cuenta.
+/// In cells and not in tiles: in a map of super tiles a cell is several tiles, and what the
+/// file carries is the numbers of the cells. Whoever calls here has already done that sum.
 /// </para>
 /// </remarks>
 public static class MapScreens
@@ -80,35 +80,28 @@ public static class MapScreens
     /// goes on in the next line: the table is read in order, and the lines do not count.
     /// </remarks>
     private const int EntriesPerLine = 8;
-    /// <summary>Cuántas pantallas de ese lado hacen falta para cubrir el mapa.</summary>
+
+    /// <summary>How many screens it takes along that side to cover the map.</summary>
     /// <remarks>
-    /// Redondeando hacia arriba: media pantalla al borde sigue siendo una pantalla, y lo que
-    /// falta se rellena. Un mapa de 70 celdas con pantallas de 32 son tres, no dos.
+    /// Rounding up: half a screen at the edge is still a screen, and what is missing gets
+    /// filled. A map of 70 cells with screens of 32 is three of them, not two.
     /// </remarks>
     public static int Count(int cells, int screen) => screen > 0 ? ((cells + screen - 1) / screen) : 0;
 
-    /// <summary>Si el mapa se queda corto y hay que rellenar la última pantalla de algún lado.</summary>
+    /// <summary>Whether the map falls short and the last screen along some side has to be filled.</summary>
     public static bool Pads(TileMap map, int wide, int high) =>
         wide > 0 && high > 0 && (map.Width % wide != 0 || map.Height % high != 0);
 
     /// <summary>
-    /// Las pantallas que llevan algo dibujado, en orden de lectura.
+    /// The screen that falls in that column and that row, empty or not, or nothing if there is
+    /// no screen there.
     /// </summary>
     /// <remarks>
-    /// Las vacías no salen: en un mapa de pantallas fijas lo normal es que el rectángulo no esté
-    /// entero —una L, una cruz, un castillo con sus alas— y un fichero de 768 ceros por cada
-    /// hueco del dibujo no es un mapa, es sitio gastado. Las que sí salen conservan su número,
-    /// así que saltarse una no corre a las demás.
+    /// None is skipped here: asking for a screen by its number is asking for that one, and one
+    /// left empty on purpose —a cellar the game fills in on entering— is as asked for as the
+    /// others.
     /// </remarks>
-    /// <summary>
-    /// La pantalla que cae en esa columna y esa fila, esté vacía o no, o nada si ahí no hay
-    /// pantalla.
-    /// </summary>
-    /// <remarks>
-    /// Aquí no se salta ninguna: pedir una pantalla por su número es pedir ésa, y una vacía a
-    /// propósito —un sótano que el juego rellena al entrar— está tan pedida como las demás.
-    /// </remarks>
-    /// <param name="column">Columna y fila de pantallas, contando desde cero.</param>
+    /// <param name="column">Column and row of screens, counting from zero.</param>
     public static MapScreen? At(TileMap map, int wide, int high, string stem, int column, int row)
     {
         bool inside = column >= 0 && row >= 0
@@ -120,7 +113,16 @@ public static class MapScreens
             : null;
     }
 
-    /// <param name="stem">De dónde sale el nombre de cada trozo, que es el del fichero.</param>
+    /// <summary>
+    /// The screens that have something drawn, in reading order.
+    /// </summary>
+    /// <remarks>
+    /// The empty ones do not go out: in a map of fixed screens the rectangle is usually not
+    /// whole —an L, a cross, a castle with its wings— and a file of 768 zeros for every hole in
+    /// the drawing is not a map, it is wasted room. The ones that do go out keep their number,
+    /// so skipping one does not shift the others.
+    /// </remarks>
+    /// <param name="stem">Where the name of each piece comes from, which is the name of the file.</param>
     public static IReadOnlyList<MapScreen> Of(TileMap map, int wide, int high, string stem)
     {
         var screens = new List<MapScreen>();
@@ -128,8 +130,8 @@ public static class MapScreens
         if (wide <= 0 || high <= 0)
             return screens;
 
-        // Una vez y no una por pantalla: aplastar es recorrer el mapa entero por cada capa, y
-        // eso multiplicado por cien pantallas se nota.
+        // Once and not once per screen: flattening goes over the whole map for every layer, and
+        // that times a hundred screens shows.
         TileGrid flat = map.Flatten();
 
         int columns = Count(map.Width, wide);
@@ -149,7 +151,7 @@ public static class MapScreens
         return screens;
     }
 
-    /// <summary>Una pantalla recortada del mapa ya aplastado.</summary>
+    /// <summary>A screen cut out of the map already flattened.</summary>
     private static MapScreen Cut(
         TileGrid flat, TileMap map, int wide, int high, string stem, int column, int row)
     {
@@ -165,8 +167,8 @@ public static class MapScreens
 
         for (int y = 0; y < high; y++)
         {
-            // Fuera del mapa la rejilla devuelve vacío, así que la pantalla del borde se
-            // rellena sola sin tener que mirar dónde acaba.
+            // Outside the map the grid gives back empty, so the screen at the edge fills itself
+            // without having to look for where the map ends.
             for (int x = 0; x < wide; x++)
                 grid[x, y] = flat[left + x, top + y];
         }
@@ -503,11 +505,11 @@ public static class MapScreens
     }
 
     /// <summary>
-    /// Las líneas de comentario que dicen de dónde salió esta pantalla.
+    /// The comment lines that say where this screen came from.
     /// </summary>
     /// <remarks>
-    /// El fichero de una pantalla suelta no dice de qué mapa es ni por dónde iba, y con veinte
-    /// en la misma carpeta el nombre es lo único que queda. Esto lo deja escrito dentro.
+    /// The file of a loose screen does not say which map it belongs to nor where it was, and with
+    /// twenty in the same folder the name is all that is left. This leaves it written inside.
     /// </remarks>
     public static IReadOnlyList<string> Notes(MapScreen screen, TileMap map)
     {

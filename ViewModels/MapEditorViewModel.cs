@@ -133,12 +133,12 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
     private (int Column, int Row)? _hover;
 
     /// <summary>
-    /// La pantalla que el panel de exportar va a escribir, señalada encima del mapa.
+    /// The screen the export panel is about to write, marked over the map.
     /// </summary>
     /// <remarks>
-    /// Aparte de lo marcado a propósito: marcar es una herramienta —rellenar, copiar y borrar
-    /// trabajan sobre ello— y pisarlo por cambiar un número en otro panel sería quitarle al
-    /// usuario algo que había hecho a mano.
+    /// Apart from what is selected on purpose: selecting is a tool —fill, copy and erase work
+    /// on it— and overwriting it because a number changed in another panel would take from the
+    /// user something they had done by hand.
     /// </remarks>
     [ObservableProperty]
     private MapRegion? _screenPreview;
@@ -194,12 +194,12 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
     }
 
     /// <summary>
-    /// Señala una pantalla y lleva la vista hasta ella. Con nada, la quita.
+    /// Marks a screen and takes the view to it. With nothing, it takes the mark away.
     /// </summary>
     /// <remarks>
-    /// También lleva la vista: con un mapa de veinte pantallas, señalar la 7-5 mientras se mira
-    /// la 1-1 es señalar algo que no se ve. Por el centro, que es lo que deja la pantalla
-    /// entera a la vista si cabe.
+    /// It takes the view as well: with a map of twenty screens, marking 7-5 while looking at 1-1
+    /// is marking something that cannot be seen. By the middle, which is what leaves the whole
+    /// screen in view when it fits.
     /// </remarks>
     public void ShowScreen(MapRegion? screen)
     {
@@ -348,10 +348,10 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
     public bool UsesSuperTiles => _tiles.TileSet.HasSuperTiles;
 
     /// <summary>
-    /// Si se enseña la rejilla de pantallas encima del mapa.
+    /// Whether the grid of screens is shown over the map.
     /// </summary>
     /// <remarks>
-    /// Vive en las preferencias y no aquí para que siga puesta al cambiar de pestaña.
+    /// It lives in the preferences and not here so that it stays on when changing tabs.
     /// </remarks>
     public bool ShowScreenGrid
     {
@@ -361,29 +361,29 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
         {
             Preferences.ShowScreenGrid = value;
 
-            // Y desde aquí también, no sólo por el aviso de la ventana principal: un mapa
-            // montado sin ella —las pruebas, o cualquiera que lo use suelto— se quedaría con
-            // el botón pulsado y el lienzo sin rejilla.
+            // And from here as well, not only through the notice of the main window: a map
+            // mounted without one —the tests, or anyone using it on its own— would be left with
+            // the button pressed and the canvas without a grid.
             ScreenGridChanged();
         }
     }
 
     /// <summary>
-    /// Lo que mide una pantalla en celdas del mapa, o 0 si no cuadra con el supertile.
+    /// What a screen measures in cells of the map, or 0 if it does not fit the super tile.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// La pantalla se mide en tiles, que es lo que ve quien juega, pero el mapa cuenta celdas y
-    /// en uno de supertiles una celda son varios tiles.
+    /// The screen is measured in tiles, which is what the player sees, but the map counts cells,
+    /// and in one of super tiles a cell is several tiles.
     /// </para>
     /// <para>
-    /// Cero cuando no es múltiplo: con supertiles de 2x2 y una pantalla de 21 filas —tres de
-    /// marcador— la pantalla partiría un supertile por la mitad, y ni la rejilla ni la
-    /// exportación tienen dónde poner esa raya.
+    /// Zero when it is not a multiple: with super tiles of 2x2 and a screen of 21 rows —three of
+    /// scoreboard— the screen would cut a super tile in half, and neither the grid nor the
+    /// export have anywhere to put that line.
     /// </para>
     /// <para>
-    /// Aparte del interruptor de la rejilla a propósito: exportar por pantallas necesita esta
-    /// cuenta con la rejilla apagada, que es como se trabaja casi siempre.
+    /// Apart from the switch of the grid on purpose: exporting by screens needs this sum with the
+    /// grid off, which is how one works almost always.
     /// </para>
     /// </remarks>
     public int ScreenCellsWide => ScreenCells(Preferences.ScreenWidth, CellTilesWidth);
@@ -391,19 +391,19 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
     /// <inheritdoc cref="ScreenCellsWide"/>
     public int ScreenCellsHigh => ScreenCells(Preferences.ScreenHeight, CellTilesHeight);
 
-    /// <summary>Cada cuántas celdas va una línea de la rejilla de pantallas, o 0 si no se pinta.</summary>
+    /// <summary>Every how many cells a line of the grid of screens goes, or 0 if it is not drawn.</summary>
     public int ScreenGridColumns => ShowScreenGrid ? ScreenCellsWide : 0;
 
     /// <inheritdoc cref="ScreenGridColumns"/>
     public int ScreenGridRows => ShowScreenGrid ? ScreenCellsHigh : 0;
 
     /// <summary>
-    /// En qué pantalla cae una celda, contando desde uno: «3-1» es la tercera columna de
-    /// pantallas, primera fila.
+    /// Which screen a cell falls in, counting from one: «3-1» is the third column of screens,
+    /// first row.
     /// </summary>
     /// <remarks>
-    /// Columna primero, como las coordenadas que ya se enseñan al lado. Vacío si no hay
-    /// rejilla: sin ella el número no significa nada porque no se ve dónde parte cada una.
+    /// Column first, like the coordinates already shown next to it. Empty without the grid:
+    /// without it the number means nothing, because it cannot be seen where each one starts.
     /// </remarks>
     public string ScreenAt(int column, int row) =>
         ScreenGridColumns > 0 && ScreenGridRows > 0
@@ -411,11 +411,11 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
             : string.Empty;
 
     /// <summary>
-    /// Que ha cambiado algo de la rejilla de pantallas en las preferencias.
+    /// That something of the grid of screens changed in the preferences.
     /// </summary>
     /// <remarks>
-    /// Lo llama la ventana principal, que es quien las vigila. Aquí no se guarda nada de
-    /// eso: las tres propiedades lo leen de las preferencias cada vez.
+    /// Called by the main window, which is the one watching them. Nothing of that is kept here:
+    /// the properties read it from the preferences every time.
     /// </remarks>
     public void ScreenGridChanged()
     {
@@ -698,10 +698,10 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
             if (Hover is not { } cell)
                 return string.Empty;
 
-            // Con la rejilla de pantallas puesta, en cuál de ellas se está: es el número que
-            // hace falta para pedir esa pantalla al exportar. Junto a las coordenadas y no al
-            // final, que es lo mismo que dicen ellas, y también sobre un hueco: sobre un hueco
-            // es justo cuando uno se pregunta qué pantalla es la que se ha dejado vacía.
+            // With the grid of screens on, which one of them this is: it is the number needed to ask
+            // for that screen when exporting. Next to the coordinates and not at the end, since it
+            // says the same thing they do, and over an empty cell too: over an empty cell is just
+            // when one wonders which screen is the one left empty.
             string screen = ScreenAt(cell.Column, cell.Row) is { Length: > 0 } number
                 ? $" \u00b7 {number}"
                 : string.Empty;

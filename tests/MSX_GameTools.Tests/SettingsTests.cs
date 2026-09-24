@@ -275,11 +275,11 @@ public class SettingsTests : IDisposable
     }
 
     /// <summary>
-    /// El tamaño de la pantalla también se guarda.
+    /// The size of the screen is saved too.
     /// </summary>
     /// <remarks>
-    /// Es del juego que se está haciendo y no cambia de una sesión a la siguiente: volver a
-    /// escribirlo en cada arranque sería peor que no preguntarlo.
+    /// It belongs to the game being made and does not change from one session to the next:
+    /// having to type it again at every start would be worse than not asking it.
     /// </remarks>
     [AvaloniaFact]
     public async Task El_tamano_de_la_pantalla_se_guarda_para_la_proxima_vez()

@@ -144,21 +144,22 @@ public sealed class EditorPreferences : ObservableObject
     public AsmStyle AsmStyle => AsmStyle.Of(AsmData);
 
     /// <summary>
-    /// Lo que mide una pantalla del juego, en tiles.
+    /// What a screen of the game measures, in tiles.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Para los juegos de pantallas fijas, que se dibujan como un mapa entero —las pantallas
-    /// son contiguas aunque se vean de una en una— y luego se cargan por separado. Con esto el
-    /// editor enseña por dónde parte cada una y la exportación corta el mapa por ahí.
+    /// For the games of fixed screens, which are drawn as one whole map —the screens touch each
+    /// other even if they are seen one at a time— and then loaded one by one. With this the
+    /// editor shows where each one starts, and the export cuts the map there.
     /// </para>
     /// <para>
-    /// 32x24 es la pantalla entera del MSX; quien deje dos filas de marcador pone 22, y ésa es
-    /// justo la razón de preguntarlo en vez de darlo por sabido.
+    /// 32x24 is the whole MSX screen; whoever keeps two rows for a scoreboard puts 22, and that
+    /// is exactly why it is asked instead of taken for granted.
     /// </para>
     /// <para>
-    /// Aquí y no en el mapa porque es del juego y no de un mapa suyo: todos los del mismo
-    /// juego se parten igual. A cambio es un ajuste de esta máquina y no viaja con el fichero.
+    /// Here and not in the map because it belongs to the game and not to one of its maps: every
+    /// map of the same game is cut the same way. In exchange it is a setting of this machine and
+    /// does not travel with the file.
     /// </para>
     /// </remarks>
     public int ScreenWidth
@@ -175,11 +176,11 @@ public sealed class EditorPreferences : ObservableObject
     }
 
     /// <summary>
-    /// Si se pinta la rejilla de pantallas encima del mapa.
+    /// Whether the grid of screens is drawn over the map.
     /// </summary>
     /// <remarks>
-    /// Aquí y no en cada mapa para que siga puesta al cambiar de pestaña, como los zooms:
-    /// enseñar por dónde parten las pantallas es una forma de trabajar, no algo del mapa.
+    /// Here and not in each map so that it stays on when changing tabs, like the zooms: showing
+    /// where the screens start is a way of working, not something of the map.
     /// </remarks>
     public bool ShowScreenGrid
     {
@@ -187,7 +188,7 @@ public sealed class EditorPreferences : ObservableObject
         set => SetProperty(ref _showScreenGrid, value);
     }
 
-    /// <summary>La pantalla entera del MSX, que es de donde se parte.</summary>
+    /// <summary>The whole MSX screen, which is where one starts from.</summary>
     public const int DefaultScreenWidth = 32;
 
     /// <inheritdoc cref="DefaultScreenWidth"/>
@@ -195,7 +196,7 @@ public sealed class EditorPreferences : ObservableObject
 
     private const int MinScreenSide = 1;
 
-    /// <summary>Lo que mide de lado el mapa más grande que se puede hacer.</summary>
+    /// <summary>What a side of the biggest map that can be made measures.</summary>
     private const int MaxScreenSide = 256;
 
     public void CopyFrom(EditorPreferences other)

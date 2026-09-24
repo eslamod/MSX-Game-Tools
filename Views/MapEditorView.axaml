@@ -17,8 +17,8 @@
     <!-- Margen 2 y no 1: entre dos botones el hueco es la suma de los dos margenes que se
          tocan, asi que esto son 4, que es lo que separa las tiras del editor de tiles.
          Esta barra iba a 2 y al lado de la otra se veia apretada. -->
-    <!-- :is(Button) y no Button a secas para que alcance tambien a los ToggleButton de la
-         barra, que son botones de herramienta igual que los demas. -->
+    <!-- :is(Button) and not plain Button so that it reaches the ToggleButtons of the bar too,
+         which are tool buttons like the rest. -->
     <Style Selector=":is(Button).tool">
       <Setter Property="Margin" Value="2" />
       <Setter Property="Padding" Value="6,4" />
@@ -142,9 +142,8 @@
 
         <Border Classes="separator" />
 
-        <!-- La rejilla de pantallas, para los juegos que van por pantallas fijas: el mapa se
-             dibuja entero y esto ensena por donde parte cada una. Lo que mide una pantalla
-             esta en las preferencias. -->
+        <!-- The grid of screens, for the games of fixed screens: the map is drawn whole and
+             this shows where each one starts. What a screen measures is in the preferences. -->
         <ToggleButton x:Name="ScreenGridButton" Classes="tool"
                       IsChecked="{Binding ShowScreenGrid}"
                       ToolTip.Tip="{l:Localize MapScreenGridTip}">

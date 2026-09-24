@@ -43,7 +43,7 @@ public sealed class SpriteBankExport(SpritesEditorViewModel sprites, IDialogServ
     /// <summary>Nothing gets in the way.</summary>
     public string? Problem(ExportRequest request) => null;
 
-    /// <summary>Nada que señalar: lo que sale es una tabla, no un trozo de otra cosa.</summary>
+    /// <summary>Nothing to mark: what goes out is a table, not a piece of something else.</summary>
     public void Preview(ExportRequest? request)
     {
     }

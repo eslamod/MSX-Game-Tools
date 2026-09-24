@@ -43,7 +43,7 @@ public sealed record PageChoice(string Label, int Bytes);
 /// </remarks>
 public partial class ExportViewModel : PanelBaseViewModel
 {
-    /// <summary>Cuántos ficheros se enseñan por su nombre antes de resumir el resto.</summary>
+    /// <summary>How many files are shown by name before the rest is summed up.</summary>
     private const int MaxListed = 12;
 
     private readonly MainWindowViewModel _mainWindowVm;
@@ -163,8 +163,8 @@ public partial class ExportViewModel : PanelBaseViewModel
         _format = document.Formats[0];
         _screenPages = PageSizes[0];
 
-        // Por la pantalla de lo que estuviera seleccionado: con un mapa de veinte pantallas,
-        // arrancar siempre por la 1-1 es ponerse a contar.
+        // On the screen of whatever was selected: with a map of twenty screens, always starting
+        // on 1-1 means counting.
         if (document.FirstScreen is { } screen)
         {
             _screenColumn = screen.Column;
@@ -218,10 +218,10 @@ public partial class ExportViewModel : PanelBaseViewModel
     public bool ShowsScreens => _document.FirstScreen is not null
         && Format.Format is ExportFormat.Assembler or ExportFormat.Binary;
 
-    /// <summary>Lo que sólo se pregunta con las pantallas puestas: cuáles y con qué cabecera.</summary>
+    /// <summary>What is only asked with the screens on: which ones, and with what header.</summary>
     public bool ShowsScreenOptions => ByScreens && ShowsScreens;
 
-    /// <summary>Y el número, sólo cuando se ha dicho que va una sola.</summary>
+    /// <summary>And the number, only once it has been said that just one goes.</summary>
     public bool ShowsScreenPick => ShowsScreenOptions && OneScreen;
 
     /// <summary>
@@ -245,11 +245,11 @@ public partial class ExportViewModel : PanelBaseViewModel
     ];
 
     /// <summary>
-    /// Lo contrario de <see cref="OneScreen"/>, para el otro botón del par.
+    /// The opposite of <see cref="OneScreen"/>, for the other button of the pair.
     /// </summary>
     /// <remarks>
-    /// Sólo hace caso cuando lo marcan: al marcar el otro, el grupo desmarca éste y escribe un
-    /// <c>false</c> de vuelta, que aquí no significa nada.
+    /// It only listens when it gets ticked: ticking the other one, the group unticks this one and
+    /// writes a <c>false</c> back, which means nothing here.
     /// </remarks>
     public bool AllScreens
     {
@@ -268,12 +268,12 @@ public partial class ExportViewModel : PanelBaseViewModel
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
     /// <summary>
-    /// Los que no caben en la lista, cuando son muchos.
+    /// The ones that do not fit in the list, when there are many.
     /// </summary>
     /// <remarks>
-    /// Un mapa de diez por diez pantallas son cien nombres, y cien nombres no se leen: lo que
-    /// hace falta saber —cómo se llaman y cuántos pisan algo— se ve en los primeros y en la
-    /// línea de los que ya existen, que cuenta todos.
+    /// A map of ten by ten screens is a hundred names, and a hundred names are not read: what
+    /// needs knowing —what they are called and how many land on something— shows in the first
+    /// ones and in the line of the ones already there, which counts them all.
     /// </remarks>
     public string? More =>
         _total > Files.Count ? Text.Format("ExportMoreFiles", _total - Files.Count) : null;
@@ -358,7 +358,7 @@ public partial class ExportViewModel : PanelBaseViewModel
             : null,
         Folder);
 
-    /// <summary>La pantalla pedida, o nada cuando van todas.</summary>
+    /// <summary>The screen asked for, or nothing when all of them go.</summary>
     private ScreenNumber? Picked => OneScreen ? new ScreenNumber(ScreenColumn, ScreenRow) : null;
 
     [RelayCommand]
@@ -383,8 +383,8 @@ public partial class ExportViewModel : PanelBaseViewModel
             return;
         }
 
-        // Lo que impide exportar ya está escrito en el panel desde que se contestó; aquí sólo
-        // hay que no seguir.
+        // What stops the export is already written in the panel since it was answered; here all
+        // there is to do is not go on.
         if (_document.Problem(Request) is { } problem)
         {
             ErrorMessage = problem;
@@ -422,19 +422,19 @@ public partial class ExportViewModel : PanelBaseViewModel
     private void CancelExport() => _mainWindowVm.RightPanViewModel = null;
 
     /// <summary>
-    /// El panel se cierra: lo que estuviera señalado deja de estar a punto de escribirse.
+    /// The panel closes: whatever was marked is no longer about to be written.
     /// </summary>
     /// <remarks>
-    /// Aquí y no en Aceptar y Cancelar: el panel también se va cuando se abre otro encima, y
-    /// entonces la marca se quedaría puesta sin nadie que la fuera a escribir.
+    /// Here and not in Accept and Cancel: the panel also goes when another one opens on top of
+    /// it, and then the mark would stay on with nobody left to write it.
     /// </remarks>
     public override void OnClosed() => _document.Preview(null);
 
     /// <summary>The destination follows the format, so that a path does not keep the old one.</summary>
     partial void OnFormatChanged(ExportChoice value)
     {
-        // Y si el formato nuevo no sale por pantallas, la casilla se cae: el destino pasa de
-        // ser una carpeta a ser un fichero, y dejarla puesta lo dejaría a medias.
+        // And if the new format does not go out by screens, the box drops: the destination goes
+        // from being a folder to being a file, and leaving it ticked would leave it half-way.
         if (!ShowsScreens)
             ByScreens = false;
 
@@ -446,12 +446,12 @@ public partial class ExportViewModel : PanelBaseViewModel
     }
 
     /// <summary>
-    /// El destino cambia de significado con la casilla, así que se convierte.
+    /// The destination changes meaning with the box, so it gets converted.
     /// </summary>
     /// <remarks>
-    /// Por pantallas es la carpeta y sin ella el fichero. Sin convertirlo, una carpeta elegida
-    /// antes se leería como un fichero —la carpeta sería la de encima— y el mapa acabaría un
-    /// nivel más arriba de donde se dijo.
+    /// By screens it is the folder, and without them the file. Left as it was, a folder chosen
+    /// before would be read as a file —the folder would be the one above— and the map would end
+    /// up one level higher than where it was said.
     /// </remarks>
     partial void OnByScreensChanged(bool value)
     {
@@ -466,7 +466,7 @@ public partial class ExportViewModel : PanelBaseViewModel
         ShowWhatGoesOut();
     }
 
-    /// <summary>La cabecera cambia lo que se escribe, no cómo se llama.</summary>
+    /// <summary>The header changes what is written, not what it is called.</summary>
     partial void OnScreenHeaderChanged(bool value) => Refresh();
 
     /// <summary>The index puts two files in the list, or takes them out.</summary>
@@ -475,7 +475,7 @@ public partial class ExportViewModel : PanelBaseViewModel
     /// <summary>And the pages change which files go with it: a table and one per page.</summary>
     partial void OnScreenPagesChanged(PageChoice value) => Refresh();
 
-    /// <summary>Y cuáles van cambia la lista entera, y lo que se señala en el mapa.</summary>
+    /// <summary>And which ones go changes the whole list, and what is marked on the map.</summary>
     partial void OnOneScreenChanged(bool value) => Answered();
 
     /// <inheritdoc cref="OnOneScreenChanged"/>
@@ -484,7 +484,7 @@ public partial class ExportViewModel : PanelBaseViewModel
     /// <inheritdoc cref="OnOneScreenChanged"/>
     partial void OnScreenRowChanged(int value) => Answered();
 
-    /// <summary>La lista de lo que va a salir y, donde se vea, lo que va a salir.</summary>
+    /// <summary>The list of what is going out and, where it can be seen, what is going out.</summary>
     private void Answered()
     {
         Refresh();
@@ -492,12 +492,12 @@ public partial class ExportViewModel : PanelBaseViewModel
     }
 
     /// <summary>
-    /// Que el documento enseñe lo que va a salir donde se vea.
+    /// That the document shows what is going out where it can be seen.
     /// </summary>
     /// <remarks>
-    /// Aparte de <see cref="Refresh"/> a propósito, que se llama con cada letra del destino:
-    /// señalar arrastra la vista del mapa hasta la pantalla, y eso con cada letra sería una
-    /// ventana dándose saltos mientras se escribe.
+    /// Apart from <see cref="Refresh"/> on purpose, which runs with every letter of the
+    /// destination: marking drags the view of the map to the screen, and that with every letter
+    /// would be a window jumping about while typing.
     /// </remarks>
     private void ShowWhatGoesOut() => _document.Preview(Request);
 
@@ -528,8 +528,8 @@ public partial class ExportViewModel : PanelBaseViewModel
                 Files.Add(new ExportFileRow(name, exists));
         }
 
-        // Lo que impide exportar se dice aquí y no al aceptar: enterarse de que la pantalla no
-        // cuadra con el supertile después de elegir carpeta es tarde.
+        // What stops the export is said here and not on accepting: finding out that the screen
+        // does not fit the super tile after choosing a folder is too late.
         ErrorMessage = _document.Problem(Request);
 
         OnPropertyChanged(nameof(Overwrites));

@@ -140,8 +140,8 @@
 
     <StackPanel Spacing="6">
 
-      <!-- Se pregunta en vez de darlo por sabido porque no siempre es la pantalla entera:
-           quien deje dos filas de marcador trabaja con 32x22. -->
+      <!-- Asked instead of taken for granted because it is not always the whole screen:
+           whoever keeps two rows for a scoreboard works with 32x22. -->
       <Grid ColumnDefinitions="150,*">
         <TextBlock Grid.Column="0" Text="{l:Localize PreferencesScreenWidth}" VerticalAlignment="Center" />
         <NumericUpDown Grid.Column="1" HorizontalAlignment="Stretch"

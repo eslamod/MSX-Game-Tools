@@ -33,8 +33,8 @@
           </ComboBox>
         </Grid>
 
-        <!-- La pregunta de las pantallas va antes del destino porque cambia lo que el
-             destino es: con ella puesta se elige la carpeta, y sin ella un fichero. -->
+        <!-- The question of the screens goes before the destination because it changes what
+             the destination is: with it ticked a folder is chosen, and without it a file. -->
         <CheckBox Content="{l:Localize ExportByScreens}"
                   IsChecked="{Binding ByScreens}"
                   IsVisible="{Binding ShowsScreens}" Margin="0,2,0,0" />
@@ -42,8 +42,8 @@
         <TextBlock Text="{l:Localize ExportByScreensTip}" IsVisible="{Binding ShowsScreens}"
                    Opacity="0.7" TextWrapping="Wrap" Margin="0,0,0,6" />
 
-        <!-- Todas o una sola. Los dos botones salen juntos para que se vean las dos
-             opciones; con una casilla sola, la de «una», habría que deducir la otra. -->
+        <!-- All or only one. Both buttons show together so that both choices are seen; with a
+             single box, the one of "only one", the other would have to be guessed. -->
         <StackPanel Orientation="Horizontal" Spacing="12" Margin="12,0,0,0"
                     IsVisible="{Binding ShowsScreenOptions}">
           <RadioButton GroupName="ExportScreens" Content="{l:Localize ExportAllScreens}"
@@ -52,7 +52,7 @@
                        IsChecked="{Binding OneScreen}" />
         </StackPanel>
 
-        <!-- Cuál, como se lee en la etiqueta del editor: columna y fila, desde uno. -->
+        <!-- Which one, as the label of the editor reads it: column and row, from one. -->
         <StackPanel Orientation="Horizontal" Spacing="6" Margin="12,6,0,0"
                     IsVisible="{Binding ShowsScreenPick}">
           <TextBlock Text="{l:Localize ExportScreenWhich}" VerticalAlignment="Center" />
@@ -154,8 +154,8 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <!-- Y los que no caben, contados: cien nombres no se leen, pero saber que hay cien
-             sí hace falta. -->
+        <!-- And the ones that do not fit, counted: a hundred names are not read, but knowing
+             there are a hundred is needed. -->
         <TextBlock Text="{Binding More}" IsVisible="{Binding HasMore}"
                    Opacity="0.7" TextWrapping="Wrap" Margin="0,2,0,0" />
 

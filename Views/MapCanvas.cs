@@ -69,12 +69,12 @@ public class MapCanvas : Control
         AvaloniaProperty.Register<MapCanvas, int>(nameof(CellTilesHeight), defaultValue: 1);
 
     /// <summary>
-    /// Cada cuántas celdas va una línea de la rejilla de pantallas, o 0 si no se pinta.
+    /// Every how many cells a line of the grid of screens goes, or 0 if it is not drawn.
     /// </summary>
     /// <remarks>
-    /// En celdas y no en tiles: en un mapa de supertiles una celda son varios tiles, y quien
-    /// sabe hacer esa cuenta —y si sale entera— es el modelo de vista. Aquí sólo se pinta
-    /// cada cuántas.
+    /// In cells and not in tiles: in a map of super tiles a cell is several tiles, and the one
+    /// that knows how to do that sum —and whether it comes out whole— is the view model. Here
+    /// it is only drawn every so many.
     /// </remarks>
     public static readonly StyledProperty<int> ScreenColumnsProperty =
         AvaloniaProperty.Register<MapCanvas, int>(nameof(ScreenColumns));
@@ -84,12 +84,12 @@ public class MapCanvas : Control
         AvaloniaProperty.Register<MapCanvas, int>(nameof(ScreenRows));
 
     /// <summary>
-    /// Una pantalla señalada encima del mapa, o nada.
+    /// A screen marked over the map, or nothing.
     /// </summary>
     /// <remarks>
-    /// Aparte de la selección a propósito: marcar es una herramienta —rellenar, copiar,
-    /// borrar trabajan sobre lo marcado— y esto es sólo para señalar. Se dibuja entera aunque
-    /// se salga del mapa, que es lo que hace ver que a esa pantalla le sobra sitio.
+    /// Apart from the selection on purpose: selecting is a tool —fill, copy and erase work on
+    /// what is selected— and this is only for pointing at. It is drawn whole even if it goes past
+    /// the map, which is what shows that the screen has room to spare.
     /// </remarks>
     public static readonly StyledProperty<MapRegion?> HighlightProperty =
         AvaloniaProperty.Register<MapCanvas, MapRegion?>(nameof(Highlight));
@@ -99,22 +99,22 @@ public class MapCanvas : Control
     private static readonly IPen EdgePen = new Pen(Brushes.DimGray);
 
     /// <summary>
-    /// Por dónde parte cada pantalla del juego.
+    /// Where each screen of the game starts.
     /// </summary>
     /// <remarks>
-    /// A trazos y en ámbar para que no se confunda ni con la rejilla de celdas, que es negra y
-    /// fina, ni con el recuadro de la selección, que es rojo y entero.
+    /// Dashed and amber so that it is not taken for the grid of cells, which is black and thin,
+    /// nor for the box of the selection, which is red and solid.
     /// </remarks>
     private static readonly IPen ScreenPen =
         new Pen(new SolidColorBrush(Color.FromArgb(200, 255, 193, 7)), 2, DashStyle.Dash);
 
     /// <summary>
-    /// La pantalla señalada: del mismo ámbar que la rejilla, entera y con un baño encima.
+    /// The screen marked: the same amber as the grid, solid and with a wash over it.
     /// </summary>
     /// <remarks>
-    /// Con el borde solo no se distinguiría de la rejilla, que pasa justo por ahí. El baño es
-    /// muy claro a propósito: lo que hay que ver es el dibujo de debajo, que es de lo que se
-    /// está hablando.
+    /// With the border alone it could not be told from the grid, which runs right there. The wash
+    /// is very light on purpose: what has to be seen is the drawing underneath, which is what is
+    /// being talked about.
     /// </remarks>
     private static readonly IBrush HighlightBrush =
         new SolidColorBrush(Color.FromArgb(48, 255, 193, 7));
@@ -409,12 +409,12 @@ public class MapCanvas : Control
     }
 
     /// <summary>
-    /// Las líneas por donde parte cada pantalla del juego.
+    /// The lines where each screen of the game starts.
     /// </summary>
     /// <remarks>
-    /// Encima de los tiles y debajo de lo que se va a estampar: es una referencia para
-    /// dibujar, no parte del mapa. Se pintan enteras de lado a lado aunque la última pantalla
-    /// se quede a medias, que es lo que hace ver que se queda a medias.
+    /// Over the tiles and under what is about to be stamped: it is a reference for drawing, not
+    /// part of the map. They are drawn whole from side to side even if the last screen falls
+    /// short, which is what shows that it falls short.
     /// </remarks>
     private void DrawScreens(DrawingContext context, TileMap map, double cellWidth, double cellHeight)
     {
@@ -539,11 +539,11 @@ public class MapCanvas : Control
     }
 
     /// <summary>
-    /// La pantalla señalada, debajo de la selección.
+    /// The screen marked, under the selection.
     /// </summary>
     /// <remarks>
-    /// Debajo porque lo marcado es del usuario y esto es un aviso de otro panel: si las dos
-    /// caen en el mismo sitio, la que tiene que verse es la suya.
+    /// Under it because what is selected is the user's, and this is a notice from another panel:
+    /// if both fall in the same place, the one that has to show is theirs.
     /// </remarks>
     private void DrawHighlight(DrawingContext context, double cellWidth, double cellHeight)
     {
