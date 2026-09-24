@@ -1125,12 +1125,17 @@ public class MapScreensExportTests : IDisposable
     /// a bug of its own and not something of ours it refuses, and it comes out as not checked
     /// here, which is the truth, instead of as a failure of the index.
     /// </para>
+    /// <para>
+    /// asMSX 1.2.0 does not do it: with <c>ASMSX</c> pointing at it the whole suite passes, the
+    /// files that brought down 0.16 included, and it gives the same bytes as the other three.
+    /// </para>
     /// </remarks>
     private static void SkipIfAsMsxFellOver(string name, string rom, string said) =>
         Assert.SkipWhen(
             name == "asMSX" && !File.Exists(rom) && string.IsNullOrWhiteSpace(said),
-            "asMSX 0.16 se ha caído sin decir nada. Le pasa con algunos ficheros según en qué byte "
-            + "caiga cada línea, y no es algo de lo exportado que rechace. Aquí no se ha comprobado con él.");
+            "asMSX se ha caído sin decir nada. Al 0.16 le pasa con algunos ficheros según en qué "
+            + "byte caiga cada línea, y no es algo de lo exportado que rechace; la 1.2.0 ya no se cae. "
+            + "Aquí no se ha comprobado con él.");
 
     /// <summary>The screens of the index tests: nine across and two down, minus these.</summary>
     private static readonly (int Column, int Row)[] Empty = [(3, 1), (9, 1), (5, 2)];
