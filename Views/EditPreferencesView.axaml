@@ -136,6 +136,33 @@
 
     </StackPanel>
 
+    <TextBlock Text="{l:Localize PreferencesScreen}" FontWeight="Bold" Margin="0,14,0,6" />
+
+    <StackPanel Spacing="6">
+
+      <!-- Se pregunta en vez de darlo por sabido porque no siempre es la pantalla entera:
+           quien deje dos filas de marcador trabaja con 32x22. -->
+      <Grid ColumnDefinitions="150,*">
+        <TextBlock Grid.Column="0" Text="{l:Localize PreferencesScreenWidth}" VerticalAlignment="Center" />
+        <NumericUpDown Grid.Column="1" HorizontalAlignment="Stretch"
+                       ShowButtonSpinner="True" FormatString="0"
+                       Minimum="1" Maximum="256" Increment="1"
+                       Value="{Binding ScreenWidth}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="150,*">
+        <TextBlock Grid.Column="0" Text="{l:Localize PreferencesScreenHeight}" VerticalAlignment="Center" />
+        <NumericUpDown Grid.Column="1" HorizontalAlignment="Stretch"
+                       ShowButtonSpinner="True" FormatString="0"
+                       Minimum="1" Maximum="256" Increment="1"
+                       Value="{Binding ScreenHeight}" />
+      </Grid>
+
+      <TextBlock Text="{l:Localize PreferencesScreenHint}" TextWrapping="Wrap"
+                 FontSize="11" Foreground="{DynamicResource AppTextSecondary}" />
+
+    </StackPanel>
+
     <TextBlock Text="{l:Localize PreferencesAsm}" FontWeight="Bold" Margin="0,14,0,6" />
 
     <StackPanel Spacing="6">

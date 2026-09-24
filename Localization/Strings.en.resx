@@ -253,6 +253,10 @@
   <data name="PreferencesAsm" xml:space="preserve"><value>Assembler</value></data>
   <data name="PreferencesAsmData" xml:space="preserve"><value>Data directive</value></data>
   <data name="PreferencesAsmHint" xml:space="preserve"><value>How your assembler spells the directive that declares bytes. “.db” works with sasSX, asMSX and sjasmplus; “db” with pasmo, asMSX, sjasmplus and sasSX under its -as option. If you use another one, type what it needs.</value></data>
+  <data name="PreferencesScreen" xml:space="preserve"><value>Game screens</value></data>
+  <data name="PreferencesScreenWidth" xml:space="preserve"><value>Width in tiles</value></data>
+  <data name="PreferencesScreenHeight" xml:space="preserve"><value>Height in tiles</value></data>
+  <data name="PreferencesScreenHint" xml:space="preserve"><value>For games with fixed screens: the map is drawn whole and the editor shows where each screen starts. 32x24 is the full MSX screen; with a two-row scoreboard, 32x22.</value></data>
   <data name="PaintDot" xml:space="preserve"><value>Dot</value></data>
   <data name="PaintDotTip" xml:space="preserve"><value>Each click paints a single pixel</value></data>
   <data name="PaintStroke" xml:space="preserve"><value>Stroke</value></data>
@@ -351,6 +355,7 @@
   <data name="MapZoomOutTip" xml:space="preserve"><value>Zoom out</value></data>
   <data name="MapFit" xml:space="preserve"><value>Fit</value></data>
   <data name="MapFitTip" xml:space="preserve"><value>Make the whole map fit</value></data>
+  <data name="MapScreenGridTip" xml:space="preserve"><value>Show where each screen starts</value></data>
   <data name="MapLayers" xml:space="preserve"><value>Layers</value></data>
   <data name="MapAddLayerTip" xml:space="preserve"><value>Add a layer</value></data>
   <data name="MapDeleteLayerTip" xml:space="preserve"><value>Delete the active layer</value></data>

@@ -235,6 +235,49 @@ public class MapCanvasTests : IDisposable
             $"el fantasma de la fila 9 se parece más al juego de arriba que al del tercio en el que cae");
     }
 
+    /// <summary>
+    /// La rejilla de pantallas se pinta por donde parte cada una.
+    /// </summary>
+    /// <remarks>
+    /// Cada cuántas celdas va la línea se comprueba aparte; lo que sólo se ve en la captura es
+    /// que de verdad se dibuje, que es la funcionalidad entera.
+    /// </remarks>
+    [AvaloniaFact]
+    public void La_rejilla_de_pantallas_se_pinta_por_donde_parte_cada_una()
+    {
+        Assert.Equal(0, PaintedDown((int)CellSize * 4));
+        Assert.Equal(0, PaintedAcross((int)CellSize * 3));
+
+        _canvas.ScreenColumns = 4;
+        _canvas.ScreenRows = 3;
+        Redraw();
+
+        Assert.True(PaintedDown((int)CellSize * 4) > 0, "no hay línea por donde parte la pantalla");
+        Assert.True(PaintedAcross((int)CellSize * 3) > 0, "no hay línea por donde parte la fila");
+
+        // Y sólo por ahí: por dentro de la pantalla no hay ninguna.
+        Assert.Equal(0, PaintedDown((int)CellSize * 2));
+        Assert.Equal(0, PaintedAcross((int)CellSize * 2));
+    }
+
+    /// <summary>
+    /// Cuántos de ocho pixeles seguidos están pintados encima del fondo.
+    /// </summary>
+    /// <remarks>
+    /// Un tramo y no un punto porque la línea va a trazos: un pixel suelto puede caer en el
+    /// hueco entre dos y decir que no hay línea donde sí la hay. Ocho es un trazo y su hueco.
+    /// </remarks>
+    /// <remarks>
+    /// El tramo va de 32 a 39 a propósito: es el único que no roza ninguna de las líneas de la
+    /// otra dirección, que son de dos pixeles y pisan el de al lado.
+    /// </remarks>
+    private int PaintedDown(int x) =>
+        Enumerable.Range(32, 8).Count(y => PixelAt(x, y) != Colors.Magenta);
+
+    /// <inheritdoc cref="PaintedDown"/>
+    private int PaintedAcross(int y) =>
+        Enumerable.Range(32, 8).Count(x => PixelAt(x, y) != Colors.Magenta);
+
     /// <summary>Lo lejos que está un color de otro, para comparar el fantasma translucido.</summary>
     private static int Near(Color painted, Color wanted) =>
         Math.Abs(painted.R - wanted.R) + Math.Abs(painted.G - wanted.G) + Math.Abs(painted.B - wanted.B);

@@ -68,9 +68,34 @@ public class MapCanvas : Control
     public static readonly StyledProperty<int> CellTilesHeightProperty =
         AvaloniaProperty.Register<MapCanvas, int>(nameof(CellTilesHeight), defaultValue: 1);
 
+    /// <summary>
+    /// Cada cuántas celdas va una línea de la rejilla de pantallas, o 0 si no se pinta.
+    /// </summary>
+    /// <remarks>
+    /// En celdas y no en tiles: en un mapa de supertiles una celda son varios tiles, y quien
+    /// sabe hacer esa cuenta —y si sale entera— es el modelo de vista. Aquí sólo se pinta
+    /// cada cuántas.
+    /// </remarks>
+    public static readonly StyledProperty<int> ScreenColumnsProperty =
+        AvaloniaProperty.Register<MapCanvas, int>(nameof(ScreenColumns));
+
+    /// <inheritdoc cref="ScreenColumnsProperty"/>
+    public static readonly StyledProperty<int> ScreenRowsProperty =
+        AvaloniaProperty.Register<MapCanvas, int>(nameof(ScreenRows));
+
     private static readonly IPen GridPen = new Pen(new SolidColorBrush(Color.FromArgb(60, 0, 0, 0)));
     private static readonly IPen SelectionPen = new Pen(Brushes.Red, 2);
     private static readonly IPen EdgePen = new Pen(Brushes.DimGray);
+
+    /// <summary>
+    /// Por dónde parte cada pantalla del juego.
+    /// </summary>
+    /// <remarks>
+    /// A trazos y en ámbar para que no se confunda ni con la rejilla de celdas, que es negra y
+    /// fina, ni con el recuadro de la selección, que es rojo y entero.
+    /// </remarks>
+    private static readonly IPen ScreenPen =
+        new Pen(new SolidColorBrush(Color.FromArgb(200, 255, 193, 7)), 2, DashStyle.Dash);
 
     private Point _offset;
 
@@ -111,7 +136,9 @@ public class MapCanvas : Control
             ShowGridProperty,
             TilesByThirdProperty,
             CellTilesWidthProperty,
-            CellTilesHeightProperty);
+            CellTilesHeightProperty,
+            ScreenColumnsProperty,
+            ScreenRowsProperty);
     }
 
     public MapCanvas()
@@ -200,6 +227,20 @@ public class MapCanvas : Control
     {
         get => GetValue(CellTilesWidthProperty);
         set => SetValue(CellTilesWidthProperty, value);
+    }
+
+    /// <inheritdoc cref="ScreenColumnsProperty"/>
+    public int ScreenColumns
+    {
+        get => GetValue(ScreenColumnsProperty);
+        set => SetValue(ScreenColumnsProperty, value);
+    }
+
+    /// <inheritdoc cref="ScreenColumnsProperty"/>
+    public int ScreenRows
+    {
+        get => GetValue(ScreenRowsProperty);
+        set => SetValue(ScreenRowsProperty, value);
     }
 
     /// <inheritdoc cref="CellTilesWidth"/>
@@ -330,7 +371,36 @@ public class MapCanvas : Control
             }
         }
 
+        DrawScreens(context, map, cellWidth, cellHeight);
         DrawEdge(context, map, cellWidth, cellHeight);
+    }
+
+    /// <summary>
+    /// Las líneas por donde parte cada pantalla del juego.
+    /// </summary>
+    /// <remarks>
+    /// Encima de los tiles y debajo de lo que se va a estampar: es una referencia para
+    /// dibujar, no parte del mapa. Se pintan enteras de lado a lado aunque la última pantalla
+    /// se quede a medias, que es lo que hace ver que se queda a medias.
+    /// </remarks>
+    private void DrawScreens(DrawingContext context, TileMap map, double cellWidth, double cellHeight)
+    {
+        double right = (map.Width * cellWidth) - _offset.X;
+        double bottom = (map.Height * cellHeight) - _offset.Y;
+
+        for (int column = ScreenColumns; column > 0 && column < map.Width; column += ScreenColumns)
+        {
+            double x = (column * cellWidth) - _offset.X;
+
+            context.DrawLine(ScreenPen, new Point(x, -_offset.Y), new Point(x, bottom));
+        }
+
+        for (int row = ScreenRows; row > 0 && row < map.Height; row += ScreenRows)
+        {
+            double y = (row * cellHeight) - _offset.Y;
+
+            context.DrawLine(ScreenPen, new Point(-_offset.X, y), new Point(right, y));
+        }
     }
 
     /// <summary>Lo que va encima del mapa y cambia sin que el mapa cambie.</summary>

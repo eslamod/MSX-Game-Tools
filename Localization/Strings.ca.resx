@@ -254,6 +254,10 @@
   <data name="PreferencesAsm" xml:space="preserve"><value>Assemblador</value></data>
   <data name="PreferencesAsmData" xml:space="preserve"><value>Directiva de dades</value></data>
   <data name="PreferencesAsmHint" xml:space="preserve"><value>Com s’escriu al teu assemblador la directiva que declara bytes. «.db» va bé per a sasSX, asMSX i sjasmplus; «db» per a pasmo, asMSX, sjasmplus i sasSX amb la seva opció -as. Si en fas servir un altre, escriu la que necessiti.</value></data>
+  <data name="PreferencesScreen" xml:space="preserve"><value>Pantalles del joc</value></data>
+  <data name="PreferencesScreenWidth" xml:space="preserve"><value>Amplada en tiles</value></data>
+  <data name="PreferencesScreenHeight" xml:space="preserve"><value>Alçada en tiles</value></data>
+  <data name="PreferencesScreenHint" xml:space="preserve"><value>Per als jocs que van per pantalles fixes: el mapa es dibuixa sencer i l’editor ensenya per on comença cada pantalla. 32x24 és la pantalla sencera de l’MSX; amb dues files de marcador, 32x22.</value></data>
   <data name="PaintDot" xml:space="preserve"><value>Punt</value></data>
   <data name="PaintDotTip" xml:space="preserve"><value>Cada clic pinta un sol píxel</value></data>
   <data name="PaintStroke" xml:space="preserve"><value>Traç</value></data>
@@ -352,6 +356,7 @@
   <data name="MapZoomOutTip" xml:space="preserve"><value>Allunya</value></data>
   <data name="MapFit" xml:space="preserve"><value>Ajusta</value></data>
   <data name="MapFitTip" xml:space="preserve"><value>Que hi càpiga el mapa sencer</value></data>
+  <data name="MapScreenGridTip" xml:space="preserve"><value>Ensenyar per on comença cada pantalla</value></data>
   <data name="MapLayers" xml:space="preserve"><value>Capes</value></data>
   <data name="MapAddLayerTip" xml:space="preserve"><value>Afegeix una capa</value></data>
   <data name="MapDeleteLayerTip" xml:space="preserve"><value>Elimina la capa activa</value></data>

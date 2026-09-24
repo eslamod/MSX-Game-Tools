@@ -317,6 +317,72 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
     /// </remarks>
     public bool UsesSuperTiles => _tiles.TileSet.HasSuperTiles;
 
+    /// <summary>
+    /// Si se enseña la rejilla de pantallas encima del mapa.
+    /// </summary>
+    /// <remarks>
+    /// Vive en las preferencias y no aquí para que siga puesta al cambiar de pestaña.
+    /// </remarks>
+    public bool ShowScreenGrid
+    {
+        get => Preferences.ShowScreenGrid;
+
+        set
+        {
+            Preferences.ShowScreenGrid = value;
+
+            // Y desde aquí también, no sólo por el aviso de la ventana principal: un mapa
+            // montado sin ella —las pruebas, o cualquiera que lo use suelto— se quedaría con
+            // el botón pulsado y el lienzo sin rejilla.
+            ScreenGridChanged();
+        }
+    }
+
+    /// <summary>
+    /// Cada cuántas celdas va una línea de la rejilla de pantallas, o 0 si no se pinta.
+    /// </summary>
+    /// <remarks>
+    /// Cero también cuando la pantalla no es múltiplo del supertile: con supertiles de 2x2 y
+    /// una pantalla de 21 filas —tres de marcador— la línea caería a media celda, y una rejilla
+    /// que miente es peor que ninguna.
+    /// </remarks>
+    public int ScreenGridColumns => ScreenCells(Preferences.ScreenWidth, CellTilesWidth);
+
+    /// <inheritdoc cref="ScreenGridColumns"/>
+    public int ScreenGridRows => ScreenCells(Preferences.ScreenHeight, CellTilesHeight);
+
+    /// <summary>
+    /// En qué pantalla cae una celda, contando desde uno: «3-1» es la tercera columna de
+    /// pantallas, primera fila.
+    /// </summary>
+    /// <remarks>
+    /// Columna primero, como las coordenadas que ya se enseñan al lado. Vacío si no hay
+    /// rejilla: sin ella el número no significa nada porque no se ve dónde parte cada una.
+    /// </remarks>
+    public string ScreenAt(int column, int row) =>
+        ScreenGridColumns > 0 && ScreenGridRows > 0
+            ? $"{(column / ScreenGridColumns) + 1}-{(row / ScreenGridRows) + 1}"
+            : string.Empty;
+
+    /// <summary>
+    /// Que ha cambiado algo de la rejilla de pantallas en las preferencias.
+    /// </summary>
+    /// <remarks>
+    /// Lo llama la ventana principal, que es quien las vigila. Aquí no se guarda nada de
+    /// eso: las tres propiedades lo leen de las preferencias cada vez.
+    /// </remarks>
+    public void ScreenGridChanged()
+    {
+        OnPropertyChanged(nameof(ShowScreenGrid));
+        OnPropertyChanged(nameof(ScreenGridColumns));
+        OnPropertyChanged(nameof(ScreenGridRows));
+        OnPropertyChanged(nameof(HoverLabel));
+    }
+
+    /// <inheritdoc cref="ScreenGridColumns"/>
+    private int ScreenCells(int tiles, int cellTiles) =>
+        ShowScreenGrid && cellTiles > 0 && tiles % cellTiles == 0 ? tiles / cellTiles : 0;
+
     /// <summary>Tiles que ocupa una celda del mapa, de ancho y de alto.</summary>
     public int CellTilesWidth => UsesSuperTiles ? _tiles.TileSet.SuperTileWidth : 1;
 
@@ -584,7 +650,15 @@ public partial class MapEditorViewModel : PanelBaseViewModel, IPaletteDocument
             if (Hover is not { } cell)
                 return string.Empty;
 
-            string where = $"{cell.Column}, {cell.Row}";
+            // Con la rejilla de pantallas puesta, en cuál de ellas se está: es el número que
+            // hace falta para pedir esa pantalla al exportar. Junto a las coordenadas y no al
+            // final, que es lo mismo que dicen ellas, y también sobre un hueco: sobre un hueco
+            // es justo cuando uno se pregunta qué pantalla es la que se ha dejado vacía.
+            string screen = ScreenAt(cell.Column, cell.Row) is { Length: > 0 } number
+                ? $" \u00b7 {number}"
+                : string.Empty;
+
+            string where = $"{cell.Column}, {cell.Row}{screen}";
 
             if (Map.TileAt(cell.Column, cell.Row, onlyVisible: true) is not int tile)
                 return where;

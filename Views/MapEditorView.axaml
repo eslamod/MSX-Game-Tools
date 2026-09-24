@@ -17,12 +17,14 @@
     <!-- Margen 2 y no 1: entre dos botones el hueco es la suma de los dos margenes que se
          tocan, asi que esto son 4, que es lo que separa las tiras del editor de tiles.
          Esta barra iba a 2 y al lado de la otra se veia apretada. -->
-    <Style Selector="Button.tool">
+    <!-- :is(Button) y no Button a secas para que alcance tambien a los ToggleButton de la
+         barra, que son botones de herramienta igual que los demas. -->
+    <Style Selector=":is(Button).tool">
       <Setter Property="Margin" Value="2" />
       <Setter Property="Padding" Value="6,4" />
     </Style>
 
-    <Style Selector="Button.tool > icons|MaterialIcon">
+    <Style Selector=":is(Button).tool > icons|MaterialIcon">
       <Setter Property="Width" Value="18" />
       <Setter Property="Height" Value="18" />
     </Style>
@@ -137,6 +139,17 @@
                 ToolTip.Tip="{l:Localize MapFitTip}">
           <icons:MaterialIcon Kind="FitToPageOutline" />
         </Button>
+
+        <Border Classes="separator" />
+
+        <!-- La rejilla de pantallas, para los juegos que van por pantallas fijas: el mapa se
+             dibuja entero y esto ensena por donde parte cada una. Lo que mide una pantalla
+             esta en las preferencias. -->
+        <ToggleButton x:Name="ScreenGridButton" Classes="tool"
+                      IsChecked="{Binding ShowScreenGrid}"
+                      ToolTip.Tip="{l:Localize MapScreenGridTip}">
+          <icons:MaterialIcon Kind="BorderAll" />
+        </ToggleButton>
       </StackPanel>
 
       <!-- Lo que se lee mientras se trabaja: dónde está el ratón, el zoom y lo cogido. -->
@@ -144,7 +157,8 @@
                   VerticalAlignment="Center">
         <!-- Ancho de sobra para «255, 21   Bloque 255»: la tira va pegada a la derecha, y
              sin un minimo el resto de la barra baila cada vez que cambia el numero. -->
-        <TextBlock Text="{Binding HoverLabel}" FontFamily="Consolas" MinWidth="150"
+        <TextBlock x:Name="HoverText" Text="{Binding HoverLabel}"
+                   FontFamily="Consolas" MinWidth="150"
                    VerticalAlignment="Center" />
         <TextBlock Text="{Binding ZoomLabel}" Margin="10,0" MinWidth="28"
                    VerticalAlignment="Center" />
@@ -170,6 +184,8 @@
                        Background="{Binding BackgroundBrush}"
                        Brush="{Binding Brush}"
                        Selection="{Binding Selection}"
+                       ScreenColumns="{Binding ScreenGridColumns}"
+                       ScreenRows="{Binding ScreenGridRows}"
                        Tool="{Binding Tool}" />
 
       <GridSplitter Grid.Column="1" Width="3" Background="{DynamicResource AppSeparator}" ResizeDirection="Columns" />

@@ -274,6 +274,38 @@ public class SettingsTests : IDisposable
         Assert.Equal(4, main.Preferences.MapTileZoom);
     }
 
+    /// <summary>
+    /// El tamaño de la pantalla también se guarda.
+    /// </summary>
+    /// <remarks>
+    /// Es del juego que se está haciendo y no cambia de una sesión a la siguiente: volver a
+    /// escribirlo en cada arranque sería peor que no preguntarlo.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task El_tamano_de_la_pantalla_se_guarda_para_la_proxima_vez()
+    {
+        Localizer.Instance.Language = "es";
+
+        var main = new MainWindowViewModel(new TestDialogService(), Store);
+
+        main.ShowPreferencesCommand.Execute(null);
+
+        var form = (EditPreferencesViewModel)main.RightPanViewModel!;
+
+        form.ScreenWidth = 24;
+        form.ScreenHeight = 22;
+
+        await form.AcceptPreferencesCommand.ExecuteAsync(null);
+
+        Assert.Equal(24, main.Preferences.ScreenWidth);
+        Assert.Equal(22, main.Preferences.ScreenHeight);
+
+        Settings saved = Store.Load();
+
+        Assert.Equal(24, saved.Preferences.ScreenWidth);
+        Assert.Equal(22, saved.Preferences.ScreenHeight);
+    }
+
     [AvaloniaFact]
     public void Cancelar_no_cambia_nada()
     {
@@ -303,12 +335,14 @@ public class SettingsTests : IDisposable
         var main = new MainWindowViewModel(settings: Store);
 
         main.Preferences.MapTileZoom = 3;
+        main.Preferences.ScreenHeight = 22;
         main.ShowPreferencesCommand.Execute(null);
 
         var form = (EditPreferencesViewModel)main.RightPanViewModel!;
 
         Assert.Equal("en", form.Language.Code);
         Assert.Equal(3, form.MapTileZoom);
+        Assert.Equal(22, form.ScreenHeight);
     }
 
     // ------------------------------------------------------------------ la escala

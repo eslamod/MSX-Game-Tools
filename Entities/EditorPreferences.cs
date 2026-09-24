@@ -28,6 +28,12 @@ public sealed class EditorPreferences : ObservableObject
 
     private string _asmData = AsmStyle.Dotted;
 
+    private int _screenWidth = DefaultScreenWidth;
+
+    private int _screenHeight = DefaultScreenHeight;
+
+    private bool _showScreenGrid;
+
     /// <summary>
     /// Cuánto se agranda toda la interfaz, sobre lo que ya diga el sistema.
     /// </summary>
@@ -137,6 +143,61 @@ public sealed class EditorPreferences : ObservableObject
     /// <inheritdoc cref="AsmData"/>
     public AsmStyle AsmStyle => AsmStyle.Of(AsmData);
 
+    /// <summary>
+    /// Lo que mide una pantalla del juego, en tiles.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Para los juegos de pantallas fijas, que se dibujan como un mapa entero —las pantallas
+    /// son contiguas aunque se vean de una en una— y luego se cargan por separado. Con esto el
+    /// editor enseña por dónde parte cada una y la exportación corta el mapa por ahí.
+    /// </para>
+    /// <para>
+    /// 32x24 es la pantalla entera del MSX; quien deje dos filas de marcador pone 22, y ésa es
+    /// justo la razón de preguntarlo en vez de darlo por sabido.
+    /// </para>
+    /// <para>
+    /// Aquí y no en el mapa porque es del juego y no de un mapa suyo: todos los del mismo
+    /// juego se parten igual. A cambio es un ajuste de esta máquina y no viaja con el fichero.
+    /// </para>
+    /// </remarks>
+    public int ScreenWidth
+    {
+        get => _screenWidth;
+        set => SetProperty(ref _screenWidth, Math.Clamp(value, MinScreenSide, MaxScreenSide));
+    }
+
+    /// <inheritdoc cref="ScreenWidth"/>
+    public int ScreenHeight
+    {
+        get => _screenHeight;
+        set => SetProperty(ref _screenHeight, Math.Clamp(value, MinScreenSide, MaxScreenSide));
+    }
+
+    /// <summary>
+    /// Si se pinta la rejilla de pantallas encima del mapa.
+    /// </summary>
+    /// <remarks>
+    /// Aquí y no en cada mapa para que siga puesta al cambiar de pestaña, como los zooms:
+    /// enseñar por dónde parten las pantallas es una forma de trabajar, no algo del mapa.
+    /// </remarks>
+    public bool ShowScreenGrid
+    {
+        get => _showScreenGrid;
+        set => SetProperty(ref _showScreenGrid, value);
+    }
+
+    /// <summary>La pantalla entera del MSX, que es de donde se parte.</summary>
+    public const int DefaultScreenWidth = 32;
+
+    /// <inheritdoc cref="DefaultScreenWidth"/>
+    public const int DefaultScreenHeight = 24;
+
+    private const int MinScreenSide = 1;
+
+    /// <summary>Lo que mide de lado el mapa más grande que se puede hacer.</summary>
+    private const int MaxScreenSide = 256;
+
     public void CopyFrom(EditorPreferences other)
     {
         InterfaceScale = other.InterfaceScale;
@@ -150,5 +211,8 @@ public sealed class EditorPreferences : ObservableObject
         BlockGridZoom = other.BlockGridZoom;
         BlockTileZoom = other.BlockTileZoom;
         MapTileZoom = other.MapTileZoom;
+        ScreenWidth = other.ScreenWidth;
+        ScreenHeight = other.ScreenHeight;
+        ShowScreenGrid = other.ShowScreenGrid;
     }
 }

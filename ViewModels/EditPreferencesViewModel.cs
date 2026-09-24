@@ -69,6 +69,14 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
     [ObservableProperty]
     private string _asmData = Entities.AsmStyle.Dotted;
 
+    /// <summary>Lo que mide una pantalla del juego, en tiles.</summary>
+    [ObservableProperty]
+    private int _screenWidth = Entities.EditorPreferences.DefaultScreenWidth;
+
+    /// <inheritdoc cref="ScreenWidth"/>
+    [ObservableProperty]
+    private int _screenHeight = Entities.EditorPreferences.DefaultScreenHeight;
+
     public EditPreferencesViewModel(MainWindowViewModel mainWindowVm)
     {
         _mainWindowVm = mainWindowVm;
@@ -87,6 +95,8 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
         _blockTileZoom = zoom.BlockTileZoom;
         _mapTileZoom = zoom.MapTileZoom;
         _asmData = zoom.AsmData;
+        _screenWidth = zoom.ScreenWidth;
+        _screenHeight = zoom.ScreenHeight;
 
         Header = Localizer.Instance["PreferencesTitle"];
         TagId = "preferences";
@@ -176,6 +186,8 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
         zoom.BlockTileZoom = BlockTileZoom;
         zoom.MapTileZoom = MapTileZoom;
         zoom.AsmData = AsmData;
+        zoom.ScreenWidth = ScreenWidth;
+        zoom.ScreenHeight = ScreenHeight;
 
         bool languageChanged = Localizer.Instance.Language != Language.Code;
 
