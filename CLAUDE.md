@@ -33,10 +33,16 @@ animaciones, con exportación a los formatos que espera el VDP. C# sobre Avaloni
   fichero entero. Con Python y `newline=''` tanto al leer como al escribir.
 - **Al compilar puede fallar** con `MSB3027` si la aplicación está abierta: tiene bloqueado
   el DLL. Hay que pedirle al usuario que la cierre.
-- **El ensamblador de las ROMs de prueba** es el submódulo `tools/sass-MSX` (proyecto
-  SDK-style: `dotnet build tools/sass-MSX`, sin Mono): clonar con `--recurse-submodules`
-  o `git submodule update --init`. El programa y la suite de pruebas no lo necesitan;
-  sólo `msx/test_rom` y la validación manual de los exportadores.
+- **Las ROMs de ejemplo se generan**, no se escriben: salen de `Templates/*.asm` al
+  marcar la casilla en el panel de exportar, rellenadas para el ensamblador que se elija.
+  Lo que hace cada una y qué mirar cuando corre está en `msx/test_rom/README.md`, que es
+  lo único que queda en esa carpeta.
+- **Los cuatro ensambladores** con los que se prueban son sasSX, sjasmplus, pasmo y
+  asMSX. sasSX es el submódulo `tools/sass-MSX` (proyecto SDK-style: `dotnet build
+  tools/sass-MSX`, sin Mono): clonar con `--recurse-submodules` o `git submodule update
+  --init`. Los otros tres se buscan donde estaban al medirlos, o donde diga su variable
+  de entorno. El programa no los necesita; la suite los usa si están y se salta la prueba
+  si no, así que en verde sin ninguno quiere decir que ahí no se comprobó.
 
 ## Pruebas
 
