@@ -143,6 +143,25 @@ public interface IExportDocument
     string? Problem(ExportRequest request);
 
     /// <summary>
+    /// The files that belong with what this export writes as a whole, by name or with a
+    /// <c>*</c>: any of them already in the folder that this export does not write is left over
+    /// from another one.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The panel does the subtraction, since it is the one that knows every name about to be
+    /// written. From here comes only what the family is, which is what the document knows.
+    /// </para>
+    /// <para>
+    /// For a map cut into screens with its index: going from a flat export to a paged one
+    /// leaves the data file of the flat one there, and the other way round leaves the pages.
+    /// Nothing of that is deleted —it is the user's folder—, but it has to be said, or which
+    /// file goes with which table is anyone's guess.
+    /// </para>
+    /// </remarks>
+    IReadOnlyList<string> Family(ExportRequest request);
+
+    /// <summary>
     /// What is about to be written, for the document to show where it can be seen. Nothing when
     /// the panel is gone.
     /// </summary>

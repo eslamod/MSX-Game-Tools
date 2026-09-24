@@ -53,6 +53,9 @@ public partial class ExportViewModel : PanelBaseViewModel
 
     private int _existing;
 
+    /// <summary>The files an earlier export left in the folder that this one does not write.</summary>
+    private IReadOnlyList<string> _leftovers = [];
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsExampleRom))]
     [NotifyPropertyChangedFor(nameof(ShowsScreens))]
@@ -293,6 +296,20 @@ public partial class ExportViewModel : PanelBaseViewModel
     public bool HasOverwrites => Overwrites is not null;
 
     /// <summary>
+    /// The files of the same family that an earlier export left and this one neither writes nor
+    /// deletes.
+    /// </summary>
+    /// <remarks>
+    /// Said and not deleted: the folder is the user's, and a file this export does not know it
+    /// wrote is not one to take away. But left unsaid, a data file of a flat export next to the
+    /// table of a paged one makes it anyone's guess which one goes with which.
+    /// </remarks>
+    public string? Leftovers =>
+        _leftovers.Count == 0 ? null : Text.Format("ExportLeftovers", string.Join(", ", _leftovers));
+
+    public bool HasLeftovers => Leftovers is not null;
+
+    /// <summary>
     /// The chosen folder, or nothing while there is none.
     /// </summary>
     /// <remarks>
@@ -514,11 +531,14 @@ public partial class ExportViewModel : PanelBaseViewModel
         _total = 0;
         _existing = 0;
 
+        var written = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         foreach (ExportPiece piece in _document.Pieces(Request))
         {
             string name = NameOf(piece);
             bool exists = Folder.Length > 0 && File.Exists(Path.Combine(Folder, name));
 
+            written.Add(name);
             _total++;
 
             if (exists)
@@ -532,10 +552,42 @@ public partial class ExportViewModel : PanelBaseViewModel
         // does not fit the super tile after choosing a folder is too late.
         ErrorMessage = _document.Problem(Request);
 
+        _leftovers = LeftoversIn(written);
+
         OnPropertyChanged(nameof(Overwrites));
         OnPropertyChanged(nameof(HasOverwrites));
         OnPropertyChanged(nameof(More));
         OnPropertyChanged(nameof(HasMore));
+        OnPropertyChanged(nameof(Leftovers));
+        OnPropertyChanged(nameof(HasLeftovers));
+    }
+
+    /// <summary>
+    /// What of the family of this export is already in the folder and is not about to be written.
+    /// </summary>
+    private IReadOnlyList<string> LeftoversIn(HashSet<string> written)
+    {
+        if (Folder.Length == 0 || !Directory.Exists(Folder))
+            return [];
+
+        try
+        {
+            return
+            [
+                .. _document.Family(Request)
+                    .SelectMany(pattern => Directory.EnumerateFiles(Folder, pattern))
+                    .Select(Path.GetFileName)
+                    .OfType<string>()
+                    .Where(name => !written.Contains(name))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Order(StringComparer.OrdinalIgnoreCase),
+            ];
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // A folder that cannot be read is not a reason to say anything about what is in it.
+            return [];
+        }
     }
 
     /// <summary>

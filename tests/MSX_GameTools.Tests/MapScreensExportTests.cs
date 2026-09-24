@@ -1065,6 +1065,149 @@ public class MapScreensExportTests : IDisposable
         }
     }
 
+    // ------------------------------------------------------------------ left over from before
+
+    /// <summary>
+    /// Going paged, the data file of an earlier flat export is said, and not deleted.
+    /// </summary>
+    /// <remarks>
+    /// Paged, that file is not written, and the table has the same name in both forms, so it
+    /// gets overwritten: without a word, the folder is left with a paged table next to the data
+    /// of a flat one, and which goes with which is anyone's guess.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Paginando_se_avisa_del_fichero_de_datos_de_antes()
+    {
+        Opened opened = Open(12 * 32, 24, painted: FirstCells(12));
+
+        ByScreens(opened.Form, ExportFormat.Binary, index: true);
+        await AcceptAsync(opened.Form);
+
+        ExportViewModel again = Reopen(opened);
+
+        ByScreens(again, ExportFormat.Binary, index: true);
+        Paged(again, 8);
+        again.Destination = _folder;
+
+        Assert.Equal(Text.Format("ExportLeftovers", "nivel_1_screens_data.asm"), again.Leftovers);
+
+        await again.AcceptExportCommand.ExecuteAsync(null);
+
+        Assert.True(File.Exists(Path.Combine(_folder, "nivel_1_screens_data.asm")));
+    }
+
+    /// <summary>And going back to flat, the pages of the paged one.</summary>
+    [AvaloniaFact]
+    public async Task Sin_paginar_se_avisa_de_las_paginas_de_antes()
+    {
+        Opened opened = Open(12 * 32, 24, painted: FirstCells(12));
+
+        ByScreens(opened.Form, ExportFormat.Binary, index: true);
+        Paged(opened.Form, 8);
+        await AcceptAsync(opened.Form);
+
+        ExportViewModel again = Reopen(opened);
+
+        ByScreens(again, ExportFormat.Binary, index: true);
+        again.Destination = _folder;
+
+        Assert.Equal(
+            Text.Format("ExportLeftovers", "nivel_1_screens_page_0.asm, nivel_1_screens_page_1.asm"),
+            again.Leftovers);
+    }
+
+    /// <summary>
+    /// With fewer pages than before, the ones that no longer go out are said.
+    /// </summary>
+    /// <remarks>
+    /// The same form, and still left over: the screens of that page now live in another one, and
+    /// the old file would bring them in twice.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Con_menos_paginas_se_avisa_de_las_que_ya_no_salen()
+    {
+        Opened opened = Open(12 * 32, 24, painted: FirstCells(12));
+
+        ByScreens(opened.Form, ExportFormat.Binary, index: true);
+        Paged(opened.Form, 8);
+        await AcceptAsync(opened.Form);
+
+        foreach ((int column, int row) in FirstCells(12).Skip(6))
+            opened.Map.Layers[0].Grid[column, row] = null;
+
+        ExportViewModel again = Reopen(opened);
+
+        ByScreens(again, ExportFormat.Binary, index: true);
+        Paged(again, 8);
+        again.Destination = _folder;
+
+        Assert.Equal(Text.Format("ExportLeftovers", "nivel_1_screens_page_1.asm"), again.Leftovers);
+    }
+
+    /// <summary>Without the index, all of the one from before is left over.</summary>
+    [AvaloniaFact]
+    public async Task Sin_indice_se_avisa_del_indice_de_antes()
+    {
+        Opened opened = Open(64, 48, painted: [(0, 0)]);
+
+        ByScreens(opened.Form, ExportFormat.Binary, index: true);
+        await AcceptAsync(opened.Form);
+
+        ExportViewModel again = Reopen(opened);
+
+        ByScreens(again, ExportFormat.Binary);
+        again.Destination = _folder;
+
+        Assert.Equal(
+            Text.Format("ExportLeftovers", "nivel_1_screens.asm, nivel_1_screens_data.asm"),
+            again.Leftovers);
+    }
+
+    /// <summary>
+    /// With only one screen nothing is said: the index in the folder still holds.
+    /// </summary>
+    /// <remarks>
+    /// Writing one screen on its own leaves the index as it was on purpose; calling it left over
+    /// would be telling the user to throw away the table they are going to use.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Con_una_sola_no_se_avisa_del_indice()
+    {
+        Opened opened = Open(64, 48, painted: [(0, 0)]);
+
+        ByScreens(opened.Form, ExportFormat.Binary, index: true);
+        await AcceptAsync(opened.Form);
+
+        ExportViewModel again = Reopen(opened);
+
+        ByScreens(again, ExportFormat.Binary);
+        Pick(again, 1, 1);
+        again.Destination = _folder;
+
+        Assert.Null(again.Leftovers);
+    }
+
+    /// <summary>
+    /// What is written again is not left over, and neither is what is not of the family.
+    /// </summary>
+    [AvaloniaFact]
+    public async Task Lo_que_se_vuelve_a_escribir_no_sobra()
+    {
+        Opened opened = Open(64, 48, painted: [(0, 0)]);
+
+        ByScreens(opened.Form, ExportFormat.Binary, index: true);
+        await AcceptAsync(opened.Form);
+
+        await File.WriteAllTextAsync(Path.Combine(_folder, "notas.txt"), "de otra cosa");
+
+        ExportViewModel again = Reopen(opened);
+
+        ByScreens(again, ExportFormat.Binary, index: true);
+        again.Destination = _folder;
+
+        Assert.Null(again.Leftovers);
+    }
+
     /// <summary>
     /// The first cell of each of that many screens of 32x24 in a row, but for the one to skip.
     /// </summary>

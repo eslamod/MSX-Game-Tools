@@ -53,6 +53,9 @@ public sealed class PaletteExport(ColorPalette palette) : IExportDocument
     /// <summary>Nothing gets in the way.</summary>
     public string? Problem(ExportRequest request) => null;
 
+    /// <summary>Nothing to be left over: what goes out always has the same names.</summary>
+    public IReadOnlyList<string> Family(ExportRequest request) => [];
+
     /// <summary>Nothing to mark: what goes out is a table, not a piece of something else.</summary>
     public void Preview(ExportRequest? request)
     {

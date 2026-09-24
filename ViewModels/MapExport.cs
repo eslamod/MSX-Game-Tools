@@ -127,6 +127,31 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
     }
 
     /// <summary>
+    /// The files of the index, in whichever of its forms.
+    /// </summary>
+    /// <remarks>
+    /// Only with the whole batch by screens: that is what writes an index, and what can leave the
+    /// one of an earlier export behind. A single screen leaves the index in the folder as it was
+    /// on purpose —it still holds—, and a whole map has none. With the index box off the table
+    /// is in the family as well: then all of it is left over from before.
+    /// </remarks>
+    public IReadOnlyList<string> Family(ExportRequest request)
+    {
+        if (request.Screens is not { Only: null })
+            return [];
+
+        string stem = request.Stem;
+        string extension = MapScreens.IndexExtension;
+
+        return
+        [
+            $"{stem}{MapScreens.IndexSuffix}{extension}",
+            $"{stem}{MapScreens.DataSuffix}{extension}",
+            $"{stem}{MapScreens.PageSuffix}*{extension}",
+        ];
+    }
+
+    /// <summary>
     /// Marks on the map the screen that is about to be written.
     /// </summary>
     /// <remarks>

@@ -146,6 +146,7 @@
   <data name="ExportFiles" xml:space="preserve"><value>Going to be written</value></data>
   <data name="ExportExists" xml:space="preserve"><value>already there</value></data>
   <data name="ExportOverwrites" xml:space="preserve"><value>{0} of {1} are already there and get overwritten.</value></data>
+  <data name="ExportLeftovers" xml:space="preserve"><value>The folder holds files of an earlier export that this one neither writes nor deletes: {0}.</value></data>
   <data name="ExportNoDestination" xml:space="preserve"><value>Choose where to save it.</value></data>
   <data name="ExportExampleRom" xml:space="preserve"><value>Add an example ROM</value></data>
   <data name="ExportExampleRomTip" xml:space="preserve"><value>An .asm that loads what is exported and shows it on screen, ready to assemble.</value></data>

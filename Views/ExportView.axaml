@@ -163,6 +163,11 @@
                    Foreground="{DynamicResource AppTextWarning}" TextWrapping="Wrap"
                    Margin="0,6,0,0" />
 
+        <!-- What an earlier export left and this one does not write: said, not deleted. -->
+        <TextBlock Text="{Binding Leftovers}" IsVisible="{Binding HasLeftovers}"
+                   Foreground="{DynamicResource AppTextWarning}" TextWrapping="Wrap"
+                   Margin="0,6,0,0" />
+
         <TextBlock Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}"
                    Foreground="{DynamicResource AppTextError}" TextWrapping="Wrap"
                    Margin="0,6,0,0" />
