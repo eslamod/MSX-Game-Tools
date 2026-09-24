@@ -286,7 +286,7 @@ public static class ExampleRom
         {
             // The table is the tile set's and not the map's: every map drawn with that set
             // shares the same one, so it comes out of exporting the set.
-            string table = $"{SpriteBankExporter.LabelOf(bands[0].Name)}_supertiles";
+            string table = $"{AsmLabel.Of(bands[0].Name)}_supertiles";
 
             values["SUPERTILES"] = Loads(dialect, table, binary);
             values["SUPERTILES_ALT"] = Loads(dialect, table, !binary, commented: true);
@@ -316,7 +316,7 @@ public static class ExampleRom
 
         for (int band = 0; band < bands.Count; band++)
         {
-            string label = SpriteBankExporter.LabelOf(bands[band].Name);
+            string label = AsmLabel.Of(bands[band].Name);
 
             lines.Add(bands.Count == 1
                 ? $"; The tile set of the map: {bands[band].Name}"
@@ -345,7 +345,7 @@ public static class ExampleRom
 
         foreach (TileSet band in bands)
         {
-            string label = SpriteBankExporter.LabelOf(band.Name);
+            string label = AsmLabel.Of(band.Name);
 
             foreach (string one in (string[])[$"{label}_patterns", $"{label}_colors"])
             {

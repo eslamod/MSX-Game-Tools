@@ -73,7 +73,7 @@ public static class TileSetExporter
     private static string GroupColorsToAssembler(TileSet tileSet, string data)
     {
         var text = new StringBuilder();
-        string label = SpriteBankExporter.LabelOf(tileSet.Name);
+        string label = AsmLabel.Of(tileSet.Name);
 
         text.AppendLine($"; Tile colour table - {tileSet.Name} (GRAPHIC 1)");
         text.AppendLine(
@@ -115,7 +115,7 @@ public static class TileSetExporter
     {
         string data = AsmStyle.Of(style?.Data).Data;
         var text = new StringBuilder();
-        string label = SpriteBankExporter.LabelOf(tileSet.Name);
+        string label = AsmLabel.Of(tileSet.Name);
 
         text.AppendLine($"; Tile attributes - {tileSet.Name}");
         text.AppendLine($"; One byte per tile, {TileSet.TileCount} bytes. Bit 0 is attribute 0.");
@@ -124,7 +124,7 @@ public static class TileSetExporter
 
         foreach (int bit in tileSet.AttributeNames.Defined)
         {
-            string name = SpriteBankExporter.LabelOf(tileSet.AttributeNames[bit]).ToUpperInvariant();
+            string name = AsmLabel.Of(tileSet.AttributeNames[bit]).ToUpperInvariant();
 
             text.AppendLine(
                 $"{label}_attr_{name}:".PadRight(32)
@@ -160,7 +160,7 @@ public static class TileSetExporter
         TileSet tileSet, string data, Func<TileRow, byte> byteOf, string suffix, string format)
     {
         var text = new StringBuilder();
-        string label = SpriteBankExporter.LabelOf(tileSet.Name);
+        string label = AsmLabel.Of(tileSet.Name);
 
         text.AppendLine($"; Tile {suffix} table - {tileSet.Name}");
         text.AppendLine($"; {TileSet.TileCount} tiles of {Tile.Rows}x{TileRow.Columns}, {TableBytes} bytes");

@@ -51,7 +51,7 @@ public static class PaletteExporter
     {
         string data = AsmStyle.Of(style?.Data).Data;
         var text = new StringBuilder();
-        string label = SpriteBankExporter.LabelOf(palette.Name);
+        string label = AsmLabel.Of(palette.Name);
         byte[] bytes = ToBinary(palette);
 
         text.AppendLine($"; Palette - {palette.Name}");

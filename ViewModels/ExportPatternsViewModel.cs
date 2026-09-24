@@ -104,7 +104,7 @@ public partial class ExportPatternsViewModel : PanelBaseViewModel
     private Task<string?> Pick(string extension, PickerFileKind kind) =>
         _mainWindowVm.Dialogs.PickFileToSaveAsync(
             Text["PickExportPatterns"],
-            $"{SpriteBankExporter.LabelOf(_editor.SpritesBank.Name)}"
+            $"{AsmLabel.Of(_editor.SpritesBank.Name)}"
                 + $"_patterns_{Math.Min(First, Last)}_{Math.Max(First, Last)}{extension}",
             kind);
 

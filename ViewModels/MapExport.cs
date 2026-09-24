@@ -26,7 +26,7 @@ public sealed class MapExport(MapEditorViewModel map) : IExportDocument
     /// «Nivel 1» sale con <c>nivel_1_map:</c> dentro—, así que el fichero y lo que lleva
     /// dentro se llaman igual. Antes proponía «Nivel 1.bin», con el espacio y la mayúscula.
     /// </remarks>
-    public string Stem => SpriteBankExporter.LabelOf(map.Map.Name);
+    public string Stem => AsmLabel.Of(map.Map.Name);
 
     public IReadOnlyList<ExportChoice> Formats { get; } =
     [

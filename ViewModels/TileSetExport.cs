@@ -17,7 +17,7 @@ public sealed class TileSetExport(TileSetEditorViewModel tiles) : IExportDocumen
 
     public string DocumentName => tiles.DocumentName;
 
-    public string Stem => SpriteBankExporter.LabelOf(tiles.TileSet.Name);
+    public string Stem => AsmLabel.Of(tiles.TileSet.Name);
 
     public IReadOnlyList<ExportChoice> Formats { get; } =
     [

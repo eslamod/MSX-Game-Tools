@@ -32,7 +32,7 @@ public static class MapShiftExporter
         string data = AsmStyle.Of(style?.Data).Data;
 
         var text = new StringBuilder();
-        string label = SpriteBankExporter.LabelOf(name);
+        string label = AsmLabel.Of(name);
         ShiftScope scope = report.Scope;
 
         text.AppendLine($"; Shift table - {name}");

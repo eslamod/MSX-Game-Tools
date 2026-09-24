@@ -19,7 +19,7 @@ public sealed class SpriteBankExport(SpritesEditorViewModel sprites, IDialogServ
 
     public string DocumentName => sprites.DocumentName;
 
-    public string Stem => SpriteBankExporter.LabelOf(sprites.SpritesBank.Name);
+    public string Stem => AsmLabel.Of(sprites.SpritesBank.Name);
 
     public IReadOnlyList<ExportChoice> Formats { get; } =
     [

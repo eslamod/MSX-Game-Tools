@@ -53,7 +53,7 @@ public static class MapExporter
         string data = AsmStyle.Of(style?.Data).Data;
 
         TileGrid flat = map.Flatten();
-        string label = SpriteBankExporter.LabelOf(map.Name);
+        string label = AsmLabel.Of(map.Name);
 
         var text = new StringBuilder();
 

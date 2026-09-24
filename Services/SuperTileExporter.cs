@@ -75,7 +75,7 @@ public static class SuperTileExporter
         string data = AsmStyle.Of(style?.Data).Data;
 
         int count = CountOf(tileSet);
-        string label = SpriteBankExporter.LabelOf(tileSet.Name);
+        string label = AsmLabel.Of(tileSet.Name);
         var text = new StringBuilder();
 
         text.AppendLine($"; Supertile table - {tileSet.Name}");

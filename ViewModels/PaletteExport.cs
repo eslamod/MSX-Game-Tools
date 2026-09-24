@@ -30,7 +30,7 @@ public sealed class PaletteExport(ColorPalette palette) : IExportDocument
     /// Only one file comes out of here, so whatever name is chosen is the name it takes: adding
     /// an ending to a name somebody typed in full would be a surprise.
     /// </remarks>
-    public string Stem => $"{SpriteBankExporter.LabelOf(palette.Name)}_palette";
+    public string Stem => $"{AsmLabel.Of(palette.Name)}_palette";
 
     public IReadOnlyList<ExportChoice> Formats { get; } =
     [

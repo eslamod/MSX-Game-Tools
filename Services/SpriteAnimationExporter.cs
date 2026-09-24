@@ -122,7 +122,7 @@ public static class SpriteAnimationExporter
         string data = AsmStyle.Of(style?.Data).Data;
 
         var text = new StringBuilder();
-        string label = SpriteBankExporter.LabelOf(bank.Name);
+        string label = AsmLabel.Of(bank.Name);
 
         text.AppendLine($"; Sprite animations - {bank.Name} ({bank.Type})");
         text.AppendLine("; Per animation: 2 bytes of heading, then its steps.");

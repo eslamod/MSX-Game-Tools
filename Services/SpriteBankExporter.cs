@@ -144,7 +144,7 @@ public static class SpriteBankExporter
         string data = AsmStyle.Of(style?.Data).Data;
 
         var text = new StringBuilder();
-        string label = LabelOf(bank.Name);
+        string label = AsmLabel.Of(bank.Name);
 
         (first, last) = Clamp(bank, first, last);
 
@@ -175,7 +175,7 @@ public static class SpriteBankExporter
         string data = AsmStyle.Of(style?.Data).Data;
 
         var text = new StringBuilder();
-        string label = LabelOf(bank.Name);
+        string label = AsmLabel.Of(bank.Name);
 
         text.AppendLine($"; Sprite groups - {bank.Name} ({bank.Type})");
         text.AppendLine("; Per group: 1 byte with the number of sprites, then per sprite:");
@@ -207,23 +207,6 @@ public static class SpriteBankExporter
         text.AppendLine($"{label}_groups_end:");
 
         return text.ToString();
-    }
-
-    /// <summary>Nombre de fichero o etiqueta válida a partir del nombre del banco.</summary>
-    public static string LabelOf(string bankName)
-    {
-        var label = new StringBuilder();
-
-        foreach (char character in bankName.ToLowerInvariant())
-            label.Append(char.IsAsciiLetterOrDigit(character) ? character : '_');
-
-        string result = label.ToString().Trim('_');
-
-        if (result.Length == 0)
-            return "sprites";
-
-        // Una etiqueta no puede empezar por dígito.
-        return char.IsAsciiDigit(result[0]) ? $"s{result}" : result;
     }
 
     private static IEnumerable<byte> PatternBytesOf(Sprite pattern)

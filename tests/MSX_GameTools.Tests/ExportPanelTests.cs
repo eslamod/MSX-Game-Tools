@@ -315,7 +315,7 @@ public class ExportPanelTests : IDisposable
         var form = (ExportViewModel)main.RightPanViewModel!;
 
         Assert.Equal(
-            (string[])[$"{Services.SpriteBankExporter.LabelOf(main.Palettes.ActivePalette.Name)}_palette.asm"],
+            (string[])[$"{Services.AsmLabel.Of(main.Palettes.ActivePalette.Name)}_palette.asm"],
             form.Files.Select(file => file.Name));
 
         Assert.False(form.ShowsExampleRom);

@@ -216,14 +216,6 @@ public class SpriteBankExporterTests
         Assert.EndsWith($"sprite_test_1_groups_end:{Environment.NewLine}", groups);
     }
 
-    [AvaloniaTheory]
-    [InlineData("Sprite test 1", "sprite_test_1")]
-    [InlineData("Bicho: nivel 3/4", "bicho__nivel_3_4")]
-    [InlineData("3 enemigos", "s3_enemigos")]
-    [InlineData("   ", "sprites")]
-    public void La_etiqueta_sale_de_un_nombre_valido(string bankName, string expected)
-        => Assert.Equal(expected, SpriteBankExporter.LabelOf(bankName));
-
     /// <summary>Extrae los bytes de las lineas db y los compara con el binario.</summary>
     private static void AssertSameBytes(byte[] binary, string assembler)
     {
