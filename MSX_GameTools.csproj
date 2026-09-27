@@ -5,6 +5,9 @@
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>MSX_GameTools</RootNamespace>
     <AssemblyName>MSX_GameTools</AssemblyName>
+    <!-- What every build says it is. A release takes its version from the tag instead, and
+         the release workflow refuses a tag that does not match this one. -->
+    <Version>0.1.0</Version>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>

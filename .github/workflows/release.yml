@@ -69,16 +69,29 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      # The version comes from the tag, without its v. Run by hand there is no tag, and the
-      # build says so in its version instead of passing for a release.
+      # The version is the one in the project. A tag has to say the same, a v in front and
+      # maybe a suffix like -beta: two numbers that disagree would leave the release saying
+      # one thing and every other build another. Run by hand there is no tag, and the build
+      # says so in its version instead of passing for a release. The tr is for Windows, where
+      # the output of dotnet ends in a carriage return that would stick to the version.
       - name: Work out the version
         shell: bash
         run: |
-          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
-            echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
-          else
-            echo "VERSION=0.0.0-dev.$GITHUB_RUN_NUMBER" >> "$GITHUB_ENV"
+          PROJECT=$(dotnet msbuild MSX_GameTools.csproj -getProperty:Version | tr -d '\r')
+
+          if [[ "$GITHUB_REF_TYPE" != "tag" ]]; then
+            echo "VERSION=$PROJECT-dev.$GITHUB_RUN_NUMBER" >> "$GITHUB_ENV"
+            exit 0
           fi
+
+          TAG="${GITHUB_REF_NAME#v}"
+
+          if [[ "$TAG" != "$PROJECT" && "$TAG" != "$PROJECT"-* ]]; then
+            echo "::error::The tag says $TAG and MSX_GameTools.csproj says $PROJECT. Put the version in the project, commit it, and tag that commit."
+            exit 1
+          fi
+
+          echo "VERSION=$TAG" >> "$GITHUB_ENV"
 
       # The native libraries (Skia, HarfBuzz, ANGLE) go inside the executable as well, and it
       # unpacks them itself on the first run: one file to hand out instead of five. No debug
