@@ -111,7 +111,7 @@
            dos pixeles. Se veian las flechas y no el valor. Ensanchandolos se arreglaba el
            numero y se hundia el nombre, asi que lo que sobraba era la fila. -->
       <StackPanel Grid.Row="1" Spacing="4" Margin="0,0,0,4">
-        <TextBox Watermark="{l:Localize BlocksNoName}"
+        <TextBox PlaceholderText="{l:Localize BlocksNoName}"
                  Text="{Binding SelectedBlock.Name}" />
 
         <!-- Ancho fijo y una columna elastica al final que se come lo que sobre. Estirados

@@ -182,7 +182,7 @@
         <TextBlock Grid.Column="0" Text="N" VerticalAlignment="Center"
                    ToolTip.Tip="{l:Localize PaletteColorNameTip}" />
         <TextBox Grid.Column="1" Text="{Binding SelectedColor.Name}"
-                 Watermark="{l:Localize BlocksNoName}" />
+                 PlaceholderText="{l:Localize BlocksNoName}" />
       </Grid>
 
       <Grid ColumnDefinitions="20,*,24" Margin="0,2">

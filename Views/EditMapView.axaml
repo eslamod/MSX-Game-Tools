@@ -21,7 +21,7 @@
 
     <Grid ColumnDefinitions="70,*" Margin="0,0,0,6">
       <TextBlock Grid.Column="0" Text="{l:Localize FormName}" VerticalAlignment="Center" />
-      <TextBox Grid.Column="1" Text="{Binding Name}" Watermark="{l:Localize NewMapHint}" />
+      <TextBox Grid.Column="1" Text="{Binding Name}" PlaceholderText="{l:Localize NewMapHint}" />
     </Grid>
 
     <!-- El tamaño se pide al crear y no se deduce: un mapa vacío no tiene contenido del
