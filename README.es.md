@@ -214,8 +214,8 @@ palabras escritas, así que se quedan como están. Los nuevos se escriben en ing
 
 ## Cómo se comprueba
 
-Más de novecientas pruebas automáticas, que se ejecutan con la interfaz montada de verdad
-(Avalonia headless con Skia) cuando lo que se prueba es la interfaz.
+Más de mil seiscientas pruebas automáticas, que se ejecutan con la interfaz montada de
+verdad (Avalonia headless con Skia) cuando lo que se prueba es la interfaz.
 
 Dos costumbres que han salvado bastantes fallos:
 
@@ -223,17 +223,22 @@ Dos costumbres que han salvado bastantes fallos:
   vuelve a poner el fallo y se comprueba que la prueba cae. Y tiene que caer *por el
   camino que usa el usuario*: probar el ViewModel suelto ha dejado pasar más de un fallo
   que estaba en el punto de entrada.
-- **Los exportadores se validan ensamblando de verdad.** El `.asm` que sale se pasa por
-  el ensamblador cruzado sasSX y se compara byte a byte con el binario. Si los dos
-  coinciden, el fichero sirve. sasSX está incluido como el submódulo `tools/sass-MSX`: las
-  pruebas lo cogen de donde lo deja compilarlo (`dotnet build tools/sass-MSX -c Release`,
-  `Release` antes que `Debug`) o del `PATH`, y con `SASSX` se les dice otro. Si no está,
-  esa comprobación se salta diciéndolo.
+- **Los exportadores se validan ensamblando de verdad.** El `.asm` que sale se ensambla
+  y se compara byte a byte con el binario de los mismos datos: si los dos coinciden, el
+  fichero sirve. Las ROMs de ejemplo, que se traen los ficheros exportados de juegos de
+  tiles, bancos de sprites y mapas, se ensamblan con los cuatro ensambladores —sasSX,
+  sjasmplus, pasmo y asMSX— y se comparan los cuatro programas entre sí; y el índice de
+  las pantallas de un mapa, siguiendo cada puntero hasta su pantalla. sasSX está incluido
+  como el submódulo `tools/sass-MSX`: las pruebas lo cogen de donde lo deja compilarlo
+  (`dotnet build tools/sass-MSX -c Release`, `Release` antes que `Debug`) o del `PATH`. Los
+  otros tres se buscan en el `PATH`, y a cada uno se le puede decir dónde está con su
+  variable (`SASSX`, `SJASMPLUS`, `PASMO`, `ASMSX`). El que no está se salta sus
+  comprobaciones diciéndolo.
 
 ## ROMs de prueba
 
-Ninguna está escrita a mano: **las escribe el editor**. Al exportar se puede pedir la ROM
-de ejemplo, y sale rellenada para el
+Ninguna está escrita a mano: **las escribe el editor**. Al exportar un juego de tiles, un
+banco de sprites o un mapa se puede pedir la ROM de ejemplo, y sale rellenada para el
 ensamblador que se elija —sasSX, sjasmplus, pasmo o asMSX—, para el modo del documento y
 nombrando los ficheros recién exportados. La del banco se trae además el reproductor de
 animaciones al lado, y sólo se ofrece para bancos de MSX2 —GRAPHIC 3 con sprites de modo
@@ -244,8 +249,9 @@ está dibujado; si sus celdas son supertiles sale otra ROM, la que resuelve cada
 través de la tabla, y eso no se pregunta: se mira el juego de tiles.
 
 Todas detectan en ejecución si están en un MSX1 o en un MSX2 para cargar la paleta sólo
-donde se puede. El README de esa carpeta explica los mapas de VRAM y cómo cambiar entre
-datos incrustados y ficheros propios.
+donde se puede. [Templates/README.md](Templates/README.md), al lado de las plantillas de
+las que salen, explica cada una: qué comprueba de verdad, su mapa de VRAM, cómo usarla
+con tus propios datos y cómo pasar de la salida en binario a la de ensamblador.
 
 ## Estado
 

@@ -209,7 +209,7 @@ are in English; the comments explain the *why* behind each decision, and there a
 
 ## How it is checked
 
-Over nine hundred automated tests, run with the interface actually mounted (Avalonia
+Over sixteen hundred automated tests, run with the interface actually mounted (Avalonia
 headless with Skia) whenever the interface is what is under test.
 
 Two habits that have caught a fair number of bugs:
@@ -218,27 +218,36 @@ Two habits that have caught a fair number of bugs:
   put back to check that the test falls. And it has to fall *through the path the user
   takes*: testing the ViewModel on its own has let more than one bug through that lived
   in the entry point.
-- **Exporters are validated by actually assembling.** The `.asm` produced is run through
-  the sasSX cross-assembler and compared byte for byte against the binary. If the two
-  match, the file is good. sasSX is vendored as the `tools/sass-MSX` submodule: the tests
-  take it from its build output (`dotnet build tools/sass-MSX -c Release`, `Release` before
-  `Debug`) or from the `PATH`, and `SASSX` names another one. Without it that check is
-  skipped and says so.
+- **Exporters are validated by actually assembling.** An exported `.asm` is assembled
+  and compared byte for byte against the binary of the same data: if the two match, the
+  file is good. The example ROMs, which bring in the exported files of tile sets, sprite
+  banks and maps, are assembled with the four assemblers —sasSX, sjasmplus, pasmo and
+  asMSX— and the four programs compared with each other; and the index of the screens of a
+  map, by following every pointer to its screen. sasSX is vendored as the `tools/sass-MSX`
+  submodule: the tests take it from its build output
+  (`dotnet build tools/sass-MSX -c Release`, `Release` before `Debug`) or from the `PATH`.
+  The other three are looked for on the `PATH`, and each one can be pointed at with its
+  variable (`SASSX`, `SJASMPLUS`, `PASMO`, `ASMSX`). A missing one skips its checks and
+  says so.
 
 ## Test ROMs
 
-None of them is written by hand: **the editor writes them**. exporting can bring an example ROM with it, filled in for the assembler you pick
-—sasSX, sjasmplus, pasmo or asMSX—, for the screen mode of the document, and naming the
-files you have just exported. The one for a bank brings the animation player beside it,
-and is only offered for MSX2 banks —GRAPHIC 3 and sprite mode 2, with the groups laid
-out; keys 0-F change the backdrop and F1 toggles magnification—. The ones for maps are 32K cartridges and load a tile set per screen
-third when the map is banded, so the tile set or sets it is drawn with have to be exported
-as well; if its cells are super tiles another ROM comes out, the one that resolves every
-cell through the table, and that is not asked: the tile set says so.
+None of them is written by hand: **the editor writes them**. Exporting a tile set, a
+sprite bank or a map can bring an example ROM with it, filled in for the assembler you
+pick —sasSX, sjasmplus, pasmo or asMSX—, for the screen mode of the document, and naming
+the files you have just exported. The one for a bank brings the animation player beside
+it, and is only offered for MSX2 banks —GRAPHIC 3 and sprite mode 2, with the groups laid
+out; keys 0-F change the backdrop and F1 toggles magnification—. The ones for maps are 32K
+cartridges and load a tile set per screen third when the map is banded, so the tile set or
+sets it is drawn with have to be exported as well; if its cells are super tiles another ROM
+comes out, the one that resolves every cell through the table, and that is not asked: the
+tile set says so.
 
 All of them detect at runtime whether they are on an MSX1 or an MSX2, so the palette is
-only loaded where it can be. That folder's README explains the VRAM maps and how to switch
-between embedded data and your own files.
+only loaded where it can be. [Templates/README.md](Templates/README.md), next to the
+templates they come from, explains each one (in Spanish): what it really checks, its VRAM
+map, how to use it with your own data, and how to switch between the binary and the
+assembler output.
 
 ## Status
 
