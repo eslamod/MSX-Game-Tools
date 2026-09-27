@@ -244,12 +244,18 @@ between embedded data and your own files.
 
 Under development, with the scope already settled: this is a suite of tools for making
 games, not a game maker. Sprite banks with their groups and their **animations**, tile sets
-with their blocks, palettes, the map editor and the project that groups them all work.
+with their blocks, palettes, the map editor —cutting the map into the screens of a
+fixed-screen game included— and the project that groups them all work.
 
 What had been pencilled in for behaviours, sounds and music has been dropped. Producing a
 whole game's ROM is a different program, and a far harder one; an empty slot promising it
 only ages badly.
 
-The animation format is checked the way every exporter here is: the `.asm` is assembled
-with sass and compared byte for byte against the binary. What is left is the test ROM that
-takes it to openMSX, which is the only thing that says the machine reads it as we think.
+Every exporter is checked the same way: the `.asm` is assembled and compared byte for byte
+against the binary. The example ROMs are assembled with all four assemblers and the four
+programs compared with each other, and all of them have been run in openMSX: a tile set in
+both screen modes, a sprite bank with its animations, a map drawn with tiles and one drawn
+with super tiles.
+
+Each tagged version publishes builds for Windows and Linux (see [Download](#download));
+macOS has none yet and runs from the source code.

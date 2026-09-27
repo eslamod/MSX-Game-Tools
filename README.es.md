@@ -251,13 +251,19 @@ datos incrustados y ficheros propios.
 
 En desarrollo, y con el alcance ya decidido: esto es una suite de herramientas para hacer
 juegos, no un generador de juegos. Funcionan los bancos de sprites con sus grupos y sus
-**animaciones**, los juegos de tiles con sus bloques, las paletas, el editor de mapas y el
-proyecto que los agrupa.
+**animaciones**, los juegos de tiles con sus bloques, las paletas, el editor de mapas
+—también partir el mapa en las pantallas de un juego de pantallas fijas— y el proyecto
+que los agrupa.
 
 Lo que había apuntado de comportamientos, sonidos y música se ha retirado. Sacar la ROM de
 un juego entero es otro programa, y mucho más difícil; un hueco vacío prometiéndolo sólo
 envejece mal.
 
-El formato de las animaciones está comprobado como el de todos los exportadores de aquí: se
-ensambla el `.asm` con sass y se compara byte a byte con el binario. Queda la ROM de prueba
-que lo lleve a openMSX, que es lo único que dice que la máquina lo lee como creemos.
+Todos los exportadores se comprueban igual: se ensambla el `.asm` y se compara byte a byte
+con el binario. Las ROMs de ejemplo se ensamblan con los cuatro ensambladores y se comparan
+los cuatro programas entre sí, y todas se han probado en openMSX: un juego de tiles en los
+dos modos de pantalla, un banco de sprites con sus animaciones, un mapa dibujado con tiles
+y otro con supertiles.
+
+Cada versión etiquetada publica ejecutables para Windows y Linux (mira
+[Descargar](#descargar)); para macOS todavía no hay, y funciona desde el código.
