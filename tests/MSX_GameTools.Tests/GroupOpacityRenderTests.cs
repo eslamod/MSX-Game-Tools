@@ -114,7 +114,7 @@ public class GroupOpacityRenderTests : IDisposable
                 Marshal.Copy(pixels, 0, buffer.Address + (y * buffer.RowBytes), width);
         }
 
-        bitmap.Save(path);
+        bitmap.Save(path, new PngBitmapEncoderOptions());
 
         return path;
     }

@@ -69,7 +69,7 @@ public class SpriteEditorLayoutTests : IDisposable
         string path = Path.Combine(_folder, "fondo.png");
 
         new WriteableBitmap(new PixelSize(64, 64), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Unpremul)
-            .Save(path);
+            .Save(path, new PngBitmapEncoderOptions());
 
         var backgrounds = new ReferenceImageLibrary();
 

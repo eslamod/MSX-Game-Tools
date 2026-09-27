@@ -202,7 +202,7 @@ public class SpriteBankMachineTests
 
         bank.SpritesList[0].ArraySpriteRows[5].Color = 11;
 
-        SpriteGroup group = bank.NewGroup(0);
+        SpriteGroup group = bank.NewGroup(0)!;
         SpriteGroupMember member = group.Members[0];
 
         foreach (SpriteAttributeRow row in member.Rows)

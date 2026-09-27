@@ -276,7 +276,7 @@ public class BackgroundSelectionTests : IDisposable
         var bitmap = new WriteableBitmap(
             new PixelSize(width, height), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Unpremul);
 
-        bitmap.Save(path);
+        bitmap.Save(path, new PngBitmapEncoderOptions());
 
         return path;
     }

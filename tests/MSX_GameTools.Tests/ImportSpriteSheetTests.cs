@@ -63,7 +63,7 @@ public class ImportSpriteSheetTests
     private static int Bgra(Color color) =>
         unchecked((int)0xFF000000) | (color.R << 16) | (color.G << 8) | color.B;
 
-    private static MainWindowViewModel Main() => new(new TestDialogService());
+    private static MainWindowViewModel NewMain() => new(new TestDialogService());
 
     // ------------------------------------------------------------------ lo que trae puesto
 
@@ -77,7 +77,7 @@ public class ImportSpriteSheetTests
     [AvaloniaFact]
     public void El_transparente_que_sale_elegido_es_el_mas_usado()
     {
-        ImportSpriteSheetViewModel form = Form(Main(), [White, Black, Red]);
+        ImportSpriteSheetViewModel form = Form(NewMain(), [White, Black, Red]);
 
         Assert.Equal(Clear, form.Transparent!.Color);
     }
@@ -86,7 +86,7 @@ public class ImportSpriteSheetTests
     [AvaloniaFact]
     public void La_reticula_sale_del_lado_de_celda()
     {
-        ImportSpriteSheetViewModel form = Form(Main(), [White], [Black], [Red]);
+        ImportSpriteSheetViewModel form = Form(NewMain(), [White], [Black], [Red]);
 
         Assert.Equal(3, form.Columns);
         Assert.Equal(2, form.Rows);
@@ -108,7 +108,7 @@ public class ImportSpriteSheetTests
     [AvaloniaFact]
     public void El_rectangulo_se_recorta_a_la_hoja()
     {
-        ImportSpriteSheetViewModel form = Form(Main(), [White], [Black]);
+        ImportSpriteSheetViewModel form = Form(NewMain(), [White], [Black]);
 
         form.Select(1, 0, 5, 5);
 
@@ -131,7 +131,7 @@ public class ImportSpriteSheetTests
     [AvaloniaFact]
     public void Cambiar_la_celda_recoloca_el_rectangulo()
     {
-        ImportSpriteSheetViewModel form = Form(Main(), [White], [Black], [Red], [White]);
+        ImportSpriteSheetViewModel form = Form(NewMain(), [White], [Black], [Red], [White]);
 
         form.Select(3, 0, 1, 1);
         form.CellSize = 16;
@@ -146,7 +146,7 @@ public class ImportSpriteSheetTests
     [AvaloniaFact]
     public void El_informe_sigue_al_rectangulo()
     {
-        ImportSpriteSheetViewModel form = Form(Main(), [White, Black, Red], [White]);
+        ImportSpriteSheetViewModel form = Form(NewMain(), [White, Black, Red], [White]);
 
         form.Select(1, 0, 1, 1);
         int alone = form.Analysis.Patterns;
@@ -160,7 +160,7 @@ public class ImportSpriteSheetTests
     [AvaloniaFact]
     public void El_informe_sigue_al_tope_de_planos()
     {
-        ImportSpriteSheetViewModel form = Form(Main(), [White, Black, Red, Color.FromRgb(0, 0, 255)]);
+        ImportSpriteSheetViewModel form = Form(NewMain(), [White, Black, Red, Color.FromRgb(0, 0, 255)]);
 
         form.Select(0, 0, 1, 1);
         form.MaxPlanes = 2;
@@ -186,7 +186,7 @@ public class ImportSpriteSheetTests
             Red,
         ])];
 
-        ImportSpriteSheetViewModel form = Form(Main(), cells);
+        ImportSpriteSheetViewModel form = Form(NewMain(), cells);
 
         form.MaxPlanes = 2;
         form.Select(0, 0, 40, 1);
@@ -203,7 +203,7 @@ public class ImportSpriteSheetTests
     [AvaloniaFact]
     public void Aceptar_abre_el_banco_con_sus_grupos()
     {
-        MainWindowViewModel main = Main();
+        MainWindowViewModel main = NewMain();
         ImportSpriteSheetViewModel form = Form(main, [White, Black, Red], [White, Black, Red]);
 
         form.Select(0, 0, 2, 1);
@@ -230,7 +230,7 @@ public class ImportSpriteSheetTests
     [AvaloniaFact]
     public void En_modo_patrones_solo_viaja_el_dibujo()
     {
-        MainWindowViewModel main = Main();
+        MainWindowViewModel main = NewMain();
         ImportSpriteSheetViewModel form = Form(main, [White, Black, Red]);
 
         form.OnlyPatterns = true;
@@ -261,7 +261,7 @@ public class ImportSpriteSheetTests
     [AvaloniaFact]
     public void En_modo_patrones_el_numero_se_corresponde_con_la_celda()
     {
-        MainWindowViewModel main = Main();
+        MainWindowViewModel main = NewMain();
 
         // La segunda celda vacía y la tercera igual que la primera.
         ImportSpriteSheetViewModel form = Form(main, [White, Black], [], [White, Black]);
@@ -292,7 +292,7 @@ public class ImportSpriteSheetTests
     {
         Color[] many = [.. Enumerable.Range(1, 16).Select(i => Color.FromRgb((byte)(i * 15), 0, 0))];
 
-        ImportSpriteSheetViewModel form = Form(Main(), many);
+        ImportSpriteSheetViewModel form = Form(NewMain(), many);
 
         form.Select(0, 0, 1, 1);
 
@@ -310,7 +310,7 @@ public class ImportSpriteSheetTests
     {
         Color[][] cells = [.. Enumerable.Range(0, 70).Select(_ => new[] { White })];
 
-        ImportSpriteSheetViewModel form = Form(Main(), cells);
+        ImportSpriteSheetViewModel form = Form(NewMain(), cells);
 
         form.OnlyPatterns = true;
         form.Select(0, 0, 70, 1);
@@ -324,7 +324,7 @@ public class ImportSpriteSheetTests
     [AvaloniaFact]
     public void Cancelar_no_deja_nada()
     {
-        MainWindowViewModel main = Main();
+        MainWindowViewModel main = NewMain();
         ImportSpriteSheetViewModel form = Form(main, [White, Black, Red]);
 
         main.RightPanViewModel = form;
