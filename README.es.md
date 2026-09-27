@@ -5,7 +5,8 @@
 Herramientas de creación de gráficos y mapas para juegos de MSX: sprites, juegos de
 tiles, paletas, bloques y mapas, con exportación a los formatos que espera el VDP.
 
-Escrito en C# sobre Avalonia 12.1 y .NET 10. Funciona en Windows, Linux y macOS.
+Escrito en C# sobre Avalonia 12.1 y .NET 10. Funciona en Windows, Linux y macOS; para
+Windows y Linux hay versiones listas para usar, mira [Descargar](#descargar).
 
 ## Cómo se ve
 
@@ -140,12 +141,29 @@ tira de tiles y bloques abajo para coger con qué pintar.
   otra ahí se la cambia sólo a ése.
 - Se exportan en el formato de dos bytes por color que espera el registro 16.
 
+## Descargar
+
+Hay versiones listas para usar en la [página de versiones][versiones], un archivo por
+sistema y sin nada que instalar: .NET va dentro.
+
+- **Windows**: `MSX_GameTools-<versión>-win-x64.zip`. Descomprímelo donde quieras y
+  ejecuta `MSX_GameTools.exe`.
+- **Linux**: `MSX_GameTools-<versión>-linux-x64.tar.gz`. Extráelo y ejecuta
+  `./MSX_GameTools`.
+- **macOS**: todavía no hay; funciona desde el código, como se explica abajo.
+
+No están firmadas, así que la primera vez Windows avisa con *Windows protegió su PC*:
+*Más información* → *Ejecutar de todas formas*. El primer arranque tarda un poco más,
+porque desempaqueta sus bibliotecas gráficas.
+
+[versiones]: https://github.com/eslamod/MSX-Game-Tools/releases/latest
+
 ## Cómo se ejecuta
 
-Clona con `git clone --recurse-submodules` (o ejecuta `git submodule update --init`
-después): `tools/sass-MSX` es un submódulo con el ensamblador cruzado con el que se
-montan las ROMs de prueba (`dotnet build tools/sass-MSX`, el mismo SDK que el
-editor). El programa en sí no lo necesita.
+Desde el código: clona con `git clone --recurse-submodules` (o ejecuta
+`git submodule update --init` después): `tools/sass-MSX` es un submódulo con el
+ensamblador cruzado con el que se montan las ROMs de prueba (`dotnet build tools/sass-MSX`,
+el mismo SDK que el editor). El programa en sí no lo necesita.
 
 ```bash
 dotnet run

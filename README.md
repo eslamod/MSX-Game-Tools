@@ -5,7 +5,8 @@
 Graphics and map authoring tools for MSX games: sprites, tile sets, palettes, blocks and
 maps, exporting to the formats the VDP expects.
 
-Written in C# on Avalonia 12.1 and .NET 10. Runs on Windows, Linux and macOS.
+Written in C# on Avalonia 12.1 and .NET 10. Runs on Windows, Linux and macOS; there are
+ready-to-run builds for Windows and Linux, see [Download](#download).
 
 ## What it looks like
 
@@ -136,12 +137,29 @@ tiles and blocks along the bottom to pick what to paint with.
   picking another there changes that one only.
 - Exported in the two-bytes-per-colour format that register 16 expects.
 
+## Download
+
+Ready-to-run builds are on the [releases page][releases], one archive per system and
+nothing to install: .NET goes inside.
+
+- **Windows**: `MSX_GameTools-<version>-win-x64.zip`. Unzip it wherever you like and run
+  `MSX_GameTools.exe`.
+- **Linux**: `MSX_GameTools-<version>-linux-x64.tar.gz`. Extract it and run
+  `./MSX_GameTools`.
+- **macOS**: no build yet; it runs from the source code, as below.
+
+They are not signed, so the first time Windows warns with *Windows protected your PC*:
+*More info* → *Run anyway*. The first start takes a little longer, because it unpacks its
+graphics libraries.
+
+[releases]: https://github.com/eslamod/MSX-Game-Tools/releases/latest
+
 ## Running it
 
-Clone with `git clone --recurse-submodules` (or run `git submodule update --init`
-afterwards): `tools/sass-MSX` is a submodule with the cross-assembler the test
-ROMs are built with (`dotnet build tools/sass-MSX`, same SDK as the editor). The
-application itself does not need it.
+From the source code: clone with `git clone --recurse-submodules` (or run
+`git submodule update --init` afterwards): `tools/sass-MSX` is a submodule with the
+cross-assembler the test ROMs are built with (`dotnet build tools/sass-MSX`, same SDK as
+the editor). The application itself does not need it.
 
 ```bash
 dotnet run
