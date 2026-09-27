@@ -1,6 +1,10 @@
 ;-----------------------------------------------------------------------------
 ; {NAME} - example ROM for a map of super tiles exported by MSX Game Tools
 ;-----------------------------------------------------------------------------
+; SPDX-License-Identifier: MIT-0
+; Yours to use in your own games as you like: under MIT-0, not even this
+; notice has to stay.
+;
 ; Written for {ASSEMBLER}. Assemble it with:
 ;
 ;     {COMMAND}

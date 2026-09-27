@@ -273,3 +273,9 @@ y otro con supertiles.
 
 Cada versión etiquetada publica ejecutables para Windows y Linux (mira
 [Descargar](#descargar)); para macOS todavía no hay, y funciona desde el código.
+
+## Licencia
+
+[MIT](LICENSE). Las plantillas de las ROMs de ejemplo, y el código que generan en tus
+exportaciones, van con [MIT-0](Templates/LICENSE): ese código acaba dentro de tus juegos,
+así que no lleva condiciones, ni siquiera la de conservar el aviso.

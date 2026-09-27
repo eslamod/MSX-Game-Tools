@@ -558,6 +558,50 @@ public class ExampleRomTests : IDisposable
         Assert.Contains("nivel1_colors.bin", rom);
     }
 
+    /// <summary>
+    /// Every ROM that comes out of the panel carries its license at the top: MIT-0.
+    /// </summary>
+    /// <remarks>
+    /// That code ends up inside other people's games, far from this repository and from its
+    /// LICENSE files, so the notice travels inside each file: whoever comes across one on its
+    /// own knows it can be used with no conditions. The player of the animations as well, which
+    /// goes out as a file of its own next to the ROM of the bank.
+    /// </remarks>
+    [AvaloniaFact]
+    public async Task Cada_rom_de_ejemplo_lleva_su_licencia()
+    {
+        string bank = Path.Combine(_folder, "banco");
+        string map = Path.Combine(_folder, "mapa");
+        string super = Path.Combine(_folder, "supertiles");
+
+        foreach (string folder in (string[])[bank, map, super])
+            Directory.CreateDirectory(folder);
+
+        await ExportAsync(new TileSet("Bosque"), ExportFormat.Binary, "sasSX");
+        await ExportBankAsync(Animated(), ExportFormat.Binary, "sasSX", bank);
+        await ExportMapAsync(ExportFormat.Binary, "sasSX", map);
+        await ExportSuperMapAsync(ExportFormat.Binary, "sasSX", super);
+
+        string[] written =
+        [
+            Path.Combine(_folder, "bosque_rom.asm"),
+            Path.Combine(bank, "bosque_rom.asm"),
+            Path.Combine(bank, "bosque_player.asm"),
+            Path.Combine(map, "nivel_rom.asm"),
+            Path.Combine(super, "nivel_rom.asm"),
+        ];
+
+        foreach (string file in written)
+        {
+            // Among the first lines, under the title: the first thing read in the file.
+            string head = string.Join('\n', File.ReadLines(file).Take(8));
+
+            Assert.True(
+                head.Contains("; SPDX-License-Identifier: MIT-0", StringComparison.Ordinal),
+                $"{Path.GetRelativePath(_folder, file)} does not carry its license at the top");
+        }
+    }
+
     // ------------------------------------------------------------------ los andamios
 
     /// <summary>Lo que queda de una ROM al quitarle el relleno del final.</summary>

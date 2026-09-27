@@ -1,6 +1,10 @@
 ;-----------------------------------------------------------------------------
 ; The player for the animation format of MSX Game Tools
 ;-----------------------------------------------------------------------------
+; SPDX-License-Identifier: MIT-0
+; Yours to use in your own games as you like: under MIT-0, not even this
+; notice has to stay.
+;
 ; Included from the ROM that brings the groups, because an animation points at
 ; the groups by the place they take in the table, so it can only be checked
 ; where that table exists and is known to be right.

@@ -5,6 +5,10 @@ pedir la ROM de ejemplo y sale una de ellas rellenada —para el ensamblador que
 elija (sasSX, sjasmplus, pasmo o asMSX), para el modo del documento y nombrando
 los ficheros que se acaban de escribir—.
 
+**Licencia**: estas plantillas, y el código que sale de ellas al exportar, van con
+MIT-0 ([LICENSE](LICENSE)). Ese código acaba dentro de tus juegos, así que puedes
+usarlo como quieras sin conservar siquiera el aviso. El resto del programa es MIT.
+
 Lo que hacen es comprobar en una máquina de verdad (o en un emulador) que lo que
 exporta el editor es lo que espera el VDP. No son parte de la herramienta: son el
 banco de pruebas de los exportadores, y de paso el punto de partida para quien no

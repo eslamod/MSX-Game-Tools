@@ -268,3 +268,9 @@ with super tiles.
 
 Each tagged version publishes builds for Windows and Linux (see [Download](#download));
 macOS has none yet and runs from the source code.
+
+## License
+
+[MIT](LICENSE). The templates of the example ROMs, and the code they generate in your
+exports, are under [MIT-0](Templates/LICENSE): that code ends up inside your games, so it
+carries no conditions, not even keeping the notice.
