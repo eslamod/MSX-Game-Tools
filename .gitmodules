@@ -1,4 +1,4 @@
 [submodule "tools/sass-MSX"]
 	path = tools/sass-MSX
-	url = git@github.com:Libertium/sass-MSX.git
+	url = https://github.com/Libertium/sass-MSX.git
 	branch = master
