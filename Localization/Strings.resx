@@ -565,6 +565,8 @@ Se verán igual que antes, pero con los colores en sus índices nuevos. Quedará
   <data name="KindSpriteBank" xml:space="preserve"><value>banco de sprites</value></data>
   <data name="KindMap" xml:space="preserve"><value>mapa</value></data>
   <data name="KindProject" xml:space="preserve"><value>proyecto</value></data>
+  <data name="NoProject" xml:space="preserve"><value>Sin proyecto</value></data>
+  <data name="NewProjectFileName" xml:space="preserve"><value>Proyecto</value></data>
 
   <!-- Títulos del selector de fichero -->
   <data name="PickSaveTileSet" xml:space="preserve"><value>Guardar el juego de tiles</value></data>

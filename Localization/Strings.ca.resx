@@ -533,6 +533,8 @@ Es veuran igual que abans, però amb els colors als seus índexs nous. Quedaran 
   <data name="KindSpriteBank" xml:space="preserve"><value>banc de sprites</value></data>
   <data name="KindMap" xml:space="preserve"><value>mapa</value></data>
   <data name="KindProject" xml:space="preserve"><value>projecte</value></data>
+  <data name="NoProject" xml:space="preserve"><value>Sense projecte</value></data>
+  <data name="NewProjectFileName" xml:space="preserve"><value>Projecte</value></data>
 
   <data name="PickSaveTileSet" xml:space="preserve"><value>Desa el joc de tiles</value></data>
   <data name="PickSaveSpriteBank" xml:space="preserve"><value>Desa el banc de sprites</value></data>

@@ -193,6 +193,9 @@ public partial class EditPreferencesViewModel : PanelBaseViewModel
 
         Localizer.Instance.Language = Language.Code;
 
+        if (languageChanged)
+            _mainWindowVm.OnLanguageChanged();
+
         _mainWindowVm.SaveSettings();
         _mainWindowVm.RightPanViewModel = null;
 

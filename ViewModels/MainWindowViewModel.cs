@@ -662,10 +662,29 @@ public partial class MainWindowViewModel : ObservableObject
     /// <summary>El índice tal y como quedó la última vez que se escribió.</summary>
     private string? _savedProjectText;
 
+    /// <summary>
+    /// The name of its file, or, while it has none, "no project" in the language of the
+    /// interface.
+    /// </summary>
+    /// <remarks>
+    /// It goes in the title of the window, and it was written in Spanish right here: on a
+    /// machine in English the whole window came out in English but the title.
+    /// </remarks>
     public string ProjectName =>
-        ProjectPath is null ? "Sin proyecto" : Path.GetFileNameWithoutExtension(ProjectPath);
+        ProjectPath is null ? Text["NoProject"] : Path.GetFileNameWithoutExtension(ProjectPath);
 
     public string WindowTitle => $"MSX Game Tools — {ProjectName}";
+
+    /// <summary>
+    /// Has the window read again what is put together here instead of bound to a text of the
+    /// <see cref="Localizer"/>: the title. The preferences panel calls it after changing the
+    /// language.
+    /// </summary>
+    public void OnLanguageChanged()
+    {
+        OnPropertyChanged(nameof(ProjectName));
+        OnPropertyChanged(nameof(WindowTitle));
+    }
 
     /// <summary>Los documentos del proyecto, estén su pestaña abierta o no.</summary>
     private IEnumerable<PanelBaseViewModel> Documents => _panels.Values.Where(panel => panel.IsDocument);
@@ -725,10 +744,14 @@ public partial class MainWindowViewModel : ObservableObject
     /// <returns><c>false</c> si se canceló o algo no se pudo escribir.</returns>
     private async Task<bool> WriteProjectAsync(bool askForPath)
     {
+        // A project with no file yet is offered a name of its own. The one in the title is
+        // "no project", which is not a name for a file.
+        string name = ProjectPath is null ? Text["NewProjectFileName"] : ProjectName;
+
         string? path = askForPath || ProjectPath is null
             ? await Dialogs.PickFileToSaveAsync(
                 Text["PickSaveProject"],
-                $"{CleanFileName(ProjectName)}{ProjectSerializer.Extension}",
+                $"{CleanFileName(name)}{ProjectSerializer.Extension}",
                 PickerFileKind.Project)
             : ProjectPath;
 

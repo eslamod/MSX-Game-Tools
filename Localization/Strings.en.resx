@@ -532,6 +532,8 @@ They will look just like before, but with the colours at their new indices. They
   <data name="KindSpriteBank" xml:space="preserve"><value>sprite bank</value></data>
   <data name="KindMap" xml:space="preserve"><value>map</value></data>
   <data name="KindProject" xml:space="preserve"><value>project</value></data>
+  <data name="NoProject" xml:space="preserve"><value>No project</value></data>
+  <data name="NewProjectFileName" xml:space="preserve"><value>Project</value></data>
 
   <data name="PickSaveTileSet" xml:space="preserve"><value>Save the tile set</value></data>
   <data name="PickSaveSpriteBank" xml:space="preserve"><value>Save the sprite bank</value></data>
