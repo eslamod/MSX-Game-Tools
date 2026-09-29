@@ -4,7 +4,11 @@
              xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:l="clr-namespace:MSX_GameTools.Localization"
              x:Class="MSX_GameTools.App"
+             Name="MSX Game Tools"
              RequestedThemeVariant="Light"><!-- Hasta que se lean los ajustes, que mandan -->
+
+  <!-- The name is what the application menu of macOS calls the program, in About, Hide and
+       Quit. Without it Avalonia puts its own there: Avalonia Application. -->
 
   <!-- Sustituye al antiguo ViewModelFacctory: resuelve XxxViewModel -> Views.XxxView -->
   <Application.DataTemplates>

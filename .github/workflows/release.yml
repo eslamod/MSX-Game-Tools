@@ -1,12 +1,13 @@
-# Builds the application for Windows and Linux and publishes it as a GitHub release.
+# Builds the application for Windows, Linux and macOS and publishes it as a GitHub release.
 #
-# Pushing a tag v1.2.3 runs the suite, publishes both builds with version 1.2.3 and creates the
-# release of that tag with the two archives attached. Run by hand (Actions > Release > Run
+# Pushing a tag v1.2.3 runs the suite, publishes the builds with version 1.2.3 and creates the
+# release of that tag with the archives attached. Run by hand (Actions > Release > Run
 # workflow) it does everything but the release: the archives stay as artifacts of the run, which
 # is the way to check a build before tagging it.
 #
 # The builds are self-contained single files: .NET goes inside, so nothing has to be installed
-# to run them. macOS is left out for now; it would need an .app bundle to open with a double click.
+# to run them. On macOS that file goes inside an .app bundle, which is what opens with a double
+# click, and there are two: one for Apple Silicon and one for Intel.
 
 name: Release
 
@@ -58,6 +59,14 @@ jobs:
             os: windows-latest
           - rid: linux-x64
             os: ubuntu-latest
+          # Macs on Macs: only there is codesign, and Apple Silicon does not run code with no
+          # signature at all. Each on a Mac with its own processor, so that each build is
+          # started on the kind of Mac it is for; the Intel one on macOS 15, which also tries
+          # the program on a system older than the latest.
+          - rid: osx-arm64
+            os: macos-latest
+          - rid: osx-x64
+            os: macos-15-intel
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
@@ -122,11 +131,87 @@ jobs:
         if: runner.os == 'Linux'
         run: tar --exclude='*.pdb' -czf "MSX_GameTools-$VERSION-${{ matrix.rid }}.tar.gz" -C publish .
 
+      # A Mac program is a folder, MSX Game Tools.app, that Finder shows as one icon and opens
+      # with a double click. The executable goes in Contents/MacOS, and the Info.plist says
+      # which file that is, what the program is called and which version it is; only the
+      # numbers, which is all macOS takes there.
+      #
+      # The Info.plist also says the oldest macOS it runs on, and that is checked here against
+      # what the executable itself says it needs: a .NET that asks for more would otherwise go
+      # out promising a system it does not start on.
+      #
+      # Signed ad hoc, a signature with no certificate: free and with no Apple account. It
+      # does not spare the warning on the first start, but without it Apple Silicon does not
+      # run the program at all, and a bundle whose signature does not match what it holds is
+      # taken for a damaged one, which cannot be opened even by hand.
+      #
+      # Zipped with ditto, which is how macOS itself zips an application: it keeps the
+      # permission to run and the signature.
+      - name: Pack for macOS
+        if: runner.os == 'macOS'
+        run: |
+          APP="MSX Game Tools.app"
+          PLIST="$APP/Contents/Info.plist"
+
+          mkdir -p "$APP/Contents/MacOS"
+          ditto publish "$APP/Contents/MacOS"
+          find "$APP" -name '*.pdb' -delete
+          sed "s/@VERSION@/${VERSION%%-*}/g" Packaging/macOS/Info.plist > "$PLIST"
+          plutil -lint "$PLIST"
+          ls -la "$APP/Contents/MacOS"
+
+          PROMISED=$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "$PLIST")
+          NEEDED=$(vtool -show-build "$APP/Contents/MacOS/MSX_GameTools" | awk '/minos/ { print $2; exit }')
+          echo "The Info.plist promises macOS $PROMISED; the executable needs $NEEDED."
+
+          if [[ -z "$NEEDED" ]]; then
+            echo "::warning::Could not read which macOS the executable needs; the Info.plist goes unchecked."
+          elif [[ "${NEEDED%%.*}" -gt "${PROMISED%%.*}" ]]; then
+            echo "::error::The executable needs macOS $NEEDED and the Info.plist says $PROMISED. Raise LSMinimumSystemVersion in Packaging/macOS/Info.plist, and the README with it."
+            exit 1
+          fi
+
+          codesign --force --deep --sign - "$APP"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          ditto -c -k --keepParent "$APP" "MSX_GameTools-$VERSION-${{ matrix.rid }}.zip"
+
+      # Nobody here has a Mac, so the ones GitHub lends are where the program is first started:
+      # unzipped as a user would, opened the way Finder opens it, and given time to fall over.
+      # It has to be still running a while later. The screenshot is for looking at.
+      #
+      # What this does not try is the first start of a download: a browser marks what it
+      # downloads, and macOS asks before opening it. Unzipped here there is no mark.
+      - name: Start it on a Mac
+        if: runner.os == 'macOS'
+        run: |
+          ditto -x -k "MSX_GameTools-$VERSION-${{ matrix.rid }}.zip" smoke
+          open --stdout "$PWD/smoke-${{ matrix.rid }}.out" --stderr "$PWD/smoke-${{ matrix.rid }}.err" \
+            "smoke/MSX Game Tools.app"
+          sleep 20
+          screencapture -x "smoke-${{ matrix.rid }}.png" || echo "::warning::No screenshot."
+
+          if ! pgrep -x MSX_GameTools > /dev/null; then
+            cat smoke-*.out smoke-*.err || true
+            cat ~/Library/Logs/DiagnosticReports/MSX_GameTools* 2> /dev/null | head -n 100 || true
+            echo "::error::MSX Game Tools did not stay open on ${{ matrix.rid }}."
+            exit 1
+          fi
+
+          pkill -x MSX_GameTools || true
+
       - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.rid }}
           path: MSX_GameTools-*
           if-no-files-found: error
+
+      # Also when starting it failed, which is when it is most wanted.
+      - uses: actions/upload-artifact@v7
+        if: always() && runner.os == 'macOS'
+        with:
+          name: smoke-${{ matrix.rid }}
+          path: smoke-*
+          if-no-files-found: ignore
 
   release:
     name: Release
@@ -146,7 +231,8 @@ jobs:
           merge-multiple: true
 
       # A tag with a hyphen —v1.0-beta— goes out as a prerelease, so that the latest release,
-      # which is where the README sends people, stays the last one meant for everybody.
+      # which is where the README sends people, stays the last one meant for everybody. Only
+      # the archives: the screenshots of the Macs come down with them and stay out.
       - name: Create the release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -155,7 +241,7 @@ jobs:
           if [[ "$GITHUB_REF_NAME" == *-* ]]; then
             flags+=(--prerelease)
           fi
-          gh release create "$GITHUB_REF_NAME" dist/* \
+          gh release create "$GITHUB_REF_NAME" dist/MSX_GameTools-* \
             --repo "$GITHUB_REPOSITORY" \
             --title "$GITHUB_REF_NAME" \
             --generate-notes \

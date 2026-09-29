@@ -5,8 +5,8 @@
 Graphics and map authoring tools for MSX games: sprites, tile sets, palettes, blocks and
 maps, exporting to the formats the VDP expects.
 
-Written in C# on Avalonia 12.1 and .NET 10. Runs on Windows, Linux and macOS; there are
-ready-to-run builds for Windows and Linux, see [Download](#download).
+Written in C# on Avalonia 12.1 and .NET 10. Runs on Windows, Linux and macOS, with
+ready-to-run builds for all three: see [Download](#download).
 
 ## What it looks like
 
@@ -146,11 +146,24 @@ nothing to install: .NET goes inside.
   `MSX_GameTools.exe`.
 - **Linux**: `MSX_GameTools-<version>-linux-x64.tar.gz`. Extract it and run
   `./MSX_GameTools`.
-- **macOS**: no build yet; it runs from the source code, as below.
+- **macOS**: `MSX_GameTools-<version>-osx-arm64.zip` for Macs with an Apple chip (M1 and
+  later), `MSX_GameTools-<version>-osx-x64.zip` for those with an Intel one. Unzip it and
+  drag *MSX Game Tools* to Applications. It needs macOS 12 or later.
 
 They are not signed, so the first time Windows warns with *Windows protected your PC*:
-*More info* → *Run anyway*. The first start takes a little longer, because it unpacks its
-graphics libraries.
+*More info* → *Run anyway*. macOS goes further and does not open it at all: after trying,
+go to *System Settings* → *Privacy & Security*, where at the bottom there is *Open Anyway*,
+which asks for your password. It is only the first time. The same thing from Terminal:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/MSX Game Tools.app"
+```
+
+The first start takes a little longer, because it unpacks its graphics libraries.
+
+The macOS build is started on one of GitHub's Macs every time it is built, the Apple
+Silicon one and the Intel one, but nobody has tried it on a real Mac yet. If you do, an
+issue saying how it went is welcome.
 
 [releases]: https://github.com/eslamod/MSX-Game-Tools/releases/latest
 
@@ -266,8 +279,8 @@ programs compared with each other, and all of them have been run in openMSX: a t
 both screen modes, a sprite bank with its animations, a map drawn with tiles and one drawn
 with super tiles.
 
-Each tagged version publishes builds for Windows and Linux (see [Download](#download));
-macOS has none yet and runs from the source code.
+Each tagged version publishes builds for Windows, Linux and macOS (see
+[Download](#download)); the macOS one has not been tried on a real Mac yet.
 
 ## License
 

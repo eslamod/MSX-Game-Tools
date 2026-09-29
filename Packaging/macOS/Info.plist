@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  What macOS reads to know what MSX Game Tools.app is: which file inside it to run, what the
+  program is called and which version it is. The release workflow copies it into the bundle
+  and writes the version where it says @VERSION@.
+
+  LSMinimumSystemVersion is the oldest macOS that .NET 10 runs on. With it, an older Mac says
+  the program needs a newer system instead of opening it to watch it fail; the workflow checks
+  it against what the executable itself says it needs.
+-->
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key>
+  <string>MSX Game Tools</string>
+  <key>CFBundleDisplayName</key>
+  <string>MSX Game Tools</string>
+  <key>CFBundleIdentifier</key>
+  <string>io.github.eslamod.msxgametools</string>
+  <key>CFBundleExecutable</key>
+  <string>MSX_GameTools</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>CFBundleShortVersionString</key>
+  <string>@VERSION@</string>
+  <key>CFBundleVersion</key>
+  <string>@VERSION@</string>
+  <key>LSMinimumSystemVersion</key>
+  <string>12.0</string>
+  <key>NSPrincipalClass</key>
+  <string>NSApplication</string>
+  <key>NSHighResolutionCapable</key>
+  <true/>
+  <key>NSHumanReadableCopyright</key>
+  <string>Copyright © 2026 Esteban Lázaro. MIT License.</string>
+</dict>
+</plist>

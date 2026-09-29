@@ -5,8 +5,8 @@
 Herramientas de creación de gráficos y mapas para juegos de MSX: sprites, juegos de
 tiles, paletas, bloques y mapas, con exportación a los formatos que espera el VDP.
 
-Escrito en C# sobre Avalonia 12.1 y .NET 10. Funciona en Windows, Linux y macOS; para
-Windows y Linux hay versiones listas para usar, mira [Descargar](#descargar).
+Escrito en C# sobre Avalonia 12.1 y .NET 10. Funciona en Windows, Linux y macOS, y para
+los tres hay versiones listas para usar: mira [Descargar](#descargar).
 
 ## Cómo se ve
 
@@ -150,11 +150,25 @@ sistema y sin nada que instalar: .NET va dentro.
   ejecuta `MSX_GameTools.exe`.
 - **Linux**: `MSX_GameTools-<versión>-linux-x64.tar.gz`. Extráelo y ejecuta
   `./MSX_GameTools`.
-- **macOS**: todavía no hay; funciona desde el código, como se explica abajo.
+- **macOS**: `MSX_GameTools-<versión>-osx-arm64.zip` para los Mac con chip de Apple (M1 y
+  posteriores), `MSX_GameTools-<versión>-osx-x64.zip` para los que lo llevan de Intel.
+  Descomprímelo y arrastra *MSX Game Tools* a Aplicaciones. Necesita macOS 12 o posterior.
 
 No están firmadas, así que la primera vez Windows avisa con *Windows protegió su PC*:
-*Más información* → *Ejecutar de todas formas*. El primer arranque tarda un poco más,
-porque desempaqueta sus bibliotecas gráficas.
+*Más información* → *Ejecutar de todas formas*. macOS va más allá y no lo abre: después
+de intentarlo, ve a *Ajustes del Sistema* → *Privacidad y seguridad*, y abajo del todo
+está *Abrir igualmente*, que pide tu contraseña. Sólo es la primera vez. Lo mismo desde el
+Terminal:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/MSX Game Tools.app"
+```
+
+El primer arranque tarda un poco más, porque desempaqueta sus bibliotecas gráficas.
+
+La versión de macOS se arranca en uno de los Mac de GitHub cada vez que se compila, la de
+Apple Silicon y la de Intel, pero todavía no la ha probado nadie en un Mac de verdad. Si lo
+haces, se agradece una incidencia contando cómo ha ido.
 
 [versiones]: https://github.com/eslamod/MSX-Game-Tools/releases/latest
 
@@ -271,8 +285,8 @@ los cuatro programas entre sí, y todas se han probado en openMSX: un juego de t
 dos modos de pantalla, un banco de sprites con sus animaciones, un mapa dibujado con tiles
 y otro con supertiles.
 
-Cada versión etiquetada publica ejecutables para Windows y Linux (mira
-[Descargar](#descargar)); para macOS todavía no hay, y funciona desde el código.
+Cada versión etiquetada publica ejecutables para Windows, Linux y macOS (mira
+[Descargar](#descargar)); el de macOS todavía no se ha probado en un Mac de verdad.
 
 ## Licencia
 
