@@ -108,6 +108,14 @@
         <ResourceInclude Source="avares://MSX_GameTools/Themes/AppColors.axaml" />
       </ResourceDictionary.MergedDictionaries>
 
+    <!-- The typeface of hex values and columns of numbers, which only line up if every
+         character is as wide as the next. Consolas comes with Windows and nothing else: on
+         macOS and Linux the name is not found, and the text falls back to the default font,
+         which is proportional. Menlo is on every Mac, DejaVu Sans Mono on nearly every Linux
+         desktop, and monospace is the name fontconfig resolves to whichever fixed-width font
+         the system has. -->
+    <FontFamily x:Key="CodeFont">Consolas, Menlo, DejaVu Sans Mono, monospace</FontFamily>
+
     <!-- Equivalente al ControlTemplate que en WPF convertía los RadioButton
          en ToggleButton. En Avalonia esto es un ControlTheme. -->
     <ControlTheme x:Key="ToggleRadioButton" TargetType="RadioButton">

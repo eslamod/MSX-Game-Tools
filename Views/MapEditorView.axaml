@@ -157,7 +157,7 @@
         <!-- Ancho de sobra para «255, 21   Bloque 255»: la tira va pegada a la derecha, y
              sin un minimo el resto de la barra baila cada vez que cambia el numero. -->
         <TextBlock x:Name="HoverText" Text="{Binding HoverLabel}"
-                   FontFamily="Consolas" MinWidth="150"
+                   FontFamily="{StaticResource CodeFont}" MinWidth="150"
                    VerticalAlignment="Center" />
         <TextBlock Text="{Binding ZoomLabel}" Margin="10,0" MinWidth="28"
                    VerticalAlignment="Center" />
@@ -259,7 +259,7 @@
             <Grid ColumnDefinitions="*,Auto">
               <Border Grid.Column="0" Background="{Binding BackgroundColor.Brush}" />
               <TextBlock Grid.Column="1" Text="{Binding BackgroundColor.Hex}"
-                         FontFamily="Consolas" FontSize="11" Width="16"
+                         FontFamily="{StaticResource CodeFont}" FontSize="11" Width="16"
                          HorizontalAlignment="Center" VerticalAlignment="Center"
                          TextAlignment="Center" />
             </Grid>

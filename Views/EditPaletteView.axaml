@@ -113,11 +113,11 @@
               </Grid>
             </Border>
             <TextBlock Grid.Column="1" Text="{Binding Hex}"
-                       FontFamily="Consolas" VerticalAlignment="Center"
+                       FontFamily="{StaticResource CodeFont}" VerticalAlignment="Center"
                        TextAlignment="Center" />
             <TextBlock Grid.Column="2" Text="{Binding DisplayName}" VerticalAlignment="Center" />
             <TextBlock Grid.Column="3" Text="{Binding HexRgb}"
-                       FontFamily="Consolas" Foreground="{DynamicResource AppTextSecondary}"
+                       FontFamily="{StaticResource CodeFont}" Foreground="{DynamicResource AppTextSecondary}"
                        VerticalAlignment="Center" Margin="6,0,0,0"
                        ToolTip.Tip="{l:Localize PaletteComponentsTip}" />
           </Grid>
@@ -143,7 +143,7 @@
               </Grid>
             </Border>
             <TextBlock Grid.Column="1" Text="{Binding Hex}"
-                       FontFamily="Consolas" Foreground="{DynamicResource AppTextSecondary}"
+                       FontFamily="{StaticResource CodeFont}" Foreground="{DynamicResource AppTextSecondary}"
                        VerticalAlignment="Center" Margin="4,0,0,0" />
             <!-- La marca de los que ya coinciden: los que no la llevan son los que quedan. -->
             <TextBlock Grid.Column="2" Text="=" FontWeight="Bold"
@@ -191,7 +191,7 @@
                 TickFrequency="1" IsSnapToTickEnabled="True"
                 Value="{Binding SelectedColor.Red}" />
         <TextBlock Grid.Column="2" Text="{Binding SelectedColor.Red}"
-                   FontFamily="Consolas" VerticalAlignment="Center" TextAlignment="Right" />
+                   FontFamily="{StaticResource CodeFont}" VerticalAlignment="Center" TextAlignment="Right" />
       </Grid>
 
       <Grid ColumnDefinitions="20,*,24" Margin="0,2">
@@ -200,7 +200,7 @@
                 TickFrequency="1" IsSnapToTickEnabled="True"
                 Value="{Binding SelectedColor.Green}" />
         <TextBlock Grid.Column="2" Text="{Binding SelectedColor.Green}"
-                   FontFamily="Consolas" VerticalAlignment="Center" TextAlignment="Right" />
+                   FontFamily="{StaticResource CodeFont}" VerticalAlignment="Center" TextAlignment="Right" />
       </Grid>
 
       <Grid ColumnDefinitions="20,*,24" Margin="0,2">
@@ -209,7 +209,7 @@
                 TickFrequency="1" IsSnapToTickEnabled="True"
                 Value="{Binding SelectedColor.Blue}" />
         <TextBlock Grid.Column="2" Text="{Binding SelectedColor.Blue}"
-                   FontFamily="Consolas" VerticalAlignment="Center" TextAlignment="Right" />
+                   FontFamily="{StaticResource CodeFont}" VerticalAlignment="Center" TextAlignment="Right" />
       </Grid>
 
       <Grid ColumnDefinitions="Auto,*" Margin="0,8,0,0">
@@ -217,7 +217,7 @@
                 BorderBrush="Black" BorderThickness="1"
                 Background="{Binding SelectedColor.Brush}" />
         <TextBlock Grid.Column="1" Text="{Binding SelectedColor.HexRgb}"
-                   FontFamily="Consolas" VerticalAlignment="Center" Margin="8,0,0,0" />
+                   FontFamily="{StaticResource CodeFont}" VerticalAlignment="Center" Margin="8,0,0,0" />
       </Grid>
     </StackPanel>
 

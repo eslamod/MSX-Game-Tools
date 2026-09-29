@@ -161,7 +161,7 @@
               <Grid ColumnDefinitions="*,Auto">
                 <Border Grid.Column="0" Background="{Binding Foreground.Brush}" />
                 <TextBlock Grid.Column="1" Text="{Binding Foreground.Hex}"
-                           FontFamily="Consolas" FontSize="11" Width="16"
+                           FontFamily="{StaticResource CodeFont}" FontSize="11" Width="16"
                            TextAlignment="Center" VerticalAlignment="Center" />
               </Grid>
               <Button.Flyout>
@@ -200,7 +200,7 @@
               <Grid ColumnDefinitions="*,Auto">
                 <Border Grid.Column="0" Background="{Binding Background.Brush}" />
                 <TextBlock Grid.Column="1" Text="{Binding Background.Hex}"
-                           FontFamily="Consolas" FontSize="11" Width="16"
+                           FontFamily="{StaticResource CodeFont}" FontSize="11" Width="16"
                            TextAlignment="Center" VerticalAlignment="Center" />
               </Grid>
               <Button.Flyout>
@@ -269,7 +269,7 @@
                 <!-- A que tiles pinta. Sin esto la rejilla son 32 pares sin nombre, y el
                      numero de grupo por si solo no dice a que tiles toca. -->
                 <TextBlock Text="{Binding Range}" VerticalAlignment="Center"
-                           FontFamily="Consolas" FontSize="11" Width="52"
+                           FontFamily="{StaticResource CodeFont}" FontSize="11" Width="52"
                            TextAlignment="Right" Margin="0,0,4,0" />
 
                 <Button Theme="{StaticResource TileColorSwatch}" Width="26" Height="24"
@@ -418,7 +418,7 @@
           <Grid ColumnDefinitions="*,Auto">
             <Border Grid.Column="0" Background="{Binding BorderColor.Brush}" />
             <TextBlock Grid.Column="1" Text="{Binding BorderColor.Hex}"
-                       FontFamily="Consolas" FontSize="11" Width="16"
+                       FontFamily="{StaticResource CodeFont}" FontSize="11" Width="16"
                        HorizontalAlignment="Center" VerticalAlignment="Center"
                        TextAlignment="Center" />
           </Grid>
@@ -657,7 +657,7 @@
       <StackPanel x:Name="TileNavStrip"
                   Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0">
         <TextBlock Text="{Binding TileLabel}" VerticalAlignment="Center"
-                   FontFamily="Consolas" MinWidth="64" Margin="0,0,8,0" />
+                   FontFamily="{StaticResource CodeFont}" MinWidth="64" Margin="0,0,8,0" />
         <Button Classes="tool"
                 Command="{Binding PreviousTileCommand}"
                 ToolTip.Tip="{l:Localize TilePreviousTip}">

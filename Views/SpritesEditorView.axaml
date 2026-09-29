@@ -184,7 +184,7 @@
       <Grid ColumnDefinitions="*,Auto">
         <Border Grid.Column="0" Background="{Binding BackgroundColor.Brush}" />
         <TextBlock Grid.Column="1" Text="{Binding BackgroundColor.Hex}"
-                   FontFamily="Consolas" FontSize="11" Width="16"
+                   FontFamily="{StaticResource CodeFont}" FontSize="11" Width="16"
                    HorizontalAlignment="Center" VerticalAlignment="Center"
                    TextAlignment="Center" />
       </Grid>
@@ -209,7 +209,7 @@
                     <Border Background="{Binding Brush}" />
                     <Border Background="#C0FFFFFF" Padding="2,0"
                             HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                      <TextBlock Text="{Binding Hex}" FontFamily="Consolas"
+                      <TextBlock Text="{Binding Hex}" FontFamily="{StaticResource CodeFont}"
                                  FontSize="10" Foreground="Black" />
                     </Border>
                   </Grid>
@@ -358,7 +358,7 @@
             <Grid ColumnDefinitions="*,Auto">
               <Border Grid.Column="0" Background="{Binding Color.Brush}" />
               <TextBlock Grid.Column="1" Text="{Binding Color.Hex}"
-                         FontFamily="Consolas" FontSize="11" Width="16"
+                         FontFamily="{StaticResource CodeFont}" FontSize="11" Width="16"
                          HorizontalAlignment="Center" VerticalAlignment="Center"
                          TextAlignment="Center" />
             </Grid>
@@ -385,7 +385,7 @@
                           <Border Background="{Binding Brush}" />
                           <Border Background="#C0FFFFFF" Padding="2,0"
                                   HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                            <TextBlock Text="{Binding Hex}" FontFamily="Consolas"
+                            <TextBlock Text="{Binding Hex}" FontFamily="{StaticResource CodeFont}"
                                        FontSize="10" Foreground="Black" />
                           </Border>
                         </Grid>
@@ -412,7 +412,7 @@
         <Grid ColumnDefinitions="*,Auto">
           <Border Grid.Column="0" Background="{Binding SpriteColor.Brush}" />
           <TextBlock Grid.Column="1" Text="{Binding SpriteColor.Hex}"
-                     FontFamily="Consolas" FontSize="11" Width="16"
+                     FontFamily="{StaticResource CodeFont}" FontSize="11" Width="16"
                      HorizontalAlignment="Center" VerticalAlignment="Center"
                      TextAlignment="Center" />
         </Grid>
@@ -437,7 +437,7 @@
                       <Border Background="{Binding Brush}" />
                       <Border Background="#C0FFFFFF" Padding="2,0"
                               HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                        <TextBlock Text="{Binding Hex}" FontFamily="Consolas"
+                        <TextBlock Text="{Binding Hex}" FontFamily="{StaticResource CodeFont}"
                                    FontSize="10" Foreground="Black" />
                       </Border>
                     </Grid>
@@ -579,7 +579,7 @@
                 <!-- Separadores explicitos: sin ellos "Patrón 0 x 0 y 0" se lee como si
                      la x formara parte del numero anterior. -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal"
-                            VerticalAlignment="Center" TextElement.FontFamily="Consolas">
+                            VerticalAlignment="Center" TextElement.FontFamily="{StaticResource CodeFont}">
                   <TextBlock Text="{Binding PatternIndex, StringFormat='Patrón {0}'}" />
                   <TextBlock Text=" ; " Foreground="{DynamicResource AppTextSecondary}" />
                   <TextBlock Text="{Binding OffsetX, StringFormat='x:{0}'}" />
@@ -679,7 +679,7 @@
 
               <Button Grid.Column="1"
                       Content="{Binding SelectedGroup.Background.CellLabel}"
-                      MinWidth="52" Margin="4,0,0,0" FontFamily="Consolas"
+                      MinWidth="52" Margin="4,0,0,0" FontFamily="{StaticResource CodeFont}"
                       HorizontalContentAlignment="Center"
                       IsVisible="{Binding SelectedGroup.Background.CanPickCell}"
                       Command="{Binding SelectedGroup.Background.PickCellCommand}"
@@ -721,7 +721,7 @@
               <DataTemplate x:DataType="vm:SpriteMemberColorViewModel">
                 <Grid ColumnDefinitions="16,*,Auto" Height="22" Margin="0,1">
                   <TextBlock Grid.Column="0" Text="{Binding Hex}"
-                             FontFamily="Consolas" FontSize="11"
+                             FontFamily="{StaticResource CodeFont}" FontSize="11"
                              VerticalAlignment="Center" Foreground="{DynamicResource AppTextSecondary}" />
 
                   <Button Grid.Column="1" Theme="{StaticResource ColorSwatchButton}"
@@ -729,7 +729,7 @@
                     <Grid ColumnDefinitions="*,Auto">
                       <Border Grid.Column="0" Background="{Binding Color.Brush}" />
                       <TextBlock Grid.Column="1" Text="{Binding Color.Hex}"
-                                 FontFamily="Consolas" FontSize="11" Width="16"
+                                 FontFamily="{StaticResource CodeFont}" FontSize="11" Width="16"
                                  TextAlignment="Center" VerticalAlignment="Center" />
                     </Grid>
                     <Button.Flyout>
@@ -753,7 +753,7 @@
                                   <Border Background="{Binding Brush}" />
                                   <Border Background="#C0FFFFFF" Padding="2,0"
                                           HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                                    <TextBlock Text="{Binding Hex}" FontFamily="Consolas"
+                                    <TextBlock Text="{Binding Hex}" FontFamily="{StaticResource CodeFont}"
                                                FontSize="10" Foreground="Black" />
                                   </Border>
                                 </Grid>
@@ -784,7 +784,7 @@
             <Grid ColumnDefinitions="*,Auto">
               <Border Grid.Column="0" Background="{Binding SelectedGroup.MemberColor.Brush}" />
               <TextBlock Grid.Column="1" Text="{Binding SelectedGroup.MemberColor.Hex}"
-                         FontFamily="Consolas" FontSize="11" Width="16"
+                         FontFamily="{StaticResource CodeFont}" FontSize="11" Width="16"
                          TextAlignment="Center" VerticalAlignment="Center" />
             </Grid>
             <Button.Flyout>
@@ -808,7 +808,7 @@
                           <Border Background="{Binding Brush}" />
                           <Border Background="#C0FFFFFF" Padding="2,0"
                                   HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                            <TextBlock Text="{Binding Hex}" FontFamily="Consolas"
+                            <TextBlock Text="{Binding Hex}" FontFamily="{StaticResource CodeFont}"
                                        FontSize="10" Foreground="Black" />
                           </Border>
                         </Grid>
@@ -896,13 +896,13 @@
                   <TextBlock Grid.Column="0" Text="{Binding Label}" VerticalAlignment="Center"
                              FontWeight="Bold" Margin="0,0,6,0" />
                   <TextBlock Grid.Column="1" Text="{Binding DetailText}" VerticalAlignment="Center"
-                             FontFamily="Consolas" />
+                             FontFamily="{StaticResource CodeFont}" />
                   <TextBlock Grid.Column="2" Text="{Binding WaitText}" VerticalAlignment="Center"
-                             FontFamily="Consolas" Foreground="{DynamicResource AppTextSecondary}" />
+                             FontFamily="{StaticResource CodeFont}" Foreground="{DynamicResource AppTextSecondary}" />
                   <TextBlock Grid.Column="3" Text="{Binding OffsetText}" VerticalAlignment="Center"
-                             FontFamily="Consolas" Foreground="{DynamicResource AppTextSecondary}" />
+                             FontFamily="{StaticResource CodeFont}" Foreground="{DynamicResource AppTextSecondary}" />
                   <TextBlock Grid.Column="4" Text="{Binding EventText}" VerticalAlignment="Center"
-                             FontFamily="Consolas" Foreground="{DynamicResource AppTextSecondary}" />
+                             FontFamily="{StaticResource CodeFont}" Foreground="{DynamicResource AppTextSecondary}" />
                 </Grid>
               </DataTemplate>
             </ListBox.ItemTemplate>
@@ -1008,7 +1008,7 @@
           </StackPanel>
 
           <TextBlock Text="{Binding Player.Position}" HorizontalAlignment="Center"
-                     FontFamily="Consolas" Margin="0,4,0,0" />
+                     FontFamily="{StaticResource CodeFont}" Margin="0,4,0,0" />
 
           <!-- Tiras de botones y no desplegables: son cuatro valores y dos, y asi se cambian
                de un clic en vez de dos. Cada boton lleva su valor de Content y se enciende
@@ -1346,7 +1346,7 @@
            forma de cambiar de celda sin cambiar antes de imagen. -->
       <Button Grid.Column="1"
               Content="{Binding PatternBackground.CellLabel}"
-              MinWidth="52" Margin="4,0,0,0" FontFamily="Consolas" FontSize="11"
+              MinWidth="52" Margin="4,0,0,0" FontFamily="{StaticResource CodeFont}" FontSize="11"
               HorizontalContentAlignment="Center"
               IsVisible="{Binding PatternBackground.CanPickCell}"
               Command="{Binding PatternBackground.PickCellCommand}"

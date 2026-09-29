@@ -145,7 +145,7 @@
             <DataTemplate x:DataType="vm:ExportFileRow">
               <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,2">
                 <TextBlock Grid.Column="0" Text="{Binding Name}"
-                           FontFamily="Consolas" TextWrapping="Wrap" />
+                           FontFamily="{StaticResource CodeFont}" TextWrapping="Wrap" />
                 <TextBlock Grid.Column="1" Text="{l:Localize ExportExists}"
                            IsVisible="{Binding Exists}"
                            Foreground="{DynamicResource AppTextWarning}" Margin="6,0,0,0" />

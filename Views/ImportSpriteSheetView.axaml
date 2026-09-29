@@ -133,7 +133,7 @@
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <Border Width="18" Height="14" Background="{Binding Brush}"
                         BorderThickness="1" BorderBrush="{DynamicResource AppSeparator}" />
-                <TextBlock Text="{Binding Hex}" FontFamily="Consolas" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding Hex}" FontFamily="{StaticResource CodeFont}" VerticalAlignment="Center" />
               </StackPanel>
             </DataTemplate>
           </ComboBox.ItemTemplate>
