@@ -76,6 +76,9 @@ internal sealed class TestDialogService : IDialogService
     /// <summary>Times a folder was asked for, which is another picker.</summary>
     public int FolderCalls { get; private set; }
 
+    /// <summary>Times the picker to open a file came up.</summary>
+    public int OpenCalls { get; private set; }
+
     /// <summary>Los avisos mostrados, en orden.</summary>
     public List<string> Messages { get; } = [];
 
@@ -97,6 +100,7 @@ internal sealed class TestDialogService : IDialogService
 
     public Task<string?> PickFileToOpenAsync(string title, PickerFileKind kind = PickerFileKind.Json)
     {
+        OpenCalls++;
         LastPickerKind = kind;
 
         return Task.FromResult(OpenPath);

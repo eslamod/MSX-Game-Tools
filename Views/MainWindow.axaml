@@ -30,10 +30,12 @@
 
   <!-- El InputGesture del menu solo se dibuja; para que la tecla haga algo hace falta
        decirlo aqui. -->
+  <!-- Through Shortcut, which turns Ctrl into Cmd on a Mac. The menu goes through it as well,
+       so that it shows the key that works. -->
   <Window.KeyBindings>
-    <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenProjectCommand}" />
-    <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveDocumentCommand}" />
-    <KeyBinding Gesture="Ctrl+Shift+S" Command="{Binding SaveDocumentAsCommand}" />
+    <KeyBinding Gesture="{views:Shortcut Ctrl+O}" Command="{Binding OpenProjectCommand}" />
+    <KeyBinding Gesture="{views:Shortcut Ctrl+S}" Command="{Binding SaveDocumentCommand}" />
+    <KeyBinding Gesture="{views:Shortcut Ctrl+Shift+S}" Command="{Binding SaveDocumentAsCommand}" />
   </Window.KeyBindings>
 
   <!-- La escala de la interfaz, envolviendo todo. De layout y no de render: una de render
@@ -54,7 +56,7 @@
       <MenuItem Header="{l:Localize MenuFile}">
         <!-- El proyecto es un indice de lo demas: guardarlo guarda todo lo que agrupa. -->
         <MenuItem Header="{l:Localize MenuNewProject}" Command="{Binding NewProjectCommand}" />
-        <MenuItem Header="{l:Localize MenuOpenProject}" InputGesture="Ctrl+O"
+        <MenuItem Header="{l:Localize MenuOpenProject}" InputGesture="{views:Shortcut Ctrl+O}"
                   Command="{Binding OpenProjectCommand}" />
         <MenuItem Header="{l:Localize MenuSaveProject}" Command="{Binding SaveProjectCommand}" />
         <MenuItem Header="{l:Localize MenuSaveProjectAs}" Command="{Binding SaveProjectAsCommand}" />
@@ -90,9 +92,9 @@
         <MenuItem Header="{l:Localize MenuRecentClear}"
                   IsEnabled="{Binding !Recent.IsEmpty}"
                   Command="{Binding ClearRecentCommand}" />
-        <MenuItem Header="{l:Localize MenuSave}" InputGesture="Ctrl+S"
+        <MenuItem Header="{l:Localize MenuSave}" InputGesture="{views:Shortcut Ctrl+S}"
                   Command="{Binding SaveDocumentCommand}" />
-        <MenuItem Header="{l:Localize MenuSaveAs}" InputGesture="Ctrl+Shift+S"
+        <MenuItem Header="{l:Localize MenuSaveAs}" InputGesture="{views:Shortcut Ctrl+Shift+S}"
                   Command="{Binding SaveDocumentAsCommand}" />
         <Separator />
         <MenuItem Header="{l:Localize MenuPreferences}" Command="{Binding ShowPreferencesCommand}" />
